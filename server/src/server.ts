@@ -947,7 +947,10 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
     try {
         return await onInitialize(initParams)
     } catch (error) {
-        console.error(error)
+        if (error instanceof Error) {
+            console.error("error", error.message)
+        }
+        console.error("error", error)
     }
     // @ts-expect-error aaa
     return {}
