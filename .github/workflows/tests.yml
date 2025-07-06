@@ -44,6 +44,12 @@ jobs:
           node-version: 22.x
           cache: "yarn"
 
+      - name: Setup EMSDK
+        uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: 3.1.54
+          actions-cache-folder: "emsdk-cache"
+
       - name: Install dependencies
         env:
           YARN_ENABLE_HARDENED_MODE: false
