@@ -68,5 +68,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: language-server-logs-${{ matrix.os }}
-          path: .vscode-test/**/ton-language-server.log
+          path: dist/ton-language-server.log
           if-no-files-found: ignore
