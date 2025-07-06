@@ -110,6 +110,7 @@ async function main(): Promise<void> {
 
         const extensionDevelopmentPath = path.resolve(__dirname, "../../../")
         const extensionTestsPath = path.resolve(__dirname, "./out/tolk/index.js")
+        const extensionCompilerTestsPath = path.resolve(__dirname, "./out/tolk/compiler-index.js")
         const testWorkspace = path.resolve(__dirname, "../../../test-workspace")
 
         if (options.verbose) {
@@ -121,6 +122,12 @@ async function main(): Promise<void> {
         await runTests({
             extensionDevelopmentPath,
             extensionTestsPath,
+            launchArgs: [testWorkspace],
+        })
+
+        await runTests({
+            extensionDevelopmentPath,
+            extensionTestsPath: extensionCompilerTestsPath,
             launchArgs: [testWorkspace],
         })
     } catch (error) {

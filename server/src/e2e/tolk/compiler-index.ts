@@ -3,7 +3,7 @@
 import * as path from "node:path"
 import * as Mocha from "mocha"
 import {glob} from "glob"
-import {Suite, Test} from "mocha"
+import {Suite} from "mocha"
 
 // node.js 20+ builtin
 const globSync = (globs: string[], options: {cwd: string}): string[] => {
@@ -22,20 +22,6 @@ function getFilterOptions(): TestFilterOptions {
         testPattern: process.env["TON_TEST_PATTERN"],
         verbose: process.env["TON_TEST_VERBOSE"] === "true",
     }
-}
-
-function getTestFilePattern(options: TestFilterOptions): string {
-    if (options.suite) {
-        return `${options.suite}.test.js`
-    }
-    return "*.test.js"
-}
-
-function shouldIncludeTest(testName: string, options: TestFilterOptions): boolean {
-    if (options.testPattern) {
-        return testName.toLowerCase().includes(options.testPattern.toLowerCase())
-    }
-    return true
 }
 
 export async function run(): Promise<void> {
@@ -57,7 +43,7 @@ export async function run(): Promise<void> {
         : "../server/src/e2e/tolk/tolk-stdlib/"
 
     const testsRoot = path.resolve(__dirname, ".")
-    const testFilePattern = getTestFilePattern(options)
+    const testFilePattern = `compiler-tests.test.js`
 
     if (options.verbose) {
         console.log(`Looking for test files matching: ${testFilePattern}`)
@@ -69,21 +55,6 @@ export async function run(): Promise<void> {
             cwd: testsRoot,
         })
             .then(files => {
-                files = files.filter(file => !file.includes("compiler-tests.test"))
-
-                files.sort((a, b) => {
-                    if (a.includes("multifile-") && b.includes("multifile-")) {
-                        return Number(a < b)
-                    }
-                    if (a.includes("multifile-") && !b.includes("multifile-")) {
-                        return 1
-                    }
-                    if (!a.includes("multifile-") && b.includes("multifile-")) {
-                        return -1
-                    }
-                    return Number(a < b)
-                })
-
                 if (files.length === 0) {
                     if (options.suite) {
                         console.error(`No test suite found matching: ${options.suite}`)
@@ -141,7 +112,6 @@ export async function run(): Promise<void> {
 function filterTestsRecursively(suite: Suite, options: TestFilterOptions): void {
     if (!options.testPattern) return
 
-    suite.tests = suite.tests.filter((test: Test) => shouldIncludeTest(test.title, options))
     for (const childSuite of suite.suites) {
         filterTestsRecursively(childSuite, options)
     }
