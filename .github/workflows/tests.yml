@@ -55,6 +55,9 @@ jobs:
       - name: Run unit tests
         run: yarn test
 
+      - name: Build WASM
+        run: yarn grammar:wasm
+
       - name: Run e2e tests
         if: matrix.os == 'ubuntu-latest'
         run: xvfb-run -a yarn run test:e2e
