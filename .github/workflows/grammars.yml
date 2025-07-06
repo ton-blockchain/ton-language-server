@@ -57,3 +57,6 @@ jobs:
 
       - name: Build WASM
         run: yarn grammar:wasm
+
+      - name: Test parsers
+        run: yarn test:grammars
