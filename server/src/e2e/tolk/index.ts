@@ -67,8 +67,6 @@ export async function run(): Promise<void> {
             cwd: testsRoot,
         })
             .then(files => {
-                files = files.filter(file => !file.includes("compiler-tests.test"))
-
                 files.sort((a, b) => {
                     if (a.includes("multifile-") && b.includes("multifile-")) {
                         return Number(a < b)
