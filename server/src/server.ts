@@ -373,7 +373,7 @@ async function initializeFallback(uri: string): Promise<void> {
     await initialize()
 }
 
-connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.InitializeResult> => {
+const onInitialize = async (initParams: lsp.InitializeParams): Promise<lsp.InitializeResult> => {
     console.info("Started new session")
     console.info("Running in", initParams.clientInfo?.name)
     console.info("workspaceFolders:", initParams.workspaceFolders)
@@ -942,6 +942,14 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
             },
         },
     }
+}
+connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.InitializeResult> => {
+    try {
+        return await onInitialize(initParams)
+    } catch (error) {
+        console.error(error)
+    }
+    return {}
 })
 
 Logger.initialize(connection, `${__dirname}/ton-language-server.log`)
