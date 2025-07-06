@@ -1,0 +1,39 @@
+{
+    "name": "ton-language-server",
+    "version": "0.0.1",
+    "description": "Language Server for the TON Blockchain",
+    "main": "server.js",
+    "keywords": [
+        "TON",
+        "The Open Network",
+        "Smart contracts",
+        "Tolk",
+        "FunC",
+        "Fift",
+        "BoC",
+        "TL-B"
+    ],
+    "author": "TON Core",
+    "license": "MIT",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/ton-blockchain/ton-language-server.git"
+    },
+    "publishConfig": {
+        "access": "public"
+    },
+    "engines": {
+        "node": ">=16.0.0"
+    },
+    "bin": {
+        "ton-language-server": "server.js"
+    },
+    "files": [
+        "./**/*.svg",
+        "./**/*.tolk",
+        "./**/server.js",
+        "./**/*.md",
+        "./**/*.json",
+        "./**/*.wasm"
+    ]
+}

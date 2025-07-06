@@ -1,0 +1,31 @@
+========================================================================
+Function type parameter completion
+========================================================================
+@<caret>
+fun foo() {}
+------------------------------------------------------------------------
+22 custom
+22 deprecated
+22 inline
+22 inline_ref
+22 method_id
+22 noinline
+22 on_bounced_policy
+22 overflow1023_policy
+22 pure
+
+========================================================================
+Get method type parameter completion
+========================================================================
+@<caret>
+get fun foo() {}
+------------------------------------------------------------------------
+22 custom
+22 deprecated
+22 inline
+22 inline_ref
+22 method_id
+22 noinline
+22 on_bounced_policy
+22 overflow1023_policy
+22 pure

@@ -1,0 +1,108 @@
+========================================================================
+Variable declaration
+========================================================================
+import "@stdlib/tvm-dicts";
+
+struct Map<K, <caret>V> {
+    data: <caret>dict,
+}
+
+fun emptyMap<K, V>() {
+    return Map<K, <caret>V> {
+        <caret>data: null
+    };
+}
+
+fun Map<K, V>.set(self,
+    <caret>key: K,
+    value: <caret>V) {}
+
+fun Map<int32, int>.set(mutate self, key: int, value: int) {
+    self.<caret>data.iDictSetBuilder(32, key,
+        <caret>beginCell()
+        .<caret>storeInt(value, 257));
+}
+
+fun Map<int32, int>.has(mutate self, key: int) {
+    return <caret>self.data.
+        <caret>iDictGet(32, key).1;
+}
+
+fun main() {
+    var map = <caret>emptyMap<int32, int>();
+    map.<caret>set(1, 10);
+
+    if (<caret>map
+        .<caret>has(1)) {
+        return;
+    }
+
+    throw <caret>2;
+}
+------------------------------------------------------------------------
+```tolk
+struct Map
+V
+```
+```tolk
+type dict =
+    | cell
+    | null
+```
+In Tolk v1.x there would be a type `map<K,V>`.
+Currently, working with dictionaries is still low-level, with raw cells.
+But just for clarity, we use "dict" instead of a "cell?" where a cell-dictionary is assumed.
+Every dictionary object can be null. TVM NULL is essentially "empty dictionary".
+```tolk
+fun emptyMap
+V
+```
+```tolk
+struct Map
+data: dict
+```
+```tolk
+key: K
+```
+```tolk
+fun Map<K, V>.set
+V
+```
+```tolk
+struct Map
+data: dict
+```
+```tolk
+@pure
+fun beginCell(): builder
+```
+Creates a new empty builder.
+```tolk
+@pure
+fun builder.storeInt(mutate self, x: int, len: int): self
+```
+Stores a signed [len]-bit integer into a builder (`0 ≤ len ≤ 257`).
+```tolk
+mutate self: Map<int32, int>
+```
+```tolk
+@pure
+fun dict.iDictGet(self, keyLen: int, key: int): (slice?, bool)
+```
+```tolk
+fun emptyMap<K, V>(): Map<K, V>
+```
+```tolk
+fun Map<int32, int>.set(mutate self, key: int, value: int): void
+```
+```tolk
+var map: Map<int32, int> = emptyMap<int32, int>()
+```
+```tolk
+fun Map<int32, int>.has(mutate self, key: int): bool
+```
+Stack underflow.
+
+**Phase**: Compute phase
+
+Learn more about exit codes in documentation: https://docs.ton.org/v3/documentation/tvm/tvm-exit-codes

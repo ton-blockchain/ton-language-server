@@ -1,0 +1,122 @@
+========================================================================
+Pattern matching 1
+========================================================================
+
+const a = match (1) { 2 => 3, 4 => 5 };
+const a = match (1) { 2 => {} 4 => { statement; } };
+
+------------------------------------------------------------------------
+
+(source_file
+  (constant_declaration
+    (identifier)
+    (match_expression
+      (number_literal)
+      (match_body
+        (match_arm
+          (number_literal)
+          (number_literal))
+        (match_arm
+          (number_literal)
+          (number_literal)))))
+  (constant_declaration
+    (identifier)
+    (match_expression
+      (number_literal)
+      (match_body
+        (match_arm
+          (number_literal)
+          (block_statement))
+        (match_arm
+          (number_literal)
+          (block_statement
+            (expression_statement
+              (identifier))))))))
+
+========================================================================
+Pattern matching 2
+========================================================================
+
+const a = match (1+2) { slice => 3, SomeStruct? => 5 };
+const a = match (1&2) { (int, builder) => {}, int | builder => { statement; }, };
+
+------------------------------------------------------------------------
+
+(source_file
+  (constant_declaration
+    (identifier)
+    (match_expression
+      (binary_operator
+        (number_literal)
+        (number_literal))
+      (match_body
+        (match_arm
+          (type_identifier)
+          (number_literal))
+        (match_arm
+          (nullable_type
+            (type_identifier))
+          (number_literal)))))
+  (constant_declaration
+    (identifier)
+    (match_expression
+      (binary_operator
+        (number_literal)
+        (number_literal))
+      (match_body
+        (match_arm
+          (tensor_type
+            (type_identifier)
+            (type_identifier))
+          (block_statement))
+        (match_arm
+          (union_type
+            (type_identifier)
+            (type_identifier))
+          (block_statement
+            (expression_statement
+              (identifier))))))))
+
+========================================================================
+Pattern matching 3
+========================================================================
+
+fun f() {
+  match (x) {}
+  var x = match (val x = y) {
+    0 => {},
+    int => throw 0,
+    else => return 0,
+  };
+}
+
+------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (identifier)
+    (parameter_list)
+    (block_statement
+      (match_statement
+        (match_expression
+          (identifier)
+          (match_body)))
+      (local_vars_declaration
+        (var_declaration
+          (identifier))
+        (match_expression
+          (local_vars_declaration
+            (var_declaration
+              (identifier))
+            (identifier))
+          (match_body
+            (match_arm
+              (number_literal)
+              (block_statement))
+            (match_arm
+              (type_identifier)
+              (throw_statement
+                (number_literal)))
+            (match_arm
+              (return_statement
+                (number_literal)))))))))

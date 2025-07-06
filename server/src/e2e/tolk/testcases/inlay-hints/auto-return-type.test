@@ -1,0 +1,186 @@
+========================================================================
+Function with single return and explicit type
+========================================================================
+fun some(): int {
+    return 10;
+}
+
+fun test(): void {
+    val res = some();
+}
+------------------------------------------------------------------------
+fun some(): int {
+    return 10;
+}
+
+fun test(): void {
+    val res/* : int */ = some();
+}
+
+========================================================================
+Function with single return
+========================================================================
+fun some() {
+    return 10;
+}
+
+fun test() {
+    val res = some();
+}
+------------------------------------------------------------------------
+fun some()/* : int */ {
+    return 10;
+}
+
+fun test()/* : void */ {
+    val res/* : int */ = some();
+}
+
+========================================================================
+Function with several returns with single type
+========================================================================
+fun some(cond: bool) {
+    if (cond) {
+        return 20;
+    } else {
+        return 30;
+    }
+    return 10;
+}
+
+fun test() {
+    val res = some(true);
+}
+------------------------------------------------------------------------
+fun some(cond: bool)/* : int */ {
+    if (cond) {
+        return 20;
+    } else {
+        return 30;
+    }
+    return 10;
+}
+
+fun test()/* : void */ {
+    val res/* : int */ = some(/* cond: */true);
+}
+
+========================================================================
+Function with null and non null returns
+========================================================================
+fun some(cond: bool) {
+    if (cond) {
+        return null;
+    }
+    return 10;
+}
+
+fun test() {
+    val res = some(true);
+}
+------------------------------------------------------------------------
+fun some(cond: bool)/* : int? */ {
+    if (cond) {
+        return null;
+    }
+    return 10;
+}
+
+fun test()/* : void */ {
+    val res/* : int? */ = some(/* cond: */true);
+}
+
+========================================================================
+Function with nullable ternary return
+========================================================================
+fun some(cond: bool) {
+    return cond ? null : 10;
+}
+
+fun test() {
+    val res = some(true);
+}
+------------------------------------------------------------------------
+fun some(cond: bool)/* : int? */ {
+    return cond ? null : 10;
+}
+
+fun test()/* : void */ {
+    val res/* : int? */ = some(/* cond: */true);
+}
+
+========================================================================
+Static method with single return
+========================================================================
+fun int.some() {
+    return 10;
+}
+
+fun test() {
+    val res = int.some();
+}
+------------------------------------------------------------------------
+fun int.some()/* : int */ {
+    return 10;
+}
+
+fun test()/* : void */ {
+    val res/* : int */ = int.some();
+}
+
+========================================================================
+Instance method with single return
+========================================================================
+fun int.some(self) {
+    return 10;
+}
+
+fun test() {
+    val res = 10.some();
+}
+------------------------------------------------------------------------
+fun int.some(self)/* : int */ {
+    return 10;
+}
+
+fun test()/* : void */ {
+    val res/* : int */ = 10.some();
+}
+
+========================================================================
+Get method with single return
+========================================================================
+get fun some() {
+    return 10;
+}
+
+fun test() {
+    val res = some();
+}
+------------------------------------------------------------------------
+get/* (0x12f86) */ fun some()/* : int */ {
+    return 10;
+}
+
+fun test()/* : void */ {
+    val res/* : int */ = some();
+}
+
+========================================================================
+Function with single tuple return
+========================================================================
+fun some() {
+    return [10, true, 1000];
+}
+
+fun test() {
+    val res = some();
+}
+------------------------------------------------------------------------
+fun some()/* : [int, bool, int] */ {
+    return [10, true, 1000];
+}
+
+fun test()/* : void */ {
+    val res/* : [int, bool, int] */ = some();
+}

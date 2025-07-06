@@ -1,0 +1,125 @@
+========================================================================
+Import resolving to relative file with ./ and tolk extension
+========================================================================
+import "<caret>./other.tolk";
+---FILE:other.tolk
+fun bar() {}
+------------------------------------------------------------------------
+0:8 -> 0:0 (other.tolk) resolved
+
+========================================================================
+Import resolving to relative file without ./ and with tolk extension
+========================================================================
+import "<caret>other.tolk";
+---FILE:other.tolk
+fun bar() {}
+------------------------------------------------------------------------
+0:8 -> 0:0 (other.tolk) resolved
+
+========================================================================
+Import resolving to relative file with ./ and without tolk extension
+========================================================================
+import "<caret>./other";
+---FILE:other.tolk
+fun bar() {}
+------------------------------------------------------------------------
+0:8 -> 0:0 (other.tolk) resolved
+
+========================================================================
+Import resolving to relative file without ./ and tolk extension
+========================================================================
+import "<caret>other";
+---FILE:other.tolk
+fun bar() {}
+------------------------------------------------------------------------
+0:8 -> 0:0 (other.tolk) resolved
+
+========================================================================
+Import resolving to nested folder file with ./ and tolk extension
+========================================================================
+import "<caret>./nested/other.tolk";
+---FILE:nested/other.tolk
+fun bar() {}
+------------------------------------------------------------------------
+0:8 -> 0:0 (nested/other.tolk) resolved
+
+========================================================================
+Import resolving to nested folder file with ./ and without tolk extension
+========================================================================
+import "<caret>./nested/other";
+---FILE:nested/other.tolk
+fun bar() {}
+------------------------------------------------------------------------
+0:8 -> 0:0 (nested/other.tolk) resolved
+
+========================================================================
+Import resolving to nested folder file without ./ and tolk extension
+========================================================================
+import "<caret>nested/other";
+---FILE:nested/other.tolk
+fun bar() {}
+------------------------------------------------------------------------
+0:8 -> 0:0 (nested/other.tolk) resolved
+
+========================================================================
+Import resolving to parent folder file with ../ and tolk extension
+========================================================================
+import "<caret>../test-workspace/other.tolk";
+---FILE:other.tolk
+fun bar() {}
+------------------------------------------------------------------------
+0:8 -> 0:0 (other.tolk) resolved
+
+========================================================================
+Import resolving to parent folder file with ../ and without tolk extension
+========================================================================
+import "<caret>../test-workspace/other";
+---FILE:other.tolk
+fun bar() {}
+------------------------------------------------------------------------
+0:8 -> 0:0 (other.tolk) resolved
+
+========================================================================
+Import resolving to unknown file with ./ and tolk extension
+========================================================================
+import "<caret>./some-unknown-file.tolk";
+---FILE:other.tolk
+fun bar() {}
+------------------------------------------------------------------------
+0:8 unresolved
+
+========================================================================
+Import resolving to unknown file with ./ and without tolk extension
+========================================================================
+import "<caret>./some-unknown-file";
+---FILE:other.tolk
+fun bar() {}
+------------------------------------------------------------------------
+0:8 unresolved
+
+========================================================================
+Import resolving to unknown file without ./ and tolk extension
+========================================================================
+import "<caret>some-unknown-file";
+---FILE:other.tolk
+fun bar() {}
+------------------------------------------------------------------------
+0:8 unresolved
+
+========================================================================
+Import resolving to @stdlib file with tolk extension
+========================================================================
+import "<caret>@stdlib/gas-payments.tolk";
+---FILE:other.tolk
+fun bar() {}
+------------------------------------------------------------------------
+0:8 -> 0:0 (../server/src/e2e/tolk/tolk-stdlib/gas-payments.tolk) resolved
+
+========================================================================
+Import resolving to @stdlib file without tolk extension
+========================================================================
+import "<caret>@stdlib/gas-payments";
+---FILE:other.tolk
+fun bar() {}
+------------------------------------------------------------------------
+0:8 -> 0:0 (../server/src/e2e/tolk/tolk-stdlib/gas-payments.tolk) resolved

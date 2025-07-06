@@ -1,0 +1,129 @@
+========================================================================
+Deprecated function without message
+========================================================================
+@deprecated
+fun foo() {}
+
+fun main() {
+    foo();
+}
+------------------------------------------------------------------------
+3 1:4 to 1:7 Symbol `foo` is deprecated (tolk)
+3 4:4 to 4:7 Symbol `foo` is deprecated (tolk)
+
+========================================================================
+Deprecated function with empty message
+========================================================================
+@deprecated("")
+fun foo() {}
+
+fun main() {
+    foo();
+}
+------------------------------------------------------------------------
+3 1:4 to 1:7 Symbol `foo` is deprecated (tolk)
+3 4:4 to 4:7 Symbol `foo` is deprecated (tolk)
+
+========================================================================
+Deprecated function with non-empty message
+========================================================================
+@deprecated("use bar instead")
+fun foo() {}
+
+fun main() {
+    foo();
+}
+------------------------------------------------------------------------
+3 1:4 to 1:7 Symbol `foo` is deprecated: use bar instead (tolk)
+3 4:4 to 4:7 Symbol `foo` is deprecated: use bar instead (tolk)
+
+========================================================================
+Deprecated static method
+========================================================================
+@deprecated("very bad implementation")
+fun int.foo() {}
+
+fun main() {
+    int.foo();
+}
+------------------------------------------------------------------------
+3 1:8 to 1:11 Symbol `int.foo` is deprecated: very bad implementation (tolk)
+3 4:8 to 4:11 Symbol `int.foo` is deprecated: very bad implementation (tolk)
+
+========================================================================
+Deprecated instance method
+========================================================================
+@deprecated("very bad implementation")
+fun int.foo(self) {}
+
+fun main() {
+    10.foo();
+}
+------------------------------------------------------------------------
+3 1:8 to 1:11 Symbol `int.foo` is deprecated: very bad implementation (tolk)
+3 4:7 to 4:10 Symbol `int.foo` is deprecated: very bad implementation (tolk)
+
+========================================================================
+Deprecated get method
+========================================================================
+@deprecated("very bad implementation")
+get fun dataId(): int {}
+
+fun main() {
+    dataId();
+}
+------------------------------------------------------------------------
+3 1:8 to 1:14 Symbol `dataId` is deprecated: very bad implementation (tolk)
+3 4:4 to 4:10 Symbol `dataId` is deprecated: very bad implementation (tolk)
+
+========================================================================
+Deprecated struct
+========================================================================
+@deprecated("very bad implementation")
+struct Foo {}
+
+fun main() {
+    val foo: Foo = {};
+}
+------------------------------------------------------------------------
+3 1:7 to 1:10 Symbol `Foo` is deprecated: very bad implementation (tolk)
+3 4:8 to 4:11 Variable 'foo' is never used (tolk)
+3 4:13 to 4:16 Symbol `Foo` is deprecated: very bad implementation (tolk)
+
+========================================================================
+Deprecated type alias
+========================================================================
+@deprecated("very bad implementation")
+type Foo = int;
+
+fun main(foo: Foo) {}
+------------------------------------------------------------------------
+3 1:5 to 1:8 Symbol `Foo` is deprecated: very bad implementation (tolk)
+3 3:9 to 3:12 Parameter 'foo' is never used (tolk)
+3 3:14 to 3:17 Symbol `Foo` is deprecated: very bad implementation (tolk)
+
+========================================================================
+Deprecated constant
+========================================================================
+@deprecated("very bad implementation")
+const FOO = 100;
+
+fun main(foo: int = FOO) {}
+------------------------------------------------------------------------
+3 1:6 to 1:9 Symbol `FOO` is deprecated: very bad implementation (tolk)
+3 3:9 to 3:12 Parameter 'foo' is never used (tolk)
+3 3:20 to 3:23 Symbol `FOO` is deprecated: very bad implementation (tolk)
+
+========================================================================
+Deprecated global variable
+========================================================================
+@deprecated("very bad implementation")
+global foo: int;
+
+fun main() {
+    val a = foo + 10;
+}
+------------------------------------------------------------------------
+3 1:7 to 1:10 Symbol `foo` is deprecated: very bad implementation (tolk)
+3 4:8 to 4:9 Variable 'a' is never used (tolk)
+3 4:12 to 4:15 Symbol `foo` is deprecated: very bad implementation (tolk)

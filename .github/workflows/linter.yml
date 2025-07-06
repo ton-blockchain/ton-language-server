@@ -1,0 +1,40 @@
+name: Linter checks
+
+on:
+  pull_request:
+    branches:
+      - master
+  push:
+    branches:
+      - master
+
+env:
+  HUSKY: 0
+
+jobs:
+  linter:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Fetch Sources
+        uses: actions/checkout@v4
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Setup Node.js 22.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: "yarn"
+
+      - name: Install dependencies
+        run: yarn install --immutable --check-cache --check-resolutions
+
+      - name: Check yarn dedupe
+        run: yarn dedupe --check
+
+      - name: Run prettier
+        run: yarn run fmt:check
+
+      - name: Run eslint
+        run: yarn run lint

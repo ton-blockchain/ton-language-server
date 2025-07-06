@@ -1,0 +1,410 @@
+========================================================================
+Function without parameters call
+========================================================================
+fun foo() {}
+
+fun test() {
+    foo(); // no hints here
+}
+------------------------------------------------------------------------
+fun foo()/* : void */ {}
+
+fun test()/* : void */ {
+    foo(); // no hints here
+}
+
+========================================================================
+Function with parameter call
+========================================================================
+fun foo(value: int) {}
+
+fun test() {
+    foo(100);
+}
+------------------------------------------------------------------------
+fun foo(value: int)/* : void */ {}
+
+fun test()/* : void */ {
+    foo(/* value: */100);
+}
+
+========================================================================
+Function with parameters call
+========================================================================
+fun foo(value: int, other: string) {}
+
+fun test() {
+    foo(100, "hello");
+}
+------------------------------------------------------------------------
+fun foo(value: int, other: string)/* : void */ {}
+
+fun test()/* : void */ {
+    foo(/* value: */100, /* other: */"hello");
+}
+
+========================================================================
+Function with parameters and too much arguments call
+========================================================================
+fun foo(value: int, other: string) {}
+
+fun test() {
+    foo(100, "hello", 20, 30, 40);
+}
+------------------------------------------------------------------------
+fun foo(value: int, other: string)/* : void */ {}
+
+fun test()/* : void */ {
+    foo(/* value: */100, /* other: */"hello", 20, 30, 40);
+}
+
+========================================================================
+Function with parameters and too less arguments call
+========================================================================
+fun foo(value: int, other: string) {}
+
+fun test() {
+    foo(); // no hints here
+}
+------------------------------------------------------------------------
+fun foo(value: int, other: string)/* : void */ {}
+
+fun test()/* : void */ {
+    foo(); // no hints here
+}
+
+========================================================================
+Don't show hints for full struct instance argument
+========================================================================
+struct Bar {
+    value: int,
+}
+
+fun foo(options: Bar) {}
+
+fun test() {
+    foo(Bar {}); // no hints here
+}
+------------------------------------------------------------------------
+struct Bar {
+    value: int,
+}
+
+fun foo(options: Bar)/* : void */ {}
+
+fun test()/* : void */ {
+    foo(Bar {}); // no hints here
+}
+
+========================================================================
+Show hints for short struct instance argument
+========================================================================
+struct Bar {
+    value: int,
+}
+
+fun foo(options: Bar) {}
+
+fun test() {
+    foo({});
+}
+------------------------------------------------------------------------
+struct Bar {
+    value: int,
+}
+
+fun foo(options: Bar)/* : void */ {}
+
+fun test()/* : void */ {
+    foo(/* options: */{});
+}
+
+========================================================================
+Don't show hints for same name argument
+========================================================================
+struct Bar {
+    value: int,
+}
+
+fun foo(options: Bar) {}
+
+fun test() {
+    val options = Bar{};
+    foo(options); // no hints here
+}
+------------------------------------------------------------------------
+struct Bar {
+    value: int,
+}
+
+fun foo(options: Bar)/* : void */ {}
+
+fun test()/* : void */ {
+    val options = Bar{};
+    foo(options); // no hints here
+}
+
+========================================================================
+Show hints for different name argument
+========================================================================
+struct Bar {
+    value: int,
+}
+
+fun foo(options: Bar) {}
+
+fun test() {
+    val ownOptions = Bar{};
+    foo(ownOptions);
+}
+------------------------------------------------------------------------
+struct Bar {
+    value: int,
+}
+
+fun foo(options: Bar)/* : void */ {}
+
+fun test()/* : void */ {
+    val ownOptions = Bar{};
+    foo(/* options: */ownOptions);
+}
+
+========================================================================
+Don't show hints for same name field argument
+========================================================================
+struct Bar {
+    value: int,
+}
+
+fun foo(options: Bar) {}
+
+struct Data {
+    options: Bar,
+}
+
+fun test(data: Data) {
+    foo(data.options); // no hints here
+}
+------------------------------------------------------------------------
+struct Bar {
+    value: int,
+}
+
+fun foo(options: Bar)/* : void */ {}
+
+struct Data {
+    options: Bar,
+}
+
+fun test(data: Data)/* : void */ {
+    foo(data.options); // no hints here
+}
+
+========================================================================
+Show hints for different name field argument
+========================================================================
+struct Bar {
+    value: int,
+}
+
+fun foo(options: Bar) {}
+
+struct Data {
+    ownOptions: Bar,
+}
+
+fun test(data: Data) {
+    foo(data.ownOptions);
+}
+------------------------------------------------------------------------
+struct Bar {
+    value: int,
+}
+
+fun foo(options: Bar)/* : void */ {}
+
+struct Data {
+    ownOptions: Bar,
+}
+
+fun test(data: Data)/* : void */ {
+    foo(/* options: */data.ownOptions);
+}
+
+========================================================================
+Don't show hints for same name call argument
+========================================================================
+struct Bar {
+    value: int,
+}
+
+fun options(): Bar {}
+
+fun foo(options: Bar) {}
+
+fun test() {
+    foo(options()); // no hints here
+}
+------------------------------------------------------------------------
+struct Bar {
+    value: int,
+}
+
+fun options(): Bar {}
+
+fun foo(options: Bar)/* : void */ {}
+
+fun test()/* : void */ {
+    foo(options()); // no hints here
+}
+
+========================================================================
+Show hints for different name call argument
+========================================================================
+struct Bar {
+    value: int,
+}
+
+fun getOptions(): Bar {}
+
+fun foo(options: Bar) {}
+
+fun test() {
+    foo(getOptions());
+}
+------------------------------------------------------------------------
+struct Bar {
+    value: int,
+}
+
+fun getOptions(): Bar {}
+
+fun foo(options: Bar)/* : void */ {}
+
+fun test()/* : void */ {
+    foo(/* options: */getOptions());
+}
+
+========================================================================
+Static method with parameter call
+========================================================================
+struct Foo {}
+
+fun Foo.foo(value: int) {}
+
+fun test() {
+    Foo.foo(100);
+}
+------------------------------------------------------------------------
+struct Foo {}
+
+fun Foo.foo(value: int)/* : void */ {}
+
+fun test()/* : void */ {
+    Foo.foo(/* value: */100);
+}
+
+========================================================================
+Instance method with parameter call
+========================================================================
+struct Foo {}
+
+fun Foo.foo(self, value: int) {}
+
+fun test() {
+    val foo: Foo = {};
+    foo.foo(100);
+}
+------------------------------------------------------------------------
+struct Foo {}
+
+fun Foo.foo(self, value: int)/* : void */ {}
+
+fun test()/* : void */ {
+    val foo: Foo = {};
+    foo.foo(/* value: */100);
+}
+
+========================================================================
+ton() function call
+========================================================================
+fun test() {
+    ton("1.5"); // no hints here
+}
+------------------------------------------------------------------------
+fun test()/* : void */ {
+    ton("1.5"); // no hints here
+}
+
+========================================================================
+No hint for single letter param
+========================================================================
+fun bar(a: int) {}
+
+fun test() {
+    bar(10); // no hints here
+}
+------------------------------------------------------------------------
+fun bar(a: int)/* : void */ {}
+
+fun test()/* : void */ {
+    bar(10); // no hints here
+}
+
+========================================================================
+No hint for calling variable
+========================================================================
+fun test() {
+    val cb: (int) -> int;
+    cb(10); // no hints here
+}
+------------------------------------------------------------------------
+fun test()/* : void */ {
+    val cb: (int) -> int;
+    cb(10); // no hints here
+}
+
+========================================================================
+No hint for function without parameters
+========================================================================
+fun bar() {}
+
+fun test() {
+    bar(); // no hints here
+}
+------------------------------------------------------------------------
+fun bar()/* : void */ {}
+
+fun test()/* : void */ {
+    bar(); // no hints here
+}
+
+========================================================================
+No hint for function without parameters but with arguments
+========================================================================
+fun bar() {}
+
+fun test() {
+    bar(10, 20); // no hints here
+}
+------------------------------------------------------------------------
+fun bar()/* : void */ {}
+
+fun test()/* : void */ {
+    bar(10, 20); // no hints here
+}
+
+========================================================================
+No hint for function function call
+========================================================================
+fun bar(): (int) -> int {}
+
+fun test() {
+    bar()(); // no hints here
+}
+------------------------------------------------------------------------
+fun bar(): (int) -> int {}
+
+fun test()/* : void */ {
+    bar()(); // no hints here
+}

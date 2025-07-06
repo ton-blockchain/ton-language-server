@@ -1,0 +1,113 @@
+========================================================================
+Struct as type
+========================================================================
+struct Foo {
+    age: int;
+}
+
+fun test(): Fo<caret> {
+}
+------------------------------------------------------------------------
+21 Foo
+
+========================================================================
+Struct as expression
+========================================================================
+struct Foo {
+    age: int;
+}
+
+fun test() {
+    let a = Foo<caret>;
+}
+------------------------------------------------------------------------
+21 Foo {}
+
+========================================================================
+Empty struct as expression
+========================================================================
+struct debug {}
+
+fun test() {
+    let a = deb<caret>;
+}
+------------------------------------------------------------------------
+21 debug
+
+========================================================================
+Completion inside struct
+========================================================================
+struct Foo {
+    age: int;
+    <caret>
+}
+------------------------------------------------------------------------
+No completion items
+
+========================================================================
+Completion inside struct after field name
+========================================================================
+struct Foo {
+    age: int;
+    foo: <caret>
+}
+------------------------------------------------------------------------
+21 AddressShardingOptions
+21 AutoDeployAddress
+21 Cell
+21 ContractState
+21 CreateExternalLogMessageOptions
+21 CreateMessageOptions
+21 ExtOutLogBucket
+21 Foo
+21 InMessage
+21 InMessageBounced
+21 OutMessage
+21 PackOptions
+21 StateInit
+21 UnpackOptions
+21 UnsafeBodyNoRef
+21 blockchain
+21 contract
+21 debug
+21 random
+24 ExtraCurrenciesDict
+24 RemainingBitsAndRefs
+24 address
+24 bits256
+24 bitsN
+24 bits{X}
+24 bool
+24 builder
+24 bytes32
+24 bytes{X}
+24 cell
+24 coins
+24 continuation
+24 dict
+24 int
+24 int128
+24 int16
+24 int256
+24 int257
+24 int32
+24 int64
+24 int8
+24 int{X}
+24 never
+24 null
+24 self
+24 slice
+24 tuple
+24 uint128
+24 uint16
+24 uint256
+24 uint32
+24 uint64
+24 uint8
+24 uint{X}
+24 varint16
+24 varint32
+24 varuint16
+24 varuint32
+24 void

@@ -1,0 +1,275 @@
+========================================================================
+Match over type completion, non union type
+========================================================================
+fun foo(value: int) {
+    match (value) {
+        va<caret>
+    }
+}
+------------------------------------------------------------------------
+fun foo(value: int) {
+    match (value) {
+        value<caret> => {}
+    }
+}
+
+========================================================================
+Match over type completion, union type
+========================================================================
+fun foo(value: int | slice) {
+    match (value) {
+        <caret>
+    }
+}
+------------------------------------------------------------------------
+fun foo(value: int | slice) {
+    match (value) {
+        int => {<caret>},
+    }
+}
+
+========================================================================
+Match over type completion, union type 2
+========================================================================
+struct MintNewJettons
+struct BurnNotificationForMinter
+struct RequestWalletAddress
+struct ChangeMinterAdmin
+struct ChangeMinterContent
+
+type AllowedMessageToMinter =
+    | MintNewJettons
+    | BurnNotificationForMinter
+    | RequestWalletAddress
+    | ChangeMinterAdmin
+    | ChangeMinterContent
+
+fun main(msg: AllowedMessageToMinter) {
+    match (msg) {
+        <caret>
+    }
+}
+------------------------------------------------------------------------
+struct MintNewJettons
+struct BurnNotificationForMinter
+struct RequestWalletAddress
+struct ChangeMinterAdmin
+struct ChangeMinterContent
+
+type AllowedMessageToMinter =
+    | MintNewJettons
+    | BurnNotificationForMinter
+    | RequestWalletAddress
+    | ChangeMinterAdmin
+    | ChangeMinterContent
+
+fun main(msg: AllowedMessageToMinter) {
+    match (msg) {
+        BurnNotificationForMinter => {<caret>},
+    }
+}
+
+========================================================================
+Match over type completion, union type, match with single arm
+========================================================================
+struct MintNewJettons
+struct BurnNotificationForMinter
+struct RequestWalletAddress
+struct ChangeMinterAdmin
+struct ChangeMinterContent
+
+type AllowedMessageToMinter =
+    | MintNewJettons
+    | BurnNotificationForMinter
+    | RequestWalletAddress
+    | ChangeMinterAdmin
+    | ChangeMinterContent
+
+fun main(msg: AllowedMessageToMinter) {
+    match (msg) {
+        MintNewJettons => {},
+        <caret>
+    }
+}
+------------------------------------------------------------------------
+struct MintNewJettons
+struct BurnNotificationForMinter
+struct RequestWalletAddress
+struct ChangeMinterAdmin
+struct ChangeMinterContent
+
+type AllowedMessageToMinter =
+    | MintNewJettons
+    | BurnNotificationForMinter
+    | RequestWalletAddress
+    | ChangeMinterAdmin
+    | ChangeMinterContent
+
+fun main(msg: AllowedMessageToMinter) {
+    match (msg) {
+        MintNewJettons => {},
+        BurnNotificationForMinter => {<caret>},
+    }
+}
+
+========================================================================
+Match over type completion, union type, match with single arm, cursor before arm
+========================================================================
+struct MintNewJettons
+struct BurnNotificationForMinter
+struct RequestWalletAddress
+struct ChangeMinterAdmin
+struct ChangeMinterContent
+
+type AllowedMessageToMinter =
+    | MintNewJettons
+    | BurnNotificationForMinter
+    | RequestWalletAddress
+    | ChangeMinterAdmin
+    | ChangeMinterContent
+
+fun main(msg: AllowedMessageToMinter) {
+    match (msg) {
+        <caret>
+        MintNewJettons => {},
+    }
+}
+------------------------------------------------------------------------
+struct MintNewJettons
+struct BurnNotificationForMinter
+struct RequestWalletAddress
+struct ChangeMinterAdmin
+struct ChangeMinterContent
+
+type AllowedMessageToMinter =
+    | MintNewJettons
+    | BurnNotificationForMinter
+    | RequestWalletAddress
+    | ChangeMinterAdmin
+    | ChangeMinterContent
+
+fun main(msg: AllowedMessageToMinter) {
+    match (msg) {
+        BurnNotificationForMinter => {<caret>},
+        MintNewJettons => {},
+    }
+}
+
+========================================================================
+Match over type completion, union type, match with several arms
+========================================================================
+struct MintNewJettons
+struct BurnNotificationForMinter
+struct RequestWalletAddress
+struct ChangeMinterAdmin
+struct ChangeMinterContent
+
+type AllowedMessageToMinter =
+    | MintNewJettons
+    | BurnNotificationForMinter
+    | RequestWalletAddress
+    | ChangeMinterAdmin
+    | ChangeMinterContent
+
+fun main(msg: AllowedMessageToMinter) {
+    match (msg) {
+        MintNewJettons => {},
+        BurnNotificationForMinter => {},
+        RequestWalletAddress => {},
+        ChangeMinterAdmin => {},
+        <caret>
+    }
+}
+------------------------------------------------------------------------
+struct MintNewJettons
+struct BurnNotificationForMinter
+struct RequestWalletAddress
+struct ChangeMinterAdmin
+struct ChangeMinterContent
+
+type AllowedMessageToMinter =
+    | MintNewJettons
+    | BurnNotificationForMinter
+    | RequestWalletAddress
+    | ChangeMinterAdmin
+    | ChangeMinterContent
+
+fun main(msg: AllowedMessageToMinter) {
+    match (msg) {
+        MintNewJettons => {},
+        BurnNotificationForMinter => {},
+        RequestWalletAddress => {},
+        ChangeMinterAdmin => {},
+        ChangeMinterContent => {<caret>},
+    }
+}
+
+========================================================================
+Match over type completion, union type, match with all arms
+========================================================================
+struct MintNewJettons
+struct BurnNotificationForMinter
+struct RequestWalletAddress
+struct ChangeMinterAdmin
+struct ChangeMinterContent
+
+type AllowedMessageToMinter =
+    | MintNewJettons
+    | BurnNotificationForMinter
+    | RequestWalletAddress
+    | ChangeMinterAdmin
+    | ChangeMinterContent
+
+fun main(msg: AllowedMessageToMinter) {
+    match (msg) {
+        MintNewJettons => {},
+        BurnNotificationForMinter => {},
+        RequestWalletAddress => {},
+        ChangeMinterAdmin => {},
+        ChangeMinterContent => {},
+        <caret>
+    }
+}
+------------------------------------------------------------------------
+struct MintNewJettons
+struct BurnNotificationForMinter
+struct RequestWalletAddress
+struct ChangeMinterAdmin
+struct ChangeMinterContent
+
+type AllowedMessageToMinter =
+    | MintNewJettons
+    | BurnNotificationForMinter
+    | RequestWalletAddress
+    | ChangeMinterAdmin
+    | ChangeMinterContent
+
+fun main(msg: AllowedMessageToMinter) {
+    match (msg) {
+        MintNewJettons => {},
+        BurnNotificationForMinter => {},
+        RequestWalletAddress => {},
+        ChangeMinterAdmin => {},
+        ChangeMinterContent => {},
+        AllowedMessageToMinter<caret>
+    }
+}
+
+========================================================================
+Match over value completion
+========================================================================
+const FOO = 100
+
+fun foo(value: int) {
+    match (value) {
+        FO<caret>
+    }
+}
+------------------------------------------------------------------------
+const FOO = 100
+
+fun foo(value: int) {
+    match (value) {
+        FOO<caret> => {}
+    }
+}

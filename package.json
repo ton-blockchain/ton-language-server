@@ -1,0 +1,556 @@
+{
+    "name": "vscode-ton",
+    "displayName": "TON",
+    "description": "Official support for the TON blockchain in VS Code",
+    "keywords": [
+        "TON",
+        "The Open Network",
+        "Smart contract",
+        "Tolk",
+        "FunC",
+        "Fift",
+        "BoC",
+        "TL-B"
+    ],
+    "version": "0.0.1",
+    "engines": {
+        "vscode": "^1.63.0"
+    },
+    "icon": "client/src/assets/logo.png",
+    "activationEvents": [
+        "onLanguage:tolk",
+        "onLanguage:func",
+        "onLanguage:tasm",
+        "onLanguage:fif",
+        "onLanguage:tlb"
+    ],
+    "categories": [
+        "Programming Languages"
+    ],
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/ton-blockchain/ton-language-server.git"
+    },
+    "author": "TON Core",
+    "publisher": "ton-core",
+    "license": "MIT",
+    "scripts": {
+        "test": "yarn jest",
+        "build": "webpack && node ./scripts/set-executable.js ./dist/server.js",
+        "package": "npx vsce package --no-yarn --readme-path README-extension.md",
+        "lint": "eslint --cache .",
+        "fmt": "prettier --write -l --cache .",
+        "fmt:check": "prettier --check --cache .",
+        "grammar:wasm": "yarn grammar:tolk:wasm && yarn grammar:fift:wasm && yarn grammar:tlb:wasm",
+        "grammar:tolk:wasm": "cd server/src/languages/tolk/tree-sitter-tolk && tree-sitter generate && tree-sitter build --wasm",
+        "grammar:fift:wasm": "cd server/src/languages/fift/tree-sitter-fift && tree-sitter generate && tree-sitter build --wasm",
+        "grammar:tlb:wasm": "cd server/src/languages/tlb/tree-sitter-tlb && tree-sitter generate && tree-sitter build --wasm",
+        "watch": "webpack --watch",
+        "precommit": "yarn build && yarn fmt && yarn lint",
+        "test:e2e": "yarn test:e2e:tolk",
+        "test:e2e:compile": "tsc -p ./server/src/e2e/tsconfig.json",
+        "test:e2e:tolk": "yarn test:e2e:compile && ts-node server/src/e2e/runTolkTest.ts",
+        "test:e2e:tolk:update": "yarn test:e2e:compile && ts-node server/src/e2e/runTolkTest.ts --update-snapshots",
+        "test:e2e:tolk:resolving:update": "yarn test:e2e:compile && ts-node server/src/e2e/runTolkTest.ts --suite resolving --update-snapshots",
+        "test:e2e:tolk:references:update": "yarn test:e2e:compile && ts-node server/src/e2e/runTolkTest.ts --suite references --update-snapshots",
+        "test:e2e:tolk:rename:update": "yarn test:e2e:compile && ts-node server/src/e2e/runTolkTest.ts --suite rename --update-snapshots",
+        "test:e2e:tolk:inspections:update": "yarn test:e2e:compile && ts-node server/src/e2e/runTolkTest.ts --suite inspections --update-snapshots",
+        "test:e2e:tolk:foldings:update": "yarn test:e2e:compile && ts-node server/src/e2e/runTolkTest.ts --suite foldings --update-snapshots",
+        "test:e2e:tolk:completion:update": "yarn test:e2e:compile && ts-node server/src/e2e/runTolkTest.ts --suite completion --update-snapshots",
+        "test:e2e:tolk:completion-select:update": "yarn test:e2e:compile && ts-node server/src/e2e/runTolkTest.ts --suite completion-select --update-snapshots",
+        "test:e2e:tolk:document-symbols:update": "yarn test:e2e:compile && ts-node server/src/e2e/runTolkTest.ts --suite document-symbols --update-snapshots",
+        "test:e2e:tolk:inlay-hints:update": "yarn test:e2e:compile && ts-node server/src/e2e/runTolkTest.ts --suite inlay-hints --update-snapshots",
+        "test:e2e:tolk:signature-help:update": "yarn test:e2e:compile && ts-node server/src/e2e/runTolkTest.ts --suite signature-help --update-snapshots",
+        "test:e2e:tolk:intentions:update": "yarn test:e2e:compile && ts-node server/src/e2e/runTolkTest.ts --suite intentions --update-snapshots",
+        "test:e2e:tolk:types:update": "yarn test:e2e:compile && ts-node server/src/e2e/runTolkTest.ts --suite types --update-snapshots",
+        "test:e2e:tolk:types-2:update": "yarn test:e2e:compile && ts-node server/src/e2e/runTolkTest.ts --suite types-2 --update-snapshots",
+        "test:e2e:tolk:documentation:update": "yarn test:e2e:compile && ts-node server/src/e2e/runTolkTest.ts --suite documentation --update-snapshots",
+        "test:e2e:tolk:type-resolving:update": "yarn test:e2e:compile && ts-node server/src/e2e/runTolkTest.ts --suite type-resolving --update-snapshots",
+        "test:e2e:tolk:multifile-resolving:update": "yarn test:e2e:compile && ts-node server/src/e2e/runTolkTest.ts --suite multifile-resolving --update-snapshots",
+        "test:e2e:tolk:multifile-intentions:update": "yarn test:e2e:compile && ts-node server/src/e2e/runTolkTest.ts --suite multifile-intentions --update-snapshots",
+        "test:e2e:tolk:multifile-completion-select:update": "yarn test:e2e:compile && ts-node server/src/e2e/runTolkTest.ts --suite multifile-completion-select --update-snapshots",
+        "test:e2e:tolk:multifile-inspections:update": "yarn test:e2e:compile && ts-node server/src/e2e/runTolkTest.ts --suite multifile-inspections --update-snapshots",
+        "test:e2e:tolk:compiler-tests:update": "yarn test:e2e:compile && ts-node server/src/e2e/runTolkTest.ts --suite compiler-tests --update-snapshots",
+        "pack:ls": "cd dist && npm pack",
+        "publish:ls": "cd dist && npm publish",
+        "build-server-package-and-publish": "yarn build && yarn pack:ls && yarn publish:ls",
+        "postinstall": "husky"
+    },
+    "main": "./dist/client",
+    "contributes": {
+        "languages": [
+            {
+                "id": "tolk",
+                "aliases": [
+                    "Tolk"
+                ],
+                "extensions": [
+                    ".tolk"
+                ],
+                "icon": {
+                    "light": "./dist/icons/ton-icon.svg",
+                    "dark": "./dist/icons/ton-icon.svg"
+                },
+                "configuration": "./client/src/languages/tolk-language-configuration.json"
+            },
+            {
+                "id": "func",
+                "aliases": [
+                    "FunC"
+                ],
+                "extensions": [
+                    ".fc",
+                    ".func"
+                ],
+                "icon": {
+                    "light": "./dist/icons/ton-icon.svg",
+                    "dark": "./dist/icons/ton-icon.svg"
+                },
+                "configuration": "./client/src/languages/func-language-configuration.json"
+            },
+            {
+                "id": "tasm",
+                "aliases": [
+                    "TASM",
+                    "TON Assembly"
+                ],
+                "extensions": [
+                    ".tasm"
+                ],
+                "icon": {
+                    "light": "./dist/icons/ton-icon.svg",
+                    "dark": "./dist/icons/ton-icon.svg"
+                },
+                "configuration": "./client/src/languages/tasm-language-configuration.json"
+            },
+            {
+                "id": "fift",
+                "aliases": [
+                    "Fift"
+                ],
+                "extensions": [
+                    ".fif"
+                ],
+                "icon": {
+                    "light": "./dist/icons/ton-icon.svg",
+                    "dark": "./dist/icons/ton-icon.svg"
+                },
+                "configuration": "./client/src/languages/fift-language-configuration.json"
+            },
+            {
+                "id": "boc",
+                "extensions": [
+                    ".boc"
+                ],
+                "aliases": [
+                    "TON BoC"
+                ],
+                "icon": {
+                    "light": "./dist/icons/icon-boc-dark.svg",
+                    "dark": "./dist/icons/icon-boc-dark.svg"
+                }
+            },
+            {
+                "id": "tlb",
+                "aliases": [
+                    "TL-B"
+                ],
+                "extensions": [
+                    ".tlb"
+                ],
+                "icon": {
+                    "light": "./dist/icons/icon-tlb-dark.svg",
+                    "dark": "./dist/icons/icon-tlb-dark.svg"
+                },
+                "configuration": "./client/src/languages/tlb-language-configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "tolk",
+                "scopeName": "source.tolk",
+                "path": "./client/src/languages/syntaxes/tolk.tmLanguage.json"
+            },
+            {
+                "language": "func",
+                "scopeName": "source.func",
+                "path": "./client/src/languages/syntaxes/func.tmLanguage.json"
+            },
+            {
+                "language": "tasm",
+                "scopeName": "source.tasm",
+                "path": "./client/src/languages/syntaxes/tasm.tmLanguage.json"
+            },
+            {
+                "language": "fift",
+                "scopeName": "source.fift",
+                "path": "./client/src/languages/syntaxes/fift.tmLanguage.json"
+            },
+            {
+                "language": "tlb",
+                "scopeName": "source.tlb",
+                "path": "./client/src/languages/syntaxes/tlb.tmLanguage.json"
+            }
+        ],
+        "snippets": [],
+        "commands": [
+            {
+                "command": "tolk.build",
+                "title": "Build Project",
+                "category": "Tolk",
+                "icon": "$(gear)",
+                "problemMatcher": [
+                    "$tolk"
+                ]
+            },
+            {
+                "command": "tolk.getTypeAtPosition",
+                "title": "Get Type At Position",
+                "category": "Tolk"
+            },
+            {
+                "command": "tolk.executeHoverProvider",
+                "title": "Get Documentation At Position",
+                "category": "Tolk"
+            },
+            {
+                "command": "tolk.executeGetScopeProvider",
+                "title": "Get Scope Information",
+                "category": "Tolk"
+            },
+            {
+                "command": "ton.openBocFile",
+                "title": "Open Decompiled BoC file",
+                "category": "TON"
+            },
+            {
+                "command": "ton.saveBocDecompiled",
+                "title": "Decompile BoC to TON Assembly File",
+                "category": "TON"
+            },
+            {
+                "command": "tolk.showToolchainInfo",
+                "title": "Show Toolchain Information",
+                "category": "Tolk",
+                "icon": "$(info)"
+            },
+            {
+                "command": "tolk.selectToolchain",
+                "title": "Select Active Toolchain",
+                "category": "Tolk",
+                "icon": "$(tools)"
+            },
+            {
+                "command": "tolk.manageToolchains",
+                "title": "Manage Toolchains",
+                "category": "Tolk",
+                "icon": "$(settings-gear)"
+            },
+            {
+                "command": "tolk.addToolchain",
+                "title": "Add New Toolchain",
+                "category": "Tolk",
+                "icon": "$(add)"
+            },
+            {
+                "command": "tolk.removeToolchain",
+                "title": "Remove Toolchain",
+                "category": "Tolk",
+                "icon": "$(trash)"
+            },
+            {
+                "command": "tolk.getUnresolvedIdentifiers",
+                "title": "Tolk: Get Unresolved Identifiers"
+            }
+        ],
+        "keybindings": [
+            {
+                "command": "tolk.build",
+                "key": "f5",
+                "when": "editorTextFocus && editorLangId == 'tolk'"
+            }
+        ],
+        "menus": {
+            "explorer/context": [
+                {
+                    "when": "resourceExtname == .boc",
+                    "command": "ton.openBocFile",
+                    "group": "navigation"
+                },
+                {
+                    "when": "resourceExtname == '.boc'",
+                    "command": "ton.saveBocDecompiled",
+                    "group": "navigation"
+                }
+            ]
+        },
+        "configuration": [
+            {
+                "title": "General",
+                "properties": {
+                    "ton.tolk.stdlib.path": {
+                        "type": "string",
+                        "default": null,
+                        "description": "Path to Tolk standard library. If empty, will try to find in node_modules"
+                    }
+                }
+            },
+            {
+                "title": "Toolchain",
+                "properties": {
+                    "ton.tolk.toolchain.activeToolchain": {
+                        "type": "string",
+                        "default": "auto",
+                        "description": "Name of the active toolchain to use. Use 'auto' for automatic detection."
+                    },
+                    "ton.tolk.toolchain.toolchains": {
+                        "type": "object",
+                        "default": {
+                            "auto": {
+                                "name": "Auto-detected",
+                                "path": "",
+                                "description": "Automatically detect Tolk compiler in node_modules"
+                            }
+                        },
+                        "additionalProperties": {
+                            "type": "object",
+                            "properties": {
+                                "name": {
+                                    "type": "string",
+                                    "description": "Display name for this toolchain"
+                                },
+                                "path": {
+                                    "type": "string",
+                                    "description": "Path to the Tolk compiler executable"
+                                },
+                                "description": {
+                                    "type": "string",
+                                    "description": "Optional description for this toolchain"
+                                }
+                            },
+                            "required": [
+                                "name",
+                                "path"
+                            ]
+                        },
+                        "description": "Configured Tolk toolchains. Each key is a unique identifier for the toolchain."
+                    },
+                    "ton.tolk.toolchain.showShortCommitInStatusBar": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Add short commit hash after Tolk version in status bar"
+                    }
+                }
+            },
+            {
+                "title": "Editor › Hints",
+                "properties": {
+                    "ton.tolk.hints.disable": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Disable all inlay hints"
+                    },
+                    "ton.tolk.hints.types": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Show type hints for variables and expressions"
+                    },
+                    "ton.tolk.hints.parameters": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Show parameter name hints in function calls"
+                    },
+                    "ton.tolk.hints.showMethodId": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Show method ID hints for contract functions"
+                    }
+                }
+            },
+            {
+                "title": "Editor › Completion",
+                "properties": {
+                    "ton.tolk.completion.typeAware": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Sort completion items by relevance to the current context type"
+                    },
+                    "ton.tolk.completion.addImports": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Automatically add necessary imports for symbols from other files"
+                    }
+                }
+            },
+            {
+                "title": "Editor › Inspections",
+                "properties": {
+                    "ton.tolk.inspections.disabled": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "enum": [
+                                "unused-parameter",
+                                "unused-variable",
+                                "unused-top-level-declaration",
+                                "deprecated-symbol-usage",
+                                "unused-import",
+                                "struct-initialization",
+                                "cannot-reassign"
+                            ]
+                        },
+                        "default": [],
+                        "description": "List of disabled code inspections. All inspections are enabled by default."
+                    }
+                }
+            },
+            {
+                "title": "Find Usages",
+                "properties": {
+                    "ton.tolk.findUsages.scope": {
+                        "type": "string",
+                        "enum": [
+                            "workspace",
+                            "everywhere"
+                        ],
+                        "enumDescriptions": [
+                            "Search only in workspace files (default)",
+                            "Search everywhere including standard library"
+                        ],
+                        "default": "workspace",
+                        "description": "Where to search when using Find Usages"
+                    }
+                }
+            },
+            {
+                "title": "Fift",
+                "properties": {
+                    "ton.fift.hints.showGasConsumption": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Show gas consumption hints for Fift instructions"
+                    },
+                    "ton.fift.semanticHighlighting.enabled": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Enable/disable semantic highlighting for Fift files"
+                    }
+                }
+            },
+            {
+                "title": "BoC",
+                "properties": {
+                    "ton.boc.openDecompiledOnOpen": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Automatically open decompiled Fift assembly when opening BoC files"
+                    }
+                }
+            }
+        ],
+        "customEditors": [
+            {
+                "viewType": "boc.editor",
+                "displayName": "BoC Editor",
+                "selector": [
+                    {
+                        "filenamePattern": "*.boc"
+                    }
+                ],
+                "priority": "default"
+            }
+        ],
+        "taskDefinitions": [
+            {
+                "type": "blueprint-build",
+                "properties": {}
+            },
+            {
+                "type": "blueprint-build-all",
+                "properties": {}
+            },
+            {
+                "type": "blueprint-test",
+                "properties": {}
+            },
+            {
+                "type": "blueprint-build-and-test-all",
+                "properties": {}
+            }
+        ]
+    },
+    "dependencies": {
+        "@ton/core": "0.60.1",
+        "@ton/crypto": "^3.3.0",
+        "glob": "^11.0.1",
+        "ton-assembly-test-dev": "0.0.16",
+        "vscode-languageclient": "^8.0.2",
+        "vscode-languageserver": "^8.0.2",
+        "vscode-languageserver-textdocument": "^1.0.7",
+        "vscode-uri": "^3.0.7",
+        "web-tree-sitter": "^0.25.0"
+    },
+    "devDependencies": {
+        "@types/jest": "^29.5.14",
+        "@types/mocha": "^10.0.6",
+        "@types/node": "^22.2.0",
+        "@types/vscode": "^1.63.0",
+        "@vscode/test-cli": "^0.0.10",
+        "@vscode/test-electron": "^2.4.1",
+        "@vscode/vsce": "^3.0.0",
+        "c8": "^10.1.3",
+        "copy-webpack-plugin": "^12.0.2",
+        "eslint": "^9.19.0",
+        "eslint-plugin-functional": "^9.0.1",
+        "eslint-plugin-unicorn": "^56.0.1",
+        "eslint-plugin-unused-imports": "^4.1.4",
+        "husky": "^9.1.7",
+        "jest": "^29.7.0",
+        "mocha": "^10.3.0",
+        "prettier": "3.4.2",
+        "tree-sitter-cli": "^0.25.0",
+        "ts-jest": "^29.2.6",
+        "ts-loader": "^9.5.1",
+        "ts-node": "^10.9.2",
+        "tsconfig-paths-webpack-plugin": "^4.2.0",
+        "typescript": "^5.7.0",
+        "typescript-eslint": "^8.22.0",
+        "webpack": "^5.92.1",
+        "webpack-cli": "^5.1.4"
+    },
+    "peerDependencies": {
+        "tree-sitter": "^0.21.1"
+    },
+    "peerDependenciesMeta": {
+        "tree-sitter": {
+            "optional": true
+        }
+    },
+    "dependenciesMeta": {
+        "tree-sitter-cli": {
+            "built": true
+        }
+    },
+    "packageManager": "yarn@4.6.0",
+    "prettier": {
+        "arrowParens": "avoid",
+        "bracketSpacing": false,
+        "printWidth": 100,
+        "semi": false,
+        "singleQuote": false,
+        "tabWidth": 4,
+        "trailingComma": "all",
+        "useTabs": false,
+        "overrides": [
+            {
+                "files": [
+                    "*.yaml",
+                    "*.yml"
+                ],
+                "options": {
+                    "tabWidth": 2
+                }
+            }
+        ]
+    }
+}

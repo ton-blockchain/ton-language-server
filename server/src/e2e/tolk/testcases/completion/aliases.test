@@ -1,0 +1,74 @@
+========================================================================
+Alias method
+========================================================================
+type Alias = int;
+
+fun int.sub(self, a: int, b: int): int {
+    return a + b;
+}
+
+fun Alias.add(self, a: int, b: int): int {
+    return a + b;
+}
+
+fun test() {
+    val alias: Alias = 10;
+    alias.<caret>;
+}
+------------------------------------------------------------------------
+1  add(self, a: int, b: int): int
+1  forceLoadLazyObject(self): slice
+1  stackMoveToTop(mutate self): void
+1  sub(self, a: int, b: int): int
+1  toCell(self, options: PackOptions = {}): Cell<T>
+
+========================================================================
+Alias for alias with method
+========================================================================
+fun int.mul(self, a: int, b: int): int {
+    return a + b;
+}
+
+type Alias = int;
+
+fun Alias.add(self, a: int, b: int): int {
+    return a + b;
+}
+
+type AliasForAlias = Alias;
+
+fun AliasForAlias.sub(self, a: int, b: int): int {
+    return a + b;
+}
+
+fun test() {
+    val alias: AliasForAlias = 10;
+    alias.<caret>;
+}
+------------------------------------------------------------------------
+1  add(self, a: int, b: int): int
+1  forceLoadLazyObject(self): slice
+1  mul(self, a: int, b: int): int
+1  stackMoveToTop(mutate self): void
+1  sub(self, a: int, b: int): int
+1  toCell(self, options: PackOptions = {}): Cell<T>
+
+========================================================================
+Alias for option alias with method
+========================================================================
+type Alias = int;
+
+fun Alias.add(self, a: int, b: int): int {
+    return a + b;
+}
+
+type AliasForAlias = Alias?;
+
+fun test() {
+    val alias: AliasForAlias = 10;
+    alias.<caret>;
+}
+------------------------------------------------------------------------
+1  forceLoadLazyObject(self): slice
+1  stackMoveToTop(mutate self): void
+1  toCell(self, options: PackOptions = {}): Cell<T>

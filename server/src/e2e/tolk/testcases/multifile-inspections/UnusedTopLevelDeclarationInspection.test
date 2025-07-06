@@ -1,0 +1,100 @@
+========================================================================
+Special entry functions
+========================================================================
+fun onInternalMessage() {}
+fun onExternalMessage() {}
+fun onBouncedMessage() {}
+fun onRunTickTock() {}
+fun onSplitPrepare() {}
+fun onSplitInstall() {}
+fun main() {}
+------------------------------------------------------------------------
+no issues
+
+========================================================================
+Function with method_id
+========================================================================
+@method_id(123)
+fun testSomething() {
+    return 10
+}
+------------------------------------------------------------------------
+no issues
+
+========================================================================
+Get method
+========================================================================
+get fun testSomething() {
+    return 10
+}
+------------------------------------------------------------------------
+no issues
+
+========================================================================
+Special methods
+========================================================================
+type SnakeString = slice
+fun SnakeString.unpackFromSlice(mutate s: slice) {}
+fun SnakeString.packToBuilder(self, mutate b: builder) {}
+------------------------------------------------------------------------
+3 0:5 to 0:16 Type alias 'SnakeString' is never used (tolk)
+
+========================================================================
+Unused top level declarations
+========================================================================
+fun foo() {}
+fun int.foo() {}
+const FOO = 10
+global bar: int
+type Int = int
+struct Foo
+------------------------------------------------------------------------
+3 0:4 to 0:7 Function 'foo' is never used (tolk)
+3 1:8 to 1:11 Method 'foo' is never used (tolk)
+3 2:6 to 2:9 Constant 'FOO' is never used (tolk)
+3 3:7 to 3:10 Global variable 'bar' is never used (tolk)
+3 4:5 to 4:8 Type alias 'Int' is never used (tolk)
+3 5:7 to 5:10 Struct 'Foo' is never used (tolk)
+
+========================================================================
+Used top level declarations from another file
+========================================================================
+fun foo() {}
+fun int.foo() {}
+const FOO = 10
+global bar: int
+type Int = int
+struct Foo
+---FILE:other.tolk
+import "test"
+
+fun main(): Int {
+    foo();
+    int.foo();
+    FOO;
+    bar;
+    Foo{};
+}
+------------------------------------------------------------------------
+no issues
+
+========================================================================
+Used top level declarations from another file and unused global
+========================================================================
+fun foo() {}
+fun int.foo() {}
+const FOO = 10
+global bar: int
+type Int = int
+struct Foo
+---FILE:other.tolk
+import "test"
+
+fun main(): Int {
+    foo();
+    int.foo();
+    FOO;
+    Foo{};
+}
+------------------------------------------------------------------------
+3 3:7 to 3:10 Global variable 'bar' is never used (tolk)

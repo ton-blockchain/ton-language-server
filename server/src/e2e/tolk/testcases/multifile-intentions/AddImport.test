@@ -1,0 +1,125 @@
+========================================================================
+Add import for function from other file
+========================================================================
+fun main() {
+    <caret>someFunction();
+}
+---FILE:other.tolk
+fun someFunction() {}
+------------------------------------------------------------------------
+import "other";
+
+fun main() {
+    someFunction();
+}
+
+========================================================================
+Add import for global variable from other file
+========================================================================
+fun main() {
+    <caret>globalVar;
+}
+---FILE:other.tolk
+global globalVar: int;
+------------------------------------------------------------------------
+import "other";
+
+fun main() {
+    globalVar;
+}
+
+========================================================================
+Add import for type alias from other file
+========================================================================
+fun main(): <caret>Int {
+}
+---FILE:other.tolk
+type Int = int;
+------------------------------------------------------------------------
+import "other";
+
+fun main(): Int {
+}
+
+========================================================================
+Add import for constant from other file
+========================================================================
+fun main() {
+    <caret>FOO;
+}
+---FILE:other.tolk
+const FOO: int = 100;
+------------------------------------------------------------------------
+import "other";
+
+fun main() {
+    FOO;
+}
+
+========================================================================
+Add import for struct from other file with other imports
+========================================================================
+import "some.tolk";
+
+fun main() {
+    <caret>Foo{};
+}
+---FILE:other.tolk
+struct Foo {}
+------------------------------------------------------------------------
+import "some.tolk";
+import "other";
+
+fun main() {
+    Foo{};
+}
+
+========================================================================
+No import intention for function from other file since file already imported
+========================================================================
+import "./other";
+
+fun main() {
+    <caret>bar();
+}
+---FILE:other.tolk
+fun bar() {}
+------------------------------------------------------------------------
+No intentions
+
+========================================================================
+No import intention for function from other file since file already imported, with ext
+========================================================================
+import "./other.tolk";
+
+fun main() {
+    <caret>bar();
+}
+---FILE:other.tolk
+fun bar() {}
+------------------------------------------------------------------------
+No intentions
+
+========================================================================
+No import intention for function from stdlib
+========================================================================
+fun main() {
+    <caret>minMax();
+}
+---FILE:other.tolk
+fun bar() {}
+------------------------------------------------------------------------
+No intentions
+
+========================================================================
+No import intention for function with several declarations
+========================================================================
+fun main() {
+    <caret>bar();
+}
+---FILE:other.tolk
+fun bar() {}
+---FILE:other2.tolk
+fun bar() {}
+------------------------------------------------------------------------
+No intentions

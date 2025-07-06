@@ -1,0 +1,19 @@
+========================================================================
+Annotations documentation
+========================================================================
+@<caret>deprecated("")
+@<caret>inline
+@<caret>inline_ref
+@<caret>noinline
+@<caret>on_bounced_policy("manual")
+@<caret>overflow1023_policy("suppress")
+@<caret>pure
+fun foo() {}
+------------------------------------------------------------------------
+Symbol with this annotation is deprecated and should not be used in new code. First string argument is a reason for deprecation as a string literal.
+Function with this annotation will be automatically inlined during compilation
+Function with this annotation will be automatically inlined by reference during compilation
+Function with this annotation will not be inlined even if compiler can inline it
+Defines the policy for handling bounced messages. Right now, only `"manual"` value is supported.
+Defines the policy for handling potential builder overflow. Right now, only `"suppress"` value is supported. See <https://docs.ton.org/v3/documentation/smart-contracts/tolk/tolk-vs-func/pack-to-from-cells#what-if-data-exceeds-1023-bits> for more details
+Function with this annotation has no side effects and can be optimized away by the compiler

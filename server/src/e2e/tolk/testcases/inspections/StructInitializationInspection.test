@@ -1,0 +1,312 @@
+========================================================================
+Several missing fields initialization
+========================================================================
+struct Point {
+    x: int;
+    y: int;
+}
+
+fun foo() {
+    Point{};
+}
+------------------------------------------------------------------------
+3 1:4 to 1:10 Field 'x' is never used (tolk)
+3 2:4 to 2:10 Field 'y' is never used (tolk)
+3 5:4 to 5:7 Function 'foo' is never used (tolk)
+0 6:4 to 6:9 Fields 'x', 'y' are required but not initialized (tolk)
+
+========================================================================
+Several missing fields initialization with alias
+========================================================================
+struct Point {
+    x: int;
+    y: int;
+}
+
+type PointAlias = Point;
+
+fun foo() {
+    PointAlias {};
+}
+------------------------------------------------------------------------
+3 1:4 to 1:10 Field 'x' is never used (tolk)
+3 2:4 to 2:10 Field 'y' is never used (tolk)
+3 7:4 to 7:7 Function 'foo' is never used (tolk)
+0 8:4 to 8:14 Fields 'x', 'y' are required but not initialized (tolk)
+
+========================================================================
+Several missing fields initialization with generic struct
+========================================================================
+struct Point<T> {
+    x: T;
+    y: T;
+}
+
+fun foo() {
+    Point<int> {};
+}
+------------------------------------------------------------------------
+3 1:4 to 1:8 Field 'x' is never used (tolk)
+3 2:4 to 2:8 Field 'y' is never used (tolk)
+3 5:4 to 5:7 Function 'foo' is never used (tolk)
+0 6:4 to 6:14 Fields 'x', 'y' are required but not initialized (tolk)
+
+========================================================================
+Several missing fields initialization with generic struct alias
+========================================================================
+struct Point<T> {
+    x: T;
+    y: T;
+}
+
+type IntPoint = Point<int>;
+
+fun foo() {
+    IntPoint {};
+}
+------------------------------------------------------------------------
+3 1:4 to 1:8 Field 'x' is never used (tolk)
+3 2:4 to 2:8 Field 'y' is never used (tolk)
+3 7:4 to 7:7 Function 'foo' is never used (tolk)
+0 8:4 to 8:12 Fields 'x', 'y' are required but not initialized (tolk)
+
+========================================================================
+Several missing fields initialization with short syntax
+========================================================================
+struct Point {
+    x: int;
+    y: int;
+}
+
+fun foo() {
+    val p: Point = {};
+}
+------------------------------------------------------------------------
+3 1:4 to 1:10 Field 'x' is never used (tolk)
+3 2:4 to 2:10 Field 'y' is never used (tolk)
+3 5:4 to 5:7 Function 'foo' is never used (tolk)
+3 6:8 to 6:9 Variable 'p' is never used (tolk)
+0 6:19 to 6:20 Fields 'x', 'y' are required but not initialized (tolk)
+
+========================================================================
+Missing field initialization
+========================================================================
+struct Point {
+    x: int;
+    y: int;
+}
+
+fun foo() {
+    Point{ x: 1 };
+}
+------------------------------------------------------------------------
+3 2:4 to 2:10 Field 'y' is never used (tolk)
+3 5:4 to 5:7 Function 'foo' is never used (tolk)
+0 6:4 to 6:9 Field 'y' is required but not initialized (tolk)
+
+========================================================================
+All fields with default values
+========================================================================
+struct Point {
+    x: int = 0;
+    y: int = 0;
+}
+
+fun foo() {
+    Point{};
+    Point{ x: 1 };
+    Point{ x: 1, y: 2 };
+}
+------------------------------------------------------------------------
+3 5:4 to 5:7 Function 'foo' is never used (tolk)
+
+========================================================================
+Complete initialization
+========================================================================
+struct Point {
+    x: int;
+    y: int;
+}
+
+fun foo() {
+    Point{x: 1, y: 2};
+}
+------------------------------------------------------------------------
+3 5:4 to 5:7 Function 'foo' is never used (tolk)
+
+========================================================================
+Complete initialization with backticked identifiers
+========================================================================
+struct Point {
+    x: int;
+    `y`: int;
+}
+
+fun foo() {
+    Point{`x`: 1, y: 2};
+}
+------------------------------------------------------------------------
+3 1:4 to 1:10 Field 'x' is never used (tolk)
+3 2:4 to 2:12 Field '`y`' is never used (tolk)
+3 5:4 to 5:7 Function 'foo' is never used (tolk)
+
+========================================================================
+Complete initialization with short syntax
+========================================================================
+struct Point {
+    x: int;
+    y: int;
+}
+
+fun foo() {
+    val x = 1;
+    val y = 2;
+    Point{x, y};
+}
+------------------------------------------------------------------------
+3 5:4 to 5:7 Function 'foo' is never used (tolk)
+
+========================================================================
+Complete initialization with short instance syntax
+========================================================================
+struct Point {
+    x: int;
+    y: int;
+}
+
+fun foo() {
+    val x = 1;
+    val y = 2;
+    val point: Point = {x, y};
+}
+------------------------------------------------------------------------
+3 5:4 to 5:7 Function 'foo' is never used (tolk)
+3 8:8 to 8:13 Variable 'point' is never used (tolk)
+
+========================================================================
+Complete initialization with single short syntax
+========================================================================
+struct Point {
+    x: int;
+    y: int;
+}
+
+fun foo() {
+    val x = 1;
+    val y = 2;
+    Point{x: 10, y};
+}
+------------------------------------------------------------------------
+3 5:4 to 5:7 Function 'foo' is never used (tolk)
+3 6:8 to 6:9 Variable 'x' is never used (tolk)
+
+========================================================================
+Optional field
+========================================================================
+primitive int;
+
+struct Point {
+    x: int?;
+}
+
+fun foo() {
+    Point {};
+}
+------------------------------------------------------------------------
+3 3:4 to 3:11 Field 'x' is never used (tolk)
+3 6:4 to 6:7 Function 'foo' is never used (tolk)
+0 7:4 to 7:9 Field 'x' is required but not initialized (tolk)
+
+========================================================================
+Optional fields
+========================================================================
+primitive int;
+
+struct Point {
+    x: int?;
+    y: int?;
+}
+
+fun foo() {
+    Point {};
+}
+------------------------------------------------------------------------
+3 3:4 to 3:11 Field 'x' is never used (tolk)
+3 4:4 to 4:11 Field 'y' is never used (tolk)
+3 7:4 to 7:7 Function 'foo' is never used (tolk)
+0 8:4 to 8:9 Fields 'x', 'y' are required but not initialized (tolk)
+
+========================================================================
+Optional fields and non-optional
+========================================================================
+primitive int;
+
+struct Point {
+    x: int?;
+    y: int?;
+    z: int;
+}
+
+fun foo() {
+    Point {};
+}
+------------------------------------------------------------------------
+3 3:4 to 3:11 Field 'x' is never used (tolk)
+3 4:4 to 4:11 Field 'y' is never used (tolk)
+3 5:4 to 5:10 Field 'z' is never used (tolk)
+3 8:4 to 8:7 Function 'foo' is never used (tolk)
+0 9:4 to 9:9 Fields 'x', 'y', 'z' are required but not initialized (tolk)
+
+========================================================================
+Optional fields and non-optional 2
+========================================================================
+primitive int;
+
+struct Point {
+    x: int?;
+    y: int?;
+    z: int;
+}
+
+fun foo() {
+    Point { z: 10 };
+}
+------------------------------------------------------------------------
+3 3:4 to 3:11 Field 'x' is never used (tolk)
+3 4:4 to 4:11 Field 'y' is never used (tolk)
+3 8:4 to 8:7 Function 'foo' is never used (tolk)
+0 9:4 to 9:9 Fields 'x', 'y' are required but not initialized (tolk)
+
+========================================================================
+Never field can be omitted
+========================================================================
+struct Point {
+    x: int;
+    y: never;
+}
+
+fun foo() {
+    Point{};
+}
+------------------------------------------------------------------------
+3 1:4 to 1:10 Field 'x' is never used (tolk)
+3 2:4 to 2:12 Field 'y' is never used (tolk)
+3 5:4 to 5:7 Function 'foo' is never used (tolk)
+0 6:4 to 6:9 Field 'x' is required but not initialized (tolk)
+
+========================================================================
+Generic field with never default can be omitted
+========================================================================
+struct Point<T=never> {
+    x: int;
+    y: T;
+}
+
+fun foo() {
+    Point{};
+}
+------------------------------------------------------------------------
+3 1:4 to 1:10 Field 'x' is never used (tolk)
+3 2:4 to 2:8 Field 'y' is never used (tolk)
+3 5:4 to 5:7 Function 'foo' is never used (tolk)
+0 6:4 to 6:9 Field 'x' is required but not initialized (tolk)

@@ -1,0 +1,164 @@
+========================================================================
+First field in struct init
+========================================================================
+struct Foo {
+    age: int;
+}
+
+fun test() {
+    Foo { <caret> };
+}
+------------------------------------------------------------------------
+9  age : int    of Foo
+
+========================================================================
+First field in short struct init
+========================================================================
+struct Foo {
+    age: int;
+}
+
+fun test() {
+    val foo: Foo = { <caret> };
+}
+------------------------------------------------------------------------
+9  age : int    of Foo
+
+========================================================================
+First field in short struct init 2
+========================================================================
+struct Foo {
+    age: int;
+}
+
+fun takeFoo(foo: Foo) {}
+
+fun test() {
+    takeFoo({ <caret> });
+}
+------------------------------------------------------------------------
+9  age : int    of Foo
+
+========================================================================
+First field in struct init with variable
+========================================================================
+struct Foo {
+    age: int;
+}
+
+fun test() {
+    val age = 10;
+    val some = 100;
+    Foo { <caret> };
+}
+------------------------------------------------------------------------
+5  age   int
+9  age : int    of Foo
+
+========================================================================
+First field in struct init with parameter
+========================================================================
+struct Foo {
+    age: int;
+}
+
+fun test(age: int, some: int) {
+    Foo { <caret> };
+}
+------------------------------------------------------------------------
+5  age   int
+9  age : int    of Foo
+
+========================================================================
+Second field in struct init
+========================================================================
+struct Foo {
+    age: int;
+    value: int;
+}
+
+fun test() {
+    Foo{ age: 10, <caret> };
+}
+------------------------------------------------------------------------
+9  value : int    of Foo
+
+========================================================================
+Second field in struct init 2
+========================================================================
+struct Foo {
+    age: int;
+    value: int;
+}
+
+fun test(value: int) {
+    Foo{ val<caret> value: 10 };
+}
+------------------------------------------------------------------------
+5  value   int
+14 val
+14 valt
+
+========================================================================
+Second field in struct init with variable
+========================================================================
+struct Foo {
+    age: int;
+    value: int;
+}
+
+fun test() {
+    val age = 20;
+    Foo{ age: 10, <caret> };
+}
+------------------------------------------------------------------------
+9  value : int    of Foo
+
+========================================================================
+Completion in field value
+========================================================================
+struct Foo {
+    age: int;
+}
+
+fun test(value: int) {
+    Foo{ age: va<caret> };
+}
+------------------------------------------------------------------------
+5  value   int
+24 varint16
+24 varint32
+24 varuint16
+24 varuint32
+
+========================================================================
+Fields completion for function with generic struct argument
+========================================================================
+struct CreateMessageOptions<TBody = never> {
+    bounce: bool;
+    value: coins | (coins, ExtraCurrenciesDict);
+    body: TBody;
+}
+
+fun createMessage<TBody>(options: CreateMessageOptions<TBody>): OutMessage {}
+
+fun test() {
+    createMessage({<caret>});
+}
+------------------------------------------------------------------------
+9  body : TBody    of CreateMessageOptions
+9  bounce : bool    of CreateMessageOptions
+9  value : coins | (coins, ExtraCurrenciesDict)    of CreateMessageOptions
+
+========================================================================
+Fields completion inside default value
+========================================================================
+struct Foo {
+    first: int,
+    second: slice,
+}
+
+fun main(foo: Foo = {<caret>}) {}
+------------------------------------------------------------------------
+9  first : int    of Foo
+9  second : slice    of Foo

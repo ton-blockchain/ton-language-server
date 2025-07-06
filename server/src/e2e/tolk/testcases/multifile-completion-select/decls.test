@@ -1,0 +1,70 @@
+========================================================================
+Auto import from stdlib on completion
+========================================================================
+fun foo() {
+    getTvmRegisterC3<caret>;
+}
+------------------------------------------------------------------------
+import "@stdlib/tvm-lowlevel";
+
+fun foo() {
+    getTvmRegisterC3()<caret>;
+}
+
+========================================================================
+Auto import from other file on completion
+========================================================================
+fun foo() {
+    someGlobalFunction<caret>;
+}
+---FILE:other.tolk
+fun someGlobalFunction() {}
+------------------------------------------------------------------------
+import "other";
+
+fun foo() {
+    someGlobalFunction()<caret>;
+}
+
+========================================================================
+No auto import from other file on completion if file already imported
+========================================================================
+import "./other";
+
+fun foo() {
+    someGlobalFunction<caret>;
+}
+---FILE:other.tolk
+fun someGlobalFunction() {}
+------------------------------------------------------------------------
+import "./other";
+
+fun foo() {
+    someGlobalFunction()<caret>;
+}
+
+========================================================================
+No auto import from other file on completion if symbol from stdlib
+========================================================================
+fun foo() {
+    minMax<caret>;
+}
+------------------------------------------------------------------------
+fun foo() {
+    minMax(<caret>);
+}
+
+========================================================================
+No auto import from other file on completion if symbol has several declarations
+========================================================================
+fun foo() {
+    someGlobalFunction<caret>;
+}
+---FILE:other1.tolk
+fun someGlobalFunction() {}
+---FILE:other2.tolk
+fun someGlobalFunction() {}
+------------------------------------------------------------------------
+fun foo() {
+    someGlobalFunction()<caret>;
+}

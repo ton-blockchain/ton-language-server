@@ -1,0 +1,477 @@
+========================================================================
+Simple function documentation
+========================================================================
+fun <caret>foo() {}
+------------------------------------------------------------------------
+```tolk
+fun foo(): void
+```
+
+========================================================================
+Simple backticked function documentation
+========================================================================
+fun <caret>`hello world`() {}
+------------------------------------------------------------------------
+```tolk
+fun `hello world`(): void
+```
+
+========================================================================
+Simple function documentation with annotation
+========================================================================
+@pure
+fun <caret>foo() {}
+------------------------------------------------------------------------
+```tolk
+@pure
+fun foo(): void
+```
+
+========================================================================
+Generic function documentation
+========================================================================
+fun <caret>foo<TName>() {}
+------------------------------------------------------------------------
+```tolk
+fun foo<TName>(): void
+```
+
+========================================================================
+Function with parameters documentation
+========================================================================
+fun <caret>foo(a: int): slice {}
+------------------------------------------------------------------------
+```tolk
+fun foo(a: int): slice
+```
+
+========================================================================
+Instance method documentation
+========================================================================
+fun Foo.<caret>foo(self, other: int): (slice, bool) {}
+------------------------------------------------------------------------
+```tolk
+fun Foo.foo(self, other: int): (slice, bool)
+```
+
+========================================================================
+Instance method with annotation documentation
+========================================================================
+@inline
+fun Foo.<caret>foo(self, other: int): (slice, bool) {}
+------------------------------------------------------------------------
+```tolk
+@inline
+fun Foo.foo(self, other: int): (slice, bool)
+```
+
+========================================================================
+Static method documentation
+========================================================================
+fun Foo.<caret>foo(other: int): [slice, bool] {}
+------------------------------------------------------------------------
+```tolk
+fun Foo.foo(other: int): [slice, bool]
+```
+
+========================================================================
+Static method with annotations documentation
+========================================================================
+@pure
+@inline
+@some("hello")
+fun Foo.<caret>foo(other: int): [slice, bool] {}
+------------------------------------------------------------------------
+```tolk
+@pure
+@inline
+@some("hello")
+fun Foo.foo(other: int): [slice, bool]
+```
+
+========================================================================
+Empty struct documentation
+========================================================================
+struct <caret>Foo {}
+------------------------------------------------------------------------
+```tolk
+struct Foo {}
+```
+
+========================================================================
+Struct documentation without body
+========================================================================
+struct <caret>Foo
+struct <caret>Bar
+------------------------------------------------------------------------
+```tolk
+struct Foo {}
+```
+```tolk
+struct Bar {}
+```
+
+========================================================================
+Struct documentation
+========================================================================
+struct <caret>Foo {
+    value: int,
+    other: bool,
+}
+------------------------------------------------------------------------
+```tolk
+struct Foo {
+    value: int
+    other: bool
+}
+```
+
+========================================================================
+Struct with pack prefix documentation
+========================================================================
+struct (0x100) <caret>Foo {
+    value: int,
+    other: bool,
+}
+------------------------------------------------------------------------
+```tolk
+struct (0x100) Foo {
+    value: int
+    other: bool
+}
+```
+
+========================================================================
+Struct with pack prefix and type parameters documentation
+========================================================================
+struct (0x100) <caret>Foo<TName, TValue=int> {
+    value: TName,
+    other: TValue,
+}
+------------------------------------------------------------------------
+```tolk
+struct (0x100) Foo<TName, TValue=int> {
+    value: TName
+    other: TValue
+}
+```
+
+========================================================================
+Struct with comments inside
+========================================================================
+/// Options for creating an outgoing message.
+/// Consider [createMessage] for examples.
+struct <caret>CreateMessageOptions<TBody = never> {
+    /// whether a message will bounce back on error
+    bounce: bool;
+    /// message value: attached tons (or tons + extra currencies)
+    value: coins | (coins, ExtraCurrenciesDict);
+    /// destination is either a provided address, or is auto-calculated by stateInit
+    dest: | address             // either just send a message to some address
+          | builder             // ... or a manually constructed builder with a valid address
+          | (int8, uint256)     // ... or to workchain + hash (also known as accountID)
+          | AutoDeployAddress;    // ... or "send to stateInit" aka deploy (address auto-calculated)
+    /// body is any serializable object (or just miss this field for empty body)
+    body: TBody;
+}
+------------------------------------------------------------------------
+```tolk
+struct CreateMessageOptions<TBody = never> {
+    bounce: bool
+    value: coins | (coins, ExtraCurrenciesDict)
+    dest: | address             // either just send a message to some address
+          | builder             // ... or a manually constructed builder with a valid address
+          | (int8, uint256)     // ... or to workchain + hash (also known as accountID)
+          | AutoDeployAddress
+    body: TBody
+}
+```
+Options for creating an outgoing message.
+Consider [createMessage] for examples.
+
+========================================================================
+Struct field documentation
+========================================================================
+struct Foo {
+    <caret>value: int,
+    other: bool,
+}
+------------------------------------------------------------------------
+```tolk
+struct Foo
+value: int
+```
+
+========================================================================
+Struct field with default value documentation
+========================================================================
+struct Foo {
+    <caret>value: int = 100,
+    other: bool,
+}
+------------------------------------------------------------------------
+```tolk
+struct Foo
+value: int = 100
+```
+
+========================================================================
+Struct field documentation with doc comment
+========================================================================
+struct Foo {
+    /// some useful field
+    <caret>value: int,
+    other: bool,
+}
+------------------------------------------------------------------------
+```tolk
+struct Foo
+value: int
+```
+some useful field
+
+========================================================================
+Struct field documentation with inline  comment
+========================================================================
+struct Foo {
+    <caret>value: int, // some useful field
+    other: bool,
+}
+------------------------------------------------------------------------
+```tolk
+struct Foo
+value: int
+```
+
+========================================================================
+Type alias documentation
+========================================================================
+type <caret>Int = int;
+------------------------------------------------------------------------
+```tolk
+type Int = int
+```
+
+========================================================================
+Type alias with type parameters documentation
+========================================================================
+type <caret>Foo<TName, TValue=slice> = TName | TValue;
+------------------------------------------------------------------------
+```tolk
+type Foo<TName, TValue=slice> =
+    | TName
+    | TValue
+```
+
+========================================================================
+Type alias with union type documentation
+========================================================================
+type <caret>IntOrStrong = int | string;
+------------------------------------------------------------------------
+```tolk
+type IntOrStrong = int | string
+```
+
+========================================================================
+Type alias with union 2 type documentation
+========================================================================
+struct AllowedOpElectorNewStake
+struct AllowedOpElectorRecoverStake
+struct AllowedOpElectorVoteForComplaint
+struct AllowedOpElectorVoteForProposal
+
+type <caret>AllowedOpToElectorContract =
+    | AllowedOpElectorNewStake
+    | AllowedOpElectorRecoverStake
+    | AllowedOpElectorVoteForComplaint
+    | AllowedOpElectorVoteForProposal
+------------------------------------------------------------------------
+```tolk
+type AllowedOpToElectorContract =
+    | AllowedOpElectorNewStake
+    | AllowedOpElectorRecoverStake
+    | AllowedOpElectorVoteForComplaint
+    | AllowedOpElectorVoteForProposal
+```
+
+========================================================================
+Type alias with builtin type
+========================================================================
+type <caret>int = builtin_type;
+------------------------------------------------------------------------
+```tolk
+type int = builtin
+```
+
+========================================================================
+Constant declaration
+========================================================================
+const <caret>FOO = 100;
+------------------------------------------------------------------------
+```tolk
+const FOO: int = 100
+```
+
+========================================================================
+Constant declaration with type
+========================================================================
+const <caret>FOO: int = 100;
+------------------------------------------------------------------------
+```tolk
+const FOO: int = 100
+```
+
+========================================================================
+Global variable declaration
+========================================================================
+global <caret>foo: int;
+------------------------------------------------------------------------
+```tolk
+global foo: int
+```
+
+========================================================================
+Local variable documentation
+========================================================================
+fun foo() {
+    val <caret>value = 10;
+}
+------------------------------------------------------------------------
+```tolk
+val value: int = 10
+```
+
+========================================================================
+Local variable with typehint documentation
+========================================================================
+fun foo() {
+    val <caret>value: int = 10;
+}
+------------------------------------------------------------------------
+```tolk
+val value: int = 10
+```
+
+========================================================================
+Local mutable variable documentation
+========================================================================
+fun foo() {
+    var <caret>value = 10;
+}
+------------------------------------------------------------------------
+```tolk
+var value: int = 10
+```
+
+========================================================================
+Local tuple variable documentation
+========================================================================
+fun foo() {
+    val [<caret>value, other] = [10, 1];
+}
+------------------------------------------------------------------------
+```tolk
+val [value, other] = [10, 1]
+```
+
+========================================================================
+Parameter documentation
+========================================================================
+fun foo(<caret>param: int) {}
+------------------------------------------------------------------------
+```tolk
+param: int
+```
+
+========================================================================
+Mutable parameter documentation
+========================================================================
+fun foo(mutate <caret>param: int) {}
+------------------------------------------------------------------------
+```tolk
+mutate param: int
+```
+
+========================================================================
+Parameter with default value documentation
+========================================================================
+fun foo(<caret>param: int = 10) {}
+------------------------------------------------------------------------
+```tolk
+param: int = 10
+```
+
+========================================================================
+Catch variable documentation
+========================================================================
+fun foo() {
+    try {} catch (<caret>e) {}
+}
+------------------------------------------------------------------------
+```tolk
+catch (e)
+```
+
+========================================================================
+Second catch variable documentation
+========================================================================
+fun foo() {
+    try {} catch (e, <caret>d) {}
+}
+------------------------------------------------------------------------
+```tolk
+catch (d)
+```
+
+========================================================================
+No documentation for fun
+========================================================================
+<caret>fun foo() {}
+------------------------------------------------------------------------
+no documentation
+
+========================================================================
+Get method documentation
+========================================================================
+get fun <caret>foo() {}
+------------------------------------------------------------------------
+```tolk
+get fun foo()
+```
+Method ID: `0x1af96`
+
+========================================================================
+Get method with explicit method id documentation
+========================================================================
+@method_id(0x100)
+get fun <caret>foo() {}
+------------------------------------------------------------------------
+```tolk
+@method_id(0x100)
+get fun foo()
+```
+Method ID: `0x100`
+
+========================================================================
+Get method documentation with comment and method id
+========================================================================
+/// Some getter with method id 0x100
+@method_id(0x100)
+get fun <caret>foo() {}
+------------------------------------------------------------------------
+```tolk
+@method_id(0x100)
+get fun foo()
+```
+Method ID: `0x100`
+
+Some getter with method id 0x100
+
+========================================================================
+Unresolved symbol documentation
+========================================================================
+fun foo() {
+    <caret>someUnknownFunction();
+}
+------------------------------------------------------------------------
+no documentation

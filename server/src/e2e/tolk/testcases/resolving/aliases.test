@@ -1,0 +1,51 @@
+========================================================================
+Alias method
+========================================================================
+type Alias = int;
+
+fun Alias.add(self, a: int, b: int): int {
+    return a + b;
+}
+
+fun test() {
+    val alias: Alias = 10;
+    <caret>alias.add(1, 2);
+}
+------------------------------------------------------------------------
+8:4 -> 7:8 resolved
+
+========================================================================
+Alias for alias with method
+========================================================================
+type Alias = int;
+
+fun Alias.add(self, a: int, b: int): int {
+    return a + b;
+}
+
+type AliasForAlias = Alias;
+
+fun test() {
+    val alias: AliasForAlias = 10;
+    <caret>alias.add(1, 2);
+}
+------------------------------------------------------------------------
+10:4 -> 9:8 resolved
+
+========================================================================
+Alias for option alias with method
+========================================================================
+type Alias = int;
+
+fun Alias.add(self, a: int, b: int): int {
+    return a + b;
+}
+
+type AliasForAlias = Alias?;
+
+fun test() {
+    val alias: AliasForAlias = 10;
+    <caret>alias.add(1, 2);
+}
+------------------------------------------------------------------------
+10:4 -> 9:8 resolved

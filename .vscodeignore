@@ -1,0 +1,17 @@
+**/*
+
+!dist/**/*.js
+!dist/**/*.json
+!dist/**/*.wasm
+!dist/**/*.svg
+!dist/**/*.tolk
+
+# Include only this files
+!LICENSE
+!CHANGELOG.md
+!package.json
+!./README-extension.md
+!client/src/languages
+!client/src/assets
+!syntaxes/
+!snippets/

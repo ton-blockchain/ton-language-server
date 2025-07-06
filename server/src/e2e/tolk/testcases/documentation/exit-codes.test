@@ -1,0 +1,47 @@
+========================================================================
+Exit code documentation for throw
+========================================================================
+fun foo() {
+    throw <caret>1;
+}
+------------------------------------------------------------------------
+Alternative successful execution exit code. Reserved, but doesn’t occur.
+
+**Phase**: Compute phase
+
+Learn more about exit codes in documentation: https://docs.ton.org/v3/documentation/tvm/tvm-exit-codes
+
+========================================================================
+Exit code documentation for assert
+========================================================================
+fun foo() {
+    assert (true) throw <caret>5;
+}
+------------------------------------------------------------------------
+Range check error — some integer is out of its expected range.
+
+**Phase**: Compute phase
+
+Learn more about exit codes in documentation: https://docs.ton.org/v3/documentation/tvm/tvm-exit-codes
+
+========================================================================
+Exit code documentation for assert 2
+========================================================================
+fun foo() {
+    assert(true, <caret>10);
+}
+------------------------------------------------------------------------
+Dictionary error.
+
+**Phase**: Compute phase
+
+Learn more about exit codes in documentation: https://docs.ton.org/v3/documentation/tvm/tvm-exit-codes
+
+========================================================================
+Exit code documentation for assert condition
+========================================================================
+fun foo() {
+    assert(<caret>10, 10);
+}
+------------------------------------------------------------------------
+no documentation

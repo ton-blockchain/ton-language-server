@@ -1,0 +1,64 @@
+name: E2E and Unit tests
+
+on:
+  pull_request:
+    branches:
+      - master
+  push:
+    branches:
+      - master
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  HUSKY: 0
+
+jobs:
+  tests:
+    name: Test (${{ matrix.os }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        os:
+          - windows-latest
+          - ubuntu-latest
+          - macos-latest
+    steps:
+      - name: Fetch Sources
+        uses: actions/checkout@v4
+
+      - name: Enable Corepack
+        if: matrix.os == 'windows-latest'
+        run: corepack enable --install-directory 'C:\npm\prefix'
+
+      - name: Enable Corepack
+        if: matrix.os != 'windows-latest'
+        run: corepack enable
+
+      - name: Setup Node.js 22.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: "yarn"
+
+      - name: Install dependencies
+        env:
+          YARN_ENABLE_HARDENED_MODE: false
+        run: yarn install --immutable
+
+      - name: Build Extension
+        run: yarn build
+
+      - name: Run unit tests
+        run: yarn test
+
+      - name: Run e2e tests
+        if: matrix.os == 'ubuntu-latest'
+        run: xvfb-run -a yarn run test:e2e
+
+      - name: Run e2e tests
+        if: matrix.os != 'ubuntu-latest'
+        run: yarn run test:e2e

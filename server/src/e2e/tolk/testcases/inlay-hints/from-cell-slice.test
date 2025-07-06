@@ -1,0 +1,60 @@
+========================================================================
+Struct fromCell call
+========================================================================
+struct Foo {}
+
+fun some(cell: cell) {
+    return Foo.fromCell(cell);
+}
+
+fun test(cell: cell) {
+    val res = some(cell);
+}
+------------------------------------------------------------------------
+struct Foo {}
+
+fun some(cell: cell)/* : Foo */ {
+    return Foo.fromCell(/* packedCell: */cell);
+}
+
+fun test(cell: cell)/* : void */ {
+    val res/* : Foo */ = some(cell);
+}
+
+========================================================================
+Struct fromSlice call
+========================================================================
+struct Foo {}
+
+fun some(slice: slice) {
+    return Foo.fromSlice(slice);
+}
+
+fun test(slice: slice) {
+    val res = some(slice);
+}
+------------------------------------------------------------------------
+struct Foo {}
+
+fun some(slice: slice)/* : Foo */ {
+    return Foo.fromSlice(/* rawSlice: */slice);
+}
+
+fun test(slice: slice)/* : void */ {
+    val res/* : Foo */ = some(slice);
+}
+
+========================================================================
+Struct fromSlice call with lazy
+========================================================================
+struct Foo {}
+
+fun test(slice: slice) {
+    val res = Foo.fromSlice(slice);
+}
+------------------------------------------------------------------------
+struct Foo {}
+
+fun test(slice: slice)/* : void */ {
+    val res = Foo.fromSlice(/* rawSlice: */slice);
+}

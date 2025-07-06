@@ -1,0 +1,335 @@
+========================================================================
+Struct instance method
+========================================================================
+struct Foo {}
+
+fun Foo.bar(self) {}
+
+fun test() {
+    val foo: Foo = {};
+    foo.<caret>bar();
+}
+------------------------------------------------------------------------
+6:8 -> 2:8 resolved
+
+========================================================================
+Struct instance method on alias
+========================================================================
+struct Foo {}
+
+fun Foo.bar(self) {}
+
+type Bar = Foo;
+
+fun test() {
+    val bar: Bar = {};
+    bar.<caret>bar();
+}
+------------------------------------------------------------------------
+8:8 -> 2:8 resolved
+
+========================================================================
+Struct static method as instance
+========================================================================
+struct Foo {}
+
+fun Foo.bar() {}
+
+fun test() {
+    val foo: Foo = {};
+    foo.<caret>bar();
+}
+------------------------------------------------------------------------
+6:8 -> 2:8 resolved
+
+========================================================================
+Struct instance method chaining
+========================================================================
+struct Foo {}
+
+fun Foo.bar(self): self {}
+fun Foo.baz(self): self {}
+fun Foo.bad(self): self {}
+
+fun test() {
+    val foo: Foo = {};
+    foo
+        .<caret>bar()
+        .<caret>baz()
+        .<caret>bad();
+}
+------------------------------------------------------------------------
+9:9 -> 2:8 resolved
+10:9 -> 3:8 resolved
+11:9 -> 4:8 resolved
+
+========================================================================
+Structs instance method chaining
+========================================================================
+struct Foo {}
+struct Baz {}
+struct Bad {}
+
+fun Foo.bar(self): Baz {}
+fun Baz.baz(self): Bad {}
+fun Bad.bad(self): Foo {}
+
+fun test() {
+    val foo: Foo = {};
+    foo
+        .<caret>bar()
+        .<caret>baz()
+        .<caret>bad();
+}
+------------------------------------------------------------------------
+11:9 -> 4:8 resolved
+12:9 -> 5:8 resolved
+13:9 -> 6:8 resolved
+
+========================================================================
+Type alias instance method
+========================================================================
+type Int = int;
+
+fun Int.bar(self) {}
+
+fun test() {
+    val val: Int = 10;
+    val.<caret>bar();
+}
+------------------------------------------------------------------------
+6:8 -> 6:8 resolved
+
+========================================================================
+Struct instance method inside other instance method via self
+========================================================================
+struct Foo {}
+
+fun Foo.baz(self) {}
+fun Foo.bar(self) {
+    self.<caret>baz();
+}
+------------------------------------------------------------------------
+4:9 -> 2:8 resolved
+
+========================================================================
+Struct instance method via optional with null init
+========================================================================
+struct Foo {}
+
+fun Foo.bar(self) {}
+
+fun test() {
+    val foo: Foo? = null;
+    foo.<caret>bar(); // unresolved since foo has null type actually
+}
+------------------------------------------------------------------------
+6:8 unresolved
+
+========================================================================
+Struct instance method via optional
+========================================================================
+struct Foo {}
+
+fun Foo.bar(self) {}
+
+fun test(cond: bool) {
+    val foo: Foo? = cond ? Foo {} : null;
+    foo.<caret>bar();
+}
+------------------------------------------------------------------------
+6:8 unresolved
+
+========================================================================
+Struct instance method via optional with not null operator
+========================================================================
+struct Foo {}
+
+fun Foo.bar(self) {}
+
+fun test(cond: bool) {
+    val foo: Foo? = cond ? Foo {} : null;
+    foo!.<caret>bar();
+}
+------------------------------------------------------------------------
+6:9 -> 2:8 resolved
+
+========================================================================
+Generic struct instance method
+========================================================================
+struct Foo<T> {}
+
+fun Foo<T>.bar(self) {}
+
+fun test() {
+    val foo: Foo<int> = {};
+    foo.<caret>bar();
+}
+------------------------------------------------------------------------
+6:8 -> 2:11 resolved
+
+========================================================================
+Generic struct instance with specific type method
+========================================================================
+struct Foo<T> {}
+
+fun Foo<int>.bar(self) {}
+
+fun test() {
+    val foo: Foo<int> = {};
+    foo.<caret>bar();
+}
+------------------------------------------------------------------------
+6:8 -> 2:13 resolved
+
+========================================================================
+Generic struct instance with different specific type method
+========================================================================
+struct Foo<T> {}
+
+fun Foo<bool>.bar(self) {}
+
+fun test() {
+    val foo: Foo<int> = {};
+    foo.<caret>bar();
+}
+------------------------------------------------------------------------
+6:8 unresolved
+
+========================================================================
+toCell method
+========================================================================
+struct Foo {}
+
+fun test() {
+    val foo: Foo = {};
+    foo.<caret>toCell();
+}
+------------------------------------------------------------------------
+4:8 -> 258:6 resolved
+
+========================================================================
+Generic struct alias method resolving
+========================================================================
+struct Foo<T> {
+    value: T,
+}
+
+type IntFoo = Foo<int>;
+
+fun IntFoo.someMethod(self) {
+    throw 4;
+}
+
+fun Foo<T>.someMethod(self) {
+    throw 3;
+}
+
+fun Foo<int>.someMethod(self) {
+    throw 2;
+}
+
+fun T.someMethod(self) {
+    throw 1;
+}
+
+fun main(a: Foo<slice>, b: Foo<int>, c: int, d: IntFoo): void {
+    a.<caret>someMethod();
+    b.<caret>someMethod();
+    c.<caret>someMethod();
+    d.<caret>someMethod();
+}
+------------------------------------------------------------------------
+23:6 -> 10:11 resolved
+24:6 -> 14:13 resolved
+25:6 -> 18:6 resolved
+26:6 -> 6:11 resolved
+
+========================================================================
+Generic struct method resolving
+========================================================================
+struct Foo<T> {
+    value: T,
+}
+
+fun Foo<T>.someMethod(self) {
+    throw 3;
+}
+
+fun Foo<int>.someMethod(self) {
+    throw 2;
+}
+
+fun T.someMethod(self) {
+    throw 1;
+}
+
+fun main(a: Foo<slice>, b: Foo<int>, c: int): void {
+    a.<caret>someMethod();
+    b.<caret>someMethod();
+    c.<caret>someMethod();
+}
+------------------------------------------------------------------------
+17:6 -> 4:11 resolved
+18:6 -> 8:13 resolved
+19:6 -> 12:6 resolved
+
+========================================================================
+Tuple method resolving
+========================================================================
+fun [int, int].someMethod(self) {
+    throw 3;
+}
+
+fun [T, int].someMethod(self) {
+    throw 2;
+}
+
+fun T.someMethod(self) {
+    throw 1;
+}
+
+fun main(a: [int, int], b: [bool, int], c: [bool]): void {
+    a.<caret>someMethod();
+    b.<caret>someMethod();
+    c.<caret>someMethod();
+}
+------------------------------------------------------------------------
+13:6 -> 0:15 resolved
+14:6 -> 4:13 resolved
+15:6 -> 8:6 resolved
+
+========================================================================
+Type alias method resolving
+========================================================================
+fun dict.someMethod(self) {
+    throw 1;
+}
+
+fun main(a: dict, b: cell?): void {
+    a.<caret>someMethod();
+    b.<caret>someMethod();
+}
+------------------------------------------------------------------------
+5:6 -> 0:9 resolved
+6:6 -> 0:9 resolved
+
+========================================================================
+Instance method for type with same function name
+========================================================================
+type someType = int
+
+fun someType.bar() {}
+
+fun someType() {}
+
+fun main(): void {
+    <caret>someType
+        .<caret>bar();
+
+    <caret>someType();
+}
+------------------------------------------------------------------------
+7:4 -> 0:5 resolved
+8:9 -> 2:13 resolved
+10:4 -> 4:4 resolved

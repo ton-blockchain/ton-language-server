@@ -1,0 +1,47 @@
+========================================================================
+Struct with fields
+========================================================================
+struct Foo {
+    foo: int,
+    bar: string,
+}
+------------------------------------------------------------------------
+Foo (struct) [0:0-3:1]
+├─ foo (field) [1:4-1:12]
+└─ bar (field) [2:4-2:15]
+
+========================================================================
+File with all top level declarations
+========================================================================
+import "@stdlib/tvm-dicts";
+import "./constants";
+
+type Int = int;
+
+struct Foo {
+    foo: int,
+    bar: string,
+}
+
+const FOO: int = 100;
+global bar: int;
+
+fun foo() {}
+
+fun Int.add(self, other: Int): Int {}
+fun Int.showValue() {}
+
+get method_id(): int {}
+------------------------------------------------------------------------
+import "@stdlib/tvm-dicts" (unknown) [0:0-0:26]
+import "./constants" (unknown) [1:0-1:20]
+Int (type alias) [3:0-3:15]
+Foo (struct) [5:0-8:1]
+├─ foo (field) [6:4-6:12]
+└─ bar (field) [7:4-7:15]
+FOO (constant) [10:0-10:21]
+bar (global variable) [11:0-11:16]
+foo (function) [13:0-13:12]
+Int.add (method) [15:0-15:37]
+Int.showValue (method) [16:0-16:22]
+get method_id (unknown) [18:0-18:23]

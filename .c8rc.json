@@ -1,0 +1,12 @@
+{
+    "reporter": ["html", "text"],
+    "exclude": [
+        "**/node_modules/**",
+        "**/.vscode-test/**",
+        "**/test/**",
+        "**/*.d.ts",
+        "**/vscode-languageserver-protocol/**",
+        "**/vscode-languageclient/**",
+        "**/vscode-languageserver/**"
+    ]
+}

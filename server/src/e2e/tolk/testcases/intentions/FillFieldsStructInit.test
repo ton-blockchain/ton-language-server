@@ -1,0 +1,408 @@
+========================================================================
+@intention Fill all fields...
+Fill all fields for struct with no fields
+========================================================================
+struct Foo {}
+
+fun foo() {
+    Foo{<caret>};
+}
+------------------------------------------------------------------------
+No intentions
+
+========================================================================
+@intention Fill all fields...
+Fill all fields for struct with single field
+========================================================================
+struct Foo {
+    value: int;
+}
+
+fun foo() {
+    Foo{<caret>};
+}
+------------------------------------------------------------------------
+struct Foo {
+    value: int;
+}
+
+fun foo() {
+    Foo{
+        value: 0,
+    };
+}
+
+========================================================================
+@intention Fill all fields...
+Fill all fields for struct with several fields
+========================================================================
+struct Foo {
+    value: int;
+    other: slice;
+    opt: slice?
+}
+
+fun foo() {
+    Foo{<caret>};
+}
+------------------------------------------------------------------------
+struct Foo {
+    value: int;
+    other: slice;
+    opt: slice?
+}
+
+fun foo() {
+    Foo{
+        value: 0,
+        other: createEmptySlice(),
+        opt: null,
+    };
+}
+
+========================================================================
+@intention Fill all fields...
+Fill all fields for struct with single field in deep nested blocks
+========================================================================
+struct Foo {
+    value: int;
+}
+
+fun foo() {
+    {
+        {
+            {
+                Foo{<caret>};
+            }
+        }
+    }
+}
+------------------------------------------------------------------------
+struct Foo {
+    value: int;
+}
+
+fun foo() {
+    {
+        {
+            {
+                Foo{
+                    value: 0,
+                };
+            }
+        }
+    }
+}
+
+========================================================================
+@intention Fill all fields...
+Fill all fields for struct with several fields and empty line
+========================================================================
+struct Foo {
+    value: int;
+    other: slice;
+    opt: slice?
+}
+
+fun foo() {
+    Foo{<caret>
+    };
+}
+------------------------------------------------------------------------
+struct Foo {
+    value: int;
+    other: slice;
+    opt: slice?
+}
+
+fun foo() {
+    Foo{
+        value: 0,
+        other: createEmptySlice(),
+        opt: null,
+    };
+}
+
+========================================================================
+@intention Fill all fields...
+Fill all fields for struct with all types fields
+========================================================================
+struct Other {}
+struct (0x100) Message {}
+
+struct Foo {
+    opt: slice?;
+    integer: int;
+    coins: coins;
+    int_32: int32;
+    bits_32: bits32;
+    bytes_1000: bytes1000;
+    bool: bool;
+    address: address;
+    builder: builder;
+    slice: slice;
+    cell: cell;
+    other: Other;
+    msg: Message;
+    tupleAndTensor: (int, slice, [int, slice?, builder])
+    tuple: [int, slice]
+    paren: (int);
+    unknownType: SomeUnknownType
+}
+
+fun foo() {
+    Foo{<caret>};
+}
+------------------------------------------------------------------------
+struct Other {}
+struct (0x100) Message {}
+
+struct Foo {
+    opt: slice?;
+    integer: int;
+    coins: coins;
+    int_32: int32;
+    bits_32: bits32;
+    bytes_1000: bytes1000;
+    bool: bool;
+    address: address;
+    builder: builder;
+    slice: slice;
+    cell: cell;
+    other: Other;
+    msg: Message;
+    tupleAndTensor: (int, slice, [int, slice?, builder])
+    tuple: [int, slice]
+    paren: (int);
+    unknownType: SomeUnknownType
+}
+
+fun foo() {
+    Foo{
+        opt: null,
+        integer: 0,
+        coins: ton("0.1"),
+        int_32: 0,
+        bits_32: createEmptySlice(),
+        bytes_1000: createEmptySlice(),
+        bool: false,
+        address: address(""),
+        builder: beginCell(),
+        slice: createEmptySlice(),
+        cell: createEmptyCell(),
+        other: Other {},
+        msg: Message {},
+        tupleAndTensor: (0, createEmptySlice(), [0, null, beginCell()]),
+        tuple: [0, createEmptySlice()],
+        paren: 0,
+        unknownType: null,
+    };
+}
+
+========================================================================
+@intention Fill required fields...
+Fill only required fields for struct with single required field
+========================================================================
+struct Foo {
+    value: int;
+}
+
+fun foo() {
+    Foo{<caret>};
+}
+------------------------------------------------------------------------
+struct Foo {
+    value: int;
+}
+
+fun foo() {
+    Foo{
+        value: 0,
+    };
+}
+
+========================================================================
+@intention Fill required fields...
+Fill only required fields for struct with no required field
+========================================================================
+struct Foo {
+    value: int = 0;
+}
+
+fun foo() {
+    Foo{<caret>};
+}
+------------------------------------------------------------------------
+struct Foo {
+    value: int = 0;
+}
+
+fun foo() {
+    Foo{};
+}
+
+========================================================================
+@intention Fill required fields...
+Fill only required fields for struct with single required and single not required field
+========================================================================
+struct Foo {
+    value: int = 0;
+    other: int;
+}
+
+fun foo() {
+    Foo{<caret>};
+}
+------------------------------------------------------------------------
+struct Foo {
+    value: int = 0;
+    other: int;
+}
+
+fun foo() {
+    Foo{
+        other: 0,
+    };
+}
+
+========================================================================
+@intention Fill required fields...
+Fill only required fields for struct with several required and several not required field
+========================================================================
+struct Foo {
+    value: int = 0;
+    other: int;
+    age: int;
+    data: cell? = null;
+}
+
+fun foo() {
+    Foo{<caret>};
+}
+------------------------------------------------------------------------
+struct Foo {
+    value: int = 0;
+    other: int;
+    age: int;
+    data: cell? = null;
+}
+
+fun foo() {
+    Foo{
+        other: 0,
+        age: 0,
+    };
+}
+
+========================================================================
+@intention Fill required fields...
+Fill only required fields for struct with nullable fields
+========================================================================
+struct Foo {
+    value: int? = 0;
+    other: int?;
+    age: int?;
+    data: cell? = null;
+}
+
+fun foo() {
+    Foo{<caret>};
+}
+------------------------------------------------------------------------
+struct Foo {
+    value: int? = 0;
+    other: int?;
+    age: int?;
+    data: cell? = null;
+}
+
+fun foo() {
+    Foo{
+        other: null,
+        age: null,
+    };
+}
+
+========================================================================
+@intention Fill all fields...
+No fill all fields for struct instance with argument
+========================================================================
+struct Foo {
+    value: int,
+}
+
+fun foo() {
+    Foo{
+        value: 10,
+        <caret>
+    };
+}
+------------------------------------------------------------------------
+No intentions
+
+========================================================================
+@intention Fill all fields...
+Intention uses default values when fill all fields
+========================================================================
+struct Foo {
+    value: int = 10
+}
+
+fun foo() {
+    Foo{<caret>};
+}
+------------------------------------------------------------------------
+struct Foo {
+    value: int = 10
+}
+
+fun foo() {
+    Foo{
+        value: 10,
+    };
+}
+
+========================================================================
+@intention Fill all fields...
+Intention for struct instance without name
+========================================================================
+struct MyCreateMessageOptions<TBody = never> {
+    bounce: bool;
+    value: coins | (coins, ExtraCurrenciesDict);
+    dest: | address
+          | builder
+          | (int8, uint256)
+          | AutoDeployAddress;
+    body: TBody;
+}
+
+@pure
+fun myCreateMessage<TBody>(options: MyCreateMessageOptions<TBody>): OutMessage
+    builtin;
+
+fun foo() {
+    myCreateMessage({<caret>});
+}
+------------------------------------------------------------------------
+struct MyCreateMessageOptions<TBody = never> {
+    bounce: bool;
+    value: coins | (coins, ExtraCurrenciesDict);
+    dest: | address
+          | builder
+          | (int8, uint256)
+          | AutoDeployAddress;
+    body: TBody;
+}
+
+@pure
+fun myCreateMessage<TBody>(options: MyCreateMessageOptions<TBody>): OutMessage
+    builtin;
+
+fun foo() {
+    myCreateMessage({
+        bounce: false,
+        value: ton("0.1"),
+        dest: address(""),
+        body: null,
+    });
+}

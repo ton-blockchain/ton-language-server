@@ -1,0 +1,33 @@
+{
+    "grammars": [
+        {
+            "name": "tolk",
+            "camelcase": "Tolk",
+            "scope": "source.tolk",
+            "path": ".",
+            "file-types": ["tolk"],
+            "highlights": "queries/highlights.scm"
+        }
+    ],
+    "metadata": {
+        "version": "0.4.5",
+        "license": "MIT",
+        "description": "Tolk grammar for node-tree-sitter",
+        "authors": [
+            {
+                "name": "TON Blockchain"
+            }
+        ],
+        "links": {
+            "repository": "https://github.com/tree-sitter/tree-sitter-tolk"
+        }
+    },
+    "bindings": {
+        "c": true,
+        "go": true,
+        "node": true,
+        "python": true,
+        "rust": true,
+        "swift": true
+    }
+}

@@ -1,0 +1,538 @@
+========================================================================
+Keywords completion as statement
+========================================================================
+fun foo() {
+    <caret>
+}
+------------------------------------------------------------------------
+13 as
+13 assert (cond) throw EXIT_CODE
+13 false
+13 is
+13 lazy
+13 mutate
+13 return;
+13 throw EXIT_CODE
+13 true
+2  !_(x: int): int
+2  !b_(x: bool): bool
+2  +_(x: int): int
+2  -_(x: int): int
+2  _!=_(x: int, y: int): bool
+2  _%_(x: int, y: int): int
+2  _&_(x: int, y: int): int
+2  _*_(x: int, y: int): int
+2  _+_(x: int, y: int): int
+2  _-_(x: int, y: int): int
+2  _/_(x: int, y: int): int
+2  _<<_(x: int, y: int): int
+2  _<=>_(x: int, y: int): int
+2  _<=_(x: int, y: int): bool
+2  _<_(x: int, y: int): bool
+2  _==_(x: int, y: int): bool
+2  _>=_(x: int, y: int): bool
+2  _>>_(x: int, y: int): int
+2  _>_(x: int, y: int): bool
+2  _^/_(x: int, y: int): int
+2  _^>>_(x: int, y: int): int
+2  _^_(x: int, y: int): int
+2  __expect_inline<T>(value: T)
+2  __expect_lazy<T>(value: T)
+2  __expect_type<T>(actual: T, expect: slice)
+2  _|_(x: int, y: int): int
+2  _~/_(x: int, y: int): int
+2  _~>>_(x: int, y: int): int
+2  abs(x: int): int
+2  acceptExternalMessage(): void
+2  address(stdAddress: slice): address
+2  beginCell(): builder
+2  calculateForwardFee(workchain: int8, bits: int, cells: int): coins
+2  calculateForwardFeeWithoutLumpPrice(workchain: int8, bits: int, cells: int): coins
+2  calculateGasFee(workchain: int8, gasUsed: int): coins
+2  calculateGasFeeWithoutFlatPrice(workchain: int8, gasUsed: coins): coins
+2  calculateOriginalForwardFee(workchain: int8, incomingFwdFee: coins): coins
+2  calculateStorageFee(workchain: int8, seconds: int, bits: int, cells: int): coins
+2  commitContractDataAndActions(): void
+2  createAddressNone(): address
+2  createEmptyCell(): cell
+2  createEmptyDict(): dict
+2  createEmptyList(): tuple
+2  createEmptySlice(): slice
+2  createEmptyTuple(): tuple
+2  createExternalLogMessage<TBody>(options: CreateExternalLogMessageOptions<TBody>): OutMessage
+2  createMessage<TBody>(options: CreateMessageOptions<TBody>): OutMessage
+2  divMod(x: int, y: int): (int, int)
+2  foo()
+2  getGasConsumedAtTheMoment(): int
+2  getTvmRegisterC3(): continuation
+2  isSignatureValid(hash: int, signature: slice, publicKey: int): bool
+2  isSliceSignatureValid(data: slice, signature: slice, publicKey: int): bool
+2  listGetHead<X>(list: tuple): X
+2  listGetTail(list: tuple): tuple?
+2  listPrepend<X>(head: X, tail: tuple?): tuple
+2  listSplit<X>(list: tuple): (X, tuple?)
+2  max(x: int, y: int): int
+2  min(x: int, y: int): int
+2  minMax(x: int, y: int): (int, int)
+2  modDiv(x: int, y: int): (int, int)
+2  mulDivCeil(x: int, y: int, z: int): int
+2  mulDivFloor(x: int, y: int, z: int): int
+2  mulDivMod(x: int, y: int, z: int): (int, int)
+2  mulDivRound(x: int, y: int, z: int): int
+2  reserveExtraCurrenciesOnBalance(nanoTonCoins: coins, extraAmount: dict, reserveMode: int): void
+2  reserveToncoinsOnBalance(nanoTonCoins: coins, reserveMode: int): void
+2  sendRawMessage(msg: cell, mode: int): void
+2  setGasLimit(limit: int): void
+2  setGasLimitToMaximum(): void
+2  setTvmRegisterC3(c: continuation): void
+2  sign(x: int): int
+2  sizeof<T>(anyVariable: T): int
+2  stringCrc16(constString: slice): int
+2  stringCrc32(constString: slice): int
+2  stringHexToSlice(constStringBytesHex: slice): slice
+2  stringSha256(constString: slice): int
+2  stringSha256_32(constString: slice): int
+2  stringToBase256(constString: slice): int
+2  ton(floatString: slice): coins
+2  transformSliceToContinuation(s: slice): continuation
+2  ~_(x: int): int
+20 BASECHAIN: int = 0
+20 MASTERCHAIN: int = -1
+20 RESERVE_MODE_ALL_BUT_AMOUNT: int = 1
+20 RESERVE_MODE_AT_MOST: int = 2
+20 RESERVE_MODE_BOUNCE_ON_ACTION_FAIL: int = 16
+20 RESERVE_MODE_EXACT_AMOUNT: int = 0
+20 RESERVE_MODE_INCREASE_BY_ORIGINAL_BALANCE: int = 4
+20 RESERVE_MODE_NEGATE_AMOUNT: int = 8
+20 SEND_MODE_BOUNCE_ON_ACTION_FAIL: int = 16
+20 SEND_MODE_CARRY_ALL_BALANCE: int = 128
+20 SEND_MODE_CARRY_ALL_REMAINING_MESSAGE_VALUE: int = 64
+20 SEND_MODE_DESTROY: int = 32
+20 SEND_MODE_ESTIMATE_FEE_ONLY: int = 1024
+20 SEND_MODE_IGNORE_ERRORS: int = 2
+20 SEND_MODE_PAY_FEES_SEPARATELY: int = 1
+20 SEND_MODE_REGULAR: int = 0
+21 AddressShardingOptions {}
+21 AutoDeployAddress {}
+21 Cell {}
+21 ContractState {}
+21 CreateExternalLogMessageOptions {}
+21 CreateMessageOptions {}
+21 ExtOutLogBucket {}
+21 InMessage {}
+21 InMessageBounced {}
+21 OutMessage {}
+21 PackOptions {}
+21 StateInit {}
+21 UnpackOptions {}
+21 UnsafeBodyNoRef {}
+21 blockchain
+21 contract
+21 debug
+21 random
+24 ExtraCurrenciesDict
+24 RemainingBitsAndRefs
+24 address
+24 bits256
+24 bitsN
+24 bits{X}
+24 bool
+24 builder
+24 builtin_type
+24 bytes32
+24 bytesN
+24 bytes{X}
+24 cell
+24 coins
+24 continuation
+24 dict
+24 int
+24 int128
+24 int16
+24 int256
+24 int257
+24 int32
+24 int64
+24 int8
+24 intN
+24 int{X}
+24 never
+24 null
+24 self
+24 slice
+24 tuple
+24 uint128
+24 uint16
+24 uint256
+24 uint32
+24 uint64
+24 uint8
+24 uintN
+24 uint{X}
+24 varint16
+24 varint32
+24 varuint16
+24 varuint32
+24 void
+14 do-while
+14 if
+14 ife
+14 match
+14 repeat
+14 try
+14 tryc
+14 val
+14 valt
+14 var
+14 vart
+14 while
+
+========================================================================
+Keywords completion as condition
+========================================================================
+fun foo() {
+    if (<caret>) {}
+}
+------------------------------------------------------------------------
+13 as
+13 false
+13 is
+13 lazy
+13 mutate
+13 true
+2  !_(x: int): int
+2  !b_(x: bool): bool
+2  +_(x: int): int
+2  -_(x: int): int
+2  _!=_(x: int, y: int): bool
+2  _%_(x: int, y: int): int
+2  _&_(x: int, y: int): int
+2  _*_(x: int, y: int): int
+2  _+_(x: int, y: int): int
+2  _-_(x: int, y: int): int
+2  _/_(x: int, y: int): int
+2  _<<_(x: int, y: int): int
+2  _<=>_(x: int, y: int): int
+2  _<=_(x: int, y: int): bool
+2  _<_(x: int, y: int): bool
+2  _==_(x: int, y: int): bool
+2  _>=_(x: int, y: int): bool
+2  _>>_(x: int, y: int): int
+2  _>_(x: int, y: int): bool
+2  _^/_(x: int, y: int): int
+2  _^>>_(x: int, y: int): int
+2  _^_(x: int, y: int): int
+2  __expect_inline<T>(value: T)
+2  __expect_lazy<T>(value: T)
+2  __expect_type<T>(actual: T, expect: slice)
+2  _|_(x: int, y: int): int
+2  _~/_(x: int, y: int): int
+2  _~>>_(x: int, y: int): int
+2  abs(x: int): int
+2  acceptExternalMessage(): void
+2  address(stdAddress: slice): address
+2  beginCell(): builder
+2  calculateForwardFee(workchain: int8, bits: int, cells: int): coins
+2  calculateForwardFeeWithoutLumpPrice(workchain: int8, bits: int, cells: int): coins
+2  calculateGasFee(workchain: int8, gasUsed: int): coins
+2  calculateGasFeeWithoutFlatPrice(workchain: int8, gasUsed: coins): coins
+2  calculateOriginalForwardFee(workchain: int8, incomingFwdFee: coins): coins
+2  calculateStorageFee(workchain: int8, seconds: int, bits: int, cells: int): coins
+2  commitContractDataAndActions(): void
+2  createAddressNone(): address
+2  createEmptyCell(): cell
+2  createEmptyDict(): dict
+2  createEmptyList(): tuple
+2  createEmptySlice(): slice
+2  createEmptyTuple(): tuple
+2  createExternalLogMessage<TBody>(options: CreateExternalLogMessageOptions<TBody>): OutMessage
+2  createMessage<TBody>(options: CreateMessageOptions<TBody>): OutMessage
+2  divMod(x: int, y: int): (int, int)
+2  foo()
+2  getGasConsumedAtTheMoment(): int
+2  getTvmRegisterC3(): continuation
+2  isSignatureValid(hash: int, signature: slice, publicKey: int): bool
+2  isSliceSignatureValid(data: slice, signature: slice, publicKey: int): bool
+2  listGetHead<X>(list: tuple): X
+2  listGetTail(list: tuple): tuple?
+2  listPrepend<X>(head: X, tail: tuple?): tuple
+2  listSplit<X>(list: tuple): (X, tuple?)
+2  max(x: int, y: int): int
+2  min(x: int, y: int): int
+2  minMax(x: int, y: int): (int, int)
+2  modDiv(x: int, y: int): (int, int)
+2  mulDivCeil(x: int, y: int, z: int): int
+2  mulDivFloor(x: int, y: int, z: int): int
+2  mulDivMod(x: int, y: int, z: int): (int, int)
+2  mulDivRound(x: int, y: int, z: int): int
+2  reserveExtraCurrenciesOnBalance(nanoTonCoins: coins, extraAmount: dict, reserveMode: int): void
+2  reserveToncoinsOnBalance(nanoTonCoins: coins, reserveMode: int): void
+2  sendRawMessage(msg: cell, mode: int): void
+2  setGasLimit(limit: int): void
+2  setGasLimitToMaximum(): void
+2  setTvmRegisterC3(c: continuation): void
+2  sign(x: int): int
+2  sizeof<T>(anyVariable: T): int
+2  stringCrc16(constString: slice): int
+2  stringCrc32(constString: slice): int
+2  stringHexToSlice(constStringBytesHex: slice): slice
+2  stringSha256(constString: slice): int
+2  stringSha256_32(constString: slice): int
+2  stringToBase256(constString: slice): int
+2  ton(floatString: slice): coins
+2  transformSliceToContinuation(s: slice): continuation
+2  ~_(x: int): int
+20 BASECHAIN: int = 0
+20 MASTERCHAIN: int = -1
+20 RESERVE_MODE_ALL_BUT_AMOUNT: int = 1
+20 RESERVE_MODE_AT_MOST: int = 2
+20 RESERVE_MODE_BOUNCE_ON_ACTION_FAIL: int = 16
+20 RESERVE_MODE_EXACT_AMOUNT: int = 0
+20 RESERVE_MODE_INCREASE_BY_ORIGINAL_BALANCE: int = 4
+20 RESERVE_MODE_NEGATE_AMOUNT: int = 8
+20 SEND_MODE_BOUNCE_ON_ACTION_FAIL: int = 16
+20 SEND_MODE_CARRY_ALL_BALANCE: int = 128
+20 SEND_MODE_CARRY_ALL_REMAINING_MESSAGE_VALUE: int = 64
+20 SEND_MODE_DESTROY: int = 32
+20 SEND_MODE_ESTIMATE_FEE_ONLY: int = 1024
+20 SEND_MODE_IGNORE_ERRORS: int = 2
+20 SEND_MODE_PAY_FEES_SEPARATELY: int = 1
+20 SEND_MODE_REGULAR: int = 0
+21 AddressShardingOptions {}
+21 AutoDeployAddress {}
+21 Cell {}
+21 ContractState {}
+21 CreateExternalLogMessageOptions {}
+21 CreateMessageOptions {}
+21 ExtOutLogBucket {}
+21 InMessage {}
+21 InMessageBounced {}
+21 OutMessage {}
+21 PackOptions {}
+21 StateInit {}
+21 UnpackOptions {}
+21 UnsafeBodyNoRef {}
+21 blockchain
+21 contract
+21 debug
+21 random
+24 ExtraCurrenciesDict
+24 RemainingBitsAndRefs
+24 address
+24 bits256
+24 bitsN
+24 bits{X}
+24 bool
+24 builder
+24 builtin_type
+24 bytes32
+24 bytesN
+24 bytes{X}
+24 cell
+24 coins
+24 continuation
+24 dict
+24 int
+24 int128
+24 int16
+24 int256
+24 int257
+24 int32
+24 int64
+24 int8
+24 intN
+24 int{X}
+24 never
+24 null
+24 self
+24 slice
+24 tuple
+24 uint128
+24 uint16
+24 uint256
+24 uint32
+24 uint64
+24 uint8
+24 uintN
+24 uint{X}
+24 varint16
+24 varint32
+24 varuint16
+24 varuint32
+24 void
+14 match
+
+========================================================================
+Keywords completion as argument
+========================================================================
+fun foo() {
+    foo(<caret>);
+}
+------------------------------------------------------------------------
+13 as
+13 false
+13 is
+13 lazy
+13 mutate
+13 true
+2  !_(x: int): int
+2  !b_(x: bool): bool
+2  +_(x: int): int
+2  -_(x: int): int
+2  _!=_(x: int, y: int): bool
+2  _%_(x: int, y: int): int
+2  _&_(x: int, y: int): int
+2  _*_(x: int, y: int): int
+2  _+_(x: int, y: int): int
+2  _-_(x: int, y: int): int
+2  _/_(x: int, y: int): int
+2  _<<_(x: int, y: int): int
+2  _<=>_(x: int, y: int): int
+2  _<=_(x: int, y: int): bool
+2  _<_(x: int, y: int): bool
+2  _==_(x: int, y: int): bool
+2  _>=_(x: int, y: int): bool
+2  _>>_(x: int, y: int): int
+2  _>_(x: int, y: int): bool
+2  _^/_(x: int, y: int): int
+2  _^>>_(x: int, y: int): int
+2  _^_(x: int, y: int): int
+2  __expect_inline<T>(value: T)
+2  __expect_lazy<T>(value: T)
+2  __expect_type<T>(actual: T, expect: slice)
+2  _|_(x: int, y: int): int
+2  _~/_(x: int, y: int): int
+2  _~>>_(x: int, y: int): int
+2  abs(x: int): int
+2  acceptExternalMessage(): void
+2  address(stdAddress: slice): address
+2  beginCell(): builder
+2  calculateForwardFee(workchain: int8, bits: int, cells: int): coins
+2  calculateForwardFeeWithoutLumpPrice(workchain: int8, bits: int, cells: int): coins
+2  calculateGasFee(workchain: int8, gasUsed: int): coins
+2  calculateGasFeeWithoutFlatPrice(workchain: int8, gasUsed: coins): coins
+2  calculateOriginalForwardFee(workchain: int8, incomingFwdFee: coins): coins
+2  calculateStorageFee(workchain: int8, seconds: int, bits: int, cells: int): coins
+2  commitContractDataAndActions(): void
+2  createAddressNone(): address
+2  createEmptyCell(): cell
+2  createEmptyDict(): dict
+2  createEmptyList(): tuple
+2  createEmptySlice(): slice
+2  createEmptyTuple(): tuple
+2  createExternalLogMessage<TBody>(options: CreateExternalLogMessageOptions<TBody>): OutMessage
+2  createMessage<TBody>(options: CreateMessageOptions<TBody>): OutMessage
+2  divMod(x: int, y: int): (int, int)
+2  foo()
+2  getGasConsumedAtTheMoment(): int
+2  getTvmRegisterC3(): continuation
+2  isSignatureValid(hash: int, signature: slice, publicKey: int): bool
+2  isSliceSignatureValid(data: slice, signature: slice, publicKey: int): bool
+2  listGetHead<X>(list: tuple): X
+2  listGetTail(list: tuple): tuple?
+2  listPrepend<X>(head: X, tail: tuple?): tuple
+2  listSplit<X>(list: tuple): (X, tuple?)
+2  max(x: int, y: int): int
+2  min(x: int, y: int): int
+2  minMax(x: int, y: int): (int, int)
+2  modDiv(x: int, y: int): (int, int)
+2  mulDivCeil(x: int, y: int, z: int): int
+2  mulDivFloor(x: int, y: int, z: int): int
+2  mulDivMod(x: int, y: int, z: int): (int, int)
+2  mulDivRound(x: int, y: int, z: int): int
+2  reserveExtraCurrenciesOnBalance(nanoTonCoins: coins, extraAmount: dict, reserveMode: int): void
+2  reserveToncoinsOnBalance(nanoTonCoins: coins, reserveMode: int): void
+2  sendRawMessage(msg: cell, mode: int): void
+2  setGasLimit(limit: int): void
+2  setGasLimitToMaximum(): void
+2  setTvmRegisterC3(c: continuation): void
+2  sign(x: int): int
+2  sizeof<T>(anyVariable: T): int
+2  stringCrc16(constString: slice): int
+2  stringCrc32(constString: slice): int
+2  stringHexToSlice(constStringBytesHex: slice): slice
+2  stringSha256(constString: slice): int
+2  stringSha256_32(constString: slice): int
+2  stringToBase256(constString: slice): int
+2  ton(floatString: slice): coins
+2  transformSliceToContinuation(s: slice): continuation
+2  ~_(x: int): int
+20 BASECHAIN: int = 0
+20 MASTERCHAIN: int = -1
+20 RESERVE_MODE_ALL_BUT_AMOUNT: int = 1
+20 RESERVE_MODE_AT_MOST: int = 2
+20 RESERVE_MODE_BOUNCE_ON_ACTION_FAIL: int = 16
+20 RESERVE_MODE_EXACT_AMOUNT: int = 0
+20 RESERVE_MODE_INCREASE_BY_ORIGINAL_BALANCE: int = 4
+20 RESERVE_MODE_NEGATE_AMOUNT: int = 8
+20 SEND_MODE_BOUNCE_ON_ACTION_FAIL: int = 16
+20 SEND_MODE_CARRY_ALL_BALANCE: int = 128
+20 SEND_MODE_CARRY_ALL_REMAINING_MESSAGE_VALUE: int = 64
+20 SEND_MODE_DESTROY: int = 32
+20 SEND_MODE_ESTIMATE_FEE_ONLY: int = 1024
+20 SEND_MODE_IGNORE_ERRORS: int = 2
+20 SEND_MODE_PAY_FEES_SEPARATELY: int = 1
+20 SEND_MODE_REGULAR: int = 0
+21 AddressShardingOptions {}
+21 AutoDeployAddress {}
+21 Cell {}
+21 ContractState {}
+21 CreateExternalLogMessageOptions {}
+21 CreateMessageOptions {}
+21 ExtOutLogBucket {}
+21 InMessage {}
+21 InMessageBounced {}
+21 OutMessage {}
+21 PackOptions {}
+21 StateInit {}
+21 UnpackOptions {}
+21 UnsafeBodyNoRef {}
+21 blockchain
+21 contract
+21 debug
+21 random
+24 ExtraCurrenciesDict
+24 RemainingBitsAndRefs
+24 address
+24 bits256
+24 bitsN
+24 bits{X}
+24 bool
+24 builder
+24 builtin_type
+24 bytes32
+24 bytesN
+24 bytes{X}
+24 cell
+24 coins
+24 continuation
+24 dict
+24 int
+24 int128
+24 int16
+24 int256
+24 int257
+24 int32
+24 int64
+24 int8
+24 intN
+24 int{X}
+24 never
+24 null
+24 self
+24 slice
+24 tuple
+24 uint128
+24 uint16
+24 uint256
+24 uint32
+24 uint64
+24 uint8
+24 uintN
+24 uint{X}
+24 varint16
+24 varint32
+24 varuint16
+24 varuint32
+24 void
+14 match

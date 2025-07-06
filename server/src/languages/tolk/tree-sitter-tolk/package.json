@@ -1,0 +1,41 @@
+{
+    "name": "tree-sitter-tolk",
+    "version": "0.4.5",
+    "description": "Tolk grammar for node-tree-sitter",
+    "main": "bindings/node",
+    "keywords": [
+        "parser",
+        "lexer"
+    ],
+    "author": "TON Blockchain",
+    "license": "MIT",
+    "scripts": {
+        "test": "tree-sitter test"
+    },
+    "dependencies": {
+        "node-addon-api": "^7.1.0",
+        "node-gyp-build": "^4.8.0"
+    },
+    "peerDependencies": {
+        "tree-sitter": "^0.21.0"
+    },
+    "peerDependenciesMeta": {
+        "tree_sitter": {
+            "optional": true
+        }
+    },
+    "devDependencies": {
+        "prebuildify": "^6.0.0",
+        "prettier": "^3.2.5",
+        "tree-sitter-cli": "^0.25.0"
+    },
+    "tree-sitter": [
+        {
+            "scope": "source.tolk",
+            "file-types": [
+                "tolk"
+            ],
+            "highlights": "queries/highlights.scm"
+        }
+    ]
+}

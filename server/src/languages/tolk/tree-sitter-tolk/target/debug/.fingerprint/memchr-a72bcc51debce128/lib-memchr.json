@@ -1,0 +1,16 @@
+{
+    "rustc": 12371359838971829499,
+    "features": "[\"alloc\", \"std\"]",
+    "declared_features": "[\"alloc\", \"compiler_builtins\", \"core\", \"default\", \"libc\", \"logging\", \"rustc-dep-of-std\", \"std\", \"use_std\"]",
+    "target": 11224823532731451965,
+    "profile": 5394829218943206528,
+    "path": 454265375342043451,
+    "deps": [],
+    "local": [
+        {"CheckDepInfo": {"dep_info": "debug/.fingerprint/memchr-a72bcc51debce128/dep-lib-memchr"}}
+    ],
+    "rustflags": [],
+    "metadata": 7513296495906230968,
+    "config": 2202906307356721367,
+    "compile_kind": 0
+}

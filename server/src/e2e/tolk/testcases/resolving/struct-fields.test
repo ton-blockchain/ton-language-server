@@ -1,0 +1,568 @@
+========================================================================
+Struct instance field resolving
+========================================================================
+struct Data {
+    value: int,
+}
+
+fun test() {
+    Data { <caret>value: 10 };
+}
+------------------------------------------------------------------------
+5:11 -> 1:4 resolved
+
+========================================================================
+Struct instance field resolving with alias
+========================================================================
+struct Data {
+    value: int,
+}
+
+type DataAlias = Data;
+
+fun test() {
+    DataAlias { <caret>value: 10 };
+}
+------------------------------------------------------------------------
+7:16 -> 1:4 resolved
+
+========================================================================
+Struct instance field resolving in variable declaration
+========================================================================
+struct Data {
+    value: int,
+}
+
+fun test() {
+    val data: Data = { <caret>value: 10 };
+}
+------------------------------------------------------------------------
+5:23 -> 1:4 resolved
+
+========================================================================
+Struct instance field resolving in variable declaration with alias
+========================================================================
+struct Data {
+    value: int,
+}
+
+type DataAlias = Data;
+
+fun test() {
+    val data: DataAlias = { <caret>value: 10 };
+}
+------------------------------------------------------------------------
+7:28 -> 1:4 resolved
+
+========================================================================
+Struct instance field resolving in function call
+========================================================================
+struct Data {
+    value: int,
+}
+
+fun takeData(data: Data) {}
+
+fun test() {
+    takeData({ <caret>value: 10 });
+}
+------------------------------------------------------------------------
+7:15 -> 1:4 resolved
+
+========================================================================
+Struct instance field resolving in function call with alias
+========================================================================
+struct Data {
+    value: int,
+}
+
+fun takeData(data: Data) {}
+
+fun test() {
+    takeData({ <caret>value: 10 });
+}
+------------------------------------------------------------------------
+7:15 -> 1:4 resolved
+
+========================================================================
+Struct instance field resolving in static method call
+========================================================================
+struct Data {
+    value: int,
+}
+
+fun Data.takeData(data: Data) {}
+
+fun test() {
+    Data.takeData({ <caret>value: 10 });
+}
+------------------------------------------------------------------------
+7:20 -> 1:4 resolved
+
+========================================================================
+Struct instance field resolving in instance method call
+========================================================================
+struct Data {
+    value: int,
+}
+
+type Some = int;
+
+fun Some.takeData(self, data: Data) {}
+
+fun test() {
+    val some: Some = 10;
+    some.takeData({ <caret>value: 10 });
+}
+------------------------------------------------------------------------
+10:20 -> 1:4 resolved
+
+========================================================================
+Struct instance field resolving in instance method call 2
+========================================================================
+struct Data {
+    value: int,
+    data: slice,
+}
+
+type Some = int;
+
+fun Some.takeData(self, value: int, data: Data, data2: Data) {}
+
+fun test() {
+    val some: Some = 10;
+    some.takeData(
+        10,
+        { <caret>value: 10 },
+        { <caret>data: 10 }
+    );
+}
+------------------------------------------------------------------------
+13:10 -> 1:4 resolved
+14:10 -> 2:4 resolved
+
+========================================================================
+Struct field access
+========================================================================
+struct Data {
+    value: int,
+}
+
+fun test() {
+    val data = Data { value: 10 };
+    data.<caret>value;
+}
+------------------------------------------------------------------------
+6:9 -> 1:4 resolved
+
+========================================================================
+Struct field access via alias
+========================================================================
+struct Data {
+    value: int,
+}
+
+type MyData = Data;
+
+fun test() {
+    val data: MyData = { value: 10 };
+    data.<caret>value;
+}
+------------------------------------------------------------------------
+8:9 -> 1:4 resolved
+
+========================================================================
+Struct field access via self
+========================================================================
+struct Data {
+    value: int;
+}
+
+fun Data.bar(self) {
+    self.<caret>value;
+}
+------------------------------------------------------------------------
+5:9 -> 1:4 resolved
+
+========================================================================
+Struct instance field resolving for generic struct
+========================================================================
+struct Data<T> {
+    value: T,
+}
+
+fun test() {
+    Data<int> { <caret>value: 10 };
+}
+------------------------------------------------------------------------
+5:16 -> 1:4 resolved
+
+========================================================================
+Struct instance field resolving for generic struct alias
+========================================================================
+struct Data<T> {
+    value: T,
+}
+
+type IntData = Data<int>;
+
+fun test() {
+    IntData { <caret>value: 10 };
+}
+------------------------------------------------------------------------
+7:14 -> 1:4 resolved
+
+========================================================================
+Struct field resolving for generic struct
+========================================================================
+struct Data<T> {
+    value: T,
+}
+
+fun test() {
+    val data: Data<int> = {};
+    data.<caret>value;
+}
+------------------------------------------------------------------------
+6:9 -> 1:4 resolved
+
+========================================================================
+Struct field access resolving for generic struct alias
+========================================================================
+struct Data<T> {
+    value: T,
+}
+
+type IntData = Data<int>;
+
+fun test() {
+    val data: IntData = {};
+    data.<caret>value;
+}
+------------------------------------------------------------------------
+8:9 -> 1:4 resolved
+
+========================================================================
+Struct instance field resolving for return statement inside function
+========================================================================
+struct Data {
+    value: int,
+}
+
+fun test(): Data {
+    return {
+        <caret>value: 10;
+    }
+}
+------------------------------------------------------------------------
+6:8 -> 1:4 resolved
+
+========================================================================
+Struct instance field resolving for return statement inside method
+========================================================================
+struct Data {
+    value: int,
+}
+
+fun int.test(): Data {
+    return {
+        <caret>value: 10;
+    }
+}
+------------------------------------------------------------------------
+6:8 -> 1:4 resolved
+
+========================================================================
+Struct instance field resolving for return statement inside get method
+========================================================================
+struct Data {
+    value: int,
+}
+
+get fun test(): Data {
+    return {
+        <caret>value: 10;
+    }
+}
+------------------------------------------------------------------------
+6:8 -> 1:4 resolved
+
+========================================================================
+Struct instance field resolving for return statement and alias return type
+========================================================================
+struct Data {
+    value: int,
+}
+
+type IntData = Data;
+
+fun test(): IntData {
+    return {
+        <caret>value: 10;
+    }
+}
+------------------------------------------------------------------------
+8:8 -> 1:4 resolved
+
+========================================================================
+Struct instance field resolving for return statement and alias for generic return type
+========================================================================
+struct Data<T> {
+    value: T,
+}
+
+type IntData = Data<int>;
+
+fun test(): IntData {
+    return {
+        <caret>value: 10;
+    }
+}
+------------------------------------------------------------------------
+8:8 -> 1:4 resolved
+
+========================================================================
+Struct instance field resolving for field init
+========================================================================
+struct Data {
+    value: int,
+}
+
+struct Other {
+    data: Data
+}
+
+fun test() {
+    Other {
+       data: { <caret>value: 10 }
+    }
+}
+------------------------------------------------------------------------
+10:15 -> 1:4 resolved
+
+========================================================================
+Struct instance field resolving for field init with alias
+========================================================================
+struct Data {
+    value: int,
+}
+
+type DataAlias = Data;
+
+struct Other {
+    data: DataAlias
+}
+
+fun test() {
+    Other {
+       data: { <caret>value: 10 }
+    }
+}
+------------------------------------------------------------------------
+12:15 -> 1:4 resolved
+
+========================================================================
+Struct instance field resolving for field init with generic
+========================================================================
+struct Data<T> {
+    value: T,
+}
+
+struct Other {
+    data: Data<int>
+}
+
+fun test() {
+    Other {
+       data: { <caret>value: 10 }
+    }
+}
+------------------------------------------------------------------------
+10:15 -> 1:4 resolved
+
+========================================================================
+Struct instance field resolving for field init with alias to generic
+========================================================================
+struct Data<T> {
+    value: T,
+}
+
+type IntData = Data<int>;
+
+struct Other {
+    data: IntData
+}
+
+fun test() {
+    Other {
+       data: { <caret>value: 10 }
+    }
+}
+------------------------------------------------------------------------
+12:15 -> 1:4 resolved
+
+========================================================================
+Struct instance field resolving for field init with union type
+========================================================================
+struct Data {
+    value: int,
+}
+
+struct Other {
+    data: Data | slice
+}
+
+fun test() {
+    Other {
+       data: { <caret>value: 10 }
+    }
+}
+------------------------------------------------------------------------
+10:15 -> 1:4 resolved
+
+========================================================================
+Struct instance field resolving for field init with generic and union type
+========================================================================
+struct Data<T> {
+    value: int,
+}
+
+struct Other {
+    data: Data<int> | slice
+}
+
+fun test() {
+    Other {
+       data: { <caret>value: 10 }
+    }
+}
+------------------------------------------------------------------------
+10:15 -> 1:4 resolved
+
+========================================================================
+Struct instance field resolving for field init with generic alias and union type
+========================================================================
+struct Data<T> {
+    value: int,
+}
+
+type DataInt = Data<int>;
+
+struct Other {
+    data: DataInt | slice
+}
+
+fun test() {
+    Other {
+       data: { <caret>value: 10 }
+    }
+}
+------------------------------------------------------------------------
+12:15 -> 1:4 resolved
+
+========================================================================
+Struct instance field resolving for field init with generic option alias and union type
+========================================================================
+struct Data<T> {
+    value: int,
+}
+
+type DataInt = Data<int>?;
+
+struct Other {
+    data: DataInt | slice
+}
+
+fun test() {
+    Other {
+       data: { <caret>value: 10 }
+    }
+}
+------------------------------------------------------------------------
+12:15 -> 1:4 resolved
+
+========================================================================
+Struct instance as argument of instance method called as static
+========================================================================
+struct Foo {
+    value: int,
+}
+
+fun Foo.name(self): self {}
+
+fun main() {
+    val foo: Foo = {};
+    val res = Foo.name({
+        <caret>value: 10,
+    });
+}
+------------------------------------------------------------------------
+9:8 -> 1:4 resolved
+
+========================================================================
+Struct instance short field resolving with parameter
+========================================================================
+struct Data {
+    value: int,
+}
+
+fun test(value: int) {
+    Data {
+        <caret>value
+    }
+}
+------------------------------------------------------------------------
+6:8 -> 1:4 resolved
+6:8 -> 4:9 resolved
+
+========================================================================
+Struct instance short field resolving with variable
+========================================================================
+struct Data {
+    value: int,
+}
+
+fun test() {
+    val value = 0;
+    Data {
+        <caret>value
+    }
+}
+------------------------------------------------------------------------
+7:8 -> 1:4 resolved
+7:8 -> 5:8 resolved
+
+========================================================================
+Struct instance full field resolving with parameter
+========================================================================
+struct Data {
+    value: int,
+}
+
+fun test(value: int) {
+    Data {
+        <caret>value:
+            <caret>value
+    }
+}
+------------------------------------------------------------------------
+6:8 -> 1:4 resolved
+7:12 -> 4:9 resolved
+
+========================================================================
+Struct instance full field resolving with variable
+========================================================================
+struct Data {
+    value: int,
+}
+
+fun test() {
+    val value = 0;
+    Data {
+        <caret>value:
+            <caret>value
+    }
+}
+------------------------------------------------------------------------
+7:8 -> 1:4 resolved
+8:12 -> 5:8 resolved

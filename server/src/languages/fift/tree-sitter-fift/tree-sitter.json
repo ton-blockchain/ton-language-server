@@ -1,0 +1,36 @@
+{
+    "$schema": "https://tree-sitter.github.io/tree-sitter/assets/schemas/config.schema.json",
+    "grammars": [
+        {
+            "name": "fift",
+            "camelcase": "Fift",
+            "scope": "source.fift",
+            "file-types": ["fif"],
+            "injection-regex": "^fift$",
+            "class-name": "TreeSitterFift"
+        }
+    ],
+    "metadata": {
+        "version": "0.1.0",
+        "license": "MIT",
+        "description": "A tree-sitter grammar for the Fift assembly programming language",
+        "authors": [
+            {
+                "name": "Petr Makhnev",
+                "email": "mr.makhneff@gmail.com"
+            }
+        ],
+        "links": {
+            "repository": "https://github.com/ton-blockchain/ton-language-server"
+        }
+    },
+    "bindings": {
+        "c": true,
+        "go": true,
+        "node": true,
+        "python": true,
+        "rust": true,
+        "swift": true,
+        "zig": false
+    }
+}

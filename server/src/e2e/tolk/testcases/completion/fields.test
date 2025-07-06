@@ -1,0 +1,121 @@
+========================================================================
+Struct fields completion
+========================================================================
+struct Foo {
+    first: int,
+    second: slice,
+}
+
+fun main() {
+    val foo = Foo {};
+    foo.<caret>;
+}
+------------------------------------------------------------------------
+9  first: int   of Foo
+9  second: slice   of Foo
+1  forceLoadLazyObject(self): slice
+1  stackMoveToTop(mutate self): void
+1  toCell(self, options: PackOptions = {}): Cell<T>
+
+========================================================================
+Struct fields completion via alias
+========================================================================
+struct Foo {
+    first: int,
+    second: slice,
+}
+
+type Alias = Foo;
+
+fun main() {
+    val foo = Alias {};
+    foo.<caret>;
+}
+------------------------------------------------------------------------
+9  first: int   of Foo
+9  second: slice   of Foo
+1  forceLoadLazyObject(self): slice
+1  stackMoveToTop(mutate self): void
+1  toCell(self, options: PackOptions = {}): Cell<T>
+
+========================================================================
+Generic struct fields completion
+========================================================================
+struct Foo<T> {
+    first: int,
+    second: slice,
+}
+
+fun main() {
+    val foo = Foo<int> {};
+    foo.<caret>;
+}
+------------------------------------------------------------------------
+9  first: int   of Foo
+9  second: slice   of Foo
+1  forceLoadLazyObject(self): slice
+1  stackMoveToTop(mutate self): void
+1  toCell(self, options: PackOptions = {}): Cell<T>
+
+========================================================================
+Generic struct alias fields completion
+========================================================================
+struct Foo<T> {
+    first: int,
+    second: slice,
+}
+
+type IntFoo = Foo<int>;
+
+fun main() {
+    val foo = IntFoo {};
+    foo.<caret>;
+}
+------------------------------------------------------------------------
+9  first: int   of Foo
+9  second: slice   of Foo
+1  forceLoadLazyObject(self): slice
+1  stackMoveToTop(mutate self): void
+1  toCell(self, options: PackOptions = {}): Cell<T>
+
+========================================================================
+Tensor fields completion
+========================================================================
+fun main() {
+    val foo = (1, 2, 3);
+    foo.<caret>;
+}
+------------------------------------------------------------------------
+4  0
+4  1
+4  2
+1  forceLoadLazyObject(self): slice
+1  stackMoveToTop(mutate self): void
+1  toCell(self, options: PackOptions = {}): Cell<T>
+
+========================================================================
+Tuple fields completion
+========================================================================
+fun main() {
+    val foo = [1, 2, 3];
+    foo.<caret>;
+}
+------------------------------------------------------------------------
+4  0
+4  1
+4  2
+1  forceLoadLazyObject(self): slice
+1  stackMoveToTop(mutate self): void
+1  toCell(self, options: PackOptions = {}): Cell<T>
+
+========================================================================
+Empty tuple fields completion
+========================================================================
+fun main() {
+    val foo = [];
+    foo.<caret>;
+}
+------------------------------------------------------------------------
+1  forceLoadLazyObject(self): slice
+1  stackMoveToTop(mutate self): void
+1  toCell(self, options: PackOptions = {}): Cell<T>

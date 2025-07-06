@@ -1,0 +1,60 @@
+========================================================================
+Method resolving with same name and same type name
+========================================================================
+import "./implementation-1.tolk";
+
+fun main() {
+    <caret>Storage
+        .<caret>load();
+}
+---FILE:implementation-1.tolk
+struct Storage
+
+fun Storage.load(): Storage {}
+---FILE:implementation-2.tolk
+struct Storage
+
+fun Storage.load(): Storage {}
+------------------------------------------------------------------------
+3:4 -> 0:7 (implementation-1.tolk) resolved
+4:9 -> 2:12 (implementation-1.tolk) resolved
+
+========================================================================
+Method resolving with same name and same type name to second file
+========================================================================
+import "./implementation-2.tolk";
+
+fun main() {
+    <caret>Storage
+        .<caret>load();
+}
+---FILE:implementation-1.tolk
+struct Storage
+
+fun Storage.load(): Storage {}
+---FILE:implementation-2.tolk
+struct Storage
+
+fun Storage.load(): Storage {}
+------------------------------------------------------------------------
+3:4 -> 0:7 (implementation-2.tolk) resolved
+4:9 -> 2:12 (implementation-2.tolk) resolved
+
+========================================================================
+Method resolving with same name and same type name without imports
+========================================================================
+fun main() {
+    <caret>Storage
+        .<caret>load();
+}
+---FILE:implementation-1.tolk
+struct Storage
+
+fun Storage.load(): Storage {}
+---FILE:implementation-2.tolk
+struct Storage
+
+fun Storage.load(): Storage {}
+------------------------------------------------------------------------
+1:4 unresolved
+2:9 unresolved

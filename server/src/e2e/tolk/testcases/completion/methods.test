@@ -1,0 +1,37 @@
+========================================================================
+Static methods completion
+========================================================================
+struct Foo {}
+
+fun Foo.bar() {}
+fun Foo.baz() {}
+fun Foo.bad() {}
+
+fun foo(someParameter: int) {
+    Foo.<caret>;
+}
+------------------------------------------------------------------------
+1  bad()  of Foo
+1  bar()  of Foo
+1  baz()  of Foo
+1  fromCell(packedCell: cell, options: UnpackOptions = {}): T  of T
+1  fromSlice(rawSlice: slice, options: UnpackOptions = {}): T  of T
+1  getDeclaredPackPrefix(): int  of T
+1  getDeclaredPackPrefixLen(): int  of T
+
+========================================================================
+Static methods completion 2
+========================================================================
+struct Foo {}
+
+fun Foo.bar() {}
+fun Foo.baz() {}
+fun Foo.bad() {}
+
+fun foo(someParameter: int) {
+    Foo.ba<caret>;
+}
+------------------------------------------------------------------------
+1  bad()  of Foo
+1  bar()  of Foo
+1  baz()  of Foo

@@ -1,0 +1,24 @@
+{
+    "rustc": 12371359838971829499,
+    "features": "[\"alloc\", \"dfa-onepass\", \"hybrid\", \"meta\", \"nfa-backtrack\", \"nfa-pikevm\", \"nfa-thompson\", \"perf-inline\", \"perf-literal\", \"perf-literal-multisubstring\", \"perf-literal-substring\", \"std\", \"syntax\", \"unicode\", \"unicode-age\", \"unicode-bool\", \"unicode-case\", \"unicode-gencat\", \"unicode-perl\", \"unicode-script\", \"unicode-segment\", \"unicode-word-boundary\"]",
+    "declared_features": "[\"alloc\", \"default\", \"dfa\", \"dfa-build\", \"dfa-onepass\", \"dfa-search\", \"hybrid\", \"internal-instrument\", \"internal-instrument-pikevm\", \"logging\", \"meta\", \"nfa\", \"nfa-backtrack\", \"nfa-pikevm\", \"nfa-thompson\", \"perf\", \"perf-inline\", \"perf-literal\", \"perf-literal-multisubstring\", \"perf-literal-substring\", \"std\", \"syntax\", \"unicode\", \"unicode-age\", \"unicode-bool\", \"unicode-case\", \"unicode-gencat\", \"unicode-perl\", \"unicode-script\", \"unicode-segment\", \"unicode-word-boundary\"]",
+    "target": 15630646695703972922,
+    "profile": 5394829218943206528,
+    "path": 4587034547679949827,
+    "deps": [
+        [554324495028472449, "memchr", false, 6721489496875269207],
+        [7325384046744447800, "aho_corasick", false, 16557489331986372768],
+        [9111760993595911334, "regex_syntax", false, 9325193552755478559]
+    ],
+    "local": [
+        {
+            "CheckDepInfo": {
+                "dep_info": "debug/.fingerprint/regex-automata-5dfa1075ebab949d/dep-lib-regex_automata"
+            }
+        }
+    ],
+    "rustflags": [],
+    "metadata": 8878122455581797878,
+    "config": 2202906307356721367,
+    "compile_kind": 0
+}

@@ -1,0 +1,166 @@
+========================================================================
+Complete backticked static method
+========================================================================
+fun int.`haha some static method goes brrr`() {}
+
+fun main() {
+    int.haha<caret>
+}
+------------------------------------------------------------------------
+fun int.`haha some static method goes brrr`() {}
+
+fun main() {
+    int.`haha some static method goes brrr`()<caret>;
+}
+
+========================================================================
+Complete backticked instance method
+========================================================================
+fun int.`haha some static method goes brrr`(self) {}
+
+fun main() {
+    10.haha<caret>
+}
+------------------------------------------------------------------------
+fun int.`haha some static method goes brrr`(self) {}
+
+fun main() {
+    10.`haha some static method goes brrr`()<caret>;
+}
+
+========================================================================
+Complete backticked function
+========================================================================
+fun `haha some func goes brrr`() {}
+
+fun main() {
+    haha<caret>
+}
+------------------------------------------------------------------------
+fun `haha some func goes brrr`() {}
+
+fun main() {
+    `haha some func goes brrr`()<caret>;
+}
+
+========================================================================
+Complete backticked struct
+========================================================================
+struct `haha some struct goes brrr`
+
+fun main() {
+    haha<caret>
+}
+------------------------------------------------------------------------
+struct `haha some struct goes brrr`
+
+fun main() {
+    `haha some struct goes brrr`<caret>
+}
+
+========================================================================
+Complete backticked type alias
+========================================================================
+type `haha some type goes brrr` = `haha` | `brrrr`
+
+fun main() {
+    haha<caret>
+}
+------------------------------------------------------------------------
+type `haha some type goes brrr` = `haha` | `brrrr`
+
+fun main() {
+    `haha some type goes brrr`<caret>
+}
+
+========================================================================
+Complete backticked constant
+========================================================================
+const `haha some const goes brrr` = 100
+
+fun main() {
+    haha<caret>
+}
+------------------------------------------------------------------------
+const `haha some const goes brrr` = 100
+
+fun main() {
+    `haha some const goes brrr`<caret>
+}
+
+========================================================================
+Complete backticked global variable
+========================================================================
+global `haha some const goes brrr`: int
+
+fun main() {
+    haha<caret>
+}
+------------------------------------------------------------------------
+global `haha some const goes brrr`: int
+
+fun main() {
+    `haha some const goes brrr`<caret>
+}
+
+========================================================================
+Complete backticked field
+========================================================================
+struct `haha some struct goes brrr` {
+    `hehe`: int
+}
+
+fun main() {
+    val haha = `haha some struct goes brrr`{};
+    haha.he<caret>
+}
+------------------------------------------------------------------------
+struct `haha some struct goes brrr` {
+    `hehe`: int
+}
+
+fun main() {
+    val haha = `haha some struct goes brrr`{};
+    haha.`hehe`<caret>
+}
+
+========================================================================
+Complete backticked catch variable
+========================================================================
+fun main() {
+    try {
+    } catch (`haha error my ass`) {
+        haha<caret>
+    }
+}
+------------------------------------------------------------------------
+fun main() {
+    try {
+    } catch (`haha error my ass`) {
+        `haha error my ass`<caret>
+    }
+}
+
+========================================================================
+Complete backticked variable
+========================================================================
+fun main() {
+    val `wtf` = 123;
+    wt<caret>
+}
+------------------------------------------------------------------------
+fun main() {
+    val `wtf` = 123;
+    `wtf`<caret>
+}
+
+========================================================================
+Complete backticked parameter
+========================================================================
+fun main(`wtf`: int) {
+    wt<caret>
+}
+------------------------------------------------------------------------
+fun main(`wtf`: int) {
+    `wtf`<caret>
+}

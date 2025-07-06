@@ -1,0 +1,125 @@
+========================================================================
+Empty test
+========================================================================
+//
+------------------------------------------------------------------------
+ok
+
+========================================================================
+Generic struct with single field
+========================================================================
+struct Foo<T> {
+    field: T,
+}
+
+fun main() {
+    val foo =
+//!     ^ Foo<int>
+        Foo<int> { field: 10 }
+//!                ^ int
+}
+------------------------------------------------------------------------
+ok
+
+========================================================================
+Generic struct with single field and union type instantiation
+========================================================================
+struct Foo<T> {
+    field: T,
+}
+
+fun main() {
+    val foo =
+//!     ^ Foo<int | bool>
+        Foo<int | bool> { field: 10 }
+//!                       ^ int
+}
+------------------------------------------------------------------------
+type inference error at line 8:26: expected int, got int | bool
+
+========================================================================
+Generic struct with single field: deduce primitive type from alias
+========================================================================
+struct Foo<T> {
+    field: T,
+}
+
+type IntFoo = Foo<int>;
+
+fun main() {
+    val foo =
+//!     ^ IntFoo
+        IntFoo { field: 10 };
+//!              ^ int
+
+    val res = foo.field;
+//!     ^ int
+}
+------------------------------------------------------------------------
+ok
+
+========================================================================
+Generic struct match
+========================================================================
+struct Ok<T> {
+    result: T;
+}
+
+struct Err<T> {
+    errPayload: T;
+}
+
+type Response<TResult, TError> = Ok<TResult> | Err<TError>;
+
+fun getResponse(success: bool): Response<int, slice> {
+    return success ? Ok { result: 10 } : Err { errPayload: beginCell().endCell().beginParse() };
+}
+
+fun main() {
+    var r = getResponse(true);
+
+    match (r) {
+        Ok => { r; }
+//!             ^ Ok<int>
+        Err => { r; }
+//!              ^ Err<slice>
+    }
+}
+------------------------------------------------------------------------
+ok
+
+========================================================================
+Generic struct is
+========================================================================
+struct Ok<T> {
+    result: T;
+}
+
+struct Err<T> {
+    errPayload: T;
+}
+
+type OkAlias<T> = Ok<T>;
+
+type Response<TResult, TError> = Ok<TResult> | Err<TError>;
+
+fun getResponse(success: bool): Response<int, slice> {
+    return success ? Ok { result: 10 } : Err { errPayload: beginCell().endCell().beginParse() };
+}
+
+fun main() {
+    var r = getResponse(true);
+
+    if (r is Ok<int>) { r; }
+//!                     ^ Ok<int>
+    if (r is Ok) { r; }
+//!                ^ Ok<int>
+    if (r is OkAlias<int>) { r; }
+//!                          ^ OkAlias<int>
+    if (r !is OkAlias<int>) { r; }
+//!                           ^ Err<slice>
+    if (r is Ok<int> && r !is Err<slice> && r is Ok) { r; }
+//!                                                    ^ Ok<int>
+}
+------------------------------------------------------------------------
+ok
