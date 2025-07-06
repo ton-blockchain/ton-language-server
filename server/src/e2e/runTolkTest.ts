@@ -112,6 +112,12 @@ async function main(): Promise<void> {
         const extensionTestsPath = path.resolve(__dirname, "./out/tolk/index.js")
         const testWorkspace = path.resolve(__dirname, "../../../test-workspace")
 
+        if (options.verbose) {
+            console.log("  extensionDevelopmentPath:", extensionDevelopmentPath)
+            console.log("  extensionTestsPath:", extensionTestsPath)
+            console.log("  testWorkspace:", testWorkspace)
+        }
+
         await runTests({
             extensionDevelopmentPath,
             extensionTestsPath,
