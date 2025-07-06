@@ -52,9 +52,7 @@ export async function run(): Promise<void> {
     })
 
     process.env["TON_TESTS"] = "true"
-    process.env["TEST_TOLK_STDLIB_PATH"] = process.env["CI"]
-        ? "./server/src/e2e/tolk/tolk-stdlib/"
-        : "../server/src/e2e/tolk/tolk-stdlib/"
+    process.env["TEST_TOLK_STDLIB_PATH"] = "../server/src/e2e/tolk/tolk-stdlib/"
 
     const testsRoot = path.resolve(__dirname, ".")
     const testFilePattern = getTestFilePattern(options)

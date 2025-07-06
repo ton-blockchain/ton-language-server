@@ -2,6 +2,7 @@
 //  Copyright © 2025 TON Studio
 import * as path from "node:path"
 import {runTests} from "@vscode/test-electron"
+import {mkdirSync} from "node:fs"
 
 // eslint-disable-next-line functional/type-declaration-immutability
 interface TestRunOptions {
@@ -112,6 +113,8 @@ async function main(): Promise<void> {
         const extensionTestsPath = path.resolve(__dirname, "./out/tolk/index.js")
         const extensionCompilerTestsPath = path.resolve(__dirname, "./out/tolk/compiler-index.js")
         const testWorkspace = path.resolve(__dirname, "../../../test-workspace")
+
+        mkdirSync(testWorkspace, {recursive: true})
 
         if (options.verbose) {
             console.log("  extensionDevelopmentPath:", extensionDevelopmentPath)
