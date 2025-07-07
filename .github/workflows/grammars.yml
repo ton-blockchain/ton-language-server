@@ -3,10 +3,10 @@ name: Building tree-sitter grammars
 on:
   pull_request:
     branches:
-      - master
+      - main
   push:
     branches:
-      - master
+      - main
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -57,3 +57,6 @@ jobs:
 
       - name: Build WASM
         run: yarn grammar:wasm
+
+      - name: Test parsers
+        run: yarn test:grammars

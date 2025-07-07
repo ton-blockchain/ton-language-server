@@ -3,10 +3,10 @@ name: Linter checks
 on:
   pull_request:
     branches:
-      - master
+      - main
   push:
     branches:
-      - master
+      - main
 
 env:
   HUSKY: 0

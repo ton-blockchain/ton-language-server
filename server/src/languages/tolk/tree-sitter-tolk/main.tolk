@@ -1,4 +1,3 @@
-fun t<T>() {}
 
 // fun Container<T>.getItem(self) { return self.item; }
 // fun builder.add(mutate self) {  }
