@@ -387,12 +387,13 @@ const TOLK_GRAMMAR = {
             ),
         ),
 
+    _ternary_start: $ => prec.dynamic(20, seq(field("condition", $._expression), "?")),
+
     ternary_operator: $ =>
-        prec.right(
+        prec.dynamic(
             10,
             seq(
-                field("condition", $._expression),
-                "?",
+                $._ternary_start,
                 field("consequence", $._expression),
                 ":",
                 field("alternative", $._expression),
@@ -458,9 +459,9 @@ const TOLK_GRAMMAR = {
     lazy_expression: $ => choice(prec.right(5, seq("lazy", field("argument", $._expression)))),
 
     cast_as_operator: $ =>
-        prec(40, seq(field("expr", $._expression), "as", field("casted_to", $._type_hint))),
+        prec.right(40, seq(field("expr", $._expression), "as", field("casted_to", $._type_hint))),
     is_type_operator: $ =>
-        prec(
+        prec.right(
             40,
             seq(
                 field("expr", $._expression),
@@ -594,7 +595,8 @@ const TOLK_GRAMMAR = {
             101,
             seq(field("param_types", $._type_hint), "->", field("return_type", $._type_hint)),
         ),
-    nullable_type: $ => prec.right(110, seq(field("inner", $._type_hint), "?")),
+    nullable_type: $ =>
+        prec.dynamic(110, seq(field("inner", $._type_hint), choice("?", token.immediate("?")))),
     union_type: $ =>
         prec.right(
             102,
@@ -635,6 +637,9 @@ module.exports = grammar({
         [$._expression, $.type_instantiatedTs],
         [$.tensor_type, $.tensor_expression],
         [$.union_type],
+        [$.ternary_operator],
+        [$._ternary_start, $.nullable_type],
+        [$._ternary_start, $.ternary_operator],
     ],
 
     extras: $ => [/\s/, $.comment],

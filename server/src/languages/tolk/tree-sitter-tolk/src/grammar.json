@@ -2303,9 +2303,9 @@
                 ]
             }
         },
-        "ternary_operator": {
-            "type": "PREC_RIGHT",
-            "value": 10,
+        "_ternary_start": {
+            "type": "PREC_DYNAMIC",
+            "value": 20,
             "content": {
                 "type": "SEQ",
                 "members": [
@@ -2320,6 +2320,19 @@
                     {
                         "type": "STRING",
                         "value": "?"
+                    }
+                ]
+            }
+        },
+        "ternary_operator": {
+            "type": "PREC_DYNAMIC",
+            "value": 10,
+            "content": {
+                "type": "SEQ",
+                "members": [
+                    {
+                        "type": "SYMBOL",
+                        "name": "_ternary_start"
                     },
                     {
                         "type": "FIELD",
@@ -2705,7 +2718,7 @@
             ]
         },
         "cast_as_operator": {
-            "type": "PREC",
+            "type": "PREC_RIGHT",
             "value": 40,
             "content": {
                 "type": "SEQ",
@@ -2734,7 +2747,7 @@
             }
         },
         "is_type_operator": {
-            "type": "PREC",
+            "type": "PREC_RIGHT",
             "value": 40,
             "content": {
                 "type": "SEQ",
@@ -3731,7 +3744,7 @@
             }
         },
         "nullable_type": {
-            "type": "PREC_RIGHT",
+            "type": "PREC_DYNAMIC",
             "value": 110,
             "content": {
                 "type": "SEQ",
@@ -3745,8 +3758,20 @@
                         }
                     },
                     {
-                        "type": "STRING",
-                        "value": "?"
+                        "type": "CHOICE",
+                        "members": [
+                            {
+                                "type": "STRING",
+                                "value": "?"
+                            },
+                            {
+                                "type": "IMMEDIATE_TOKEN",
+                                "content": {
+                                    "type": "STRING",
+                                    "value": "?"
+                                }
+                            }
+                        ]
                     }
                 ]
             }
@@ -3933,7 +3958,10 @@
         ["type_instantiatedTs", "_type_hint"],
         ["_expression", "type_instantiatedTs"],
         ["tensor_type", "tensor_expression"],
-        ["union_type"]
+        ["union_type"],
+        ["ternary_operator"],
+        ["_ternary_start", "nullable_type"],
+        ["_ternary_start", "ternary_operator"]
     ],
     "precedences": [],
     "externals": [],

@@ -828,7 +828,7 @@ export function subtractTypes(left: Ty | null, right: Ty): Ty {
         }
     } else if (left.contains(right)) {
         for (const leftVariant of left.elements) {
-            if (!leftVariant.baseType().equals(right.baseType())) {
+            if (!leftVariant.unwrapAlias().equals(right.unwrapAlias())) {
                 restVariants.push(leftVariant)
             }
         }
