@@ -51,7 +51,7 @@
         "test:grammars:tolk": "cd ./server/src/languages/tolk/tree-sitter-tolk/ && tree-sitter test",
         "test:grammars:fift": "cd ./server/src/languages/fift/tree-sitter-fift/ && tree-sitter test",
         "test:grammars:tlb": "cd ./server/src/languages/tlb/tree-sitter-tlb/ && tree-sitter test",
-        "test:e2e": "yarn test:e2e:tolk -v",
+        "test:e2e": "yarn test:e2e:tolk",
         "test:e2e:compile": "tsc -p ./server/src/e2e/tsconfig.json",
         "test:e2e:tolk": "yarn test:e2e:compile && ts-node server/src/e2e/runTolkTest.ts",
         "test:e2e:tolk:update": "yarn test:e2e:compile && ts-node server/src/e2e/runTolkTest.ts --update-snapshots",

@@ -91,9 +91,9 @@ global g: int -> [slice]?;
           (type_identifier)))))
   (global_var_declaration
     (identifier)
-    (fun_callable_type
-      (type_identifier)
-      (nullable_type
+    (nullable_type
+      (fun_callable_type
+        (type_identifier)
         (tuple_type
           (type_identifier))))))
 
@@ -133,14 +133,14 @@ global g: SomeStruct | coins? | (int|int);
   (global_var_declaration
     (identifier)
     (union_type
-      (type_identifier)
-      (union_type
-        (nullable_type
-          (type_identifier))
-        (parenthesized_type
-          (union_type
-            (type_identifier)
-            (type_identifier)))))))
+      (nullable_type
+        (union_type
+          (type_identifier)
+          (type_identifier)))
+      (parenthesized_type
+        (union_type
+          (type_identifier)
+          (type_identifier))))))
 
 ========================================================================
 Parse type aliases
@@ -161,9 +161,9 @@ type F<T> = Container<T>;
     (identifier)
     (tensor_type
       (type_identifier)
-      (union_type
-        (type_identifier)
-        (nullable_type
+      (nullable_type
+        (union_type
+          (type_identifier)
           (type_identifier)))))
   (type_alias_declaration
     (identifier)
