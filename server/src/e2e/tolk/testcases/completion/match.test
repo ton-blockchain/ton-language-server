@@ -24,6 +24,7 @@ fun foo(value: int | slice) {
 ------------------------------------------------------------------------
 22 int => {}
 22 slice => {}
+22 else => {}
 
 ========================================================================
 Match over type completion, union type 2
@@ -52,6 +53,7 @@ fun main(msg: AllowedMessageToMinter) {
 22 ChangeMinterContent => {}
 22 MintNewJettons => {}
 22 RequestWalletAddress => {}
+22 else => {}
 
 ========================================================================
 Match over type completion, union type, match with single arm
@@ -80,6 +82,7 @@ fun main(msg: AllowedMessageToMinter) {
 22 ChangeMinterAdmin => {}
 22 ChangeMinterContent => {}
 22 RequestWalletAddress => {}
+22 else => {}
 
 ========================================================================
 Match over type completion, union type, match with single arm, cursor before arm
@@ -109,6 +112,7 @@ fun main(msg: AllowedMessageToMinter) {
 22 ChangeMinterContent => {}
 22 MintNewJettons => {}
 22 RequestWalletAddress => {}
+22 else => {}
 
 ========================================================================
 Match over type completion, union type, match with several arms
@@ -137,6 +141,7 @@ fun main(msg: AllowedMessageToMinter) {
 }
 ------------------------------------------------------------------------
 22 ChangeMinterContent => {}
+22 else => {}
 
 ========================================================================
 Match over type completion, union type, match with all arms
@@ -165,6 +170,21 @@ fun main(msg: AllowedMessageToMinter) {
     }
 }
 ------------------------------------------------------------------------
+22 else => {}
+
+========================================================================
+Match over type with else completion
+========================================================================
+const FOO = 100
+
+fun foo(value: int | slice) {
+    match (value) {
+        int => {},
+        else => {},
+        els<caret>
+    }
+}
+------------------------------------------------------------------------
 No completion items
 
 ========================================================================
@@ -179,3 +199,18 @@ fun foo(value: int) {
 }
 ------------------------------------------------------------------------
 20 FOO: int = 100
+
+========================================================================
+Match over value with else completion
+========================================================================
+const FOO = 100
+
+fun foo(value: int) {
+    match (value) {
+        FOO => {},
+        else => {},
+        els<caret>
+    }
+}
+------------------------------------------------------------------------
+No completion items

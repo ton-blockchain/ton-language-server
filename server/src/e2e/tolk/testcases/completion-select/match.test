@@ -251,7 +251,7 @@ fun main(msg: AllowedMessageToMinter) {
         RequestWalletAddress => {},
         ChangeMinterAdmin => {},
         ChangeMinterContent => {},
-        AllowedMessageToMinter<caret>
+        else => {<caret>},
     }
 }
 
@@ -271,5 +271,35 @@ const FOO = 100
 fun foo(value: int) {
     match (value) {
         FOO<caret> => {}
+    }
+}
+
+========================================================================
+Match over type else completion
+========================================================================
+fun foo(a: int | slice) {
+    match (a) {
+        els<caret>
+    }
+}
+------------------------------------------------------------------------
+fun foo(a: int | slice) {
+    match (a) {
+        elsa<caret>
+    }
+}
+
+========================================================================
+Match over value else completion
+========================================================================
+fun foo() {
+    match (10) {
+        els<caret>
+    }
+}
+------------------------------------------------------------------------
+fun foo() {
+    match (10) {
+        else => {<caret>},
     }
 }
