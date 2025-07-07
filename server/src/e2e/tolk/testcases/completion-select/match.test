@@ -285,7 +285,7 @@ fun foo(a: int | slice) {
 ------------------------------------------------------------------------
 fun foo(a: int | slice) {
     match (a) {
-        elsa<caret>
+        else => {<caret>},
     }
 }
 
