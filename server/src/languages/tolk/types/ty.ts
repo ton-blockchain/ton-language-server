@@ -625,7 +625,10 @@ export class BoolTy extends NonNamedTy {
     }
 
     public override equals(other: Ty): boolean {
-        return other instanceof BoolTy
+        if (other instanceof BoolTy) {
+            return this.value === other.value
+        }
+        return false
     }
 
     public override canRhsBeAssigned(other: Ty): boolean {
