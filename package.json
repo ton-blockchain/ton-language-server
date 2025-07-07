@@ -12,7 +12,7 @@
         "BoC",
         "TL-B"
     ],
-    "version": "0.0.1",
+    "version": "0.1.1",
     "engines": {
         "vscode": "^1.63.0"
     },
@@ -404,7 +404,9 @@
                                 "cannot-reassign"
                             ]
                         },
-                        "default": [],
+                        "default": [
+                            "type-compatibility"
+                        ],
                         "description": "List of disabled code inspections. All inspections are enabled by default."
                     }
                 }

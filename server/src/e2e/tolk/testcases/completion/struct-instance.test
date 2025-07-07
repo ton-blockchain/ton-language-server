@@ -92,12 +92,10 @@ struct Foo {
 }
 
 fun test(value: int) {
-    Foo{ val<caret> value: 10 };
+    Foo{ a<caret>, value: 10 };
 }
 ------------------------------------------------------------------------
-5  value   int
-14 val
-14 valt
+9  age : int    of Foo
 
 ========================================================================
 Second field in struct init with variable

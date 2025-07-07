@@ -246,7 +246,7 @@ const TOLK_GRAMMAR = {
         choice($.tuple_vars_declaration, $.tensor_vars_declaration, $.var_declaration),
 
     block_statement: $ =>
-        prec(
+        prec.dynamic(
             100,
             seq(
                 "{",
@@ -387,13 +387,12 @@ const TOLK_GRAMMAR = {
             ),
         ),
 
-    _ternary_start: $ => prec.dynamic(20, seq(field("condition", $._expression), "?")),
-
     ternary_operator: $ =>
-        prec.dynamic(
+        prec.right(
             10,
             seq(
-                $._ternary_start,
+                field("condition", $._expression),
+                "?",
                 field("consequence", $._expression),
                 ":",
                 field("alternative", $._expression),
@@ -459,9 +458,9 @@ const TOLK_GRAMMAR = {
     lazy_expression: $ => choice(prec.right(5, seq("lazy", field("argument", $._expression)))),
 
     cast_as_operator: $ =>
-        prec.right(40, seq(field("expr", $._expression), "as", field("casted_to", $._type_hint))),
+        prec(40, seq(field("expr", $._expression), "as", field("casted_to", $._type_hint))),
     is_type_operator: $ =>
-        prec.right(
+        prec(
             40,
             seq(
                 field("expr", $._expression),
@@ -542,7 +541,7 @@ const TOLK_GRAMMAR = {
         ),
 
     object_literal: $ =>
-        prec(
+        prec.dynamic(
             99,
             seq(optional(field("type", $._type_hint)), field("arguments", $.object_literal_body)),
         ),
@@ -595,8 +594,7 @@ const TOLK_GRAMMAR = {
             101,
             seq(field("param_types", $._type_hint), "->", field("return_type", $._type_hint)),
         ),
-    nullable_type: $ =>
-        prec.dynamic(110, seq(field("inner", $._type_hint), choice("?", token.immediate("?")))),
+    nullable_type: $ => prec.right(110, seq(field("inner", $._type_hint), "?")),
     union_type: $ =>
         prec.right(
             102,
@@ -637,9 +635,7 @@ module.exports = grammar({
         [$._expression, $.type_instantiatedTs],
         [$.tensor_type, $.tensor_expression],
         [$.union_type],
-        [$.ternary_operator],
-        [$._ternary_start, $.nullable_type],
-        [$._ternary_start, $.ternary_operator],
+        [$.block_statement, $.object_literal_body],
     ],
 
     extras: $ => [/\s/, $.comment],

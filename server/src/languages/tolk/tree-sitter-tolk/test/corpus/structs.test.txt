@@ -236,6 +236,7 @@ fun main() {
   { x };
   { x; };
   {};
+  val a = { x };
 }
 
 ------------------------------------------------------------------------
@@ -245,17 +246,23 @@ fun main() {
     (identifier)
     (parameter_list)
     (block_statement
-      (expression_statement
-        (object_literal
-          (object_literal_body
-            (instance_argument
-              (identifier)))))
+      (block_statement
+        (expression_statement
+          (identifier)))
+      (empty_statement)
       (block_statement
         (expression_statement
           (identifier)))
       (empty_statement)
       (block_statement)
-      (empty_statement))))
+      (empty_statement)
+      (local_vars_declaration
+        (var_declaration
+          (identifier))
+        (object_literal
+          (object_literal_body
+            (instance_argument
+              (identifier))))))))
 
 ========================================================================
 Call a function with options literal

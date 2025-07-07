@@ -49,15 +49,43 @@ export class MatchArmsCompletionProvider implements CompletionProvider {
                     insertText: value.insertText + "$1 => {$0}",
                 })
             }
+
+            let seenElse = false
+
+            const arms = body.namedChildren.filter(it => it?.type === "match_arm")
+            for (const arm of arms) {
+                if (arm?.childForFieldName("pattern_else")) {
+                    seenElse = true
+                }
+            }
+
+            if (!seenElse) {
+                result.add({
+                    label: "else",
+                    labelDetails: {
+                        detail: " => {}",
+                    },
+                    kind: CompletionItemKind.Event,
+                    insertTextFormat: InsertTextFormat.Snippet,
+                    insertText: "else => {$0},",
+                    weight: CompletionWeight.SNIPPET + 10,
+                })
+            }
             return
         }
 
         const arms = body.namedChildren.filter(it => it?.type === "match_arm")
 
+        let seenElse = false
         const handledTypes: Set<string> = new Set()
 
         for (const arm of arms) {
             if (!arm) continue
+
+            if (arm.childForFieldName("pattern_else")) {
+                seenElse = true
+                continue
+            }
 
             const patternType = arm.childForFieldName("pattern_type")
             if (!patternType) continue
@@ -81,6 +109,19 @@ export class MatchArmsCompletionProvider implements CompletionProvider {
                 insertTextFormat: InsertTextFormat.Snippet,
                 insertText: variantName + " => {$0},",
                 weight: CompletionWeight.SNIPPET,
+            })
+        }
+
+        if (!seenElse) {
+            result.add({
+                label: "else",
+                labelDetails: {
+                    detail: " => {}",
+                },
+                kind: CompletionItemKind.Event,
+                insertTextFormat: InsertTextFormat.Snippet,
+                insertText: "else => {$0},",
+                weight: CompletionWeight.SNIPPET + 10,
             })
         }
     }

@@ -1639,7 +1639,7 @@
             ]
         },
         "block_statement": {
-            "type": "PREC",
+            "type": "PREC_DYNAMIC",
             "value": 100,
             "content": {
                 "type": "SEQ",
@@ -2303,9 +2303,9 @@
                 ]
             }
         },
-        "_ternary_start": {
-            "type": "PREC_DYNAMIC",
-            "value": 20,
+        "ternary_operator": {
+            "type": "PREC_RIGHT",
+            "value": 10,
             "content": {
                 "type": "SEQ",
                 "members": [
@@ -2320,19 +2320,6 @@
                     {
                         "type": "STRING",
                         "value": "?"
-                    }
-                ]
-            }
-        },
-        "ternary_operator": {
-            "type": "PREC_DYNAMIC",
-            "value": 10,
-            "content": {
-                "type": "SEQ",
-                "members": [
-                    {
-                        "type": "SYMBOL",
-                        "name": "_ternary_start"
                     },
                     {
                         "type": "FIELD",
@@ -2718,7 +2705,7 @@
             ]
         },
         "cast_as_operator": {
-            "type": "PREC_RIGHT",
+            "type": "PREC",
             "value": 40,
             "content": {
                 "type": "SEQ",
@@ -2747,7 +2734,7 @@
             }
         },
         "is_type_operator": {
-            "type": "PREC_RIGHT",
+            "type": "PREC",
             "value": 40,
             "content": {
                 "type": "SEQ",
@@ -3208,7 +3195,7 @@
             ]
         },
         "object_literal": {
-            "type": "PREC",
+            "type": "PREC_DYNAMIC",
             "value": 99,
             "content": {
                 "type": "SEQ",
@@ -3744,7 +3731,7 @@
             }
         },
         "nullable_type": {
-            "type": "PREC_DYNAMIC",
+            "type": "PREC_RIGHT",
             "value": 110,
             "content": {
                 "type": "SEQ",
@@ -3758,20 +3745,8 @@
                         }
                     },
                     {
-                        "type": "CHOICE",
-                        "members": [
-                            {
-                                "type": "STRING",
-                                "value": "?"
-                            },
-                            {
-                                "type": "IMMEDIATE_TOKEN",
-                                "content": {
-                                    "type": "STRING",
-                                    "value": "?"
-                                }
-                            }
-                        ]
+                        "type": "STRING",
+                        "value": "?"
                     }
                 ]
             }
@@ -3959,9 +3934,7 @@
         ["_expression", "type_instantiatedTs"],
         ["tensor_type", "tensor_expression"],
         ["union_type"],
-        ["ternary_operator"],
-        ["_ternary_start", "nullable_type"],
-        ["_ternary_start", "ternary_operator"]
+        ["block_statement", "object_literal_body"]
     ],
     "precedences": [],
     "externals": [],
