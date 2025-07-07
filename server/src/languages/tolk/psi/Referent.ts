@@ -216,8 +216,11 @@ export class Referent {
             }
 
             if (node.type === "type_identifier" && parent.type === "instantiationT_list") {
-                // T in `fun Foo<T>.bar() {}`
-                return true
+                const grand = parent.parent?.parent
+                if (grand?.type === "method_receiver") {
+                    // T in `fun Foo<T>.bar() {}`
+                    return true
+                }
             }
 
             if (

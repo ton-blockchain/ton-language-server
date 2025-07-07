@@ -1,6 +1,6 @@
 import * as lsp from "vscode-languageserver"
 import {findTolkFile, TOLK_PARSED_FILES_CACHE} from "@server/files"
-import {LocalSearchScope, Referent} from "@server/languages/tolk/psi/Referent"
+import {GlobalSearchScope, LocalSearchScope, Referent} from "@server/languages/tolk/psi/Referent"
 import {File} from "@server/psi/File"
 import type {Node as SyntaxNode} from "web-tree-sitter"
 import {asParserPoint} from "@server/utils/position"
@@ -50,7 +50,14 @@ export async function provideExecuteTolkCommand(
         if (!scope) return "Scope not found"
 
         if (scope instanceof LocalSearchScope) return scope.toString()
-        return "GlobalSearchScope"
+        if (scope instanceof GlobalSearchScope) {
+            if (scope.files.length > 10) {
+                return "GlobalSearchScope{...}"
+            }
+
+            return `GlobalSearchScope{${scope.files.map(it => it.name + ".tolk").join(", ")}}`
+        }
+        return "Unknown"
     }
 
     if (params.command === "tolk.getUnresolvedIdentifiers") {

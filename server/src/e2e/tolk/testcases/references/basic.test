@@ -278,7 +278,7 @@ fun test2() {
 }
 ------------------------------------------------------------------------
 References: [3:8, 4:14, 9:8, 10:14]
-Scope: GlobalSearchScope
+Scope: GlobalSearchScope{test.tolk}
 
 ========================================================================
 Function references
@@ -292,7 +292,7 @@ fun test2() {
 }
 ------------------------------------------------------------------------
 References: [3:4, 4:4, 5:4]
-Scope: GlobalSearchScope
+Scope: GlobalSearchScope{test.tolk}
 
 ========================================================================
 Static method references
@@ -306,7 +306,7 @@ fun test2() {
 }
 ------------------------------------------------------------------------
 References: [5:8]
-Scope: GlobalSearchScope
+Scope: GlobalSearchScope{test.tolk}
 
 ========================================================================
 Instance method references
@@ -321,7 +321,7 @@ fun test2() {
 }
 ------------------------------------------------------------------------
 References: [6:8]
-Scope: GlobalSearchScope
+Scope: GlobalSearchScope{test.tolk}
 
 ========================================================================
 Instance method references via alias
@@ -338,7 +338,7 @@ fun test2() {
 }
 ------------------------------------------------------------------------
 References: [8:8]
-Scope: GlobalSearchScope
+Scope: GlobalSearchScope{test.tolk}
 
 ========================================================================
 Constant references
@@ -352,7 +352,7 @@ fun test2() {
 }
 ------------------------------------------------------------------------
 References: [3:8, 4:14]
-Scope: GlobalSearchScope
+Scope: GlobalSearchScope{test.tolk}
 
 ========================================================================
 Type alias references
@@ -366,7 +366,7 @@ struct Foo {
 fun test2(a: Int): Int {}
 ------------------------------------------------------------------------
 References: [3:11, 6:13, 6:19]
-Scope: GlobalSearchScope
+Scope: GlobalSearchScope{test.tolk}
 
 ========================================================================
 Type alias references from usage
@@ -380,7 +380,7 @@ struct Foo {
 fun test2(a: <caret>Int): Int {}
 ------------------------------------------------------------------------
 References: [3:11, 6:13, 6:19]
-Scope: GlobalSearchScope
+Scope: GlobalSearchScope{test.tolk}
 
 ========================================================================
 Struct references
@@ -395,7 +395,7 @@ fun test2(a: Foo): Foo {
 }
 ------------------------------------------------------------------------
 References: [4:13, 4:19, 5:13, 6:14]
-Scope: GlobalSearchScope
+Scope: GlobalSearchScope{test.tolk}
 
 ========================================================================
 Struct keyword references
@@ -421,7 +421,7 @@ fun test() {
 }
 ------------------------------------------------------------------------
 References: [3:4]
-Scope: GlobalSearchScope
+Scope: GlobalSearchScope{test.tolk}
 
 ========================================================================
 Do while references
@@ -437,3 +437,24 @@ Scope: LocalSearchScope:
 do {
         var a = 10;
     } while (a)
+
+========================================================================
+Struct references with generic type
+========================================================================
+struct <caret>Config {}
+
+struct Storage {
+  config: Cell<Config>
+}
+
+fun Storage.load() {
+    return Storage.fromCell(contract.getData())
+}
+
+fun name() {
+    var st = Storage.load();
+    val config = st.config.load();
+}
+------------------------------------------------------------------------
+References: [3:15]
+Scope: GlobalSearchScope{test.tolk}
