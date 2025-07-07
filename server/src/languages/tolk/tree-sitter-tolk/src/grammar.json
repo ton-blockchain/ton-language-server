@@ -1639,7 +1639,7 @@
             ]
         },
         "block_statement": {
-            "type": "PREC",
+            "type": "PREC_DYNAMIC",
             "value": 100,
             "content": {
                 "type": "SEQ",
@@ -3195,7 +3195,7 @@
             ]
         },
         "object_literal": {
-            "type": "PREC",
+            "type": "PREC_DYNAMIC",
             "value": 99,
             "content": {
                 "type": "SEQ",
@@ -3933,7 +3933,8 @@
         ["type_instantiatedTs", "_type_hint"],
         ["_expression", "type_instantiatedTs"],
         ["tensor_type", "tensor_expression"],
-        ["union_type"]
+        ["union_type"],
+        ["block_statement", "object_literal_body"]
     ],
     "precedences": [],
     "externals": [],

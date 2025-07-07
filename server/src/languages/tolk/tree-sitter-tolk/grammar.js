@@ -246,7 +246,7 @@ const TOLK_GRAMMAR = {
         choice($.tuple_vars_declaration, $.tensor_vars_declaration, $.var_declaration),
 
     block_statement: $ =>
-        prec(
+        prec.dynamic(
             100,
             seq(
                 "{",
@@ -541,7 +541,7 @@ const TOLK_GRAMMAR = {
         ),
 
     object_literal: $ =>
-        prec(
+        prec.dynamic(
             99,
             seq(optional(field("type", $._type_hint)), field("arguments", $.object_literal_body)),
         ),
@@ -635,6 +635,7 @@ module.exports = grammar({
         [$._expression, $.type_instantiatedTs],
         [$.tensor_type, $.tensor_expression],
         [$.union_type],
+        [$.block_statement, $.object_literal_body],
     ],
 
     extras: $ => [/\s/, $.comment],
