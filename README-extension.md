@@ -1,6 +1,6 @@
 # TON Extension
 
-Extension for VSCode-based editors with comprehensive support for TON Blockchain
+Extension for VSCode and VSCode-based editors with comprehensive support for TON Blockchain
 languages and technologies including Tolk, FunC, Fift assembly, TL-B, BoC and Blueprint.
 
 **[Features] • [Installation] • [Troubleshooting]**
