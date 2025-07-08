@@ -1,0 +1,116 @@
+name: Sync Tolk tree-sitter Grammar
+
+on:
+  push:
+    paths:
+      - "server/src/languages/tolk/tree-sitter-tolk/**"
+    branches:
+      - main
+  workflow_dispatch:
+    inputs:
+      force_sync:
+        description: "Force sync even without changes"
+        required: false
+        default: false
+        type: boolean
+
+concurrency:
+  group: grammar-sync
+  cancel-in-progress: true
+
+env:
+  GRAMMAR_REPO: "ton-blockchain/tree-sitter-tolk"
+  GRAMMAR_PATH: "server/src/languages/tolk/tree-sitter-tolk"
+
+jobs:
+  sync-grammar:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout source repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          path: source
+
+      - name: Checkout target repository
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.GRAMMAR_REPO }}
+          token: ${{ secrets.GRAMMAR_SYNC_TOKEN }}
+          path: target
+
+      - name: Setup Git in target repository
+        working-directory: target
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+      - name: Sync grammar files
+        run: |
+          rsync -a --delete \
+            --exclude='.git' \
+            --exclude='node_modules' \
+            --exclude='.yarn' \
+            --exclude='build' \
+            --exclude='target' \
+            --exclude='.DS_Store' \
+            "source/${{ env.GRAMMAR_PATH }}/" "target/"
+
+      - name: Check for changes
+        id: changes
+        working-directory: target
+        run: |
+          git add .
+          if git diff --cached --quiet; then
+            echo "has_changes=false" >> "$GITHUB_OUTPUT"
+            echo "No changes to sync"
+          else
+            echo "has_changes=true" >> "$GITHUB_OUTPUT"
+            echo "Changes detected:"
+            git diff --cached --name-status
+          fi
+
+      - name: Create commit and push
+        if: steps.changes.outputs.has_changes == 'true' || github.event.inputs.force_sync == 'true'
+        working-directory: target
+        run: |
+          # Get the latest commit info from source
+          cd ../source
+          COMMIT_SHA=$(git rev-parse HEAD)
+          COMMIT_MSG=$(git log -1 --pretty=format:"%s")
+          COMMIT_AUTHOR=$(git log -1 --pretty=format:"%an")
+
+          cd ../target
+
+          # Create commit message
+          if [ "${{ github.event.inputs.force_sync }}" = "true" ]; then
+            SYNC_MSG="chore: force sync from ton-language-server@${COMMIT_SHA:0:7}"
+          else
+            SYNC_MSG="sync: ${COMMIT_MSG}"
+          fi
+
+          echo "Creating commit: $SYNC_MSG"
+
+          git add .
+          git commit -m "$SYNC_MSG" \
+            -m "Synced from: ton-blockchain/ton-language-server@$COMMIT_SHA" \
+            -m "Original author: $COMMIT_AUTHOR" || true
+
+          # Push changes
+          git push origin main
+
+      - name: Create summary
+        run: |
+          echo "## Grammar Sync Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ steps.changes.outputs.has_changes }}" = "true" ] || [ "${{ github.event.inputs.force_sync }}" = "true" ]; then
+            echo "✅ Grammar successfully synced to [${{ env.GRAMMAR_REPO }}](https://github.com/${{ env.GRAMMAR_REPO }})" >> $GITHUB_STEP_SUMMARY
+            echo "" >> $GITHUB_STEP_SUMMARY
+            echo "**Source commit:** $(cd source && git rev-parse HEAD)" >> $GITHUB_STEP_SUMMARY
+            echo "**Trigger:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "ℹ️ No changes to sync" >> $GITHUB_STEP_SUMMARY
+          fi
