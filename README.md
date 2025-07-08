@@ -257,7 +257,6 @@ Setup steps:
     language-servers = ["ton-language-server"]
 
     [language-server.ton-language-server]
-
     command = "node"
     args = ["/absolute/path/to/language-server/dist/server.js", "--stdio"]
     ```
