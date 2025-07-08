@@ -29,6 +29,15 @@ jobs:
           YARN_ENABLE_HARDENED_MODE: false
         run: yarn install --immutable
 
+      - name: Setup EMSDK
+        uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: 3.1.54
+          actions-cache-folder: "emsdk-cache"
+
+      - name: Build WASM
+        run: yarn grammar:wasm
+
       - name: Build Extension
         run: yarn build
 
@@ -60,7 +69,7 @@ jobs:
             "ton-language-server-v${VERSION}.tar.gz" \
             "ton-language-server-v${VERSION}.zip" \
             --clobber
-            
+
           echo "Assets uploaded to release $LATEST_RELEASE"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
