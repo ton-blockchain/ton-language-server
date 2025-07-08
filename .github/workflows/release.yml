@@ -1,0 +1,66 @@
+name: Build and Attach Release Assets
+
+on:
+  workflow_dispatch:
+
+env:
+  HUSKY: 0
+
+jobs:
+  build-and-attach:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Enable Corepack
+        run: corepack enable
+
+      - name: Setup Node.js 22.x
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22.x
+          cache: "yarn"
+
+      - name: Install dependencies
+        env:
+          YARN_ENABLE_HARDENED_MODE: false
+        run: yarn install --immutable
+
+      - name: Build Extension
+        run: yarn build
+
+      - name: Package Extension
+        run: yarn package
+
+      - name: Create Language Server Archive
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          mkdir -p ton-language-server
+          cp -r dist/* ton-language-server/
+          cp package.json ton-language-server/
+          cp README.md ton-language-server/
+          cp LICENSE ton-language-server/
+          tar -czf ton-language-server-v${VERSION}.tar.gz ton-language-server/
+          zip -r ton-language-server-v${VERSION}.zip ton-language-server/
+
+      - name: Upload Assets to Latest Release
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+
+          # Get the latest release
+          LATEST_RELEASE=$(gh release list --limit 1 --json tagName --jq '.[0].tagName')
+          echo "Latest release: $LATEST_RELEASE"
+
+          # Upload assets to the latest release
+          gh release upload "$LATEST_RELEASE" \
+            *.vsix \
+            "ton-language-server-v${VERSION}.tar.gz" \
+            "ton-language-server-v${VERSION}.zip" \
+            --clobber
+            
+          echo "Assets uploaded to release $LATEST_RELEASE"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
