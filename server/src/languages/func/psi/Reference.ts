@@ -8,13 +8,14 @@ import type {Node as SyntaxNode} from "web-tree-sitter"
 import {
     Constant,
     Func,
-    GetMethod,
     GlobalVariable,
     Parameter,
     TypeParameter,
 } from "@server/languages/func/psi/Decls"
 import {index, IndexFinder, IndexKey} from "@server/languages/func/indexes"
 import {parentOfType} from "@server/psi/utils"
+import {ImportResolver} from "@server/languages/func/psi/ImportResolver"
+import {filePathToUri} from "@server/files"
 
 export interface ScopeProcessor {
     execute(node: FuncNode, state: ResolveState): boolean
@@ -72,33 +73,6 @@ export class Reference {
                 if (node.name() === searchName) {
                     result.push(node)
                     return false
-                }
-
-                return true
-            }
-        })()
-    }
-
-    private static createMultiResolveProcessor(
-        result: FuncNode[],
-        element: FuncNode,
-    ): ScopeProcessor {
-        return new (class implements ScopeProcessor {
-            public execute(node: FuncNode, state: ResolveState): boolean {
-                if (node.node.equals(element.node)) {
-                    result.push(node)
-                    return true
-                }
-
-                if (!(node instanceof NamedNode) || !(element instanceof NamedNode)) {
-                    return true
-                }
-
-                const searchName = state.get("search-name") ?? element.name()
-
-                if (node.name() === searchName) {
-                    result.push(node)
-                    return true
                 }
 
                 return true
@@ -173,9 +147,6 @@ export class Reference {
         }
         if (node.type === "function_declaration") {
             return new Func(node, file)
-        }
-        if (node.type === "get_method_declaration") {
-            return new GetMethod(node, file)
         }
         if (node.type === "var_declaration") {
             return new VarDeclaration(node, file)
@@ -269,11 +240,7 @@ export class Reference {
             }
 
             // process parameters of function
-            const isFunction =
-                descendant.type === "function_declaration" ||
-                descendant.type === "get_method_declaration"
-
-            if (isFunction) {
+            if (descendant.type === "function_declaration") {
                 const rawParameters = descendant.childForFieldName("parameters")
                 const children = rawParameters?.children ?? []
                 if (children.length < 2) break
@@ -285,10 +252,7 @@ export class Reference {
                 }
             }
 
-            if (
-                descendant.type === "function_declaration" ||
-                descendant.type === "type_alias_declaration"
-            ) {
+            if (descendant.type === "function_declaration") {
                 const typeParameters = descendant.childForFieldName("type_parameters")
 
                 const children = typeParameters?.children ?? []
@@ -337,15 +301,18 @@ export class Reference {
             // reached the starting statement, look no further
             if (startStatement && stmt.equals(startStatement)) break
 
-            if (stmt.type === "local_vars_declaration") {
-                // val name = expr;
-                //     ^^^^ this
-                // val [name, other] = expr;
-                //     ^^^^^^^^^^^^^ or this
-                const lhs = stmt.childForFieldName("lhs")
-                if (lhs) {
-                    if (!this.processVariableDeclaration(lhs, proc, file, state)) {
-                        return false
+            if (stmt.type === "expression_statement") {
+                const firstChild = stmt.firstChild
+                if (firstChild?.type === "local_vars_declaration") {
+                    // var name = expr;
+                    //     ^^^^ this
+                    // var [name, other] = expr;
+                    //     ^^^^^^^^^^^^^ or this
+                    const lhs = firstChild.childForFieldName("lhs")
+                    if (lhs) {
+                        if (!this.processVariableDeclaration(lhs, proc, file, state)) {
+                            return false
+                        }
                     }
                 }
             }
@@ -383,7 +350,6 @@ export class Reference {
 
         if (state.get("completion")) {
             if (!index.processElsByKeyAndFile(IndexKey.Funcs, file, proc, state)) return false
-            if (!index.processElsByKeyAndFile(IndexKey.GetMethods, file, proc, state)) return false
             if (!index.processElsByKeyAndFile(IndexKey.Constants, file, proc, state)) return false
             if (!index.processElsByKeyAndFile(IndexKey.GlobalVariables, file, proc, state))
                 return false
@@ -393,27 +359,21 @@ export class Reference {
         const fileIndex = index.findFile(file.uri)
         if (fileIndex && !this.processElsInIndex(proc, state, fileIndex)) return false
 
-        const commonFile = index.stdlibRoot?.findRelativeFile("common.tolk")
-        if (commonFile) {
-            if (!this.processElsInIndex(proc, state, commonFile)) return false
-        }
-
-        const stubsFile = index.stubsRoot?.findRelativeFile("stubs.tolk")
+        const stubsFile = index.stubsRoot?.findRelativeFile("stubs.fc")
         if (stubsFile) {
             if (!this.processElsInIndex(proc, state, stubsFile)) return false
         }
 
         // process imported file
-        // ... TODO
-        // for (const path of file.importedFiles()) {
-        //     const file = ImportResolver.toFile(path)
-        //     if (!file) continue
-        //
-        //     const fileIndex = index.findFile(filePathToUri(path))
-        //     if (!fileIndex) continue
-        //
-        //     if (!this.processElsInIndex(proc, state, fileIndex)) return false
-        // }
+        for (const path of file.importedFiles()) {
+            const file = ImportResolver.toFile(path)
+            if (!file) continue
+
+            const fileIndex = index.findFile(filePathToUri(path))
+            if (!fileIndex) continue
+
+            if (!this.processElsInIndex(proc, state, fileIndex)) return false
+        }
 
         return true
     }
@@ -428,7 +388,6 @@ export class Reference {
             // address.foo()
             // ^^^^^^^ can be both type and function, resolve only as type
             if (!fileIndex.processElementsByKey(IndexKey.Funcs, proc, state)) return false
-            if (!fileIndex.processElementsByKey(IndexKey.GetMethods, proc, state)) return false
         }
         if (!fileIndex.processElementsByKey(IndexKey.GlobalVariables, proc, state)) return false
         return fileIndex.processElementsByKey(IndexKey.Constants, proc, state)

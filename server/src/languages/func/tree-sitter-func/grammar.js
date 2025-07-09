@@ -6,32 +6,35 @@
 function commaSep(rule) {
     return optional(commaSep1(rule))
 }
+
 function commaSep1(rule) {
     return seq(rule, repeat(seq(",", rule)))
 }
+
 function commaSep2(rule) {
     return seq(rule, repeat1(seq(",", rule)))
 }
 
 const FUNC_GRAMMAR = {
-    translation_unit: $ => repeat($._top_level_item),
+    source_file: $ => repeat($._top_level_item),
 
     // ----------------------------------------------------------
     // top-level declarations
 
     _top_level_item: $ =>
         choice(
-            $.function_definition,
+            $.function_declaration,
             $.global_var_declarations,
-            $.compiler_directive,
+            $.import_directive,
+            $.pragma_directive,
             $.constant_declarations,
             $.empty_statement,
         ),
 
-    compiler_directive: $ => seq(choice($.include_directive, $.pragma_directive), ";"),
-    include_directive: $ => seq("#include", repeat1(" "), field("path", $.string_literal)),
+    import_directive: $ =>
+        prec.right(seq("#include", repeat1(" "), field("path", $.string_literal), optional(";"))),
 
-    version_identifier: $ => /(>=|<=|=|>|<|\^)?([0-9]+)(.[0-9]+)?(.[0-9]+)?/,
+    version_identifier: _ => /(>=|<=|=|>|<|\^)?([0-9]+)(.[0-9]+)?(.[0-9]+)?/,
     pragma_directive: $ =>
         seq(
             "#pragma",
@@ -46,29 +49,32 @@ const FUNC_GRAMMAR = {
             ),
         ),
 
-    global_var_declarations: $ => seq("global", commaSep1($.global_var_declaration), ";"),
-    global_var_declaration: $ => seq(field("type", optional($._type)), field("name", $.identifier)),
+    global_var_declarations: $ =>
+        seq("global", field("decls", commaSep1($.global_var_declaration)), ";"),
+    global_var_declaration: $ =>
+        seq(field("type", optional($._type_hint)), field("name", $.identifier)),
 
-    constant_declarations: $ => seq("const", commaSep1($.constant_declaration), ";"),
+    constant_declarations: $ =>
+        seq("const", field("decls", commaSep1($.constant_declaration)), ";"),
     constant_declaration: $ =>
         seq(
-            field("type", optional($.constant_type)),
+            field("type", optional($._type_hint)),
             field("name", $.identifier),
             "=",
-            field("value", choice($.expression)),
+            field("value", choice($._expression)),
         ),
 
     // ----------------------------------------------------------
     // functions and their body
 
-    function_definition: $ =>
+    function_declaration: $ =>
         seq(
-            field("type_variables", optional($.type_variables_list)),
-            field("return_type", $._type),
+            field("type_parameters", optional($.type_parameters)),
+            field("return_type", $._type_hint),
             field("name", $.function_name),
             choice(
                 seq(
-                    field("arguments", $.parameter_list),
+                    field("parameters", $.parameter_list),
                     field("specifiers", optional($.specifiers_list)),
                     choice(
                         field("body", $.block_statement),
@@ -76,17 +82,17 @@ const FUNC_GRAMMAR = {
                     ),
                 ),
                 seq(
-                    field("arguments", $.parameter_list_relaxed),
+                    field("parameters", $.parameter_list_relaxed),
                     field("specifiers", optional($.specifiers_list)),
                     ";",
                 ),
             ),
         ),
 
-    function_name: $ => /(`.*`)|((\.|~)?(([$%a-zA-Z0-9_](\w|['?:$%!])+)|([a-zA-Z%$])))/,
+    function_name: _ => /(`.*`)|((\.|~)?(([$%a-zA-Z0-9_](\w|['?:$%!])+)|([a-zA-Z%$])))/,
 
-    impure: $ => "impure",
-    inline: $ => choice("inline", "inline_ref"),
+    impure: _ => "impure",
+    inline: _ => choice("inline", "inline_ref"),
     method_id: $ =>
         seq("method_id", optional(seq("(", choice($.number_literal, $.string_literal), ")"))),
 
@@ -97,36 +103,48 @@ const FUNC_GRAMMAR = {
             $.method_id,
         ),
 
-    type_variables_list: $ =>
-        seq("forall", commaSep(seq(optional("type"), $.type_identifier)), "->"),
+    type_parameters: $ => seq("forall", commaSep($.type_parameter), "->"),
+
+    type_parameter: $ => seq(optional("type"), field("name", $.type_identifier)),
 
     parameter_list: $ => seq("(", commaSep($.parameter_declaration), ")"),
 
     parameter_list_relaxed: $ =>
         seq(
             "(",
-            commaSep(choice($.parameter_declaration, field("name", $.identifier), $.underscore)),
+            commaSep(
+                choice($.parameter_declaration, field("name", choice($.identifier, $.underscore))),
+            ),
             ")",
         ),
 
     parameter_declaration: $ =>
-        seq(field("type", $._type), optional(choice(field("name", $.identifier), $.underscore))),
-
-    asm_function_body: $ => seq($.asm_specifier, repeat1($.asm_instruction), ";"),
-
-    asm_specifier: $ =>
         seq(
-            "asm",
-            optional(
-                seq("(", repeat($.identifier), optional(seq("->", repeat($.number_literal))), ")"),
-            ),
+            field("type", $._type_hint),
+            optional(field("name", choice($.identifier, $.underscore))),
         ),
-    asm_instruction: $ => alias($.string_literal, $.asm_instruction),
+
+    asm_function_body: $ =>
+        seq(
+            seq(
+                "asm",
+                optional(
+                    seq(
+                        "(",
+                        repeat($.identifier),
+                        optional(seq("->", repeat($.number_literal))),
+                        ")",
+                    ),
+                ),
+            ),
+            repeat1($.string_literal),
+            ";",
+        ),
 
     // ----------------------------------------------------------
     // statements
 
-    statement: $ =>
+    _statement: $ =>
         choice(
             $.return_statement,
             $.block_statement,
@@ -134,22 +152,22 @@ const FUNC_GRAMMAR = {
             $.empty_statement,
             $.repeat_statement,
             $.if_statement,
-            $.do_statement,
+            $.do_while_statement,
             $.while_statement,
             $.try_catch_statement,
         ),
 
-    return_statement: $ => seq("return", $.expression, ";"),
-    block_statement: $ => seq("{", repeat($.statement), "}"),
-    expression_statement: $ => seq($.expression, ";"),
-    empty_statement: $ => ";",
+    return_statement: $ => seq("return", $._expression, ";"),
+    block_statement: $ => seq("{", repeat($._statement), "}"),
+    expression_statement: $ => seq($._expression, ";"),
+    empty_statement: _ => ";",
     repeat_statement: $ =>
-        seq("repeat", field("count", $.expression), field("body", $.block_statement)),
+        seq("repeat", field("count", $._expression), field("body", $.block_statement)),
 
     if_statement: $ => seq(choice("if", "ifnot"), $._if_statement_contents),
     _if_statement_contents: $ =>
         seq(
-            field("condition", $.expression),
+            field("condition", $._expression),
             field("consequent", $.block_statement),
             field(
                 "alternative",
@@ -162,23 +180,23 @@ const FUNC_GRAMMAR = {
             ),
         ),
 
-    do_statement: $ =>
-        seq("do", field("body", $.block_statement), "until", field("postcondition", $.expression)),
+    do_while_statement: $ =>
+        seq("do", field("body", $.block_statement), "until", field("postcondition", $._expression)),
     while_statement: $ =>
-        seq("while", field("precondition", $.expression), field("body", $.block_statement)),
+        seq("while", field("precondition", $._expression), field("body", $.block_statement)),
     try_catch_statement: $ =>
         seq(
             "try",
             field("body", $.block_statement),
             "catch",
-            field("catch_expr", optional($.expression)),
+            field("catch_expr", optional($._expression)),
             field("catch_body", $.block_statement),
         ),
 
     // ----------------------------------------------------------
     // expressions
 
-    expression: $ => $._expr10,
+    _expression: $ => $._expr10,
 
     _expr10: $ =>
         prec(
@@ -212,7 +230,7 @@ const FUNC_GRAMMAR = {
             ),
         ),
 
-    _expr13: $ => prec(13, seq($._expr15, optional(seq("?", $.expression, ":", $._expr13)))),
+    _expr13: $ => prec(13, seq($._expr15, optional(seq("?", $._expression, ":", $._expr13)))),
 
     _expr15: $ =>
         prec(
@@ -254,47 +272,36 @@ const FUNC_GRAMMAR = {
             ),
         ),
 
-    _expr90: $ => prec.left(90, choice($._expr100, $.variable_declaration, $.function_application)),
+    _expr90: $ =>
+        prec.left(90, choice($._expr100, $.local_vars_declaration, $.function_application)),
     function_application: $ =>
         prec.left(
             90,
             seq(
-                field("function", $._nontype_expr100),
+                field("callee", $._nontype_expr100),
                 field(
-                    "agruments",
-                    repeat1(
-                        choice(
-                            $.identifier,
-                            $.parenthesized_expression,
-                            $.tensor_expression,
-                            $.unit_literal,
-                        ),
-                    ),
+                    "arguments",
+                    repeat1(choice($.identifier, $.parenthesized_expression, $.tensor_expression)),
                 ),
             ),
         ),
-    variable_declaration: $ =>
-        prec.left(
-            90,
-            seq(
-                field("type", $.type_expression),
-                field(
-                    "variable",
-                    choice(
-                        $.identifier,
-                        $.tuple_expression,
-                        $.tensor_expression,
-                        $.parenthesized_expression,
-                    ),
-                ),
-            ),
-        ),
+    local_vars_declaration: $ => prec.dynamic(90, field("lhs", $._var_declaration_lhs)),
+
+    tuple_vars_declaration: $ =>
+        prec(100, seq("[", field("vars", commaSep1($._var_declaration_lhs)), optional(","), "]")),
+    tensor_vars_declaration: $ =>
+        prec(100, seq("(", field("vars", commaSep1($._var_declaration_lhs)), optional(","), ")")),
+    var_declaration: $ => seq(field("type", $._type_hint), field("name", $.identifier)),
+
+    _var_declaration_lhs: $ =>
+        choice($.tuple_vars_declaration, $.tensor_vars_declaration, $.var_declaration),
 
     type_expression: $ =>
         prec(
             101,
             choice(
                 $.primitive_type,
+                $.type_identifier,
                 $.var_type,
                 $.parenthesized_type_expression,
                 $.tensor_type_expression,
@@ -311,9 +318,8 @@ const FUNC_GRAMMAR = {
             choice(
                 $.parenthesized_expression,
                 $.tensor_expression,
-                $.tuple_expression,
-                $.unit_literal,
-                $.primitive_type,
+                $.local_vars_declaration,
+                $.typed_tuple,
                 $.identifier,
                 $.number_literal,
                 $.string_literal,
@@ -324,18 +330,16 @@ const FUNC_GRAMMAR = {
 
     _expr100: $ => prec(100, choice($.type_expression, $._nontype_expr100)),
 
-    unit_literal: $ => "()",
-
-    parenthesized_expression: $ => seq("(", $.expression, ")"),
-    tensor_expression: $ => seq("(", commaSep2($.expression), ")"),
-    tuple_expression: $ => seq("[", commaSep($.expression), "]"),
+    parenthesized_expression: $ => seq("(", $._expression, ")"),
+    tensor_expression: $ => choice(seq("(", ")"), seq("(", commaSep2($._expression), ")")),
+    typed_tuple: $ => seq("[", commaSep($._expression), "]"),
 
     // ----------------------------------------------------------
     // type system
 
-    _type: $ => choice($._atomic_type, $.function_type),
+    _type_hint: $ => choice($._atomic_type, $.function_type),
 
-    function_type: $ => prec.right(100, seq($._atomic_type, "->", $._type)),
+    function_type: $ => prec.right(100, seq($._atomic_type, "->", $._type_hint)),
 
     _atomic_type: $ =>
         choice(
@@ -344,24 +348,21 @@ const FUNC_GRAMMAR = {
             $.hole_type,
             $.type_identifier,
             $.tensor_type,
-            $.unit_type,
             $.tuple_type,
             $._parenthesized_type,
         ),
 
-    _parenthesized_type: $ => seq("(", $._type, ")"),
+    _parenthesized_type: $ => seq("(", $._type_hint, ")"),
 
     primitive_type: $ => choice("int", "cell", "slice", "builder", "cont", "tuple"),
+    // constant_type: $ => choice("int", "slice"),
 
-    constant_type: $ => choice("int", "slice"),
+    tensor_type: $ => choice(seq("(", ")"), seq("(", commaSep2($._type_hint), ")")),
 
-    tensor_type: $ => seq("(", commaSep2($._type), ")"),
+    tuple_type: $ => seq("[", commaSep($._type_hint), "]"),
 
-    tuple_type: $ => seq("[", commaSep($._type), "]"),
-
-    var_type: $ => "var",
+    var_type: _ => "var",
     hole_type: $ => alias($.underscore, $.hole_type),
-    unit_type: $ => "()",
 
     type_identifier: $ => alias($.identifier, $.type_identifier),
 
@@ -374,13 +375,13 @@ const FUNC_GRAMMAR = {
             $.number_string_literal,
         ),
 
-    string_literal: $ => /"[^"]*"/,
-    number_string_literal: $ => /"[^"]*"[Hhcu]/,
-    slice_string_literal: $ => /"[^"]*"[sa]/,
+    string_literal: _ => /"[^"]*"/,
+    number_string_literal: _ => /"[^"]*"[Hhcu]/,
+    slice_string_literal: _ => /"[^"]*"[sa]/,
 
-    // actually FunC identifiers are much more flexible
-    identifier: $ => /`[^`]+`|[a-zA-Z0-9_\$%][^\s\+\-\*\/%,\.;\(\)\{\}\[\]=<>\|\^\~]*/,
-    underscore: $ => "_",
+    // actually, FunC identifiers are much more flexible
+    identifier: _ => /`[^`]+`|[a-zA-Z0-9_\$%][^\s\+\-\*\/%,\.;\(\)\{\}\[\]=<>\|\^\~]*/,
+    underscore: _ => "_",
 
     // multiline_comment: $ => seq('{-', repeat(choice(/./, $.multiline_comment)), '-}'),
     // unfortunately getting panic while generating parser with support for nested comments
@@ -408,5 +409,7 @@ module.exports = grammar({
         [$.parameter_list_relaxed, $.type_identifier],
         [$.parameter_list_relaxed, $.hole_type],
         [$.parameter_list_relaxed, $.parameter_list],
+        [$.tensor_expression, $.tensor_type],
+        [$.typed_tuple, $.tuple_type],
     ],
 })

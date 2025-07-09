@@ -80,13 +80,14 @@ async function startServer(context: vscode.ExtensionContext): Promise<vscode.Dis
         revealOutputChannelOn: RevealOutputChannelOn.Never,
         documentSelector: [
             {scheme: "file", language: "tolk"},
+            {scheme: "file", language: "func"},
             {scheme: "file", language: "fift"},
             {scheme: "file", language: "tlb"},
             {scheme: "untitled", language: "tolk"},
         ],
         synchronize: {
             configurationSection: "ton",
-            fileEvents: vscode.workspace.createFileSystemWatcher("**/*.{tolk,tlb}"),
+            fileEvents: vscode.workspace.createFileSystemWatcher("**/*.{tolk,func,tlb}"),
         },
         initializationOptions: {
             clientConfig: getClientConfiguration(),

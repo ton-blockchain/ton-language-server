@@ -203,12 +203,6 @@ export class Func extends FunctionBase {
     }
 }
 
-export class GetMethod extends FunctionBase {
-    public override kindName(): string {
-        return "get fun"
-    }
-}
-
 export class Parameter extends NamedNode {
     public override kindName(): string {
         return "parameter"

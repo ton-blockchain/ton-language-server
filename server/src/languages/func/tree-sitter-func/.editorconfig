@@ -9,7 +9,7 @@ indent_size = 2
 
 [*.js]
 indent_style = space
-indent_size = 2
+indent_size = 4
 
 [*.scm]
 indent_style = space

@@ -2,24 +2,22 @@
 //  Copyright © 2025 TON Core
 import {NamedNode} from "@server/languages/func/psi/FuncNode"
 import {FuncFile} from "@server/languages/func/psi/FuncFile"
-import {Constant, Func, GetMethod, GlobalVariable} from "@server/languages/func/psi/Decls"
+import {Constant, Func, GlobalVariable} from "@server/languages/func/psi/Decls"
 import {ScopeProcessor} from "@server/languages/func/psi/Reference"
 import {FUNC_CACHE} from "@server/languages/func/cache"
 import {fileURLToPath} from "node:url"
-import {TOLK_PARSED_FILES_CACHE} from "@server/files"
+import {FUNC_PARSED_FILES_CACHE} from "@server/files"
 import {ResolveState} from "@server/psi/ResolveState"
 
 export interface IndexKeyToType {
     readonly [IndexKey.GlobalVariables]: GlobalVariable
     readonly [IndexKey.Funcs]: Func
-    readonly [IndexKey.GetMethods]: GetMethod
     readonly [IndexKey.Constants]: Constant
 }
 
 export enum IndexKey {
     GlobalVariables = "GlobalVariables",
     Funcs = "Funcs",
-    GetMethods = "GetMethods",
     Constants = "Constants",
 }
 
@@ -31,16 +29,12 @@ export class FileIndex {
     private readonly elements: {
         [IndexKey.GlobalVariables]: GlobalVariable[]
         [IndexKey.Funcs]: Func[]
-        [IndexKey.GetMethods]: GetMethod[]
         [IndexKey.Constants]: Constant[]
     } = {
         [IndexKey.GlobalVariables]: [],
         [IndexKey.Funcs]: [],
-        [IndexKey.GetMethods]: [],
         [IndexKey.Constants]: [],
     }
-
-    private readonly deprecated: Map<string, string> = new Map()
 
     public static create(file: FuncFile): FileIndex {
         const index = new FileIndex()
@@ -51,16 +45,25 @@ export class FileIndex {
             if (node.type === "function_declaration") {
                 index.elements[IndexKey.Funcs].push(new Func(node, file))
             }
-            if (node.type === "get_method_declaration") {
-                index.elements[IndexKey.GetMethods].push(new GetMethod(node, file))
+            if (node.type === "constant_declarations") {
+                const decls = node.childrenForFieldName("decls")
+                for (const decl of decls) {
+                    if (!decl) continue
+                    if (decl.type === "constant_declaration") {
+                        const constant = new Constant(decl, file)
+                        index.elements[IndexKey.Constants].push(constant)
+                    }
+                }
             }
-            if (node.type === "constant_declaration") {
-                const constant = new Constant(node, file)
-                index.elements[IndexKey.Constants].push(constant)
-            }
-            if (node.type === "global_var_declaration") {
-                const variable = new GlobalVariable(node, file)
-                index.elements[IndexKey.GlobalVariables].push(variable)
+            if (node.type === "global_var_declarations") {
+                const decls = node.childrenForFieldName("decls")
+                for (const decl of decls) {
+                    if (!decl) continue
+                    if (decl.type === "global_var_declaration") {
+                        const variable = new GlobalVariable(decl, file)
+                        index.elements[IndexKey.GlobalVariables].push(variable)
+                    }
+                }
             }
         }
 
@@ -91,11 +94,6 @@ export class FileIndex {
                     | IndexKeyToType[K]
                     | null
             }
-            case IndexKey.GetMethods: {
-                return this.findElement(this.elements[IndexKey.GetMethods], name) as
-                    | IndexKeyToType[K]
-                    | null
-            }
             case IndexKey.Constants: {
                 return this.findElement(this.elements[IndexKey.Constants], name) as
                     | IndexKeyToType[K]
@@ -118,12 +116,6 @@ export class FileIndex {
             case IndexKey.Funcs: {
                 return this.findElements(this.elements[IndexKey.Funcs], name) as IndexKeyToType[K][]
             }
-            case IndexKey.GetMethods: {
-                return this.findElements(
-                    this.elements[IndexKey.GetMethods],
-                    name,
-                ) as IndexKeyToType[K][]
-            }
             case IndexKey.Constants: {
                 return this.findElements(
                     this.elements[IndexKey.Constants],
@@ -142,10 +134,6 @@ export class FileIndex {
 
     private findElements<T extends NamedNode>(elements: T[], name: string): T[] {
         return elements.filter(value => value.name() === name)
-    }
-
-    public isDeprecated(name: string): boolean {
-        return this.deprecated.has(name)
     }
 }
 
@@ -188,7 +176,7 @@ export class IndexRoot {
         FUNC_CACHE.clear()
 
         this.files.delete(uri)
-        TOLK_PARSED_FILES_CACHE.delete(uri)
+        FUNC_PARSED_FILES_CACHE.delete(uri)
 
         console.info(`removed ${uri} from index`)
     }
@@ -268,7 +256,6 @@ export class IndexRoot {
         for (const value of this.files.values()) {
             const element =
                 value.elementByName(IndexKey.Funcs, name) ??
-                value.elementByName(IndexKey.GetMethods, name) ??
                 value.elementByName(IndexKey.GlobalVariables, name) ??
                 value.elementByName(IndexKey.Constants, name)
 
@@ -284,7 +271,6 @@ export class IndexRoot {
         for (const value of this.files.values()) {
             const element =
                 value.elementByName(IndexKey.Funcs, name) ??
-                value.elementByName(IndexKey.GetMethods, name) ??
                 value.elementByName(IndexKey.Constants, name) ??
                 value.elementByName(IndexKey.GlobalVariables, name)
 

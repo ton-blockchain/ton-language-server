@@ -141,7 +141,7 @@ export const isTolkFile = (
 export const isFuncFile = (
     uri: string,
     event?: lsp.TextDocumentChangeEvent<TextDocument>,
-): boolean => event?.document.languageId === "func" || uri.endsWith(".func")
+): boolean => event?.document.languageId === "func" || uri.endsWith(".fc") || uri.endsWith(".func")
 
 export const isFiftFile = (
     uri: string,

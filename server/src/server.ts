@@ -96,6 +96,8 @@ import {provideTolkDocumentation} from "@server/languages/tolk/documentation"
 import {provideTolkTypeAtPosition} from "@server/languages/tolk/custom/type-at-position"
 import {onFileRenamed, processFileRenaming} from "@server/languages/tolk/rename/file-renaming"
 import {FuncIndexingRoot, FuncIndexingRootKind} from "@server/func-indexing-root"
+import {provideFuncDefinition} from "@server/languages/func/find-definitions"
+import {provideFuncSemanticTokens} from "@server/languages/func/semantic-tokens"
 
 /**
  * Whenever LS is initialized.
@@ -300,11 +302,15 @@ async function initialize(): Promise<void> {
     if (stubsPath !== null) {
         const stubsUri = filePathToUri(stubsPath)
         tolkIndex.withStubsRoot(new TolkIndexRoot("stubs", stubsUri))
+        funcIndex.withStubsRoot(new FuncIndexRoot("stubs", stubsUri))
 
         console.info(`Using Tolk Stubs from ${stubsPath}`)
 
         const stubsRoot = new TolkIndexingRoot(stubsUri, TolkIndexingRootKind.Stdlib)
         await stubsRoot.index()
+
+        const funcStubsRoot = new FuncIndexingRoot(stubsUri, FuncIndexingRootKind.Stdlib)
+        await funcStubsRoot.index()
     }
 
     reporter.report(90, "Indexing: (3/3) Workspace")
@@ -641,6 +647,14 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
                 return provideTolkDefinition(hoverNode, file)
             }
 
+            if (isFuncFile(uri)) {
+                const file = await findFuncFile(uri)
+                const hoverNode = nodeAtPosition(params, file)
+                if (!hoverNode) return []
+
+                return provideFuncDefinition(hoverNode, file)
+            }
+
             return []
         },
     )
@@ -834,6 +848,11 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
             if (isTolkFile(uri)) {
                 const file = await findTolkFile(uri)
                 return provideTolkSemanticTokens(file)
+            }
+
+            if (isFuncFile(uri)) {
+                const file = await findFuncFile(uri)
+                return provideFuncSemanticTokens(file)
             }
 
             if (isFiftFile(uri)) {
