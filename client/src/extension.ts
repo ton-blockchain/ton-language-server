@@ -96,6 +96,10 @@ async function startServer(context: vscode.ExtensionContext): Promise<vscode.Dis
                 context.extensionUri,
                 "./dist/tree-sitter-tolk.wasm",
             ).fsPath,
+            funcLangWasmUri: vscode_uri.joinPath(
+                context.extensionUri,
+                "./dist/tree-sitter-func.wasm",
+            ).fsPath,
             fiftLangWasmUri: vscode_uri.joinPath(
                 context.extensionUri,
                 "./dist/tree-sitter-fift.wasm",

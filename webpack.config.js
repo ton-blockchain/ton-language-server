@@ -70,6 +70,10 @@ const config = {
                     to: distDir,
                 },
                 {
+                    from: "./server/src/languages/func/tree-sitter-func/tree-sitter-func.wasm",
+                    to: distDir,
+                },
+                {
                     from: "./server/src/languages/fift/tree-sitter-fift/tree-sitter-fift.wasm",
                     to: distDir,
                 },

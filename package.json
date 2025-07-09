@@ -43,6 +43,7 @@
         "fmt:check": "prettier --check --cache .",
         "grammar:wasm": "yarn grammar:tolk:wasm && yarn grammar:fift:wasm && yarn grammar:tlb:wasm",
         "grammar:tolk:wasm": "cd server/src/languages/tolk/tree-sitter-tolk && tree-sitter generate && tree-sitter build --wasm",
+        "grammar:func:wasm": "cd server/src/languages/func/tree-sitter-func && tree-sitter generate && tree-sitter build --wasm",
         "grammar:fift:wasm": "cd server/src/languages/fift/tree-sitter-fift && tree-sitter generate && tree-sitter build --wasm",
         "grammar:tlb:wasm": "cd server/src/languages/tlb/tree-sitter-tlb && tree-sitter generate && tree-sitter build --wasm",
         "watch": "webpack --watch",

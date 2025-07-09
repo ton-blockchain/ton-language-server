@@ -7,9 +7,10 @@ dist/
 test-workspace/
 .vscode-test/
 *.wasm
-!tree-sitter-tolk/tree-sitter-tolk.wasm
-!tree-sitter-fift/tree-sitter-fift.wasm
-!tree-sitter-tlb/tree-sitter-tlb.wasm
+!**/tree-sitter-tolk/tree-sitter-tolk.wasm
+!**/tree-sitter-func/tree-sitter-func.wasm
+!**/tree-sitter-fift/tree-sitter-fift.wasm
+!**/tree-sitter-tlb/tree-sitter-tlb.wasm
 
 # tests
 server/src/e2e/out

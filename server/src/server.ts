@@ -5,6 +5,7 @@ import {DocumentStore} from "./document-store"
 import {initParser} from "./parser"
 import {asParserPoint} from "@server/utils/position"
 import {index as tolkIndex, IndexRoot as TolkIndexRoot} from "@server/languages/tolk/indexes"
+import {index as funcIndex, IndexRoot as FuncIndexRoot} from "@server/languages/func/indexes"
 import * as lsp from "vscode-languageserver"
 import {DidChangeWatchedFilesParams, FileChangeType} from "vscode-languageserver"
 import * as path from "node:path"
@@ -33,12 +34,16 @@ import {
     FIFT_PARSED_FILES_CACHE,
     filePathToUri,
     findFiftFile,
+    findFuncFile,
     findTlbFile,
     findTolkFile,
+    FUNC_PARSED_FILES_CACHE,
     isFiftFile,
+    isFuncFile,
     isTlbFile,
     isTolkFile,
     reparseFiftFile,
+    reparseFuncFile,
     reparseTlbFile,
     reparseTolkFile,
     TLB_PARSED_FILES_CACHE,
@@ -90,6 +95,7 @@ import {provideTolkSignatureInfo} from "@server/languages/tolk/signature-help"
 import {provideTolkDocumentation} from "@server/languages/tolk/documentation"
 import {provideTolkTypeAtPosition} from "@server/languages/tolk/custom/type-at-position"
 import {onFileRenamed, processFileRenaming} from "@server/languages/tolk/rename/file-renaming"
+import {FuncIndexingRoot, FuncIndexingRootKind} from "@server/func-indexing-root"
 
 /**
  * Whenever LS is initialized.
@@ -162,6 +168,11 @@ async function handleFileOpen(
         if (initializationFinished) {
             await runTolkInspections(uri, file, true)
         }
+    }
+
+    if (isFuncFile(uri, event)) {
+        const file = await findFuncFile(uri)
+        funcIndex.addFile(uri, file)
     }
 
     if (isFiftFile(uri, event)) {
@@ -301,6 +312,10 @@ async function initialize(): Promise<void> {
     const tolkWorkspaceRoot = new TolkIndexingRoot(rootUri, TolkIndexingRootKind.Workspace)
     await tolkWorkspaceRoot.index()
 
+    funcIndex.withRoots([new FuncIndexRoot("workspace", rootUri)])
+    const funcWorkspaceRoot = new FuncIndexingRoot(rootUri, FuncIndexingRootKind.Workspace)
+    await funcWorkspaceRoot.index()
+
     reporter.report(100, "Ready")
 
     // When we are ready, just reload all applied highlighting and hints and clear cache
@@ -386,9 +401,10 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
     const opts = initParams.initializationOptions as ClientOptions | undefined
     const treeSitterUri = opts?.treeSitterWasmUri ?? `${__dirname}/tree-sitter.wasm`
     const tolkLangUri = opts?.tolkLangWasmUri ?? `${__dirname}/tree-sitter-tolk.wasm`
+    const funcLangUri = opts?.funcLangWasmUri ?? `${__dirname}/tree-sitter-func.wasm`
     const fiftLangUri = opts?.fiftLangWasmUri ?? `${__dirname}/tree-sitter-fift.wasm`
     const tlbLangUri = opts?.tlbLangWasmUri ?? `${__dirname}/tree-sitter-tlb.wasm`
-    await initParser(treeSitterUri, tolkLangUri, fiftLangUri, tlbLangUri)
+    await initParser(treeSitterUri, tolkLangUri, funcLangUri, fiftLangUri, tlbLangUri)
 
     const documents = new DocumentStore(connection)
 
@@ -432,6 +448,12 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
             if (initializationFinished) {
                 await runTolkInspections(uri, file, false) // linters require saved files, see onDidSave
             }
+        }
+
+        if (isFuncFile(uri, event)) {
+            funcIndex.fileChanged(uri)
+            const file = reparseFuncFile(uri, event.document.getText())
+            funcIndex.addFile(uri, file, false)
         }
     })
 
@@ -478,6 +500,32 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
                 if (change.type === FileChangeType.Deleted) {
                     console.info(`Find external delete of ${uri}`)
                     tolkIndex.removeFile(uri)
+                }
+            }
+
+            if (isTolkFile(uri)) {
+                if (change.type === FileChangeType.Created) {
+                    console.info(`Find external create of ${uri}`)
+                    const file = await findFuncFile(uri)
+                    funcIndex.addFile(uri, file)
+                    continue
+                }
+
+                if (!FUNC_PARSED_FILES_CACHE.has(uri)) {
+                    // we don't care about non-parsed files
+                    continue
+                }
+
+                if (change.type === FileChangeType.Changed) {
+                    console.info(`Find external change of ${uri}`)
+                    funcIndex.fileChanged(uri)
+                    const file = await findFuncFile(uri, true)
+                    funcIndex.addFile(uri, file, false)
+                }
+
+                if (change.type === FileChangeType.Deleted) {
+                    console.info(`Find external delete of ${uri}`)
+                    funcIndex.removeFile(uri)
                 }
             }
         }

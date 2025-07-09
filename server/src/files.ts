@@ -1,15 +1,17 @@
 import * as lsp from "vscode-languageserver"
 import {TextDocument} from "vscode-languageserver-textdocument"
 import {pathToFileURL} from "node:url"
-import {createFiftParser, createTlbParser, createTolkParser} from "@server/parser"
+import {createFiftParser, createFuncParser, createTlbParser, createTolkParser} from "@server/parser"
 import {readFileVFS, globalVFS} from "@server/vfs/files-adapter"
 import {FiftFile} from "@server/languages/fift/psi/FiftFile"
 import {TlbFile} from "@server/languages/tlb/psi/TlbFile"
 import {URI} from "vscode-uri"
 import {TolkFile} from "@server/languages/tolk/psi/TolkFile"
 import {measureTime} from "@server/psi/utils"
+import {FuncFile} from "@server/languages/func/psi/FuncFile"
 
 export const TOLK_PARSED_FILES_CACHE: Map<string, TolkFile> = new Map()
+export const FUNC_PARSED_FILES_CACHE: Map<string, FuncFile> = new Map()
 export const FIFT_PARSED_FILES_CACHE: Map<string, FiftFile> = new Map()
 export const TLB_PARSED_FILES_CACHE: Map<string, TlbFile> = new Map()
 
@@ -38,6 +40,34 @@ export function reparseTolkFile(uri: string, content: string): TolkFile {
     // TODO: why we have %40 here?
     const file = new TolkFile(uri.replace("%40", "@"), tree, content)
     TOLK_PARSED_FILES_CACHE.set(uri, file)
+    return file
+}
+
+export async function findFuncFile(uri: string, changed: boolean = false): Promise<FuncFile> {
+    const cached = FUNC_PARSED_FILES_CACHE.get(uri)
+    if (cached !== undefined && !changed) {
+        return cached
+    }
+
+    const rawContent = await readOrUndefined(uri)
+    if (rawContent === undefined) {
+        console.error(`cannot read ${uri} file`)
+    }
+
+    const content = rawContent ?? ""
+    return measureTime(`reparse ${uri}`, () => reparseFuncFile(uri, content))
+}
+
+export function reparseFuncFile(uri: string, content: string): FuncFile {
+    const parser = createFuncParser()
+    const tree = parser.parse(content)
+    if (!tree) {
+        throw new Error(`FATAL ERROR: cannot parse ${uri} file`)
+    }
+
+    // TODO: why we have %40 here?
+    const file = new FuncFile(uri.replace("%40", "@"), tree, content)
+    FUNC_PARSED_FILES_CACHE.set(uri, file)
     return file
 }
 
@@ -107,6 +137,11 @@ export const isTolkFile = (
     uri: string,
     event?: lsp.TextDocumentChangeEvent<TextDocument>,
 ): boolean => event?.document.languageId === "tolk" || uri.endsWith(".tolk")
+
+export const isFuncFile = (
+    uri: string,
+    event?: lsp.TextDocumentChangeEvent<TextDocument>,
+): boolean => event?.document.languageId === "func" || uri.endsWith(".func")
 
 export const isFiftFile = (
     uri: string,

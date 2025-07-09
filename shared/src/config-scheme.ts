@@ -11,6 +11,7 @@ export const defaultConfig: TonPluginConfigScheme = {}
 export interface ClientOptions {
     readonly treeSitterWasmUri: string
     readonly tolkLangWasmUri: string
+    readonly funcLangWasmUri: string
     readonly fiftLangWasmUri: string
     readonly tlbLangWasmUri: string
 }
