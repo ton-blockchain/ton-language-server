@@ -349,7 +349,7 @@
                     "name": "name",
                     "content": {
                         "type": "SYMBOL",
-                        "name": "function_name"
+                        "name": "identifier"
                     }
                 },
                 {
@@ -441,10 +441,6 @@
                     ]
                 }
             ]
-        },
-        "function_name": {
-            "type": "PATTERN",
-            "value": "(`.*`)|((\\.|~)?(([$%a-zA-Z0-9_](\\w|['?:$%!])+)|([a-zA-Z%$])))"
         },
         "impure": {
             "type": "STRING",
@@ -970,17 +966,29 @@
             ]
         },
         "expression_statement": {
-            "type": "SEQ",
-            "members": [
-                {
-                    "type": "SYMBOL",
-                    "name": "_expression"
-                },
-                {
-                    "type": "STRING",
-                    "value": ";"
-                }
-            ]
+            "type": "PREC_RIGHT",
+            "value": 0,
+            "content": {
+                "type": "SEQ",
+                "members": [
+                    {
+                        "type": "SYMBOL",
+                        "name": "_expression"
+                    },
+                    {
+                        "type": "CHOICE",
+                        "members": [
+                            {
+                                "type": "STRING",
+                                "value": ";"
+                            },
+                            {
+                                "type": "BLANK"
+                            }
+                        ]
+                    }
+                ]
+            }
         },
         "empty_statement": {
             "type": "STRING",
@@ -1175,6 +1183,15 @@
                         "name": "block_statement"
                     }
                 },
+                {
+                    "type": "SYMBOL",
+                    "name": "catch_clause"
+                }
+            ]
+        },
+        "catch_clause": {
+            "type": "SEQ",
+            "members": [
                 {
                     "type": "STRING",
                     "value": "catch"
@@ -2087,10 +2104,6 @@
             "content": {
                 "type": "CHOICE",
                 "members": [
-                    {
-                        "type": "SYMBOL",
-                        "name": "type_expression"
-                    },
                     {
                         "type": "SYMBOL",
                         "name": "_nontype_expr100"

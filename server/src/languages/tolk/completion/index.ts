@@ -134,6 +134,7 @@ export async function provideTolkCompletionResolve(
     if (data.file === undefined || data.elementFile === undefined || data.name === undefined) {
         return item
     }
+    if (data.language !== "tolk") return item
 
     // const settings = await getDocumentSettings(data.file.uri)
     // if (!settings.completion.addImports) return item

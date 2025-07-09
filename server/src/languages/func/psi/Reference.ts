@@ -13,7 +13,6 @@ import {
     TypeParameter,
 } from "@server/languages/func/psi/Decls"
 import {index, IndexFinder, IndexKey} from "@server/languages/func/indexes"
-import {parentOfType} from "@server/psi/utils"
 import {ImportResolver} from "@server/languages/func/psi/ImportResolver"
 import {filePathToUri} from "@server/files"
 
@@ -200,16 +199,7 @@ export class Reference {
             if (!this.processBlock(proc, state)) return false
         }
 
-        if (!this.processAllEntities(proc, state)) return false
-
-        // maybe it's T in `fun Foo<T>.bar() {}
-        const parentMethodReceiver = parentOfType(this.element.node, "method_receiver")
-        if (parentMethodReceiver) {
-            const parameter = new TypeParameter(this.element.node, this.element.file)
-            if (!proc.execute(parameter, state)) return false
-        }
-
-        return true
+        return this.processAllEntities(proc, state)
     }
 
     public processBlock(proc: ScopeProcessor, state: ResolveState): boolean {
@@ -351,8 +341,7 @@ export class Reference {
         if (state.get("completion")) {
             if (!index.processElsByKeyAndFile(IndexKey.Funcs, file, proc, state)) return false
             if (!index.processElsByKeyAndFile(IndexKey.Constants, file, proc, state)) return false
-            if (!index.processElsByKeyAndFile(IndexKey.GlobalVariables, file, proc, state))
-                return false
+            return index.processElsByKeyAndFile(IndexKey.GlobalVariables, file, proc, state)
         }
 
         // fast path, check the current file

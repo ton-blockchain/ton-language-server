@@ -83,19 +83,28 @@ export class FunctionBase extends NamedNode {
             .map(value => new TypeParameter(value, this.file))
     }
 
-    public signaturePresentation(withTypeParameters: boolean = false): string {
+    public typeParametersPresentation(): string {
+        const typeParametersNode = this.node.childForFieldName("type_parameters")
+        if (!typeParametersNode) return ""
+        return typeParametersNode.text + " "
+    }
+
+    public signaturePresentation(
+        withReturnType: boolean = false,
+        withTypeParameters: boolean = false,
+    ): string {
         const typeParameters = this.node.childForFieldName("type_parameters")
         const typeParametersPresentation =
-            withTypeParameters && typeParameters ? typeParameters.text : ""
+            withTypeParameters && typeParameters ? " " + typeParameters.text : ""
 
         const parametersNode = this.node.childForFieldName("parameters")
         if (!parametersNode) return ""
 
         const result = this.returnType()
         return (
-            typeParametersPresentation +
             parametersNode.text +
-            (result ? `: ${result.node.text}` : "")
+            (result && withReturnType ? `: ${result.node.text}` : "") +
+            typeParametersPresentation
         )
     }
 

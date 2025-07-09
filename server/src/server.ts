@@ -14,11 +14,11 @@ import {existsVFS} from "@server/vfs/files-adapter"
 import type {ClientOptions} from "@shared/config-scheme"
 import {
     DocumentationAtPositionRequest,
+    SetToolchainVersionNotification,
+    SetToolchainVersionParams,
     TypeAtPositionParams,
     TypeAtPositionRequest,
     TypeAtPositionResponse,
-    SetToolchainVersionNotification,
-    SetToolchainVersionParams,
 } from "@shared/shared-msgtypes"
 import {Logger} from "@server/utils/logger"
 import {clearDocumentSettings, getDocumentSettings, ServerSettings} from "@server/settings/settings"
@@ -83,8 +83,8 @@ import {
     provideTolkCompletionResolve,
 } from "@server/languages/tolk/completion"
 import {
-    setProjectTolkStdlibPath,
     InvalidToolchainError,
+    setProjectTolkStdlibPath,
 } from "@server/languages/tolk/toolchain/toolchain"
 import {
     provideTolkDocumentSymbols,
@@ -98,6 +98,14 @@ import {onFileRenamed, processFileRenaming} from "@server/languages/tolk/rename/
 import {FuncIndexingRoot, FuncIndexingRootKind} from "@server/func-indexing-root"
 import {provideFuncDefinition} from "@server/languages/func/find-definitions"
 import {provideFuncSemanticTokens} from "@server/languages/func/semantic-tokens"
+import {provideFuncCompletion} from "@server/languages/func/completion"
+import {provideFuncReferences} from "@server/languages/func/find-references"
+import {provideFuncRename, provideFuncRenamePrepare} from "@server/languages/func/rename"
+import {
+    provideFuncDocumentSymbols,
+    provideFuncWorkspaceSymbols,
+} from "@server/languages/func/symbols"
+import {provideFuncDocumentation} from "@server/languages/func/documentation"
 
 /**
  * Whenever LS is initialized.
@@ -509,7 +517,7 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
                 }
             }
 
-            if (isTolkFile(uri)) {
+            if (isFuncFile(uri)) {
                 if (change.type === FileChangeType.Created) {
                     console.info(`Find external create of ${uri}`)
                     const file = await findFuncFile(uri)
@@ -613,6 +621,13 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
             return provideTolkDocumentation(hoverNode, file)
         }
 
+        if (isFuncFile(uri)) {
+            const file = await findFuncFile(params.textDocument.uri)
+            const hoverNode = nodeAtPosition(params, file)
+            if (!hoverNode) return null
+            return provideFuncDocumentation(hoverNode, file)
+        }
+
         return null
     }
 
@@ -689,6 +704,11 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
                 return provideTolkCompletion(file, params, uri)
             }
 
+            if (isFuncFile(uri)) {
+                const file = await findFuncFile(uri)
+                return provideFuncCompletion(file, params, uri)
+            }
+
             if (isTlbFile(uri)) {
                 const file = await findTlbFile(uri)
                 return provideTlbCompletion(file, params, uri)
@@ -731,6 +751,11 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
                 return provideTolkRename(params, file)
             }
 
+            if (isFuncFile(uri)) {
+                const file = await findFuncFile(uri)
+                return provideFuncRename(params, file)
+            }
+
             return null
         },
     )
@@ -744,6 +769,18 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
                 const file = await findTolkFile(uri)
 
                 const result = provideTolkRenamePrepare(params, file)
+                if (typeof result === "string") {
+                    showErrorMessage(result)
+                    return null
+                }
+
+                return result
+            }
+
+            if (isFuncFile(uri)) {
+                const file = await findFuncFile(uri)
+
+                const result = provideFuncRenamePrepare(params, file)
                 if (typeof result === "string") {
                     showErrorMessage(result)
                     return null
@@ -801,6 +838,13 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
                 const time = endTime - startTime
                 console.info(`find references: ${time}ms`)
                 return result
+            }
+
+            if (isFuncFile(uri)) {
+                const file = await findFuncFile(uri)
+                const node = nodeAtPosition(params, file)
+                if (!node) return null
+                return provideFuncReferences(node, file)
             }
 
             return null
@@ -902,6 +946,11 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
                 return provideTolkDocumentSymbols(file)
             }
 
+            if (isFuncFile(uri)) {
+                const file = await findFuncFile(uri)
+                return provideFuncDocumentSymbols(file)
+            }
+
             if (isTlbFile(uri)) {
                 const file = await findTlbFile(uri)
                 return provideTlbDocumentSymbols(file)
@@ -912,7 +961,7 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
     )
 
     connection.onRequest(lsp.WorkspaceSymbolRequest.type, (): lsp.WorkspaceSymbol[] => {
-        return provideTolkWorkspaceSymbols()
+        return [...provideTolkWorkspaceSymbols(), ...provideFuncWorkspaceSymbols()]
     })
 
     // Custom LSP requests

@@ -71,7 +71,7 @@ const FUNC_GRAMMAR = {
         seq(
             field("type_parameters", optional($.type_parameters)),
             field("return_type", $._type_hint),
-            field("name", $.function_name),
+            field("name", $.identifier),
             choice(
                 seq(
                     field("parameters", $.parameter_list),
@@ -88,8 +88,6 @@ const FUNC_GRAMMAR = {
                 ),
             ),
         ),
-
-    function_name: _ => /(`.*`)|((\.|~)?(([$%a-zA-Z0-9_](\w|['?:$%!])+)|([a-zA-Z%$])))/,
 
     impure: _ => "impure",
     inline: _ => choice("inline", "inline_ref"),
@@ -159,7 +157,7 @@ const FUNC_GRAMMAR = {
 
     return_statement: $ => seq("return", $._expression, ";"),
     block_statement: $ => seq("{", repeat($._statement), "}"),
-    expression_statement: $ => seq($._expression, ";"),
+    expression_statement: $ => prec.right(seq($._expression, optional(";"))),
     empty_statement: _ => ";",
     repeat_statement: $ =>
         seq("repeat", field("count", $._expression), field("body", $.block_statement)),
@@ -184,10 +182,10 @@ const FUNC_GRAMMAR = {
         seq("do", field("body", $.block_statement), "until", field("postcondition", $._expression)),
     while_statement: $ =>
         seq("while", field("precondition", $._expression), field("body", $.block_statement)),
-    try_catch_statement: $ =>
+
+    try_catch_statement: $ => seq("try", field("body", $.block_statement), $.catch_clause),
+    catch_clause: $ =>
         seq(
-            "try",
-            field("body", $.block_statement),
             "catch",
             field("catch_expr", optional($._expression)),
             field("catch_body", $.block_statement),
@@ -328,7 +326,7 @@ const FUNC_GRAMMAR = {
             ),
         ),
 
-    _expr100: $ => prec(100, choice($.type_expression, $._nontype_expr100)),
+    _expr100: $ => prec(100, choice($._nontype_expr100)),
 
     parenthesized_expression: $ => seq("(", $._expression, ")"),
     tensor_expression: $ => choice(seq("(", ")"), seq("(", commaSep2($._expression), ")")),

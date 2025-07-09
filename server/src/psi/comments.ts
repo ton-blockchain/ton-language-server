@@ -38,7 +38,10 @@ export function extractCommentsDocContent(node: SyntaxNode): {
 
     return {
         lines: finalComments.map(c =>
-            trimPrefix(trimPrefix(trimPrefix(c.text, "///"), "//"), " ").trimEnd(),
+            trimPrefix(
+                trimPrefix(trimPrefix(trimPrefix(c.text, ";;;"), "///"), "//"),
+                " ",
+            ).trimEnd(),
         ),
         startPosition: asLspPosition(comments[0].startPosition),
     }

@@ -70,6 +70,248 @@
         }
     },
     {
+        "type": "catch_clause",
+        "named": true,
+        "fields": {
+            "catch_body": {
+                "multiple": false,
+                "required": true,
+                "types": [
+                    {
+                        "type": "block_statement",
+                        "named": true
+                    }
+                ]
+            },
+            "catch_expr": {
+                "multiple": true,
+                "required": false,
+                "types": [
+                    {
+                        "type": "!=",
+                        "named": false
+                    },
+                    {
+                        "type": "%",
+                        "named": false
+                    },
+                    {
+                        "type": "%=",
+                        "named": false
+                    },
+                    {
+                        "type": "&",
+                        "named": false
+                    },
+                    {
+                        "type": "&=",
+                        "named": false
+                    },
+                    {
+                        "type": "*",
+                        "named": false
+                    },
+                    {
+                        "type": "*=",
+                        "named": false
+                    },
+                    {
+                        "type": "+",
+                        "named": false
+                    },
+                    {
+                        "type": "+=",
+                        "named": false
+                    },
+                    {
+                        "type": "-",
+                        "named": false
+                    },
+                    {
+                        "type": "-=",
+                        "named": false
+                    },
+                    {
+                        "type": "/",
+                        "named": false
+                    },
+                    {
+                        "type": "/%",
+                        "named": false
+                    },
+                    {
+                        "type": "/=",
+                        "named": false
+                    },
+                    {
+                        "type": ":",
+                        "named": false
+                    },
+                    {
+                        "type": "<",
+                        "named": false
+                    },
+                    {
+                        "type": "<<",
+                        "named": false
+                    },
+                    {
+                        "type": "<<=",
+                        "named": false
+                    },
+                    {
+                        "type": "<=",
+                        "named": false
+                    },
+                    {
+                        "type": "<=>",
+                        "named": false
+                    },
+                    {
+                        "type": "=",
+                        "named": false
+                    },
+                    {
+                        "type": "==",
+                        "named": false
+                    },
+                    {
+                        "type": ">",
+                        "named": false
+                    },
+                    {
+                        "type": ">=",
+                        "named": false
+                    },
+                    {
+                        "type": ">>",
+                        "named": false
+                    },
+                    {
+                        "type": ">>=",
+                        "named": false
+                    },
+                    {
+                        "type": "?",
+                        "named": false
+                    },
+                    {
+                        "type": "^",
+                        "named": false
+                    },
+                    {
+                        "type": "^%",
+                        "named": false
+                    },
+                    {
+                        "type": "^%=",
+                        "named": false
+                    },
+                    {
+                        "type": "^/",
+                        "named": false
+                    },
+                    {
+                        "type": "^/=",
+                        "named": false
+                    },
+                    {
+                        "type": "^=",
+                        "named": false
+                    },
+                    {
+                        "type": "^>>",
+                        "named": false
+                    },
+                    {
+                        "type": "^>>=",
+                        "named": false
+                    },
+                    {
+                        "type": "function_application",
+                        "named": true
+                    },
+                    {
+                        "type": "identifier",
+                        "named": true
+                    },
+                    {
+                        "type": "local_vars_declaration",
+                        "named": true
+                    },
+                    {
+                        "type": "method_call",
+                        "named": true
+                    },
+                    {
+                        "type": "number_literal",
+                        "named": true
+                    },
+                    {
+                        "type": "parenthesized_expression",
+                        "named": true
+                    },
+                    {
+                        "type": "slice_string_literal",
+                        "named": true
+                    },
+                    {
+                        "type": "string_literal",
+                        "named": true
+                    },
+                    {
+                        "type": "tensor_expression",
+                        "named": true
+                    },
+                    {
+                        "type": "typed_tuple",
+                        "named": true
+                    },
+                    {
+                        "type": "underscore",
+                        "named": true
+                    },
+                    {
+                        "type": "|",
+                        "named": false
+                    },
+                    {
+                        "type": "|=",
+                        "named": false
+                    },
+                    {
+                        "type": "~",
+                        "named": false
+                    },
+                    {
+                        "type": "~%",
+                        "named": false
+                    },
+                    {
+                        "type": "~%=",
+                        "named": false
+                    },
+                    {
+                        "type": "~/",
+                        "named": false
+                    },
+                    {
+                        "type": "~/=",
+                        "named": false
+                    },
+                    {
+                        "type": "~>>",
+                        "named": false
+                    },
+                    {
+                        "type": "~>>=",
+                        "named": false
+                    }
+                ]
+            }
+        }
+    },
+    {
         "type": "constant_declaration",
         "named": true,
         "fields": {
@@ -303,10 +545,6 @@
                     },
                     {
                         "type": "tensor_expression",
-                        "named": true
-                    },
-                    {
-                        "type": "type_expression",
                         "named": true
                     },
                     {
@@ -572,10 +810,6 @@
                         "named": true
                     },
                     {
-                        "type": "type_expression",
-                        "named": true
-                    },
-                    {
                         "type": "typed_tuple",
                         "named": true
                     },
@@ -670,10 +904,6 @@
                 },
                 {
                     "type": "tensor_expression",
-                    "named": true
-                },
-                {
-                    "type": "type_expression",
                     "named": true
                 },
                 {
@@ -782,7 +1012,7 @@
                 "required": true,
                 "types": [
                     {
-                        "type": "function_name",
+                        "type": "identifier",
                         "named": true
                     }
                 ]
@@ -1198,10 +1428,6 @@
                         "named": true
                     },
                     {
-                        "type": "type_expression",
-                        "named": true
-                    },
-                    {
                         "type": "typed_tuple",
                         "named": true
                     },
@@ -1428,10 +1654,6 @@
                         "named": true
                     },
                     {
-                        "type": "type_expression",
-                        "named": true
-                    },
-                    {
                         "type": "typed_tuple",
                         "named": true
                     },
@@ -1568,10 +1790,6 @@
                     },
                     {
                         "type": "tensor_expression",
-                        "named": true
-                    },
-                    {
-                        "type": "type_expression",
                         "named": true
                     },
                     {
@@ -1782,30 +2000,11 @@
                     "named": true
                 },
                 {
-                    "type": "type_expression",
-                    "named": true
-                },
-                {
                     "type": "typed_tuple",
                     "named": true
                 },
                 {
                     "type": "underscore",
-                    "named": true
-                }
-            ]
-        }
-    },
-    {
-        "type": "parenthesized_type_expression",
-        "named": true,
-        "fields": {},
-        "children": {
-            "multiple": false,
-            "required": true,
-            "types": [
-                {
-                    "type": "type_expression",
                     "named": true
                 }
             ]
@@ -2049,10 +2248,6 @@
                         "named": true
                     },
                     {
-                        "type": "type_expression",
-                        "named": true
-                    },
-                    {
                         "type": "typed_tuple",
                         "named": true
                     },
@@ -2142,10 +2337,6 @@
                 },
                 {
                     "type": "tensor_expression",
-                    "named": true
-                },
-                {
-                    "type": "type_expression",
                     "named": true
                 },
                 {
@@ -2263,10 +2454,6 @@
                     "named": true
                 },
                 {
-                    "type": "type_expression",
-                    "named": true
-                },
-                {
                     "type": "typed_tuple",
                     "named": true
                 },
@@ -2317,21 +2504,6 @@
         }
     },
     {
-        "type": "tensor_type_expression",
-        "named": true,
-        "fields": {},
-        "children": {
-            "multiple": true,
-            "required": true,
-            "types": [
-                {
-                    "type": "type_expression",
-                    "named": true
-                }
-            ]
-        }
-    },
-    {
         "type": "tensor_vars_declaration",
         "named": true,
         "fields": {
@@ -2372,247 +2544,17 @@
                         "named": true
                     }
                 ]
-            },
-            "catch_body": {
-                "multiple": false,
-                "required": true,
-                "types": [
-                    {
-                        "type": "block_statement",
-                        "named": true
-                    }
-                ]
-            },
-            "catch_expr": {
-                "multiple": true,
-                "required": false,
-                "types": [
-                    {
-                        "type": "!=",
-                        "named": false
-                    },
-                    {
-                        "type": "%",
-                        "named": false
-                    },
-                    {
-                        "type": "%=",
-                        "named": false
-                    },
-                    {
-                        "type": "&",
-                        "named": false
-                    },
-                    {
-                        "type": "&=",
-                        "named": false
-                    },
-                    {
-                        "type": "*",
-                        "named": false
-                    },
-                    {
-                        "type": "*=",
-                        "named": false
-                    },
-                    {
-                        "type": "+",
-                        "named": false
-                    },
-                    {
-                        "type": "+=",
-                        "named": false
-                    },
-                    {
-                        "type": "-",
-                        "named": false
-                    },
-                    {
-                        "type": "-=",
-                        "named": false
-                    },
-                    {
-                        "type": "/",
-                        "named": false
-                    },
-                    {
-                        "type": "/%",
-                        "named": false
-                    },
-                    {
-                        "type": "/=",
-                        "named": false
-                    },
-                    {
-                        "type": ":",
-                        "named": false
-                    },
-                    {
-                        "type": "<",
-                        "named": false
-                    },
-                    {
-                        "type": "<<",
-                        "named": false
-                    },
-                    {
-                        "type": "<<=",
-                        "named": false
-                    },
-                    {
-                        "type": "<=",
-                        "named": false
-                    },
-                    {
-                        "type": "<=>",
-                        "named": false
-                    },
-                    {
-                        "type": "=",
-                        "named": false
-                    },
-                    {
-                        "type": "==",
-                        "named": false
-                    },
-                    {
-                        "type": ">",
-                        "named": false
-                    },
-                    {
-                        "type": ">=",
-                        "named": false
-                    },
-                    {
-                        "type": ">>",
-                        "named": false
-                    },
-                    {
-                        "type": ">>=",
-                        "named": false
-                    },
-                    {
-                        "type": "?",
-                        "named": false
-                    },
-                    {
-                        "type": "^",
-                        "named": false
-                    },
-                    {
-                        "type": "^%",
-                        "named": false
-                    },
-                    {
-                        "type": "^%=",
-                        "named": false
-                    },
-                    {
-                        "type": "^/",
-                        "named": false
-                    },
-                    {
-                        "type": "^/=",
-                        "named": false
-                    },
-                    {
-                        "type": "^=",
-                        "named": false
-                    },
-                    {
-                        "type": "^>>",
-                        "named": false
-                    },
-                    {
-                        "type": "^>>=",
-                        "named": false
-                    },
-                    {
-                        "type": "function_application",
-                        "named": true
-                    },
-                    {
-                        "type": "identifier",
-                        "named": true
-                    },
-                    {
-                        "type": "local_vars_declaration",
-                        "named": true
-                    },
-                    {
-                        "type": "method_call",
-                        "named": true
-                    },
-                    {
-                        "type": "number_literal",
-                        "named": true
-                    },
-                    {
-                        "type": "parenthesized_expression",
-                        "named": true
-                    },
-                    {
-                        "type": "slice_string_literal",
-                        "named": true
-                    },
-                    {
-                        "type": "string_literal",
-                        "named": true
-                    },
-                    {
-                        "type": "tensor_expression",
-                        "named": true
-                    },
-                    {
-                        "type": "type_expression",
-                        "named": true
-                    },
-                    {
-                        "type": "typed_tuple",
-                        "named": true
-                    },
-                    {
-                        "type": "underscore",
-                        "named": true
-                    },
-                    {
-                        "type": "|",
-                        "named": false
-                    },
-                    {
-                        "type": "|=",
-                        "named": false
-                    },
-                    {
-                        "type": "~",
-                        "named": false
-                    },
-                    {
-                        "type": "~%",
-                        "named": false
-                    },
-                    {
-                        "type": "~%=",
-                        "named": false
-                    },
-                    {
-                        "type": "~/",
-                        "named": false
-                    },
-                    {
-                        "type": "~/=",
-                        "named": false
-                    },
-                    {
-                        "type": "~>>",
-                        "named": false
-                    },
-                    {
-                        "type": "~>>=",
-                        "named": false
-                    }
-                ]
             }
+        },
+        "children": {
+            "multiple": false,
+            "required": true,
+            "types": [
+                {
+                    "type": "catch_clause",
+                    "named": true
+                }
+            ]
         }
     },
     {
@@ -2655,21 +2597,6 @@
         }
     },
     {
-        "type": "tuple_type_expression",
-        "named": true,
-        "fields": {},
-        "children": {
-            "multiple": true,
-            "required": true,
-            "types": [
-                {
-                    "type": "type_expression",
-                    "named": true
-                }
-            ]
-        }
-    },
-    {
         "type": "tuple_vars_declaration",
         "named": true,
         "fields": {
@@ -2695,41 +2622,6 @@
                     }
                 ]
             }
-        }
-    },
-    {
-        "type": "type_expression",
-        "named": true,
-        "fields": {},
-        "children": {
-            "multiple": false,
-            "required": true,
-            "types": [
-                {
-                    "type": "parenthesized_type_expression",
-                    "named": true
-                },
-                {
-                    "type": "primitive_type",
-                    "named": true
-                },
-                {
-                    "type": "tensor_type_expression",
-                    "named": true
-                },
-                {
-                    "type": "tuple_type_expression",
-                    "named": true
-                },
-                {
-                    "type": "type_identifier",
-                    "named": true
-                },
-                {
-                    "type": "var_type",
-                    "named": true
-                }
-            ]
         }
     },
     {
@@ -2820,10 +2712,6 @@
                 },
                 {
                     "type": "tensor_expression",
-                    "named": true
-                },
-                {
-                    "type": "type_expression",
                     "named": true
                 },
                 {
@@ -3087,10 +2975,6 @@
                     },
                     {
                         "type": "tensor_expression",
-                        "named": true
-                    },
-                    {
-                        "type": "type_expression",
                         "named": true
                     },
                     {
@@ -3381,10 +3265,6 @@
     {
         "type": "forall",
         "named": false
-    },
-    {
-        "type": "function_name",
-        "named": true
     },
     {
         "type": "global",

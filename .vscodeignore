@@ -5,6 +5,7 @@
 !dist/**/*.wasm
 !dist/**/*.svg
 !dist/**/*.tolk
+!dist/**/*.fc
 
 # Include only this files
 !LICENSE
