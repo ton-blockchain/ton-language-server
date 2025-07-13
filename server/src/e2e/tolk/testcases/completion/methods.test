@@ -35,3 +35,33 @@ fun foo(someParameter: int) {
 1  bad()  of Foo
 1  bar()  of Foo
 1  baz()  of Foo
+
+========================================================================
+Static methods completion for generic struct
+========================================================================
+struct Second<T> {}
+fun Second<T>.new(): Second<T> {}
+fun Second<int>.new(): Second<int> {}
+
+fun main() {
+    val first = First<int>.<caret>;
+}
+------------------------------------------------------------------------
+No completion items
+
+========================================================================
+Static methods completion for generic struct 2
+========================================================================
+struct Second<T> {}
+fun Second<T>.new(): Second<T> {}
+fun Second<int>.new(): Second<int> {}
+
+fun main() {
+    val first = Second<int>.<caret>;
+}
+------------------------------------------------------------------------
+1  fromCell(packedCell: cell, options: UnpackOptions = {}): T  of T
+1  fromSlice(rawSlice: slice, options: UnpackOptions = {}): T  of T
+1  getDeclaredPackPrefix(): int  of T
+1  getDeclaredPackPrefixLen(): int  of T
+1  new(): Second<T>  of Second<T>
