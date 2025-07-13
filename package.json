@@ -36,7 +36,7 @@
     "license": "MIT",
     "scripts": {
         "test": "yarn jest",
-        "build": "webpack && node ./scripts/set-executable.js ./dist/server.js",
+        "build": "webpack && node ./.scripts/set-executable.js ./dist/server.js",
         "package": "npx vsce package --no-yarn --readme-path editors/code/README.md",
         "lint": "eslint --cache .",
         "fmt": "prettier --write -l --cache .",
