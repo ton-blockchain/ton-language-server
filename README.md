@@ -134,7 +134,7 @@ codium --install-extension vscode-ton-VERSION.vsix
         "clients": {
             "ton": {
                 "enabled": true,
-                "command": ["node", "path/to/language-server/dist/server.js", "--stdio"],
+                "command": ["node", "path/to/language-server/server.js", "--stdio"],
                 "selector": "source.tolk, source.fift, source.tlb",
             },
         },
@@ -161,7 +161,7 @@ Setup steps:
 
     return {
       default_config = {
-        cmd = { 'node', '/absolute/path/to/language-server/dist/server.js', '--stdio' },
+        cmd = { 'node', '/absolute/path/to/language-server/server.js', '--stdio' },
         filetypes = { 'tolk', 'fift', 'tlb' },
         root_dir = util.root_pattern('package.json', '.git'),
       },
@@ -241,7 +241,7 @@ Setup steps:
     if executable('node')
       au User lsp_setup call lsp#register_server({
             \ 'name': 'tolk',
-            \ 'cmd': {server_info->['node', '/absolute/path/to/language-server/dist/server.js', '--stdio']},
+            \ 'cmd': {server_info->['node', '/absolute/path/to/language-server/server.js', '--stdio']},
             \ 'allowlist': ['tolk'],
             \ })
     endif
@@ -258,7 +258,7 @@ Setup steps:
 
     [language-server.ton-language-server]
     command = "node"
-    args = ["/absolute/path/to/language-server/dist/server.js", "--stdio"]
+    args = ["/absolute/path/to/language-server/server.js", "--stdio"]
     ```
 
 2. Replace `path/to/language-server` with the actual path where you cloned the repository
