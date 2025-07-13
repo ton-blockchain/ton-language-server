@@ -40,17 +40,7 @@ export class Constant extends NamedNode {
     }
 }
 
-export enum FunctionKind {
-    Builtin = "builtin",
-    Assembly = "asm",
-    Common = "common",
-}
-
 export class FunctionBase extends NamedNode {
-    public get body(): SyntaxNode | null {
-        return this.node.childForFieldName("body")
-    }
-
     public returnType(): Expression | null {
         const result = this.node.childForFieldName("return_type")
         if (!result) return null
@@ -108,67 +98,10 @@ export class FunctionBase extends NamedNode {
         )
     }
 
-    public kind(): FunctionKind {
-        const builtin = this.node.childForFieldName("builtin_specifier")
-        if (builtin) {
-            // fun bar() builtin
-            return FunctionKind.Builtin
-        }
-        const asmBody = this.node.childForFieldName("asm_body")
-        if (asmBody) {
-            // fun bar() asm "POP"
-            return FunctionKind.Assembly
-        }
-        // fun bar() { ... }
-        return FunctionKind.Common
-    }
-
-    public isInstanceMethod(): boolean {
-        const receiver = this.node.childForFieldName("receiver")
-        if (!receiver) {
-            // fun foo() {}
-            return false
-        }
-
-        const parameters = this.parameters()
-        if (parameters.length === 0) {
-            // fun Bar.foo()
-            return false
-        }
-
-        // fun Bar.bar(self)
-        const first = parameters[0]
-        return first.name() === "self"
-    }
-
-    public isStaticMethod(): boolean {
-        const receiver = this.node.childForFieldName("receiver")
-        if (!receiver) {
-            // fun foo() {}
-            return false
-        }
-
-        const parameters = this.parameters()
-        if (parameters.length === 0) {
-            // fun Bar.foo()
-            return true
-        }
-
-        // fun Bar.bar(some: int)
-        const first = parameters[0]
-        return first.name() !== "self"
-    }
-
-    public closeParameterListParen(): SyntaxNode | null {
-        const parametersNode = this.node.childForFieldName("parameters")
-        if (!parametersNode) return null
-        return parametersNode.children.at(-1) ?? null
-    }
-
-    public openBrace(): SyntaxNode | null {
-        const body = this.node.childForFieldName("body")
-        if (!body) return null
-        return body.firstChild
+    public get isGetMethod(): boolean {
+        const specifiers = this.node.childForFieldName("specifiers")
+        const methodId = specifiers?.children.find(it => it?.type === "method_id")
+        return methodId !== null
     }
 
     public get hasExplicitMethodId(): boolean {
@@ -181,19 +114,12 @@ export class FunctionBase extends NamedNode {
 
     public get getExplicitMethodId(): SyntaxNode | null {
         // find
-        // @method_id(0x1000)
-        //            ^^^^^^ this
-        // get fun foo() {}
-        const annotations = this.node.childForFieldName("annotations")
-        if (!annotations) return null
-        const methodId = annotations.children.find(
-            it => it?.childForFieldName("name")?.text === "method_id",
-        )
-        if (!methodId) return null
-        const argsNode = methodId.childForFieldName("arguments")
-        if (!argsNode) return null
-        const args = argsNode.namedChildren
-        return args.at(0) ?? null
+        // int foo() method_id(0x100) {}
+        //                     ^^^^^ this
+        const specifiers = this.node.childForFieldName("specifiers")
+        const methodId = specifiers?.children.find(it => it?.type === "method_id")
+        const value = methodId?.childForFieldName("value")
+        return value ?? null
     }
 
     public computeMethodId(): number {
@@ -222,18 +148,6 @@ export class Parameter extends NamedNode {
         if (!value) return null
         return new Expression(value, this.file)
     }
-
-    public defaultValuePresentation(): string {
-        const defaultValueNode = this.node.childForFieldName("default")
-        if (!defaultValueNode) return ""
-        return ` = ${defaultValueNode.text}`
-    }
-
-    public defaultValue(): Expression | null {
-        const valueNode = this.node.childForFieldName("default")
-        if (valueNode === null) return null
-        return new Expression(valueNode, this.file)
-    }
 }
 
 export class TypeParameter extends NamedNode {
@@ -250,23 +164,5 @@ export class TypeParameter extends NamedNode {
         }
 
         return new NamedNode(owner, this.file)
-    }
-
-    public defaultTypePresentation(): string {
-        const defaultValueNode = this.node.childForFieldName("default")
-        if (!defaultValueNode) return ""
-        return ` = ${defaultValueNode.text}`
-    }
-
-    public defaultType(): SyntaxNode | null {
-        return this.node.childForFieldName("default")
-    }
-
-    public override name(): string {
-        if (this.node.type === "type_identifier") {
-            // if T in `fun Foo<T>.bar() {}`
-            return this.node.text
-        }
-        return super.name()
     }
 }

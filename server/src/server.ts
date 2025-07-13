@@ -107,6 +107,7 @@ import {
     provideFuncWorkspaceSymbols,
 } from "@server/languages/func/symbols"
 import {provideFuncDocumentation} from "@server/languages/func/documentation"
+import {collectFuncInlays} from "@server/languages/func/inlays"
 
 /**
  * Whenever LS is initialized.
@@ -740,6 +741,11 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
             if (isTolkFile(uri)) {
                 const file = await findTolkFile(uri)
                 return collectTolkInlays(file, settings.tolk.hints)
+            }
+
+            if (isFuncFile(uri)) {
+                const file = await findFuncFile(uri)
+                return collectFuncInlays(file, settings.func.hints)
             }
 
             return null

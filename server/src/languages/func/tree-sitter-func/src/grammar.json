@@ -477,17 +477,21 @@
                                     "value": "("
                                 },
                                 {
-                                    "type": "CHOICE",
-                                    "members": [
-                                        {
-                                            "type": "SYMBOL",
-                                            "name": "number_literal"
-                                        },
-                                        {
-                                            "type": "SYMBOL",
-                                            "name": "string_literal"
-                                        }
-                                    ]
+                                    "type": "FIELD",
+                                    "name": "value",
+                                    "content": {
+                                        "type": "CHOICE",
+                                        "members": [
+                                            {
+                                                "type": "SYMBOL",
+                                                "name": "number_literal"
+                                            },
+                                            {
+                                                "type": "SYMBOL",
+                                                "name": "string_literal"
+                                            }
+                                        ]
+                                    }
                                 },
                                 {
                                     "type": "STRING",

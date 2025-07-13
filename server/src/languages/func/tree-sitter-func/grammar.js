@@ -92,7 +92,10 @@ const FUNC_GRAMMAR = {
     impure: _ => "impure",
     inline: _ => choice("inline", "inline_ref"),
     method_id: $ =>
-        seq("method_id", optional(seq("(", choice($.number_literal, $.string_literal), ")"))),
+        seq(
+            "method_id",
+            optional(seq("(", field("value", choice($.number_literal, $.string_literal)), ")")),
+        ),
 
     specifiers_list: $ =>
         choice(

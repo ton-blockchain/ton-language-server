@@ -27,9 +27,14 @@ export function generateFuncDocFor(node: NamedNode, _place: SyntaxNode): string 
             const returnType = func.returnType()
             const returnTypePresentation = returnType?.node.text ?? "()"
 
+            const methodId = func.isGetMethod ? func.computeMethodId() : undefined
+            const methodIdPresentation = methodId
+                ? `Method ID: \`0x${methodId.toString(16)}\`\n\n`
+                : ""
+
             return defaultResult(
                 `${typeParametersPresentation}${returnTypePresentation} ${name}${func.signaturePresentation(false, false)}`,
-                doc,
+                methodIdPresentation + doc,
             )
         }
         case "constant_declaration": {
@@ -80,13 +85,10 @@ export function generateFuncDocFor(node: NamedNode, _place: SyntaxNode): string 
 
     if (node instanceof TypeParameter) {
         const typeParameter = new TypeParameter(node.node, node.file)
-
         const owner = typeParameter.owner()
-
         const ownerPresentation = owner ? owner.kindName() + " " + owner.namePresentation() : ""
-        const defaultTypePresentation = typeParameter.defaultTypePresentation()
 
-        return defaultResult(`${ownerPresentation}\n${node.name()}${defaultTypePresentation}`)
+        return defaultResult(`${ownerPresentation}\n${node.name()}`)
     }
 
     return null

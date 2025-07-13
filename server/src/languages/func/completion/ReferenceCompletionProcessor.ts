@@ -178,11 +178,9 @@ export class ReferenceCompletionProcessor implements ScopeProcessor {
                 data: additionalData,
             })
         } else if (node instanceof TypeParameter) {
-            const defaultType = node.defaultTypePresentation()
             this.addItem({
                 label: name,
                 labelDetails: {
-                    detail: defaultType,
                     description: `type parameter`,
                 },
                 insertText: rawName,

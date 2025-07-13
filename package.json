@@ -364,7 +364,17 @@
                     "ton.tolk.hints.showMethodId": {
                         "type": "boolean",
                         "default": true,
-                        "description": "Show method ID hints for contract functions"
+                        "description": "Show method ID hints for get methods"
+                    },
+                    "ton.func.hints.disable": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Disable all inlay hints for FunC"
+                    },
+                    "ton.func.hints.showMethodId": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Show method ID hints for functions with method_id"
                     }
                 }
             },
