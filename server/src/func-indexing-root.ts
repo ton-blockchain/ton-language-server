@@ -30,8 +30,7 @@ export class FuncIndexingRoot {
                   ]
 
         const rootDir = fileURLToPath(this.root)
-        const files = await glob("**/*.fc", {
-            // TODO: .func
+        const files = await glob("**/*.{fc,func}", {
             cwd: rootDir,
             ignore: ignore,
         })

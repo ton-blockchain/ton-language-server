@@ -87,7 +87,7 @@ async function startServer(context: vscode.ExtensionContext): Promise<vscode.Dis
         ],
         synchronize: {
             configurationSection: "ton",
-            fileEvents: vscode.workspace.createFileSystemWatcher("**/*.{tolk,func,tlb}"),
+            fileEvents: vscode.workspace.createFileSystemWatcher("**/*.{tolk,fc,func,tlb}"),
         },
         initializationOptions: {
             clientConfig: getClientConfiguration(),

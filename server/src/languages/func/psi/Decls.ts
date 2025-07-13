@@ -93,7 +93,7 @@ export class FunctionBase extends NamedNode {
         const result = this.returnType()
         return (
             parametersNode.text +
-            (result && withReturnType ? `: ${result.node.text}` : "") +
+            (result && withReturnType ? ` -> ${result.node.text}` : "") +
             typeParametersPresentation
         )
     }

@@ -209,14 +209,7 @@ export class ReferenceCompletionProcessor implements ScopeProcessor {
         }
 
         const parent = node.parent
-        if (parent?.type === "dot_access") {
-            const obj = parent.childForFieldName("obj")
-            if (obj?.equals(node)) {
-                // foo.bar<caret>.field
-                return false
-            }
-            return this.needSemicolon(parent)
-        }
+
         if (parent?.type === "expression_statement") {
             // just
             // ...
@@ -225,35 +218,8 @@ export class ReferenceCompletionProcessor implements ScopeProcessor {
             // in block statement
             return true
         }
-        if (parent?.type === "local_vars_declaration") {
-            // add `;` for variable declarations
-            // val foo = some<caret>
-            //         = someFunc();
 
-            const grand = parent.parent
-            if (grand?.type !== "block_statement") {
-                // skip cases like:
-                // match (val a = 10) {}
-                return false
-            }
-
-            return parent.childForFieldName("assigned_val")?.equals(node) ?? false
-        }
-        if (parent?.type === "assignment" || parent?.type === "set_assignment") {
-            // add `;` for assign declarations
-            // foo = some<caret>
-            //     = someFunc();
-
-            const grand = parent.parent
-            if (grand?.type !== "expression_statement") {
-                // skip cases like:
-                // if (a = 10)
-                return false
-            }
-
-            return parent.childForFieldName("right")?.equals(node) ?? false
-        }
-
+        // no need for semicolon
         return false
     }
 
