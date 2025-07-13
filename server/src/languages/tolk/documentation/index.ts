@@ -51,19 +51,7 @@ export function provideTolkDocumentation(hoverNode: SyntaxNode, file: TolkFile):
     }
 
     const res = Reference.resolve(NamedNode.create(hoverNode, file))
-    if (res === null) {
-        if (process.env["TON_LS_DEV"] !== "true") {
-            return null
-        }
-
-        return {
-            range: asLspRange(hoverNode),
-            contents: {
-                kind: "plaintext",
-                value: hoverNode.type,
-            },
-        }
-    }
+    if (res === null) return null
 
     const doc = docs.generateTolkDocFor(res, hoverNode)
     if (doc === null) return null

@@ -153,9 +153,6 @@ export const isTlbFile = (
     event?: lsp.TextDocumentChangeEvent<TextDocument>,
 ): boolean => event?.document.languageId === "tlb" || uri.endsWith(".tlb")
 
-// export function filePathToUri(filePath: string): string {
-//     return pathToFileURL(filePath).href
-// }
 export const filePathToUri = (filePath: string): string => {
     const url = pathToFileURL(filePath).toString()
     return url.replace(/c:/g, "c%3A").replace(/d:/g, "d%3A")

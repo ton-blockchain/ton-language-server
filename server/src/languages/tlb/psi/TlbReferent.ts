@@ -5,59 +5,11 @@ import {RecursiveVisitor} from "@server/visitor/visitor"
 import {NamedNode, TlbNode} from "./TlbNode"
 import {TlbReference} from "./TlbReference"
 import type {TlbFile} from "./TlbFile"
-
-/**
- * Describes a scope that contains all possible uses of a certain symbol.
- */
-export interface SearchScope {
-    toString(): string
-}
-
-/**
- * Describes the scope described by some AST node; the search for usages will be
- * performed only within this node.
- *
- * For example, the scope for a local variable will be the block in which it is defined.
- */
-export class LocalSearchScope implements SearchScope {
-    public constructor(public node: SyntaxNode) {}
-
-    public toString(): string {
-        return `LocalSearchScope:\n${this.node.text}`
-    }
-}
-
-/**
- * Describes a scope consisting of one or more files.
- *
- * For example, the scope of a global function from the standard library is all project files.
- */
-export class GlobalSearchScope implements SearchScope {
-    public constructor(public files: TlbFile[]) {}
-
-    public toString(): string {
-        return `GlobalSearchScope:\n${this.files.map(f => `- ${f.uri}`).join("\n")}`
-    }
-}
-
-export interface FindTlbReferenceOptions {
-    /**
-     * if true, the first element of the result contains the definition
-     */
-    readonly includeDefinition?: boolean
-    /**
-     * if true, don't include `self` as usages (for rename)
-     */
-    readonly includeSelf?: boolean
-    /**
-     * if true, only TlbReferences from the same files listed
-     */
-    readonly sameFileOnly?: boolean
-    /**
-     * search stops after `limit` number of TlbReferences are found
-     */
-    readonly limit?: number
-}
+import {
+    FindReferencesOptions,
+    GlobalSearchScope,
+    LocalSearchScope,
+} from "@server/references/referent"
 
 /**
  * Referent encapsulates the logic for finding all TlbReferences to a definition.
@@ -79,7 +31,7 @@ export class TlbReferent {
         includeDefinition = false,
         sameFileOnly = false,
         limit = Infinity,
-    }: FindTlbReferenceOptions): TlbNode[] {
+    }: FindReferencesOptions): TlbNode[] {
         const resolved = this.resolved
         if (!resolved) return []
 
@@ -99,7 +51,7 @@ export class TlbReferent {
     }
 
     private searchInScope(
-        scope: SearchScope,
+        scope: LocalSearchScope | GlobalSearchScope<TlbFile>,
         sameFileOnly: boolean,
         result: TlbNode[],
         limit: number,
@@ -182,7 +134,7 @@ export class TlbReferent {
      * Outside this node, no usages are assumed to exist. For example, a variable
      * can be used only in an outer block statement where it is defined.
      */
-    public useScope(): SearchScope | null {
+    public useScope(): LocalSearchScope | GlobalSearchScope<TlbFile> | null {
         if (!this.resolved) return null
 
         return new GlobalSearchScope([this.file])

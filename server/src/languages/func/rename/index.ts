@@ -15,7 +15,6 @@ export function provideFuncRename(params: lsp.RenameParams, file: FuncFile): Wor
     const result = new Referent(renameNode, file).findReferences({
         includeDefinition: true,
         sameFileOnly: false,
-        includeSelf: false,
     })
     if (result.length === 0) return null
 

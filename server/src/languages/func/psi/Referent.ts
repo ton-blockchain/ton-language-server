@@ -6,148 +6,27 @@ import {NamedNode, FuncNode} from "./FuncNode"
 import {Reference} from "./Reference"
 import type {FuncFile} from "./FuncFile"
 import {parentOfType} from "@server/psi/utils"
+import {BaseReferent, GlobalSearchScope, LocalSearchScope} from "@server/references/referent"
+import {File} from "@server/psi/File"
 import {FUNC_PARSED_FILES_CACHE} from "@server/files"
 
-/**
- * Describes a scope that contains all possible uses of a certain symbol.
- */
-export interface SearchScope {
-    toString(): string
-}
-
-/**
- * Describes the scope described by some AST node, the search for usages will be
- * performed only within this node.
- *
- * For example, the scope for a local variable will be the block in which it is defined.
- */
-export class LocalSearchScope implements SearchScope {
-    public constructor(public node: SyntaxNode) {}
-
-    public toString(): string {
-        return `LocalSearchScope:\n${this.node.text}`
-    }
-}
-
-/**
- * Describes a scope consisting of one or more files.
- *
- * For example, the scope of a global function from the standard library is all project files.
- */
-export class GlobalSearchScope implements SearchScope {
-    public static allFiles(): GlobalSearchScope {
+class FuncGlobalSearchScope extends GlobalSearchScope<File> {
+    public static allFiles(): GlobalSearchScope<File> {
         const files = [...FUNC_PARSED_FILES_CACHE.values()]
         return new GlobalSearchScope(files)
     }
-
-    public constructor(public files: FuncFile[]) {}
-
-    public toString(): string {
-        return `GlobalSearchScope:\n${this.files.map(f => `- ${f.uri}`).join("\n")}`
-    }
 }
 
-export interface FindReferenceOptions {
-    /**
-     * if true, the first element of the result contains the definition
-     */
-    readonly includeDefinition?: boolean
-    /**
-     * if true, don't include `self` as usages (for rename)
-     */
-    readonly includeSelf?: boolean
-    /**
-     * if true, only references from the same files listed
-     */
-    readonly sameFileOnly?: boolean
-    /**
-     * search stops after `limit` number of references are found
-     */
-    readonly limit?: number
-}
-
-/**
- * Referent encapsulates the logic for finding all references to a definition.
- *
- * The search logic is simple, each symbol has a certain scope in which it can be used.
- * If it is a local variable, then the block in which it is defined, if a parameter, then
- * the function in which it is defined. If it is a global function, then all project files.
- *
- * When the scope is defined, it is enough to go through all the nodes from it and find those
- * that refer to the searched element.
- * For optimization, we do not try to resolve each identifier, we resolve only those that have
- * the same name as the searched element (and a bit of logic for processing `self`).
- *
- * Searching for uses of global symbols can be improved, now we use all files from the index,
- * but following the Tolk imports logic, we can reduce the search scope. For example, when searching
- * for uses of a global function defined within the project, there is no point in searching
- * for its uses within the standard library.
- * These optimizations and improvements are the object of further work.
- */
-export class Referent {
-    private readonly resolved: NamedNode | null = null
-    private readonly file: FuncFile
+export class Referent extends BaseReferent<NamedNode> {
+    public readonly resolved: NamedNode | null = null
 
     public constructor(node: SyntaxNode, file: FuncFile) {
-        this.file = file
+        super(file)
         const element = new NamedNode(node, file)
         this.resolved = Reference.resolve(element)
     }
 
-    /**
-     * Returns a list of nodes that reference the definition.
-     */
-    public findReferences({
-        includeDefinition = false,
-        sameFileOnly = false,
-        limit = Infinity,
-    }: FindReferenceOptions): FuncNode[] {
-        const resolved = this.resolved
-        if (!resolved) return []
-
-        const useScope = this.useScope()
-        if (!useScope) return []
-
-        const result: FuncNode[] = []
-        if (includeDefinition && (!sameFileOnly || resolved.file.uri === this.file.uri)) {
-            const nameNode = resolved.nameNode()
-            if (nameNode) {
-                result.push(nameNode)
-            }
-        }
-
-        this.searchInScope(useScope, sameFileOnly, result, limit)
-        return result
-    }
-
-    private searchInScope(
-        scope: SearchScope,
-        sameFileOnly: boolean,
-        result: FuncNode[],
-        limit: number,
-    ): void {
-        if (!this.resolved) return
-
-        if (scope instanceof LocalSearchScope) {
-            this.traverseTree(this.resolved.file, scope.node, result, limit)
-        }
-
-        if (scope instanceof GlobalSearchScope) {
-            if (sameFileOnly) {
-                this.traverseTree(this.file, this.file.rootNode, result, limit)
-                return
-            }
-
-            for (const file of scope.files) {
-                this.traverseTree(file, file.rootNode, result, limit)
-                if (result.length === limit) {
-                    break
-                }
-            }
-        }
-    }
-
-    private traverseTree(
+    public override traverseTree(
         file: FuncFile,
         node: SyntaxNode,
         result: FuncNode[],
@@ -214,7 +93,7 @@ export class Referent {
      * Outside this node, no usages are assumed to exist. For example, a variable
      * can be used only in outer block statement where it is defined.
      */
-    public useScope(): SearchScope | null {
+    public override useScope(): LocalSearchScope | GlobalSearchScope<File> | null {
         if (!this.resolved) return null
 
         const node = this.resolved.node
@@ -254,7 +133,7 @@ export class Referent {
             node.type === "function_declaration" ||
             node.type === "constant_declaration"
         ) {
-            return GlobalSearchScope.allFiles()
+            return FuncGlobalSearchScope.allFiles()
         }
 
         if (node.type === "type_parameter") {
@@ -264,7 +143,7 @@ export class Referent {
         return null
     }
 
-    private static localSearchScope(node: SyntaxNode | null): SearchScope | null {
+    private static localSearchScope(node: SyntaxNode | null): LocalSearchScope | null {
         if (!node) return null
         return new LocalSearchScope(node)
     }
