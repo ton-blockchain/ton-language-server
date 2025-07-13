@@ -80,13 +80,14 @@ async function startServer(context: vscode.ExtensionContext): Promise<vscode.Dis
         revealOutputChannelOn: RevealOutputChannelOn.Never,
         documentSelector: [
             {scheme: "file", language: "tolk"},
+            {scheme: "file", language: "func"},
             {scheme: "file", language: "fift"},
             {scheme: "file", language: "tlb"},
             {scheme: "untitled", language: "tolk"},
         ],
         synchronize: {
             configurationSection: "ton",
-            fileEvents: vscode.workspace.createFileSystemWatcher("**/*.{tolk,tlb}"),
+            fileEvents: vscode.workspace.createFileSystemWatcher("**/*.{tolk,fc,func,tlb}"),
         },
         initializationOptions: {
             clientConfig: getClientConfiguration(),
@@ -95,6 +96,10 @@ async function startServer(context: vscode.ExtensionContext): Promise<vscode.Dis
             tolkLangWasmUri: vscode_uri.joinPath(
                 context.extensionUri,
                 "./dist/tree-sitter-tolk.wasm",
+            ).fsPath,
+            funcLangWasmUri: vscode_uri.joinPath(
+                context.extensionUri,
+                "./dist/tree-sitter-func.wasm",
             ).fsPath,
             fiftLangWasmUri: vscode_uri.joinPath(
                 context.extensionUri,

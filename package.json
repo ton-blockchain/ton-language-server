@@ -43,6 +43,7 @@
         "fmt:check": "prettier --check --cache .",
         "grammar:wasm": "yarn grammar:tolk:wasm && yarn grammar:fift:wasm && yarn grammar:tlb:wasm",
         "grammar:tolk:wasm": "cd server/src/languages/tolk/tree-sitter-tolk && tree-sitter generate && tree-sitter build --wasm",
+        "grammar:func:wasm": "cd server/src/languages/func/tree-sitter-func && tree-sitter generate && tree-sitter build --wasm",
         "grammar:fift:wasm": "cd server/src/languages/fift/tree-sitter-fift && tree-sitter generate && tree-sitter build --wasm",
         "grammar:tlb:wasm": "cd server/src/languages/tlb/tree-sitter-tlb && tree-sitter generate && tree-sitter build --wasm",
         "watch": "webpack --watch",
@@ -363,7 +364,17 @@
                     "ton.tolk.hints.showMethodId": {
                         "type": "boolean",
                         "default": true,
-                        "description": "Show method ID hints for contract functions"
+                        "description": "Show method ID hints for get methods"
+                    },
+                    "ton.func.hints.disable": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Disable all inlay hints for FunC"
+                    },
+                    "ton.func.hints.showMethodId": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Show method ID hints for functions with method_id"
                     }
                 }
             },
@@ -404,6 +415,20 @@
                             "type-compatibility"
                         ],
                         "description": "List of disabled code inspections. All inspections are enabled by default."
+                    },
+                    "ton.func.inspections.disabled": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "enum": [
+                                "unused-parameter",
+                                "unused-type-parameter",
+                                "unused-variable",
+                                "unused-import"
+                            ]
+                        },
+                        "default": [],
+                        "description": "List of disabled code inspections for FunC. All inspections are enabled by default."
                     }
                 }
             },

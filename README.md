@@ -33,7 +33,15 @@ Tolk support includes:
 
 FunC support includes:
 
-- Basic syntax highlighting
+- Semantic syntax highlighting
+- Code completion, imports completion
+- Go to definition
+- Find all references, workspace symbol search, symbol renaming
+- Automatic import updates when renaming and moving files
+- Types and documentation on hover
+- Inlay hints for method id
+- On-the-fly inspections
+- Build and test projects based on Blueprint
 
 Fift assembly support includes:
 

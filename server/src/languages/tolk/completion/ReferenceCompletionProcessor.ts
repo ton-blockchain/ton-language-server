@@ -29,6 +29,7 @@ export interface CompletionItemAdditionalInformation {
     readonly name: string | undefined
     readonly file: TolkFile | undefined
     readonly elementFile: TolkFile | undefined
+    readonly language: "tolk" | "func" | undefined
 }
 
 export class ReferenceCompletionProcessor implements ScopeProcessor {
@@ -83,10 +84,11 @@ export class ReferenceCompletionProcessor implements ScopeProcessor {
             return true
         }
 
-        const additionalData = {
+        const additionalData: CompletionItemAdditionalInformation = {
             elementFile: node.file,
             file: this.ctx.element.file,
             name: name,
+            language: "tolk",
         }
 
         if (node instanceof StaticMethod) {

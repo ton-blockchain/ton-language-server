@@ -9,7 +9,7 @@ import {index} from "@server/languages/tolk/indexes"
 import {filePathToUri, findTolkFile, TOLK_PARSED_FILES_CACHE} from "@server/files"
 import {TolkFile} from "@server/languages/tolk/psi/TolkFile"
 
-export async function processFileRenaming(
+export async function processTolkFileRenaming(
     params: RenameFilesParams,
 ): Promise<lsp.WorkspaceEdit | null> {
     const changes: Record<lsp.DocumentUri, lsp.TextEdit[]> = {}
@@ -21,7 +21,7 @@ export async function processFileRenaming(
     return Object.keys(changes).length > 0 ? {changes} : null
 }
 
-export function onFileRenamed(params: RenameFilesParams): void {
+export function onTolkFileRenamed(params: RenameFilesParams): void {
     for (const fileRename of params.files) {
         const oldUri = fileRename.oldUri
         const newUri = fileRename.newUri

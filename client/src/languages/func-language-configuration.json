@@ -25,5 +25,14 @@
         "increaseIndentPattern": "^(.*\\{[^}\"']*|.*\\([^\\)\"']*|.*\\[[^\\]\"']*)$",
         "decreaseIndentPattern": "^\\s*[\\}\\]\\)]"
     },
-    "wordPattern": "`[^`]+`|[A-Za-z_$][^\\s+\\-*\\/%,.;(){}\\[\\]=<>|\\^~]*"
+    "wordPattern": "`[^`]+`|[A-Za-z_$:][^\\s+\\-*\\/%,.;(){}\\[\\]=<>|\\^~]*",
+    "onEnterRules": [
+        {
+            "beforeText": "^\\s*;;;.*$",
+            "action": {
+                "indent": "none",
+                "appendText": ";;; "
+            }
+        }
+    ]
 }

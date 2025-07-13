@@ -46,8 +46,19 @@ export interface TolkSettings {
     }
 }
 
+export interface FuncSettings {
+    readonly hints: {
+        readonly disable: boolean
+        readonly showMethodId: boolean
+    }
+    readonly inspections: {
+        readonly disabled: readonly string[] // list of disabled inspection ids
+    }
+}
+
 export interface ServerSettings {
     readonly tolk: TolkSettings
+    readonly func: FuncSettings
     readonly fift: FiftSettings
 }
 
@@ -86,6 +97,15 @@ const tolkDefaultSettings: TolkSettings = {
 
 const defaultSettings: ServerSettings = {
     tolk: tolkDefaultSettings,
+    func: {
+        hints: {
+            disable: false,
+            showMethodId: false,
+        },
+        inspections: {
+            disabled: [], // no disabled inspections by default
+        },
+    },
     fift: {
         hints: {
             showGasConsumption: true,
@@ -138,6 +158,18 @@ function mergeSettings(vsSettings: Partial<ServerSettings>): ServerSettings {
                 addImports:
                     vsSettings.tolk?.completion.addImports ??
                     defaultSettings.tolk.completion.addImports,
+            },
+        },
+        func: {
+            hints: {
+                disable: vsSettings.func?.hints.disable ?? defaultSettings.func.hints.disable,
+                showMethodId:
+                    vsSettings.func?.hints.showMethodId ?? defaultSettings.func.hints.showMethodId,
+            },
+            inspections: {
+                disabled:
+                    vsSettings.func?.inspections.disabled ??
+                    defaultSettings.func.inspections.disabled,
             },
         },
         fift: {

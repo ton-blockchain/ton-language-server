@@ -69,7 +69,15 @@ const config = {
                     to: path.join(distDir, "stubs"),
                 },
                 {
+                    from: "./server/src/languages/func/stubs/stubs.fc",
+                    to: path.join(distDir, "stubs"),
+                },
+                {
                     from: "./server/src/languages/tolk/tree-sitter-tolk/tree-sitter-tolk.wasm",
+                    to: distDir,
+                },
+                {
+                    from: "./server/src/languages/func/tree-sitter-func/tree-sitter-func.wasm",
                     to: distDir,
                 },
                 {
