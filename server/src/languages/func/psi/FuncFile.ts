@@ -24,6 +24,19 @@ export class FuncFile extends File {
         return this.content[offset] ?? ""
     }
 
+    public importPath(inFile: FuncFile): string {
+        const filePath = this.path
+
+        const relativeTo = path.dirname(inFile.path)
+        const relative = path.relative(relativeTo, filePath).replace(/\\/g, "/")
+
+        if (!relative.startsWith("../") && !relative.startsWith("./")) {
+            return relative
+        }
+
+        return relative
+    }
+
     public imports(): SyntaxNode[] {
         return this.tree.rootNode.children
             .filter(node => node !== null && node.type === "import_directive")

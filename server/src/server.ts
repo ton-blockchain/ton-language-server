@@ -7,7 +7,7 @@ import {asParserPoint} from "@server/utils/position"
 import {index as tolkIndex, IndexRoot as TolkIndexRoot} from "@server/languages/tolk/indexes"
 import {index as funcIndex, IndexRoot as FuncIndexRoot} from "@server/languages/func/indexes"
 import * as lsp from "vscode-languageserver"
-import {DidChangeWatchedFilesParams, FileChangeType} from "vscode-languageserver"
+import {DidChangeWatchedFilesParams, FileChangeType, RenameFilesParams} from "vscode-languageserver"
 import * as path from "node:path"
 import {globalVFS} from "@server/vfs/global"
 import {existsVFS} from "@server/vfs/files-adapter"
@@ -95,7 +95,10 @@ import {collectTolkInlays} from "@server/languages/tolk/inlays"
 import {provideTolkSignatureInfo} from "@server/languages/tolk/signature-help"
 import {provideTolkDocumentation} from "@server/languages/tolk/documentation"
 import {provideTolkTypeAtPosition} from "@server/languages/tolk/custom/type-at-position"
-import {onFileRenamed, processFileRenaming} from "@server/languages/tolk/rename/file-renaming"
+import {
+    onTolkFileRenamed,
+    processTolkFileRenaming,
+} from "@server/languages/tolk/rename/file-renaming"
 import {FuncIndexingRoot, FuncIndexingRootKind} from "@server/func-indexing-root"
 import {provideFuncDefinition} from "@server/languages/func/find-definitions"
 import {provideFuncSemanticTokens} from "@server/languages/func/semantic-tokens"
@@ -110,6 +113,10 @@ import {provideFuncDocumentation} from "@server/languages/func/documentation"
 import {collectFuncInlays} from "@server/languages/func/inlays"
 import {provideFuncFoldingRanges} from "@server/languages/func/foldings"
 import {runFuncInspections} from "@server/languages/func/inspections"
+import {
+    onFuncFileRenamed,
+    processFuncFileRenaming,
+} from "@server/languages/func/rename/file-renaming"
 
 /**
  * Whenever LS is initialized.
@@ -568,8 +575,24 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
         }
     })
 
-    connection.onRequest("workspace/willRenameFiles", processFileRenaming)
-    connection.onNotification("workspace/didRenameFiles", onFileRenamed)
+    connection.onRequest(
+        "workspace/willRenameFiles",
+        async (params: RenameFilesParams): Promise<lsp.WorkspaceEdit | null> => {
+            const edits = await processTolkFileRenaming(params)
+            if (edits) {
+                return edits
+            }
+            const funcEdits = await processFuncFileRenaming(params)
+            if (funcEdits) {
+                return funcEdits
+            }
+            return null
+        },
+    )
+    connection.onNotification("workspace/didRenameFiles", (params: RenameFilesParams) => {
+        onTolkFileRenamed(params)
+        onFuncFileRenamed(params)
+    })
 
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     connection.onDidChangeConfiguration(async () => {
@@ -1070,7 +1093,7 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
                             {
                                 scheme: "file",
                                 pattern: {
-                                    glob: "**/*.tolk",
+                                    glob: "**/*.{tolk,func,fc}",
                                 },
                             },
                         ],
@@ -1080,7 +1103,7 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
                             {
                                 scheme: "file",
                                 pattern: {
-                                    glob: "**/*.tolk",
+                                    glob: "**/*.{tolk,func,fc}",
                                 },
                             },
                         ],

@@ -2,14 +2,14 @@
 //  Copyright © 2025 TON Core
 import {RenameFilesParams} from "vscode-languageserver"
 import * as lsp from "vscode-languageserver"
-import {ImportResolver} from "@server/languages/tolk/psi/ImportResolver"
+import {ImportResolver} from "@server/languages/func/psi/ImportResolver"
 import {asLspRange} from "@server/utils/position"
 import {TextEdit} from "vscode-languageserver-types"
-import {index} from "@server/languages/tolk/indexes"
-import {filePathToUri, findTolkFile, TOLK_PARSED_FILES_CACHE} from "@server/files"
-import {TolkFile} from "@server/languages/tolk/psi/TolkFile"
+import {index} from "@server/languages/func/indexes"
+import {filePathToUri, findFuncFile, FUNC_PARSED_FILES_CACHE} from "@server/files"
+import {FuncFile} from "@server/languages/func/psi/FuncFile"
 
-export async function processTolkFileRenaming(
+export async function processFuncFileRenaming(
     params: RenameFilesParams,
 ): Promise<lsp.WorkspaceEdit | null> {
     const changes: Record<lsp.DocumentUri, lsp.TextEdit[]> = {}
@@ -21,22 +21,22 @@ export async function processTolkFileRenaming(
     return Object.keys(changes).length > 0 ? {changes} : null
 }
 
-export function onTolkFileRenamed(params: RenameFilesParams): void {
+export function onFuncFileRenamed(params: RenameFilesParams): void {
     for (const fileRename of params.files) {
         const oldUri = fileRename.oldUri
         const newUri = fileRename.newUri
 
-        if (!oldUri.endsWith(".tolk") || !newUri.endsWith(".tolk")) {
+        if (!oldUri.endsWith(".fc") || !newUri.endsWith(".func")) {
             continue
         }
 
         console.info(`File renamed from ${oldUri} to ${newUri}`)
 
-        const file = TOLK_PARSED_FILES_CACHE.get(oldUri)
+        const file = FUNC_PARSED_FILES_CACHE.get(oldUri)
         if (file) {
-            TOLK_PARSED_FILES_CACHE.delete(oldUri)
-            const newFile = new TolkFile(newUri, file.tree, file.content)
-            TOLK_PARSED_FILES_CACHE.set(newUri, newFile)
+            FUNC_PARSED_FILES_CACHE.delete(oldUri)
+            const newFile = new FuncFile(newUri, file.tree, file.content)
+            FUNC_PARSED_FILES_CACHE.set(newUri, newFile)
 
             index.removeFile(oldUri)
             index.addFile(newUri, newFile)
@@ -51,17 +51,17 @@ async function processFileRename(
     const oldUri = fileRename.oldUri
     const newUri = fileRename.newUri
 
-    if (!oldUri.endsWith(".tolk") || !newUri.endsWith(".tolk")) {
+    if (!oldUri.endsWith(".fc") && !newUri.endsWith(".func")) {
         return
     }
 
     console.info(`Processing rename from ${oldUri} to ${newUri}`)
 
     // Update imports in the renamed file itself
-    const renamedFile = TOLK_PARSED_FILES_CACHE.get(oldUri)
+    const renamedFile = FUNC_PARSED_FILES_CACHE.get(oldUri)
     if (renamedFile) {
         const edits: lsp.TextEdit[] = []
-        const newFile = new TolkFile(newUri, renamedFile.tree, renamedFile.content)
+        const newFile = new FuncFile(newUri, renamedFile.tree, renamedFile.content)
 
         const imports = renamedFile.imports()
         for (const importNode of imports) {
@@ -72,9 +72,7 @@ async function processFileRename(
             const resolvedPath = ImportResolver.resolveImport(renamedFile, importPath)
             if (!resolvedPath) continue
 
-            if (importPath.startsWith("@stdlib/")) continue
-
-            const targetFile = TOLK_PARSED_FILES_CACHE.get(filePathToUri(resolvedPath))
+            const targetFile = FUNC_PARSED_FILES_CACHE.get(filePathToUri(resolvedPath))
             if (targetFile) {
                 const newImportPath = targetFile.importPath(newFile)
                 const range = asLspRange(pathNode)
@@ -98,7 +96,7 @@ async function processFileRename(
     }
 
     // Update imports in other files that reference the renamed file
-    for (const [uri, file] of TOLK_PARSED_FILES_CACHE.entries()) {
+    for (const [uri, file] of FUNC_PARSED_FILES_CACHE.entries()) {
         if (uri === oldUri) continue // skip the file being renamed
 
         const imports = file.imports()
@@ -115,8 +113,8 @@ async function processFileRename(
                 continue
             }
 
-            const oldFile = await findTolkFile(oldUri)
-            const newFile = new TolkFile(newUri, oldFile.tree, oldFile.content)
+            const oldFile = await findFuncFile(oldUri)
+            const newFile = new FuncFile(newUri, oldFile.tree, oldFile.content)
             const newImportPath = newFile.importPath(file)
             const range = asLspRange(pathNode)
 
