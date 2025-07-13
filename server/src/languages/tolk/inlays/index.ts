@@ -17,12 +17,13 @@ import {Expression} from "@server/languages/tolk/psi/TolkNode"
 export function collectTolkInlays(
     file: TolkFile,
     hints: {
+        disable: boolean
         parameters: boolean
         types: boolean
         showMethodId: boolean
     },
 ): lsp.InlayHint[] | null {
-    if (!hints.parameters) return []
+    if (hints.disable) return []
 
     const result: lsp.InlayHint[] = []
 

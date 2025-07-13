@@ -310,7 +310,7 @@ export class ReferenceCompletionProcessor implements ScopeProcessor {
     }
 
     private needSemicolon(node: SyntaxNode): boolean {
-        if (this.ctx.beforeSemicolon) {
+        if (this.ctx.beforeSemicolon || this.ctx.beforeParen) {
             return false
         }
 
