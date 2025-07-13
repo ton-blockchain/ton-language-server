@@ -48,25 +48,34 @@ yarn watch
 
 ## VS Code extension
 
-The VS Code extension code resides in the `client/` directory. The root `package.json` file serves as the extension's
-manifest, defining properties like syntax highlighting paths.
+The VS Code extension code resides in the `editors/code/` directory.
+The root `package.json` file serves as the extension's manifest, defining properties like syntax highlighting paths.
 
 Language-specific editor features like comment toggling, bracket matching, and auto-closing pairs are defined in:
 
-- [client/src/languages/tolk-language-configuration.json](client/src/languages/tolk-language-configuration.json) (for Tolk)
-- [client/src/languages/fift-language-configuration.json](client/src/languages/fift-language-configuration.json) (for
-  Fift)
-- [client/src/languages/tasm-language-configuration.json](client/src/languages/tasm-language-configuration.json) (for
-  TASM)
-- [client/src/languages/tlb-language-configuration.json](client/src/languages/tlb-language-configuration.json) (for
-  TL-B)
+- [editors/code/src/languages/tolk-language-configuration.json](editors/code/src/languages/tolk-language-configuration.json) (
+  for Tolk)
+- [editors/code/src/languages/func-language-configuration.json](editors/code/src/languages/func-language-configuration.json) (
+  for FunC)
+- [editors/code/src/languages/fift-language-configuration.json](editors/code/src/languages/fift-language-configuration.json) (
+  for Fift)
+- [editors/code/src/languages/tasm-language-configuration.json](editors/code/src/languages/tasm-language-configuration.json) (
+  for TASM)
+- [editors/code/src/languages/tlb-language-configuration.json](editors/code/src/languages/tlb-language-configuration.json) (
+  for TL-B)
 
 Language-specific highlighting grammars are defined in:
 
-- [client/src/languages/syntaxes/tolk.tmLanguage.json](client/src/languages/syntaxes/tolk.tmLanguage.json) (for Tolk)
-- [client/src/languages/syntaxes/fift.tmLanguage.json](client/src/languages/syntaxes/fift.tmLanguage.json) (for Fift)
-- [client/src/languages/syntaxes/tasm.tmLanguage.json](client/src/languages/syntaxes/tasm.tmLanguage.json) (for TASM)
-- [client/src/languages/syntaxes/tlb.tmLanguage.json](client/src/languages/syntaxes/tlb.tmLanguage.json) (for TL-B)
+- [editors/code/src/languages/syntaxes/tolk.tmLanguage.json](editors/code/src/languages/syntaxes/tolk.tmLanguage.json) (
+  for Tolk)
+- [editors/code/src/languages/syntaxes/func.tmLanguage.json](editors/code/src/languages/syntaxes/func.tmLanguage.json) (
+  for FunC)
+- [editors/code/src/languages/syntaxes/fift.tmLanguage.json](editors/code/src/languages/syntaxes/fift.tmLanguage.json) (
+  for Fift)
+- [editors/code/src/languages/syntaxes/tasm.tmLanguage.json](editors/code/src/languages/syntaxes/tasm.tmLanguage.json) (
+  for TASM)
+- [editors/code/src/languages/syntaxes/tlb.tmLanguage.json](editors/code/src/languages/syntaxes/tlb.tmLanguage.json) (
+  for TL-B)
 
 Refer to
 the [VS Code Language Configuration Guide](https://code.visualstudio.com/api/language-extensions/language-configuration-guide)
@@ -76,7 +85,7 @@ To begin developing the extension:
 
 1. Run `yarn watch` in the project root. This starts the build in watch mode.
 2. Open the project folder in VS Code.
-3. The main extension point is in `client/src/extension.ts`.
+3. The main extension point is in `editors/code/src/extension.ts`.
 4. Press `F5` to start debugging the extension.
 
 When you make changes, the project will automatically rebuild. Reload the VS Code window (Developer: Reload Window)
@@ -99,8 +108,9 @@ We use [Tree-sitter](https://tree-sitter.github.io/tree-sitter/) to parse code a
 The primary grammars are:
 
 1. [server/src/languages/tolk/tree-sitter-tolk](server/src/languages/tolk/tree-sitter-tolk) — Tolk grammar
-2. [server/src/languages/fift/tree-sitter-fift](server/src/languages/fift/tree-sitter-fift) — TVM Assembly grammar
-3. [server/src/languages/tlb/tree-sitter-tlb](server/src/languages/tlb/tree-sitter-tlb) — TL-B grammar
+2. [server/src/languages/func/tree-sitter-func](server/src/languages/func/tree-sitter-func) — FunC grammar
+3. [server/src/languages/fift/tree-sitter-fift](server/src/languages/fift/tree-sitter-fift) — TVM Assembly grammar
+4. [server/src/languages/tlb/tree-sitter-tlb](server/src/languages/tlb/tree-sitter-tlb) — TL-B grammar
 
 #### Indexes
 

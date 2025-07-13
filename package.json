@@ -16,7 +16,7 @@
     "engines": {
         "vscode": "^1.63.0"
     },
-    "icon": "client/src/assets/logo.png",
+    "icon": "editors/code/src/assets/logo.png",
     "activationEvents": [
         "onLanguage:tolk",
         "onLanguage:func",
@@ -37,7 +37,7 @@
     "scripts": {
         "test": "yarn jest",
         "build": "webpack && node ./scripts/set-executable.js ./dist/server.js",
-        "package": "npx vsce package --no-yarn --readme-path README-extension.md",
+        "package": "npx vsce package --no-yarn --readme-path editors/code/README.md",
         "lint": "eslint --cache .",
         "fmt": "prettier --write -l --cache .",
         "fmt:check": "prettier --check --cache .",
@@ -96,7 +96,7 @@
                     "light": "./dist/icons/ton-icon.svg",
                     "dark": "./dist/icons/ton-icon.svg"
                 },
-                "configuration": "./client/src/languages/tolk-language-configuration.json"
+                "configuration": "./editors/code/src/languages/tolk-language-configuration.json"
             },
             {
                 "id": "func",
@@ -111,7 +111,7 @@
                     "light": "./dist/icons/ton-icon.svg",
                     "dark": "./dist/icons/ton-icon.svg"
                 },
-                "configuration": "./client/src/languages/func-language-configuration.json"
+                "configuration": "./editors/code/src/languages/func-language-configuration.json"
             },
             {
                 "id": "tasm",
@@ -126,7 +126,7 @@
                     "light": "./dist/icons/ton-icon.svg",
                     "dark": "./dist/icons/ton-icon.svg"
                 },
-                "configuration": "./client/src/languages/tasm-language-configuration.json"
+                "configuration": "./editors/code/src/languages/tasm-language-configuration.json"
             },
             {
                 "id": "fift",
@@ -140,7 +140,7 @@
                     "light": "./dist/icons/ton-icon.svg",
                     "dark": "./dist/icons/ton-icon.svg"
                 },
-                "configuration": "./client/src/languages/fift-language-configuration.json"
+                "configuration": "./editors/code/src/languages/fift-language-configuration.json"
             },
             {
                 "id": "boc",
@@ -167,34 +167,34 @@
                     "light": "./dist/icons/icon-tlb-dark.svg",
                     "dark": "./dist/icons/icon-tlb-dark.svg"
                 },
-                "configuration": "./client/src/languages/tlb-language-configuration.json"
+                "configuration": "./editors/code/src/languages/tlb-language-configuration.json"
             }
         ],
         "grammars": [
             {
                 "language": "tolk",
                 "scopeName": "source.tolk",
-                "path": "./client/src/languages/syntaxes/tolk.tmLanguage.json"
+                "path": "./editors/code/src/languages/syntaxes/tolk.tmLanguage.json"
             },
             {
                 "language": "func",
                 "scopeName": "source.func",
-                "path": "./client/src/languages/syntaxes/func.tmLanguage.json"
+                "path": "./editors/code/src/languages/syntaxes/func.tmLanguage.json"
             },
             {
                 "language": "tasm",
                 "scopeName": "source.tasm",
-                "path": "./client/src/languages/syntaxes/tasm.tmLanguage.json"
+                "path": "./editors/code/src/languages/syntaxes/tasm.tmLanguage.json"
             },
             {
                 "language": "fift",
                 "scopeName": "source.fift",
-                "path": "./client/src/languages/syntaxes/fift.tmLanguage.json"
+                "path": "./editors/code/src/languages/syntaxes/fift.tmLanguage.json"
             },
             {
                 "language": "tlb",
                 "scopeName": "source.tlb",
-                "path": "./client/src/languages/syntaxes/tlb.tmLanguage.json"
+                "path": "./editors/code/src/languages/syntaxes/tlb.tmLanguage.json"
             }
         ],
         "snippets": [],
@@ -529,7 +529,7 @@
         "@types/vscode": "^1.63.0",
         "@vscode/test-cli": "^0.0.10",
         "@vscode/test-electron": "^2.4.1",
-        "@vscode/vsce": "^3.0.0",
+        "@vscode/vsce": "^3.6.0",
         "c8": "^10.1.3",
         "copy-webpack-plugin": "^12.0.2",
         "eslint": "^9.19.0",
