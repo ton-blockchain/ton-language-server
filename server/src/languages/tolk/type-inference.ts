@@ -1142,6 +1142,7 @@ class InferenceWalker {
         }
 
         // step 3: try to match generic receivers, e.g. `Container<T>.copy` / `(T?|slice).copy` but NOT `T.copy`
+        const qualifierBaseType = qualifierType.baseType()
         this.processMethods(searchName, method => {
             const receiverTypeNode = method.receiverTypeNode()
             if (!receiverTypeNode) return true
@@ -1149,6 +1150,15 @@ class InferenceWalker {
 
             // Foo<T>, but not T
             if (receiverType?.hasGenerics() && !(receiverType instanceof TypeParameterTy)) {
+                const receiverBaseType = receiverType.baseType()
+
+                if (qualifierBaseType instanceof StructTy && receiverBaseType instanceof StructTy) {
+                    if (!qualifierBaseType.equals(receiverBaseType)) {
+                        // different struct names
+                        return true
+                    }
+                }
+
                 const subst = GenericSubstitutions.deduce(receiverType, qualifierType)
                 const substituted = receiverType.substitute(subst.mapping)
 
