@@ -1,14 +1,11 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
-import type {CompletionProvider} from "@server/languages/tolk/completion/CompletionProvider"
+import type {CompletionProvider} from "@server/completion/CompletionProvider"
 import {CompletionItemKind, InsertTextFormat} from "vscode-languageserver-types"
 import type {CompletionContext} from "@server/languages/tolk/completion/CompletionContext"
-import {
-    CompletionResult,
-    CompletionWeight,
-} from "@server/languages/tolk/completion/WeightedCompletionItem"
+import {CompletionResult, CompletionWeight} from "@server/completion/WeightedCompletionItem"
 
-export class SnippetsCompletionProvider implements CompletionProvider {
+export class SnippetsCompletionProvider implements CompletionProvider<CompletionContext> {
     public isAvailable(ctx: CompletionContext): boolean {
         return ctx.isStatement && !ctx.topLevel && !ctx.afterDot
     }

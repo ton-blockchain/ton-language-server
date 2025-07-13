@@ -1,12 +1,9 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
-import {AsyncCompletionProvider} from "@server/languages/func/completion/CompletionProvider"
+import {AsyncCompletionProvider} from "@server/completion/CompletionProvider"
 import {CompletionItemKind} from "vscode-languageserver-types"
 import type {CompletionContext} from "@server/languages/func/completion/CompletionContext"
-import {
-    CompletionResult,
-    CompletionWeight,
-} from "@server/languages/func/completion/WeightedCompletionItem"
+import {CompletionResult, CompletionWeight} from "@server/completion/WeightedCompletionItem"
 import * as path from "node:path"
 import {globalVFS} from "@server/vfs/global"
 import {listDirs, listFiles} from "@server/vfs/vfs"
@@ -14,7 +11,7 @@ import {filePathToUri} from "@server/files"
 import {FuncFile} from "@server/languages/func/psi/FuncFile"
 import {trimSuffix} from "@server/utils/strings"
 
-export class ImportPathCompletionProvider implements AsyncCompletionProvider {
+export class ImportPathCompletionProvider implements AsyncCompletionProvider<CompletionContext> {
     public isAvailable(ctx: CompletionContext): boolean {
         return ctx.insideImport
     }

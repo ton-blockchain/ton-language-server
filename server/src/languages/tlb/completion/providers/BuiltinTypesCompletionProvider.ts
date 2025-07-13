@@ -1,12 +1,9 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Studio
 
-import {CompletionProvider} from "@server/languages/tlb/completion/CompletionProvider"
+import {CompletionProvider} from "@server/completion/CompletionProvider"
 import {CompletionContext} from "@server/languages/tlb/completion/CompletionContext"
-import {
-    CompletionResult,
-    CompletionWeight,
-} from "@server/languages/tlb/completion/WeightedCompletionItem"
+import {CompletionResult, CompletionWeight} from "@server/completion/WeightedCompletionItem"
 import {CompletionItemKind} from "vscode-languageserver-types"
 
 export const BUILTIN_TYPES: Map<string, string> = new Map([
@@ -44,7 +41,7 @@ export const BUILTIN_TYPES: Map<string, string> = new Map([
     ["Type", "Built-in TL-B type representing the type of types"],
 ])
 
-export class BuiltinTypesCompletionProvider implements CompletionProvider {
+export class BuiltinTypesCompletionProvider implements CompletionProvider<CompletionContext> {
     public isAvailable(ctx: CompletionContext): boolean {
         return ctx.isType
     }

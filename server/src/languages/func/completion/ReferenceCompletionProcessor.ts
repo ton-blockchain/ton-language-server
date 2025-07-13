@@ -12,19 +12,9 @@ import {
     TypeParameter,
 } from "@server/languages/func/psi/Decls"
 import {CompletionContext} from "./CompletionContext"
-import {
-    CompletionWeight,
-    WeightedCompletionItem,
-} from "@server/languages/func/completion/WeightedCompletionItem"
-import {FuncFile} from "@server/languages/func/psi/FuncFile"
+import {CompletionWeight, WeightedCompletionItem} from "@server/completion/WeightedCompletionItem"
 import {ResolveState} from "@server/psi/ResolveState"
-
-export interface CompletionItemAdditionalInformation {
-    readonly name: string | undefined
-    readonly file: FuncFile | undefined
-    readonly elementFile: FuncFile | undefined
-    readonly language: "tolk" | "func" | undefined
-}
+import {CompletionItemAdditionalInformation} from "@server/completion/CompletionItemAdditionalInformation"
 
 export class ReferenceCompletionProcessor implements ScopeProcessor {
     public constructor(private readonly ctx: CompletionContext) {}
