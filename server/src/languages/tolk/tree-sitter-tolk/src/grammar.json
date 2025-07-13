@@ -3843,8 +3843,20 @@
             }
         },
         "string_literal": {
-            "type": "PATTERN",
-            "value": "\"[^\"]*\"\\w?"
+            "type": "TOKEN",
+            "content": {
+                "type": "CHOICE",
+                "members": [
+                    {
+                        "type": "PATTERN",
+                        "value": "\"\"\"\\s*[\\s\\S]*?\"\"\""
+                    },
+                    {
+                        "type": "PATTERN",
+                        "value": "\"(?:[^\"\\\\\\n]|\\\\.)*\""
+                    }
+                ]
+            }
         },
         "boolean_literal": {
             "type": "CHOICE",
