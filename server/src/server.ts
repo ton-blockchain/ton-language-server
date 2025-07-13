@@ -421,7 +421,7 @@ async function initializeFallback(uri: string): Promise<void> {
     await initialize()
 }
 
-connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.InitializeResult> => {
+const onInitialize = async (initParams: lsp.InitializeParams): Promise<lsp.InitializeResult> => {
     console.info("Started new session")
     console.info("Running in", initParams.clientInfo?.name)
     console.info("workspaceFolders:", initParams.workspaceFolders)
@@ -432,6 +432,8 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
 
     workspaceFolders = initParams.workspaceFolders ?? []
     const opts = initParams.initializationOptions as ClientOptions | undefined
+    console.log("initializationOptions:", opts)
+
     const treeSitterUri = opts?.treeSitterWasmUri ?? `${__dirname}/tree-sitter.wasm`
     const tolkLangUri = opts?.tolkLangWasmUri ?? `${__dirname}/tree-sitter-tolk.wasm`
     const funcLangUri = opts?.funcLangWasmUri ?? `${__dirname}/tree-sitter-func.wasm`
@@ -1112,6 +1114,18 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
             },
         },
     }
+}
+connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.InitializeResult> => {
+    try {
+        return await onInitialize(initParams)
+    } catch (error) {
+        if (error instanceof Error) {
+            console.error("error", error.message)
+        }
+        console.error("error", error)
+    }
+    // @ts-expect-error aaa
+    return {}
 })
 
 Logger.initialize(connection, `${__dirname}/ton-language-server.log`)

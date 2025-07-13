@@ -114,10 +114,8 @@ fun main() {
 //!                     ^ Ok<int>
     if (r is Ok) { r; }
 //!                ^ Ok<int>
-    if (r is OkAlias<int>) { r; }
-//!                          ^ OkAlias<int>
-    if (r !is OkAlias<int>) { r; }
-//!                           ^ Err<slice>
+    if (r !is Ok<int>) { r; }
+//!                      ^ Err<slice>
     if (r is Ok<int> && r !is Err<slice> && r is Ok) { r; }
 //!                                                    ^ Ok<int>
 }

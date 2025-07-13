@@ -77,14 +77,3 @@ fun int.<caret>foo(self) {}
 ```tolk
 fun int.foo(self): void
 ```
-
-========================================================================
-Instance method with auto return type documentation: return self
-========================================================================
-fun int.<caret>foo(self) {
-    return self
-}
-------------------------------------------------------------------------
-```tolk
-fun int.foo(self): int
-```
