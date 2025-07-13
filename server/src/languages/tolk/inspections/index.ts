@@ -10,6 +10,7 @@ import {StructInitializationInspection} from "@server/languages/tolk/inspections
 import {TypeCompatibilityInspection} from "@server/languages/tolk/inspections/TypeCompatibilityInspection"
 import {CannotReassignInspection} from "@server/languages/tolk/inspections/CannotReassignInspection"
 import {UnusedTopLevelDeclarationInspection} from "@server/languages/tolk/inspections/UnusedTopLevelDeclarationInspection"
+import {UnusedTypeParameterInspection} from "@server/languages/tolk/inspections/UnusedTypeParameterInspection"
 
 export async function runTolkInspections(
     uri: string,
@@ -18,6 +19,7 @@ export async function runTolkInspections(
 ): Promise<void> {
     const inspections = [
         new UnusedParameterInspection(),
+        new UnusedTypeParameterInspection(),
         new UnusedVariableInspection(),
         new UnusedImportInspection(),
         new UnusedTopLevelDeclarationInspection(),

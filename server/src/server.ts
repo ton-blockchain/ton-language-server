@@ -85,6 +85,7 @@ import {
 import {
     InvalidToolchainError,
     setProjectTolkStdlibPath,
+    tolkStdlibSearchPaths,
 } from "@server/languages/tolk/toolchain/toolchain"
 import {
     provideTolkDocumentSymbols,
@@ -206,7 +207,12 @@ async function findTolkStdlib(settings: ServerSettings, rootDir: string): Promis
         return settings.tolk.stdlib.path
     }
 
-    const searchDirs = ["node_modules/@ton/tolk-js/dist/tolk-stdlib", "stdlib"]
+    const searchDirs = [
+        `${rootDir}/node_modules/@ton/tolk-js/dist/tolk-stdlib`,
+        `${rootDir}/stdlib`,
+        `${rootDir}/tolk-stdlib`,
+        ...tolkStdlibSearchPaths(),
+    ]
 
     const testStdlibOath = process.env["TEST_TOLK_STDLIB_PATH"]
     if (testStdlibOath) {
@@ -215,7 +221,7 @@ async function findTolkStdlib(settings: ServerSettings, rootDir: string): Promis
 
     async function findDirectory(): Promise<string | null> {
         for (const searchDir of searchDirs) {
-            if (await existsVFS(globalVFS, filePathToUri(path.join(rootDir, searchDir)))) {
+            if (await existsVFS(globalVFS, filePathToUri(searchDir))) {
                 return searchDir
             }
         }
@@ -223,9 +229,9 @@ async function findTolkStdlib(settings: ServerSettings, rootDir: string): Promis
         return null
     }
 
-    const localFolder = await findDirectory()
+    const stdlibPath = await findDirectory()
 
-    if (localFolder === null) {
+    if (stdlibPath === null) {
         console.error(
             "Tolk standard library not found! Searched in:\n",
             searchDirs.map(dir => path.join(rootDir, dir)).join("\n"),
@@ -237,7 +243,6 @@ async function findTolkStdlib(settings: ServerSettings, rootDir: string): Promis
         return null
     }
 
-    const stdlibPath = path.join(rootDir, localFolder)
     console.info(`Using Tolk Standard library from ${stdlibPath}`)
     return stdlibPath
 }

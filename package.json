@@ -392,6 +392,7 @@
                             "type": "string",
                             "enum": [
                                 "unused-parameter",
+                                "unused-type-parameter",
                                 "unused-variable",
                                 "unused-top-level-declaration",
                                 "deprecated-symbol-usage",
