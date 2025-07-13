@@ -13,6 +13,9 @@ export class UnusedTypeParameterInspection extends UnusedInspection implements I
         for (const fun of file.getFunctions()) {
             this.checkTypeParameters(fun.typeParameters(), diagnostics)
         }
+        for (const method of file.getMethods()) {
+            this.checkTypeParameters(method.typeParameters(), diagnostics)
+        }
         for (const struct of file.getStructs()) {
             this.checkTypeParameters(struct.typeParameters(), diagnostics)
         }

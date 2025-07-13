@@ -37,6 +37,7 @@ Unused type parameter inspection: method
 fun int.bar<T>() {}
 ------------------------------------------------------------------------
 3 0:8 to 0:11 Method 'bar' is never used (tolk)
+3 0:12 to 0:13 Type parameter 'T' is never used (tolk)
 
 ========================================================================
 Used type parameter inspection: method
