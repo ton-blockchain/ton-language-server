@@ -9,6 +9,7 @@ import {EnvironmentInfo, ToolchainInfo} from "@shared/shared-msgtypes"
 import {existsVFS, globalVFS} from "@server/vfs/files-adapter"
 import {filePathToUri} from "@server/files"
 import {trimPrefix} from "@server/utils/strings"
+import * as process from "node:process"
 
 export class InvalidToolchainError extends Error {
     public constructor(message: string) {
@@ -41,13 +42,16 @@ export class Toolchain {
     }
 
     public static async autoDetect(root: string): Promise<Toolchain> {
-        const candidatesPaths = [path.join(root, "node_modules", ".bin", "tolk-js")]
+        const candidatesPaths = [
+            path.join(root, "node_modules", ".bin", "tolk-js"),
+            ...tolkCompilerSearchPaths(),
+        ]
         const foundPath = await Toolchain.findDirectory(candidatesPaths)
         if (!foundPath) {
             console.info(`cannot find toolchain in:`)
-            candidatesPaths.forEach(it => {
-                console.info(it)
-            })
+            for (const path of candidatesPaths) {
+                console.info(path)
+            }
             return fallbackToolchain
         }
 
@@ -160,3 +164,26 @@ export function setProjectTolkStdlibPath(path: string | null): void {
 }
 
 export const fallbackToolchain = new Toolchain("./node_modules/.bin/tolk-js", true, "fallback")
+
+export const TOLK_KNOWN_PLATFORMS: Record<string, [string, string][] | undefined> = {
+    linux: [["/usr/bin/tolk", "../share/ton/smartcont/tolk-stdlib"]],
+    darwin: [
+        ["/opt/homebrew/bin/tolk", "../share/ton/ton/smartcont/tolk-stdlib"],
+        ["/usr/local/bin/tolk", "../share/ton/ton/smartcont/tolk-stdlib"],
+    ],
+    win32: [["C:\\ProgramData\\chocolatey\\lib\\ton\\bin\\tolk.exe", "smartcont/tolk-stdlib"]],
+}
+
+export function tolkStdlibSearchPaths(): string[] {
+    return (TOLK_KNOWN_PLATFORMS[process.platform] ?? []).map(
+        ([compilerBinaryPath, relativeStdlibFolder]) => {
+            return path.join(path.dirname(compilerBinaryPath), relativeStdlibFolder)
+        },
+    )
+}
+
+export function tolkCompilerSearchPaths(): string[] {
+    return (TOLK_KNOWN_PLATFORMS[process.platform] ?? []).map(([compilerBinaryPath]) => {
+        return compilerBinaryPath
+    })
+}
