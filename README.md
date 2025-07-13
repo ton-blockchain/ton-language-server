@@ -42,6 +42,7 @@ FunC support includes:
 - Inlay hints for method id
 - On-the-fly inspections
 - Build and test projects based on Blueprint
+- Debug Blueprint-based projects
 
 Fift assembly support includes:
 
@@ -276,6 +277,11 @@ Setup steps:
 
 See [TROUBLESHOOTING.md](./docs/manual/troubleshooting.md).
 
-# License
+## Thanks
+
+- Big thanks to [TonTech](https://ton.tech) for [FunC debugger
+  implementation](https://github.com/krigga/tvm-debugger)!
+
+## License
 
 MIT
