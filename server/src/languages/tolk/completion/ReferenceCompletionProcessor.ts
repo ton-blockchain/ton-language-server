@@ -17,20 +17,10 @@ import {
     TypeParameter,
 } from "@server/languages/tolk/psi/Decls"
 import {CompletionContext} from "./CompletionContext"
-import {
-    CompletionWeight,
-    WeightedCompletionItem,
-} from "@server/languages/tolk/completion/WeightedCompletionItem"
-import {TolkFile} from "@server/languages/tolk/psi/TolkFile"
+import {CompletionWeight, WeightedCompletionItem} from "@server/completion/WeightedCompletionItem"
 import {ResolveState} from "@server/psi/ResolveState"
 import {TypeInferer} from "@server/languages/tolk/TypeInferer"
-
-export interface CompletionItemAdditionalInformation {
-    readonly name: string | undefined
-    readonly file: TolkFile | undefined
-    readonly elementFile: TolkFile | undefined
-    readonly language: "tolk" | "func" | undefined
-}
+import {CompletionItemAdditionalInformation} from "@server/completion/CompletionItemAdditionalInformation"
 
 export class ReferenceCompletionProcessor implements ScopeProcessor {
     public constructor(private readonly ctx: CompletionContext) {}

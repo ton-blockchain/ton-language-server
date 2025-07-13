@@ -1,7 +1,7 @@
 import type {Node as SyntaxNode} from "web-tree-sitter"
 import * as lsp from "vscode-languageserver"
 import {asLspRange} from "@server/utils/position"
-import {TlbReferent} from "@server/languages/tlb/psi/TlbReferent"
+import {Referent} from "@server/languages/tlb/psi/Referent"
 import {TlbFile} from "@server/languages/tlb/psi/TlbFile"
 
 export function provideTlbReferences(
@@ -12,7 +12,7 @@ export function provideTlbReferences(
         return []
     }
 
-    const result = new TlbReferent(referenceNode, file).findReferences({
+    const result = new Referent(referenceNode, file).findReferences({
         includeDefinition: false,
     })
     if (result.length === 0) return null

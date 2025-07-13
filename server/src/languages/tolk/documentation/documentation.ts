@@ -20,9 +20,6 @@ import {TypeInferer} from "@server/languages/tolk/TypeInferer"
 import {functionTypeOf, typeOf} from "@server/languages/tolk/type-inference"
 import {UnionTy} from "@server/languages/tolk/types/ty"
 
-const CODE_FENCE = "```"
-const DOC_TMPL = `${CODE_FENCE}tolk\n{signature}\n${CODE_FENCE}\n{documentation}\n`
-
 /**
  * Returns the documentation for the given symbol in Markdown format, or null
  * if there is no documentation for the element.
@@ -196,7 +193,7 @@ export function generateTolkDocFor(node: NamedNode, place: SyntaxNode): string |
                 return defaultResult(`${kind} ${name}: ${type} ${valuePresentation}`)
             }
 
-            // TODO: better support for tensor/ tuple variables
+            // TODO: better support for tensor/tuple variables
             return defaultResult(owner.text)
         }
         case "identifier": {
@@ -236,5 +233,7 @@ export function generateTolkDocFor(node: NamedNode, place: SyntaxNode): string |
 }
 
 function defaultResult(signature: string, documentation: string = ""): string {
+    const CODE_FENCE = "```"
+    const DOC_TMPL = `${CODE_FENCE}tolk\n{signature}\n${CODE_FENCE}\n{documentation}\n`
     return DOC_TMPL.replace("{signature}", signature).replace("{documentation}", documentation)
 }

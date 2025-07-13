@@ -1,11 +1,11 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
-import type {CompletionProvider} from "@server/languages/tolk/completion/CompletionProvider"
+import type {CompletionProvider} from "@server/completion/CompletionProvider"
 import type {CompletionContext} from "@server/languages/tolk/completion/CompletionContext"
 import {Reference, ScopeProcessor} from "@server/languages/tolk/psi/Reference"
 import {ReferenceCompletionProcessor} from "@server/languages/tolk/completion/ReferenceCompletionProcessor"
 import {NamedNode, TolkNode} from "@server/languages/tolk/psi/TolkNode"
-import type {CompletionResult} from "@server/languages/tolk/completion/WeightedCompletionItem"
+import type {CompletionResult} from "@server/completion/WeightedCompletionItem"
 import {ResolveState} from "@server/psi/ResolveState"
 import {FieldsOwnerTy} from "@server/languages/tolk/types/ty"
 import {typeOf} from "@server/languages/tolk/type-inference"
@@ -15,7 +15,7 @@ enum CompletionKind {
     ALL = "ALL",
 }
 
-export class ReferenceCompletionProvider implements CompletionProvider {
+export class ReferenceCompletionProvider implements CompletionProvider<CompletionContext> {
     public constructor(private readonly ref: Reference) {}
 
     public isAvailable(ctx: CompletionContext): boolean {

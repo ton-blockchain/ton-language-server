@@ -61,7 +61,7 @@ import {provideTlbCompletion} from "@server/languages/tlb/completion"
 import {TLB_CACHE} from "@server/languages/tlb/cache"
 import {provideTlbReferences} from "@server/languages/tlb/references"
 import {TextDocument} from "vscode-languageserver-textdocument"
-import {TolkIndexingRoot, TolkIndexingRootKind} from "@server/tolk-indexing-root"
+import {TolkIndexingRoot} from "@server/languages/tolk/indexing-root"
 import {TOLK_CACHE} from "@server/languages/tolk/cache"
 import {provideTolkSemanticTokens} from "@server/languages/tolk/semantic-tokens"
 import {
@@ -99,7 +99,6 @@ import {
     onTolkFileRenamed,
     processTolkFileRenaming,
 } from "@server/languages/tolk/rename/file-renaming"
-import {FuncIndexingRoot, FuncIndexingRootKind} from "@server/func-indexing-root"
 import {provideFuncDefinition} from "@server/languages/func/find-definitions"
 import {provideFuncSemanticTokens} from "@server/languages/func/semantic-tokens"
 import {provideFuncCompletion} from "@server/languages/func/completion"
@@ -117,6 +116,8 @@ import {
     onFuncFileRenamed,
     processFuncFileRenaming,
 } from "@server/languages/func/rename/file-renaming"
+import {IndexingRootKind} from "@server/indexing/indexing"
+import {FuncIndexingRoot} from "@server/languages/func/indexing-root"
 
 /**
  * Whenever LS is initialized.
@@ -318,7 +319,7 @@ async function initialize(): Promise<void> {
         const stdlibUri = filePathToUri(stdlibPath)
         tolkIndex.withStdlibRoot(new TolkIndexRoot("stdlib", stdlibUri))
 
-        const stdlibRoot = new TolkIndexingRoot(stdlibUri, TolkIndexingRootKind.Stdlib)
+        const stdlibRoot = new TolkIndexingRoot(stdlibUri, IndexingRootKind.Stdlib)
         await stdlibRoot.index()
     }
 
@@ -333,20 +334,20 @@ async function initialize(): Promise<void> {
 
         console.info(`Using Tolk Stubs from ${stubsPath}`)
 
-        const stubsRoot = new TolkIndexingRoot(stubsUri, TolkIndexingRootKind.Stdlib)
+        const stubsRoot = new TolkIndexingRoot(stubsUri, IndexingRootKind.Stdlib)
         await stubsRoot.index()
 
-        const funcStubsRoot = new FuncIndexingRoot(stubsUri, FuncIndexingRootKind.Stdlib)
+        const funcStubsRoot = new FuncIndexingRoot(stubsUri, IndexingRootKind.Stdlib)
         await funcStubsRoot.index()
     }
 
     reporter.report(90, "Indexing: (3/3) Workspace")
     tolkIndex.withRoots([new TolkIndexRoot("workspace", rootUri)])
-    const tolkWorkspaceRoot = new TolkIndexingRoot(rootUri, TolkIndexingRootKind.Workspace)
+    const tolkWorkspaceRoot = new TolkIndexingRoot(rootUri, IndexingRootKind.Workspace)
     await tolkWorkspaceRoot.index()
 
     funcIndex.withRoots([new FuncIndexRoot("workspace", rootUri)])
-    const funcWorkspaceRoot = new FuncIndexingRoot(rootUri, FuncIndexingRootKind.Workspace)
+    const funcWorkspaceRoot = new FuncIndexingRoot(rootUri, IndexingRootKind.Workspace)
     await funcWorkspaceRoot.index()
 
     reporter.report(100, "Ready")

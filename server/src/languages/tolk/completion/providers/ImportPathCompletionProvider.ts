@@ -1,12 +1,9 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
-import {AsyncCompletionProvider} from "@server/languages/tolk/completion/CompletionProvider"
+import {AsyncCompletionProvider} from "@server/completion/CompletionProvider"
 import {CompletionItemKind} from "vscode-languageserver-types"
 import type {CompletionContext} from "@server/languages/tolk/completion/CompletionContext"
-import {
-    CompletionResult,
-    CompletionWeight,
-} from "@server/languages/tolk/completion/WeightedCompletionItem"
+import {CompletionResult, CompletionWeight} from "@server/completion/WeightedCompletionItem"
 import * as path from "node:path"
 import {globalVFS} from "@server/vfs/global"
 import {listDirs, listFiles} from "@server/vfs/vfs"
@@ -15,7 +12,7 @@ import {TolkFile} from "@server/languages/tolk/psi/TolkFile"
 import {trimSuffix} from "@server/utils/strings"
 import {projectTolkStdlibPath} from "@server/languages/tolk/toolchain/toolchain"
 
-export class ImportPathCompletionProvider implements AsyncCompletionProvider {
+export class ImportPathCompletionProvider implements AsyncCompletionProvider<CompletionContext> {
     public isAvailable(ctx: CompletionContext): boolean {
         return ctx.insideImport
     }

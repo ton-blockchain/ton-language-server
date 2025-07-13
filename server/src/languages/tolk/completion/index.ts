@@ -9,16 +9,15 @@ import {asParserPoint} from "@server/utils/position"
 import {NamedNode} from "@server/languages/tolk/psi/TolkNode"
 import {Reference} from "@server/languages/tolk/psi/Reference"
 import {CompletionContext} from "@server/languages/tolk/completion/CompletionContext"
-import {CompletionResult} from "@server/languages/tolk/completion/WeightedCompletionItem"
+import {CompletionResult} from "@server/completion/WeightedCompletionItem"
 import type {
     AsyncCompletionProvider,
     CompletionProvider,
-} from "@server/languages/tolk/completion/CompletionProvider"
+} from "@server/completion/CompletionProvider"
 import {TopLevelCompletionProvider} from "@server/languages/tolk/completion/providers/TopLevelCompletionProvider"
 import {SnippetsCompletionProvider} from "@server/languages/tolk/completion/providers/SnippetsCompletionProvider"
 import {KeywordsCompletionProvider} from "@server/languages/tolk/completion/providers/KeywordsCompletionProvider"
 import {ReferenceCompletionProvider} from "@server/languages/tolk/completion/providers/ReferenceCompletionProvider"
-import {CompletionItemAdditionalInformation} from "@server/languages/tolk/completion/ReferenceCompletionProcessor"
 import {findTolkFile} from "@server/files"
 import {index} from "@server/languages/tolk/indexes"
 import {FileDiff} from "@server/utils/FileDiff"
@@ -31,6 +30,7 @@ import {IndexAccessCompletionProvider} from "@server/languages/tolk/completion/p
 import {VariableSizeTypeCompletionProvider} from "@server/languages/tolk/completion/providers/VariableSizeTypeCompletionProvider"
 import {ExpressionSnippetsCompletionProvider} from "@server/languages/tolk/completion/providers/ExpressionSnippetsCompletionProvider"
 import {MatchArmsCompletionProvider} from "@server/languages/tolk/completion/providers/MatchArmsCompletionProvider"
+import {CompletionItemAdditionalInformation} from "@server/completion/CompletionItemAdditionalInformation"
 
 export async function provideTolkCompletion(
     file: TolkFile,
@@ -97,7 +97,7 @@ export async function provideTolkCompletion(
     )
 
     const result = new CompletionResult()
-    const providers: CompletionProvider[] = [
+    const providers: CompletionProvider<CompletionContext>[] = [
         new TopLevelCompletionProvider(),
         new SnippetsCompletionProvider(),
         new ExpressionSnippetsCompletionProvider(),
@@ -117,7 +117,9 @@ export async function provideTolkCompletion(
         provider.addCompletion(ctx, result)
     }
 
-    const asyncProviders: AsyncCompletionProvider[] = [new ImportPathCompletionProvider()]
+    const asyncProviders: AsyncCompletionProvider<CompletionContext>[] = [
+        new ImportPathCompletionProvider(),
+    ]
 
     for (const provider of asyncProviders) {
         if (!provider.isAvailable(ctx)) continue

@@ -16,7 +16,6 @@ export function provideTolkRename(params: lsp.RenameParams, file: TolkFile): Wor
     const result = new Referent(renameNode, file).findReferences({
         includeDefinition: true,
         sameFileOnly: false,
-        includeSelf: false,
     })
     if (result.length === 0) return null
 

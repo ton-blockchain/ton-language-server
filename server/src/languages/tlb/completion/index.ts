@@ -2,13 +2,13 @@ import * as lsp from "vscode-languageserver"
 import {getOffsetFromPosition} from "@server/document-store"
 import {asParserPoint} from "@server/utils/position"
 import {getDocumentSettings} from "@server/settings/settings"
-import {CompletionResult} from "@server/languages/tolk/completion/WeightedCompletionItem"
+import {CompletionResult} from "@server/completion/WeightedCompletionItem"
 import {TlbFile} from "@server/languages/tlb/psi/TlbFile"
 import {createTlbParser} from "@server/parser"
 import {NamedNode} from "@server/languages/tlb/psi/TlbNode"
-import {TlbReference} from "@server/languages/tlb/psi/TlbReference"
+import {Reference} from "@server/languages/tlb/psi/Reference"
 import {CompletionContext} from "@server/languages/tlb/completion/CompletionContext"
-import {CompletionProvider} from "@server/languages/tlb/completion/CompletionProvider"
+import {CompletionProvider} from "@server/completion/CompletionProvider"
 import {ReferenceCompletionProvider} from "@server/languages/tlb/completion/providers/ReferenceCompletionProvider"
 import {BuiltinTypesCompletionProvider} from "@server/languages/tlb/completion/providers/BuiltinTypesCompletionProvider"
 
@@ -43,7 +43,7 @@ export async function provideTlbCompletion(
 
     const newFile = new TlbFile(uri, tree, newContent)
     const element = new NamedNode(cursorNode, newFile)
-    const ref = new TlbReference(element, newFile)
+    const ref = new Reference(element, newFile)
 
     const ctx = new CompletionContext(
         element,
@@ -53,7 +53,7 @@ export async function provideTlbCompletion(
     )
 
     const result = new CompletionResult()
-    const providers: CompletionProvider[] = [
+    const providers: CompletionProvider<CompletionContext>[] = [
         new ReferenceCompletionProvider(ref),
         new BuiltinTypesCompletionProvider(),
     ]

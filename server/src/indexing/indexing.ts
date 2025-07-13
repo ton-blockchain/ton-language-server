@@ -1,25 +1,23 @@
-//  SPDX-License-Identifier: MIT
-//  Copyright © 2025 TON Studio
-import * as path from "node:path"
-import {glob} from "glob"
-import {index} from "@server/languages/func/indexes"
 import {fileURLToPath} from "node:url"
-import {filePathToUri, findFuncFile} from "@server/files"
+import {glob} from "glob"
+import * as path from "node:path"
+import {filePathToUri} from "@server/files"
 
-export enum FuncIndexingRootKind {
+export enum IndexingRootKind {
     Stdlib = "stdlib",
     Workspace = "workspace",
 }
 
-export class FuncIndexingRoot {
-    public constructor(
+export abstract class IndexingRoot {
+    protected constructor(
         public root: string,
-        public kind: FuncIndexingRootKind,
+        public extensions: string[],
+        public kind: IndexingRootKind,
     ) {}
 
     public async index(): Promise<void> {
         const ignore =
-            this.kind === FuncIndexingRootKind.Stdlib
+            this.kind === IndexingRootKind.Stdlib
                 ? []
                 : [
                       ".git/**",
@@ -30,7 +28,11 @@ export class FuncIndexingRoot {
                   ]
 
         const rootDir = fileURLToPath(this.root)
-        const files = await glob("**/*.{fc,func}", {
+
+        const globPattern =
+            this.extensions.length === 1 ? this.extensions[0] : `{${this.extensions.join(",")}}`
+
+        const files = await glob(`**/*.${globPattern}`, {
             cwd: rootDir,
             ignore: ignore,
         })
@@ -41,8 +43,9 @@ export class FuncIndexingRoot {
             console.info("Indexing:", filePath)
             const absPath = path.join(rootDir, filePath)
             const uri = filePathToUri(absPath)
-            const file = await findFuncFile(uri)
-            index.addFile(uri, file, false)
+            await this.onFile(uri)
         }
     }
+
+    protected abstract onFile(uri: string): Promise<void>
 }

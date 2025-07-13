@@ -9,11 +9,11 @@ import {asParserPoint} from "@server/utils/position"
 import {NamedNode} from "@server/languages/func/psi/FuncNode"
 import {Reference} from "@server/languages/func/psi/Reference"
 import {CompletionContext} from "@server/languages/func/completion/CompletionContext"
-import {CompletionResult} from "@server/languages/func/completion/WeightedCompletionItem"
+import {CompletionResult} from "@server/completion/WeightedCompletionItem"
 import type {
     AsyncCompletionProvider,
     CompletionProvider,
-} from "@server/languages/func/completion/CompletionProvider"
+} from "@server/completion/CompletionProvider"
 import {ReferenceCompletionProvider} from "@server/languages/func/completion/providers/ReferenceCompletionProvider"
 import {ImportPathCompletionProvider} from "@server/languages/func/completion/providers/ImportPathCompletionProvider"
 import {TopLevelCompletionProvider} from "@server/languages/func/completion/providers/TopLevelCompletionProvider"
@@ -83,7 +83,7 @@ export async function provideFuncCompletion(
     )
 
     const result = new CompletionResult()
-    const providers: CompletionProvider[] = [
+    const providers: CompletionProvider<CompletionContext>[] = [
         new ReferenceCompletionProvider(ref),
         new TopLevelCompletionProvider(),
     ]
@@ -93,7 +93,9 @@ export async function provideFuncCompletion(
         provider.addCompletion(ctx, result)
     }
 
-    const asyncProviders: AsyncCompletionProvider[] = [new ImportPathCompletionProvider()]
+    const asyncProviders: AsyncCompletionProvider<CompletionContext>[] = [
+        new ImportPathCompletionProvider(),
+    ]
 
     for (const provider of asyncProviders) {
         if (!provider.isAvailable(ctx)) continue
