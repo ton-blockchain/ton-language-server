@@ -276,6 +276,11 @@ Setup steps:
 
 See [TROUBLESHOOTING.md](./docs/manual/troubleshooting.md).
 
-# License
+## Thanks
+
+- Big thanks to [TonTech](https://ton.tech) for [FunC debugger
+  implementation](https://github.com/krigga/tvm-debugger)!
+
+## License
 
 MIT

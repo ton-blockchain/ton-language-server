@@ -29,6 +29,7 @@ import {BocDecompilerProvider} from "./providers/BocDecompilerProvider"
 import {registerSaveBocDecompiledCommand} from "./commands/saveBocDecompiledCommand"
 import {Range, Position, FileSystemWatcher} from "vscode"
 import {ToolchainConfig} from "@server/settings/settings"
+import {configureDebugging} from "./debugging"
 
 let client: LanguageClient | null = null
 let cachedToolchainInfo: SetToolchainVersionParams | null = null
@@ -40,6 +41,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     await registerBuildTasks(context)
     registerOpenBocCommand(context)
     registerSaveBocDecompiledCommand(context)
+    configureDebugging(context)
 
     const config = vscode.workspace.getConfiguration("ton")
     const openDecompiled = config.get<boolean>("boc.openDecompiledOnOpen")
@@ -664,6 +666,7 @@ async function checkConflictingExtensions(): Promise<void> {
     const conflictingExtensions = [
         {id: "tonwhales.func-vscode", name: "FunC"},
         {id: "ton-core.tolk-vscode", name: "Tolk"},
+        {id: "krigga.tvm-debugger", name: "TVM Debugger"},
     ]
 
     const installedConflicting = conflictingExtensions.filter(ext => {

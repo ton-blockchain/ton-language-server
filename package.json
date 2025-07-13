@@ -198,6 +198,17 @@
             }
         ],
         "snippets": [],
+        "debuggers": [
+            {
+                "type": "tvm",
+                "label": "TVM Debug"
+            }
+        ],
+        "breakpoints": [
+            {
+                "language": "func"
+            }
+        ],
         "commands": [
             {
                 "command": "tolk.build",
@@ -266,6 +277,10 @@
             {
                 "command": "tolk.getUnresolvedIdentifiers",
                 "title": "Tolk: Get Unresolved Identifiers"
+            },
+            {
+                "command": "ton.debug",
+                "title": "TON: Debug contract"
             }
         ],
         "keybindings": [
