@@ -5,6 +5,7 @@ import {TolkFile} from "@server/languages/tolk/psi/TolkFile"
 
 export const InspectionIds = {
     UNUSED_PARAMETER: "unused-parameter",
+    UNUSED_TYPE_PARAMETER: "unused-type-parameter",
     UNUSED_VARIABLE: "unused-variable",
     UNUSED_TOP_LEVEL_DECLARATION: "unused-top-level-declaration",
     DEPRECATED_SYMBOL_USAGE: "deprecated-symbol-usage",

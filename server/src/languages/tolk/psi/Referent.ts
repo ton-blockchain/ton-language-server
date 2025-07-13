@@ -200,6 +200,7 @@ export class Referent {
                 parent.type === "type_alias_declaration" ||
                 parent.type === "struct_declaration" ||
                 parent.type === "struct_field_declaration" ||
+                parent.type === "type_parameter" ||
                 parent.type === "parameter_declaration") && parent.childForFieldName("name")?.equals(node)
             ) {
                 return true
@@ -324,6 +325,18 @@ export class Referent {
         ) {
             // T in `fun T.bar() {}`, search only in outer method
             return Referent.localSearchScope(parentOfType(parent, "method_declaration"))
+        }
+
+        if (node.type === "type_parameter") {
+            return Referent.localSearchScope(
+                parentOfType(
+                    parent,
+                    "function_declaration",
+                    "method_declaration",
+                    "struct_declaration",
+                    "type_alias_declaration",
+                ),
+            )
         }
 
         return null
