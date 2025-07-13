@@ -291,12 +291,18 @@ export class Reference {
         if (resolved) {
             // static methods like Foo.bar();
             if (resolved instanceof Struct || resolved instanceof TypeAlias) {
-                return this.processStaticMethods(resolved, proc, state)
+                return this.processStaticMethods(resolved.name(), proc, state)
             }
         }
 
         const qualifierType = inference?.typeOf(qualifier.node)?.unwrapOption()
         if (!qualifierType) return true
+
+        if (qualifier.node.type === "generic_instantiation") {
+            // Foo<int>.bar()
+            const baseType = qualifierType.unwrapInstantiation()
+            return this.processStaticMethods(baseType.name(), proc, state)
+        }
 
         if (!this.processType(qualifier, qualifierType, proc, state)) return false
 
@@ -306,7 +312,7 @@ export class Reference {
     }
 
     private processStaticMethods(
-        resolved: NamedNode | null,
+        typeName: string,
         proc: ScopeProcessor,
         state: ResolveState,
     ): boolean {
@@ -315,10 +321,19 @@ export class Reference {
             new (class implements ScopeProcessor {
                 public execute(node: InstanceMethod | StaticMethod, state: ResolveState): boolean {
                     if (node instanceof InstanceMethod) return true
-                    const receiverType = node.receiverTypeString()
-                    if (receiverType === resolved?.name() || receiverType === "T") {
+                    const receiverTypeString = node.receiverTypeString()
+                    if (receiverTypeString === typeName || receiverTypeString === "T") {
                         return proc.execute(node, state)
                     }
+
+                    const receiverType = node.receiverTypeNode()
+                    if (receiverType?.type === "type_instantiatedTs") {
+                        const innerName = receiverType.childForFieldName("name")?.text
+                        if (innerName === typeName) {
+                            return proc.execute(node, state)
+                        }
+                    }
+
                     return true
                 }
             })(),
