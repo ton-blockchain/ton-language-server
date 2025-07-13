@@ -8,18 +8,18 @@ import {ResolveState} from "@server/psi/ResolveState"
 import {parentOfType} from "@server/psi/utils"
 import {TLB_CACHE} from "@server/languages/tlb/cache"
 
-export class TlbReference {
+export class Reference {
     private readonly element: TlbNode
     private readonly file: TlbFile
 
     public static resolve(node: TlbNode | null): NamedNode | null {
         if (node === null) return null
-        return new TlbReference(node, node.file).resolve()
+        return new Reference(node, node.file).resolve()
     }
 
     public static multiResolve(node: TlbNode | null): NamedNode[] {
         if (node === null) return []
-        return new TlbReference(node, node.file).multiResolve()
+        return new Reference(node, node.file).multiResolve()
     }
 
     public constructor(element: TlbNode, file: TlbFile) {
@@ -39,10 +39,7 @@ export class TlbReference {
     public resolveImpl(): NamedNode[] {
         const result: NamedNode[] = []
         const state = new ResolveState()
-        this.processResolveVariants(
-            TlbReference.createResolveProcessor(result, this.element),
-            state,
-        )
+        this.processResolveVariants(Reference.createResolveProcessor(result, this.element), state)
         if (result.length === 0) return []
         return result
     }

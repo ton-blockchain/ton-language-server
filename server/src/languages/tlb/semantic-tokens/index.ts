@@ -3,7 +3,7 @@
 import {SemanticTokens} from "vscode-languageserver"
 import {SemanticTokenTypes} from "vscode-languageserver-protocol"
 import {RecursiveVisitor} from "@server/visitor/visitor"
-import {TlbReference} from "@server/languages/tlb/psi/TlbReference"
+import {Reference} from "@server/languages/tlb/psi/Reference"
 import {TlbFile} from "@server/languages/tlb/psi/TlbFile"
 import {NamedNode} from "@server/languages/tlb/psi/TlbNode"
 import {Tokens} from "@server/semantic/tokens"
@@ -25,7 +25,7 @@ export function provideTlbSemanticTokens(file: TlbFile): SemanticTokens {
                 break
             }
             case "identifier": {
-                const resolved = TlbReference.resolve(new NamedNode(node, file))
+                const resolved = Reference.resolve(new NamedNode(node, file))
                 if (resolved) {
                     const insideTypeParameter =
                         resolved.parentOfType("type_parameter") !== undefined
@@ -50,7 +50,7 @@ export function provideTlbSemanticTokens(file: TlbFile): SemanticTokens {
                     break
                 }
 
-                const resolved = TlbReference.resolve(new NamedNode(node, file))
+                const resolved = Reference.resolve(new NamedNode(node, file))
                 if (resolved) {
                     if (resolved.node.parent?.type === "field_named") {
                         tokens.node(node, SemanticTokenTypes.variable)
@@ -68,7 +68,7 @@ export function provideTlbSemanticTokens(file: TlbFile): SemanticTokens {
                 break
             }
             case "type_parameter": {
-                const name = TlbReference.findTypeParameterNode(node)
+                const name = Reference.findTypeParameterNode(node)
                 if (!name) break
                 tokens.node(name, SemanticTokenTypes.typeParameter)
                 break

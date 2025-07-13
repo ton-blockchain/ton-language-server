@@ -74,7 +74,7 @@ export abstract class NamedNode {
  */
 export abstract class BaseReferent<Node extends NamedNode> {
     public abstract readonly resolved: Node | null
-    private readonly file: File
+    public readonly file: File
 
     protected constructor(file: File) {
         this.file = file
