@@ -12,7 +12,7 @@
 !CHANGELOG.md
 !package.json
 !./README-extension.md
-!client/src/languages
-!client/src/assets
+!editors/code/src/languages
+!editors/code/src/assets
 !syntaxes/
 !snippets/

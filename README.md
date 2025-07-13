@@ -1,7 +1,7 @@
 # TON Language Server
 
-Language server and an extension for VSCode-based editors with comprehensive support for TON Blockchain
-languages and technologies including Tolk, FunC, Fift assembly, TL-B, BoC and Blueprint.
+Language server and an [extension for VS Code](./editors/code) and VSCode-based editors with comprehensive support for
+TON Blockchain languages and technologies including Tolk, FunC, Fift assembly, TL-B, BoC and Blueprint.
 
 **[Features] • [Installation] • [Troubleshooting]**
 
