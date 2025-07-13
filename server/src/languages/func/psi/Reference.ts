@@ -364,6 +364,27 @@ export class Reference {
             if (!this.processElsInIndex(proc, state, fileIndex)) return false
         }
 
+        // process all imports tree
+        const visited: Set<string> = new Set([file.uri])
+        const queue: string[] = file.importedFiles()
+
+        while (queue.length > 0) {
+            const path = queue.shift()
+            if (!path) continue
+            if (visited.has(path)) continue
+            visited.add(path)
+
+            const file = ImportResolver.toFile(path)
+            if (!file) continue
+
+            const fileIndex = index.findFile(filePathToUri(path))
+            if (!fileIndex) continue
+
+            if (!this.processElsInIndex(proc, state, fileIndex)) continue
+
+            queue.push(...file.importedFiles())
+        }
+
         return true
     }
 

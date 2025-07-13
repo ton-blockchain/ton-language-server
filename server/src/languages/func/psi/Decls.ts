@@ -100,7 +100,7 @@ export class FunctionBase extends NamedNode {
 
     public get isGetMethod(): boolean {
         const specifiers = this.node.childForFieldName("specifiers")
-        const methodId = specifiers?.children.find(it => it?.type === "method_id")
+        const methodId = specifiers?.children.find(it => it?.type === "method_id") ?? null
         return methodId !== null
     }
 

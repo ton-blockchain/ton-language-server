@@ -26,6 +26,14 @@ export class TopLevelCompletionProvider implements CompletionProvider {
         })
 
         result.add({
+            label: `#pragma`,
+            kind: CompletionItemKind.Keyword,
+            insertText: `#pragma $1;$0`,
+            insertTextFormat: InsertTextFormat.Snippet,
+            weight: CompletionWeight.KEYWORD,
+        })
+
+        result.add({
             label: `const`,
             labelDetails: {
                 detail: " <type> FOO = <value>",

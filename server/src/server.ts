@@ -108,6 +108,7 @@ import {
 } from "@server/languages/func/symbols"
 import {provideFuncDocumentation} from "@server/languages/func/documentation"
 import {collectFuncInlays} from "@server/languages/func/inlays"
+import {provideFuncFoldingRanges} from "@server/languages/func/foldings"
 
 /**
  * Whenever LS is initialized.
@@ -888,6 +889,11 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
             if (isTolkFile(uri)) {
                 const file = await findTolkFile(uri)
                 return provideTolkFoldingRanges(file)
+            }
+
+            if (isFuncFile(uri)) {
+                const file = await findFuncFile(uri)
+                return provideFuncFoldingRanges(file)
             }
 
             return null
