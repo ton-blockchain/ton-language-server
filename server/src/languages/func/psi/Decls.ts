@@ -57,20 +57,20 @@ export class FunctionBase extends NamedNode {
         return new Expression(result, this.file)
     }
 
-    public parameters(skipSelf: boolean = false): Parameter[] {
+    public hasParameters(): boolean {
+        const parametersNode = this.node.childForFieldName("parameters")
+        if (!parametersNode) return false
+        return parametersNode.children.length > 2
+    }
+
+    public parameters(): Parameter[] {
         const parametersNode = this.node.childForFieldName("parameters")
         if (!parametersNode) return []
 
-        const parameters = parametersNode.children
+        return parametersNode.children
             .filter(value => value?.type === "parameter_declaration")
             .filter(value => value !== null)
             .map(value => new Parameter(value, this.file))
-
-        if (skipSelf && parameters.length > 0 && parameters[0].name() === "self") {
-            return parameters.slice(1)
-        }
-
-        return parameters
     }
 
     public typeParameters(): TypeParameter[] {

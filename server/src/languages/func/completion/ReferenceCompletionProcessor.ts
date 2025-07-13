@@ -23,6 +23,7 @@ export interface CompletionItemAdditionalInformation {
     readonly name: string | undefined
     readonly file: FuncFile | undefined
     readonly elementFile: FuncFile | undefined
+    readonly language: "tolk" | "func" | undefined
 }
 
 export class ReferenceCompletionProcessor implements ScopeProcessor {
@@ -33,6 +34,13 @@ export class ReferenceCompletionProcessor implements ScopeProcessor {
     private allowedInContext(node: FuncNode): boolean {
         if (this.ctx.isType) {
             return node instanceof TypeParameter
+        }
+
+        if (this.ctx.afterDot || this.ctx.afterTilda) {
+            if (node instanceof Func) {
+                return node.hasParameters()
+            }
+            return false
         }
 
         return true
@@ -52,10 +60,11 @@ export class ReferenceCompletionProcessor implements ScopeProcessor {
             return true
         }
 
-        const additionalData = {
+        const additionalData: CompletionItemAdditionalInformation = {
             elementFile: node.file,
             file: this.ctx.element.file,
             name: name,
+            language: "func",
         }
 
         if (node instanceof Func) {
@@ -63,7 +72,7 @@ export class ReferenceCompletionProcessor implements ScopeProcessor {
             const thisPrefix = prefix
 
             const signature = node.signaturePresentation(true, true)
-            const hasNoParams = node.parameters(true).length === 0
+            const hasNoParams = node.parameters().length === 0
 
             const needSemicolon = this.needSemicolon(this.ctx.element.node)
 
