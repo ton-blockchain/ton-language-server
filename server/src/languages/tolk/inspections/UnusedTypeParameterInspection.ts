@@ -26,13 +26,13 @@ export class UnusedTypeParameterInspection extends UnusedInspection implements I
 
     private checkTypeParameters(parameters: TypeParameter[], diagnostics: lsp.Diagnostic[]): void {
         for (const param of parameters) {
-            const nameIdent = param.nameIdentifier()
-            if (!nameIdent) continue
+            const name = param.nameIdentifier()
+            if (!name) continue
 
-            this.checkUnused(param.nameIdentifier(), param.file, diagnostics, {
+            this.checkUnused(name, param.file, diagnostics, {
                 kind: "Type parameter",
                 code: "unused-type-parameter",
-                rangeNode: nameIdent,
+                rangeNode: name,
             })
         }
     }
