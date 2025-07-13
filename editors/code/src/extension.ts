@@ -34,6 +34,8 @@ let client: LanguageClient | null = null
 let cachedToolchainInfo: SetToolchainVersionParams | null = null
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
+    await checkConflictingExtensions()
+
     startServer(context).catch(consoleError)
     await registerBuildTasks(context)
     registerOpenBocCommand(context)
@@ -656,4 +658,38 @@ function registerBocWatcher(bocDecompilerProvider: BocDecompilerProvider): FileS
         }
     })
     return bocWatcher
+}
+
+async function checkConflictingExtensions(): Promise<void> {
+    const conflictingExtensions = [
+        {id: "tonwhales.func-vscode", name: "FunC"},
+        {id: "ton-core.tolk-vscode", name: "Tolk"},
+    ]
+
+    const installedConflicting = conflictingExtensions.filter(ext => {
+        const extension = vscode.extensions.getExtension(ext.id)
+        return extension && extension.isActive
+    })
+
+    if (installedConflicting.length === 0) {
+        return
+    }
+
+    const extensionNames = installedConflicting.map(ext => ext.name).join(", ")
+    const message = `Conflicting extensions detected: ${extensionNames}. We recommended to disable them to avoid conflicts. TON extension already includes the same functionality.`
+
+    const action = await vscode.window.showWarningMessage(
+        message,
+        "Show conflicting extensions",
+        "Ignore",
+    )
+
+    if (action === "Show conflicting extensions") {
+        await vscode.commands.executeCommand("workbench.view.extensions")
+
+        await vscode.commands.executeCommand(
+            "workbench.extensions.search",
+            `@id:${installedConflicting[0].id}`,
+        )
+    }
 }
