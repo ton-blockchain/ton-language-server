@@ -42,7 +42,7 @@ FunC support includes:
 - Inlay hints for method id
 - On-the-fly inspections
 - Build and test projects based on Blueprint
-- Debug Blueprint based projects
+- Debug Blueprint-based projects
 
 Fift assembly support includes:
 
