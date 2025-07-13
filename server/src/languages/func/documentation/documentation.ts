@@ -5,9 +5,6 @@ import {Constant, Func, GlobalVariable, TypeParameter} from "@server/languages/f
 import {parentOfType} from "@server/psi/utils"
 import type {Node as SyntaxNode} from "web-tree-sitter"
 
-const CODE_FENCE = "```"
-const DOC_TMPL = `${CODE_FENCE}func\n{signature}\n${CODE_FENCE}\n{documentation}\n`
-
 /**
  * Returns the documentation for the given symbol in Markdown format, or null
  * if there is no documentation for the element.
@@ -95,5 +92,7 @@ export function generateFuncDocFor(node: NamedNode, _place: SyntaxNode): string 
 }
 
 function defaultResult(signature: string, documentation: string = ""): string {
+    const CODE_FENCE = "```"
+    const DOC_TMPL = `${CODE_FENCE}func\n{signature}\n${CODE_FENCE}\n{documentation}\n`
     return DOC_TMPL.replace("{signature}", signature).replace("{documentation}", documentation)
 }
