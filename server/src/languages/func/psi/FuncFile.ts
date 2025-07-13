@@ -5,8 +5,13 @@ import type {Node as SyntaxNode} from "web-tree-sitter"
 import {ImportResolver} from "@server/languages/func/psi/ImportResolver"
 import {NamedNode} from "@server/languages/func/psi/FuncNode"
 import {Constant, Func, GlobalVariable} from "@server/languages/func/psi/Decls"
+import * as path from "node:path"
 
 export class FuncFile extends File {
+    public override get name(): string {
+        return path.basename(this.path)
+    }
+
     public get fromStdlib(): boolean {
         return this.uri.includes("stdlib.fc")
     }

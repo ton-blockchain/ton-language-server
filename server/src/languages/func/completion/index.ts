@@ -15,6 +15,8 @@ import type {
     CompletionProvider,
 } from "@server/languages/func/completion/CompletionProvider"
 import {ReferenceCompletionProvider} from "@server/languages/func/completion/providers/ReferenceCompletionProvider"
+import {ImportPathCompletionProvider} from "@server/languages/func/completion/providers/ImportPathCompletionProvider"
+import {TopLevelCompletionProvider} from "@server/languages/func/completion/providers/TopLevelCompletionProvider"
 
 export async function provideFuncCompletion(
     file: FuncFile,
@@ -81,14 +83,17 @@ export async function provideFuncCompletion(
     )
 
     const result = new CompletionResult()
-    const providers: CompletionProvider[] = [new ReferenceCompletionProvider(ref)]
+    const providers: CompletionProvider[] = [
+        new ReferenceCompletionProvider(ref),
+        new TopLevelCompletionProvider(),
+    ]
 
     for (const provider of providers) {
         if (!provider.isAvailable(ctx)) continue
         provider.addCompletion(ctx, result)
     }
 
-    const asyncProviders: AsyncCompletionProvider[] = []
+    const asyncProviders: AsyncCompletionProvider[] = [new ImportPathCompletionProvider()]
 
     for (const provider of asyncProviders) {
         if (!provider.isAvailable(ctx)) continue

@@ -1007,7 +1007,7 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
             foldingRangeProvider: true,
             completionProvider: {
                 resolveProvider: true,
-                triggerCharacters: [".", "@"], // @ for annotations
+                triggerCharacters: [".", "@", "#"], // @ for annotations, # for imports/pragmas
             },
             signatureHelpProvider: {
                 triggerCharacters: ["(", ","],

@@ -49,6 +49,12 @@ export function provideFuncSemanticTokens(file: FuncFile): SemanticTokens {
         }
 
         if (type === "identifier" || type === "type_identifier") {
+            const name = n.text
+            if (name === "true" || name === "false") {
+                tokens.node(n, lsp.SemanticTokenTypes.keyword)
+                return true
+            }
+
             const element = new NamedNode(n, file)
             const resolved = Reference.resolve(element)
             if (!resolved) return true

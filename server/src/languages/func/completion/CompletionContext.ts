@@ -50,6 +50,14 @@ export class CompletionContext {
             this.topLevel = true
         }
 
+        if (
+            parent.type === "type_identifier" &&
+            parent.parent?.type === "ERROR" &&
+            parent.parent.parent?.type === "source_file"
+        ) {
+            this.topLevel = true
+        }
+
         if (!this.topLevel) {
             if (parent.type === "expression_statement") {
                 this.isStatement = true
