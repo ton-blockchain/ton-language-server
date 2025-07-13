@@ -39,6 +39,10 @@ export class FuncFile extends File {
             .filter(it => it !== null)
     }
 
+    public getDecls(): NamedNode[] {
+        return [...this.getFunctions(), ...this.getConstants(), ...this.getGlobalVariables()]
+    }
+
     public getFunctions(): Func[] {
         return this.getNodesByType("function_declaration", Func)
     }

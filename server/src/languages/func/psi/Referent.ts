@@ -183,6 +183,7 @@ export class Referent {
                 parent.type === "function_declaration" ||
                 parent.type === "constant_declaration" ||
                 parent.type === "var_declaration" ||
+                parent.type === "type_parameter" ||
                 parent.type === "parameter_declaration") && parent.childForFieldName("name")?.equals(node)
             ) {
                 return true
@@ -254,6 +255,10 @@ export class Referent {
             node.type === "constant_declaration"
         ) {
             return GlobalSearchScope.allFiles()
+        }
+
+        if (node.type === "type_parameter") {
+            return Referent.localSearchScope(parentOfType(parent, "function_declaration"))
         }
 
         return null

@@ -109,6 +109,7 @@ import {
 import {provideFuncDocumentation} from "@server/languages/func/documentation"
 import {collectFuncInlays} from "@server/languages/func/inlays"
 import {provideFuncFoldingRanges} from "@server/languages/func/foldings"
+import {runFuncInspections} from "@server/languages/func/inspections"
 
 /**
  * Whenever LS is initialized.
@@ -186,6 +187,10 @@ async function handleFileOpen(
     if (isFuncFile(uri, event)) {
         const file = await findFuncFile(uri)
         funcIndex.addFile(uri, file)
+
+        if (initializationFinished) {
+            await runFuncInspections(uri, file, true)
+        }
     }
 
     if (isFiftFile(uri, event)) {
@@ -475,6 +480,10 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
             funcIndex.fileChanged(uri)
             const file = reparseFuncFile(uri, event.document.getText())
             funcIndex.addFile(uri, file, false)
+
+            if (initializationFinished) {
+                await runFuncInspections(uri, file, false) // linters require saved files, see onDidSave
+            }
         }
     })
 
@@ -484,6 +493,13 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
             if (initializationFinished) {
                 const file = await findTolkFile(uri)
                 await runTolkInspections(uri, file, true)
+            }
+        }
+
+        if (isFuncFile(uri, event)) {
+            if (initializationFinished) {
+                const file = await findFuncFile(uri)
+                await runFuncInspections(uri, file, true)
             }
         }
     })

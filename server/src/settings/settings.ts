@@ -51,6 +51,9 @@ export interface FuncSettings {
         readonly disable: boolean
         readonly showMethodId: boolean
     }
+    readonly inspections: {
+        readonly disabled: readonly string[] // list of disabled inspection ids
+    }
 }
 
 export interface ServerSettings {
@@ -98,6 +101,9 @@ const defaultSettings: ServerSettings = {
         hints: {
             disable: false,
             showMethodId: false,
+        },
+        inspections: {
+            disabled: [], // no disabled inspections by default
         },
     },
     fift: {
@@ -159,6 +165,11 @@ function mergeSettings(vsSettings: Partial<ServerSettings>): ServerSettings {
                 disable: vsSettings.func?.hints.disable ?? defaultSettings.func.hints.disable,
                 showMethodId:
                     vsSettings.func?.hints.showMethodId ?? defaultSettings.func.hints.showMethodId,
+            },
+            inspections: {
+                disabled:
+                    vsSettings.func?.inspections.disabled ??
+                    defaultSettings.func.inspections.disabled,
             },
         },
         fift: {

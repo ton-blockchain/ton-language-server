@@ -415,6 +415,20 @@
                             "type-compatibility"
                         ],
                         "description": "List of disabled code inspections. All inspections are enabled by default."
+                    },
+                    "ton.func.inspections.disabled": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "enum": [
+                                "unused-parameter",
+                                "unused-type-parameter",
+                                "unused-variable",
+                                "unused-import"
+                            ]
+                        },
+                        "default": [],
+                        "description": "List of disabled code inspections for FunC. All inspections are enabled by default."
                     }
                 }
             },
