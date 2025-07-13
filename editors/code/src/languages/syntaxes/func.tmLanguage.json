@@ -67,7 +67,7 @@
             "patterns": [
                 {
                     "name": "keyword.control.func",
-                    "match": "\\b(?:if|ifnot|elseif|elseifnot|else|while|do|until|repeat|return)\\b"
+                    "match": "\\b(?:if|ifnot|elseif|elseifnot|else|while|do|until|repeat|return|try|catch)\\b"
                 },
                 {
                     "name": "keyword.declaration.func",
