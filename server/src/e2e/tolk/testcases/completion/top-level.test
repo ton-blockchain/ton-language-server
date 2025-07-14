@@ -7,7 +7,7 @@ Top level completion
 13 fun name() {}
 13 get fun name() {}
 13 global foo: <type> = <value>
-13 import "";
+13 import ""
 13 inline fun name() {}
 13 inline_ref fun name() {}
 13 method fun Foo.name(self) {}
@@ -31,7 +31,7 @@ fun foo() {}
 13 fun name() {}
 13 get fun name() {}
 13 global foo: <type> = <value>
-13 import "";
+13 import ""
 13 inline fun name() {}
 13 inline_ref fun name() {}
 13 method fun Foo.name(self) {}
@@ -57,7 +57,7 @@ fun foo() {}
 13 fun name() {}
 13 get fun name() {}
 13 global foo: <type> = <value>
-13 import "";
+13 import ""
 13 inline fun name() {}
 13 inline_ref fun name() {}
 13 method fun Foo.name(self) {}

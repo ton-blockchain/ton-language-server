@@ -14,10 +14,10 @@ export class TopLevelCompletionProvider implements CompletionProvider<Completion
         result.add({
             label: `import`,
             labelDetails: {
-                detail: ` "";`,
+                detail: ` ""`,
             },
             kind: CompletionItemKind.Keyword,
-            insertText: `import "$1";$0`,
+            insertText: `import "$1"$0`,
             insertTextFormat: InsertTextFormat.Snippet,
             weight: CompletionWeight.KEYWORD,
         })

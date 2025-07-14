@@ -969,7 +969,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tree-sitter-cli@npm:^0.25.8":
+"tree-sitter-cli@npm:^0.25.0":
   version: 0.25.8
   resolution: "tree-sitter-cli@npm:0.25.8"
   bin:
@@ -986,7 +986,7 @@ __metadata:
     node-gyp-build: "npm:^4.8.4"
     prebuildify: "npm:^6.0.0"
     prettier: "npm:^3.2.5"
-    tree-sitter-cli: "npm:^0.25.8"
+    tree-sitter-cli: "npm:^0.25.0"
   peerDependencies:
     tree-sitter: ^0.21.1
   peerDependenciesMeta:
