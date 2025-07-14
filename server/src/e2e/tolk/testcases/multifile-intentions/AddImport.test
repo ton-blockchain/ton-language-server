@@ -7,7 +7,7 @@ fun main() {
 ---FILE:other.tolk
 fun someFunction() {}
 ------------------------------------------------------------------------
-import "other";
+import "other"
 
 fun main() {
     someFunction();
@@ -22,7 +22,7 @@ fun main() {
 ---FILE:other.tolk
 global globalVar: int;
 ------------------------------------------------------------------------
-import "other";
+import "other"
 
 fun main() {
     globalVar;
@@ -36,7 +36,7 @@ fun main(): <caret>Int {
 ---FILE:other.tolk
 type Int = int;
 ------------------------------------------------------------------------
-import "other";
+import "other"
 
 fun main(): Int {
 }
@@ -50,7 +50,7 @@ fun main() {
 ---FILE:other.tolk
 const FOO: int = 100;
 ------------------------------------------------------------------------
-import "other";
+import "other"
 
 fun main() {
     FOO;
@@ -68,7 +68,7 @@ fun main() {
 struct Foo {}
 ------------------------------------------------------------------------
 import "some.tolk";
-import "other";
+import "other"
 
 fun main() {
     Foo{};

@@ -159,7 +159,7 @@ export async function provideTolkCompletionResolve(
     const extraLine = positionToInsert.line === 0 && file.imports().length === 0 ? "\n" : ""
 
     const diff = FileDiff.forFile(elementFile.uri)
-    diff.appendAsPrevLine(positionToInsert.line, `import "${importPath}";${extraLine}`)
+    diff.appendAsPrevLine(positionToInsert.line, `import "${importPath}"${extraLine}`)
 
     return {
         ...item,
