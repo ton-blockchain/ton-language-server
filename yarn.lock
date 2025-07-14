@@ -7502,6 +7502,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"tolkfmt-test-dev@npm:0.0.11":
+  version: 0.0.11
+  resolution: "tolkfmt-test-dev@npm:0.0.11"
+  dependencies:
+    cac: "npm:^6.7.14"
+    glob: "npm:^10.3.10"
+    web-tree-sitter: "npm:^0.25.6"
+  bin:
+    tolkfmt: bin/tolkfmt
+  checksum: 10c0/0ea40aece56624d98af37de53b79f9daa2e06b8aff7a2e0e5925718fa5cc14a00488559fd1f05a5ef0da70dcfa9736be7dfe3dc318d749cfb22d796fd0498b73
+  languageName: node
+  linkType: hard
+
 "ton-assembly-test-dev@npm:0.0.16":
   version: 0.0.16
   resolution: "ton-assembly-test-dev@npm:0.0.16"
@@ -8006,6 +8019,7 @@ __metadata:
     jest: "npm:^29.7.0"
     mocha: "npm:^10.3.0"
     prettier: "npm:3.4.2"
+    tolkfmt-test-dev: "npm:0.0.11"
     ton-assembly-test-dev: "npm:0.0.16"
     tree-sitter-cli: "npm:^0.25.0"
     ts-jest: "npm:^29.2.6"
@@ -8058,10 +8072,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"web-tree-sitter@npm:^0.25.0":
-  version: 0.25.1
-  resolution: "web-tree-sitter@npm:0.25.1"
-  checksum: 10c0/0b94c7488d8196d9c9019e50903088705b4f659ae182153461d9819e6eec921941c4866dace43e698f09e800ac4de3cfc19ca85caa1dee52db54135213412ded
+"web-tree-sitter@npm:^0.25.0, web-tree-sitter@npm:^0.25.6":
+  version: 0.25.7
+  resolution: "web-tree-sitter@npm:0.25.7"
+  checksum: 10c0/75799ec043455364c1f24a8d4a1bb94b22cbf655b109fdc72038d661a6224ee99f313e44625758dec59a5192aab4ba53315745c3cc86ca4c524e74a247b4d964
   languageName: node
   linkType: hard
 

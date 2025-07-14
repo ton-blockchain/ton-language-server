@@ -118,6 +118,7 @@ import {
 } from "@server/languages/func/rename/file-renaming"
 import {IndexingRootKind} from "@server/indexing/indexing"
 import {FuncIndexingRoot} from "@server/languages/func/indexing-root"
+import {formatTolkFile} from "@server/languages/tolk/format/format"
 
 /**
  * Whenever LS is initialized.
@@ -1021,6 +1022,28 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
         return [...provideTolkWorkspaceSymbols(), ...provideFuncWorkspaceSymbols()]
     })
 
+    connection.onRequest(
+        lsp.DocumentFormattingRequest.type,
+        async (params: lsp.DocumentFormattingParams): Promise<lsp.TextEdit[] | null> => {
+            if (isTolkFile(params.textDocument.uri)) {
+                return formatTolkFile(params.textDocument.uri, undefined)
+            }
+
+            return null
+        },
+    )
+
+    connection.onRequest(
+        lsp.DocumentRangeFormattingRequest.type,
+        async (params: lsp.DocumentRangeFormattingParams): Promise<lsp.TextEdit[] | null> => {
+            if (isTolkFile(params.textDocument.uri)) {
+                return formatTolkFile(params.textDocument.uri, params.range)
+            }
+
+            return null
+        },
+    )
+
     // Custom LSP requests
 
     connection.onRequest(
@@ -1045,6 +1068,7 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
         capabilities: {
             textDocumentSync: lsp.TextDocumentSyncKind.Incremental,
             documentFormattingProvider: true,
+            documentRangeFormattingProvider: true,
             documentSymbolProvider: true,
             workspaceSymbolProvider: true,
             definitionProvider: true,
