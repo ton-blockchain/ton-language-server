@@ -11,7 +11,7 @@ const distDir = path.resolve(__dirname, "dist")
 
 /**@type {import("webpack").Configuration}*/
 const config = {
-    mode: "production",
+    mode: "development",
 
     target: "node", // vscode extensions run in webworker context for VS Code web 📖 -> https://webpack.js.org/configuration/target/#target
 
