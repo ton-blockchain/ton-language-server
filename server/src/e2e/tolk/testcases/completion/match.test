@@ -25,6 +25,7 @@ fun foo(value: int | slice) {
 22 int => {}
 22 slice => {}
 22 else => {}
+14 Fill all cases...
 
 ========================================================================
 Match over type completion, union type 2
@@ -54,6 +55,7 @@ fun main(msg: AllowedMessageToMinter) {
 22 MintNewJettons => {}
 22 RequestWalletAddress => {}
 22 else => {}
+14 Fill all cases...
 
 ========================================================================
 Match over type completion, union type, match with single arm
@@ -228,6 +230,7 @@ fun foo(value: Foo) {
 ------------------------------------------------------------------------
 22 Foo => {}
 22 else => {}
+14 Fill all cases...
 
 ========================================================================
 Match over struct completion with single arm
