@@ -6,8 +6,8 @@ All notable changes to this project will be documented in this file.
 
 This release is dedicated to FunC and Tolk.
 
-We added FunC support with many useful features and even debugging support via sandbox (big thanks to TonTech for FunC
-debugger implementation)!
+We added FunC support with many useful features and even debugging support via sandbox (big thanks
+to [TonTech](https://ton.tech) for FunC debugger implementation)!
 
 We also improved Tolk support and added an experimental formatter for Tolk, it is still in early stages, but already
 supports all syntax of Tolk.
@@ -46,8 +46,6 @@ supports all syntax of Tolk.
 ### New Contributors
 
 - @Danil42Russia made their first contribution in https://github.com/ton-blockchain/ton-language-server/pull/16
-
-**Full Changelog**: https://github.com/ton-blockchain/ton-language-server/compare/v0.1.1...v0.2.0
 
 ## [0.1.1] - 07.07.2025
 
