@@ -368,6 +368,26 @@ fun main(msg: AllowedMessageToMinter) {
 }
 
 ========================================================================
+Match over struct type completion, union type, fill all
+========================================================================
+struct Foo {}
+
+fun foo(value: Foo) {
+    match (value) {
+        Fill<caret>
+    }
+}
+------------------------------------------------------------------------
+struct Foo {}
+
+fun foo(value: Foo) {
+    match (value) {
+        Foo => {<caret>}
+        else => {}
+    }
+}
+
+========================================================================
 Match over value completion, no fill all
 ========================================================================
 const Fill = 100
