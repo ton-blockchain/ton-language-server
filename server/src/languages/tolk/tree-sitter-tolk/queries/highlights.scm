@@ -7,6 +7,7 @@
 "try" @keyword
 "var" @keyword
 "val" @keyword
+"lazy" @keyword
 "else" @keyword
 "true" @keyword
 "tolk" @keyword
@@ -74,6 +75,8 @@
 (annotation) @attribute
 
 (function_declaration
+  name: (identifier) @function)
+(method_declaration
   name: (identifier) @function)
 (get_method_declaration
   name: (identifier) @function)

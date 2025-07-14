@@ -7531,12 +7531,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tree-sitter-cli@npm:^0.25.0":
-  version: 0.25.1
-  resolution: "tree-sitter-cli@npm:0.25.1"
+"tree-sitter-cli@npm:^0.25.8":
+  version: 0.25.8
+  resolution: "tree-sitter-cli@npm:0.25.8"
   bin:
     tree-sitter: cli.js
-  checksum: 10c0/c61e68d3a1274be1f213b0d9cfdc42b27603293b848c419268edacdf914d7bbd3e3f79d88274e1f33f93a1abe8f254a80ed89af5bdc4807d062141996e486b9c
+  checksum: 10c0/a87ade0276e3052b2d3f95c7d39cd80ac72063e9a38b53d9e10d005a2d672b81e8a69d0cc73f5aa5a890892222cf4576742582df76434005d093775560798faf
   languageName: node
   linkType: hard
 
@@ -8021,7 +8021,7 @@ __metadata:
     prettier: "npm:3.4.2"
     tolkfmt-test-dev: "npm:0.0.13"
     ton-assembly-test-dev: "npm:0.0.16"
-    tree-sitter-cli: "npm:^0.25.0"
+    tree-sitter-cli: "npm:^0.25.8"
     ts-jest: "npm:^29.2.6"
     ts-loader: "npm:^9.5.1"
     ts-node: "npm:^10.9.2"

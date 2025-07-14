@@ -12,14 +12,14 @@
     "metadata": {
         "version": "0.4.5",
         "license": "MIT",
-        "description": "Tolk grammar for node-tree-sitter",
+        "description": "A tree-sitter grammar for the Tolk assembly programming language",
         "authors": [
             {
                 "name": "TON Blockchain"
             }
         ],
         "links": {
-            "repository": "https://github.com/tree-sitter/tree-sitter-tolk"
+            "repository": "https://github.com/ton-blockchain/tree-sitter-tolk"
         }
     },
     "bindings": {
