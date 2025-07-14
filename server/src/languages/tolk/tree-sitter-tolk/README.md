@@ -2,8 +2,6 @@
 
 Tolk grammar for [tree-sitter](https://github.com/tree-sitter/tree-sitter).
 
-Based on https://github.com/akifoq/tree-sitter-func, but actually almost rewritten.
-
 ## How to update and test grammar
 
 You should update `grammar.js` and/or `grammar/` folder (required from js).
@@ -17,13 +15,23 @@ tree-sitter generate
 
 (will change `src/`).
 
+To play with parser, you can run interactive playground:
+
+```bash
+yarn play
+```
+
 To manually test, create `tmp.tolk` with some content, and run
 
 ```bash
 tree-sitter parse tmp.tolk
 ```
 
-and manually inspect the output.
+To see all parsing steps run
+
+```bash
+tree-sitter parse -D --open-log tmp.tolk
+```
 
 If you introduce new keywords, also modify `queries/highlights.scm`.
 This file is not needed for VS Code, but
@@ -40,7 +48,6 @@ Finally, to build wasm, run **in the project folder**
 yarn grammar:wasm
 ```
 
-This is executed in Docker and may take a long time for the first run.
 On finish, `tree-sitter-tolk.wasm` will be saved into the `server/` folder.
 
 Don't forget to run/update JS tests after modifying grammar!
