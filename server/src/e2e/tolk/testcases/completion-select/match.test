@@ -303,3 +303,85 @@ fun foo() {
         else => {<caret>},
     }
 }
+
+========================================================================
+Match over type completion, union type, fill all
+========================================================================
+fun foo(value: int | slice) {
+    match (value) {
+        Fill<caret>
+    }
+}
+------------------------------------------------------------------------
+fun foo(value: int | slice) {
+    match (value) {
+        int => {<caret>}
+        slice => {}
+        else => {}
+    }
+}
+
+========================================================================
+Match over type completion, union type 2, fill all
+========================================================================
+struct MintNewJettons
+struct BurnNotificationForMinter
+struct RequestWalletAddress
+struct ChangeMinterAdmin
+struct ChangeMinterContent
+
+type AllowedMessageToMinter =
+    | MintNewJettons
+    | BurnNotificationForMinter
+    | RequestWalletAddress
+    | ChangeMinterAdmin
+    | ChangeMinterContent
+
+fun main(msg: AllowedMessageToMinter) {
+    match (msg) {
+        Fill<caret>
+    }
+}
+------------------------------------------------------------------------
+struct MintNewJettons
+struct BurnNotificationForMinter
+struct RequestWalletAddress
+struct ChangeMinterAdmin
+struct ChangeMinterContent
+
+type AllowedMessageToMinter =
+    | MintNewJettons
+    | BurnNotificationForMinter
+    | RequestWalletAddress
+    | ChangeMinterAdmin
+    | ChangeMinterContent
+
+fun main(msg: AllowedMessageToMinter) {
+    match (msg) {
+        MintNewJettons => {<caret>}
+        BurnNotificationForMinter => {}
+        RequestWalletAddress => {}
+        ChangeMinterAdmin => {}
+        ChangeMinterContent => {}
+        else => {}
+    }
+}
+
+========================================================================
+Match over value completion, no fill all
+========================================================================
+const Fill = 100
+
+fun foo(value: int) {
+    match (value) {
+        Fil<caret>
+    }
+}
+------------------------------------------------------------------------
+const Fill = 100
+
+fun foo(value: int) {
+    match (value) {
+        Fill<caret> => {}
+    }
+}

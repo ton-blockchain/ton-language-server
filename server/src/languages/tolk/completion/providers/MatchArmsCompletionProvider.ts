@@ -6,7 +6,7 @@ import type {CompletionContext} from "@server/languages/tolk/completion/Completi
 import {CompletionResult, CompletionWeight} from "@server/completion/WeightedCompletionItem"
 import {parentOfType} from "@server/psi/utils"
 import {inferenceOf} from "@server/languages/tolk/type-inference"
-import {UnionTy} from "@server/languages/tolk/types/ty"
+import {StructTy, UnionTy} from "@server/languages/tolk/types/ty"
 import {ResolveState} from "@server/psi/ResolveState"
 import {ReferenceCompletionProcessor} from "@server/languages/tolk/completion/ReferenceCompletionProcessor"
 import {Reference} from "@server/languages/tolk/psi/Reference"
@@ -32,7 +32,7 @@ export class MatchArmsCompletionProvider implements CompletionProvider<Completio
         const exprTy = inference.typeOf(expr)?.baseType()
         if (!exprTy) return
 
-        if (!(exprTy instanceof UnionTy)) {
+        if (!(exprTy instanceof UnionTy) && !(exprTy instanceof StructTy)) {
             // non type-match
 
             const state = new ResolveState()
@@ -93,7 +93,29 @@ export class MatchArmsCompletionProvider implements CompletionProvider<Completio
             handledTypes.add(type.name())
         }
 
-        for (const variant of exprTy.elements) {
+        const variants = exprTy instanceof UnionTy ? exprTy.elements : [exprTy]
+
+        if (arms.length === 0) {
+            const lines: string[] = []
+
+            for (const [index, variant] of variants.entries()) {
+                lines.push(`${variant.name()} => {${index === 0 ? "$0" : ""}}`)
+            }
+
+            lines.push("else => {}")
+
+            const insertText = lines.join("\n")
+
+            result.add({
+                label: "Fill all cases...",
+                kind: CompletionItemKind.Snippet,
+                insertTextFormat: InsertTextFormat.Snippet,
+                insertText: insertText.trim(),
+                weight: CompletionWeight.SNIPPET - 10,
+            })
+        }
+
+        for (const variant of variants) {
             const variantName = variant.name()
             if (handledTypes.has(variantName)) continue
 
