@@ -493,6 +493,21 @@
                         "description": "Automatically open decompiled Fift assembly when opening BoC files"
                     }
                 }
+            },
+            {
+                "title": "Formatter",
+                "properties": {
+                    "ton.tolk.formatter.useFormatter": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Use experimental Tolk formatter"
+                    },
+                    "ton.tolk.formatter.sortImports": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Sort imports on format"
+                    }
+                }
             }
         ],
         "customEditors": [

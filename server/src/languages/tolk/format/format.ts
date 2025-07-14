@@ -7,13 +7,19 @@ import {createTolkParser} from "@server/parser"
 export async function formatTolkFile(
     uri: string,
     range: Range | undefined,
+    options: {
+        readonly useFormatter: boolean
+        readonly sortImports: boolean
+    },
 ): Promise<lsp.TextEdit[] | null> {
+    if (!options.useFormatter) return null
+
     const file = await findTolkFile(uri)
 
     const formatted = await format(file.content, {
         parser: createTolkParser(),
         range,
-        sortImports: false,
+        sortImports: options.sortImports,
     })
 
     if (formatted === file.content) {

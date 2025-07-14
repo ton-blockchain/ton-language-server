@@ -1025,8 +1025,11 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
     connection.onRequest(
         lsp.DocumentFormattingRequest.type,
         async (params: lsp.DocumentFormattingParams): Promise<lsp.TextEdit[] | null> => {
-            if (isTolkFile(params.textDocument.uri)) {
-                return formatTolkFile(params.textDocument.uri, undefined)
+            const uri = params.textDocument.uri
+            const settings = await getDocumentSettings(uri)
+
+            if (isTolkFile(uri)) {
+                return formatTolkFile(uri, undefined, settings.tolk.formatter)
             }
 
             return null
@@ -1036,8 +1039,11 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
     connection.onRequest(
         lsp.DocumentRangeFormattingRequest.type,
         async (params: lsp.DocumentRangeFormattingParams): Promise<lsp.TextEdit[] | null> => {
-            if (isTolkFile(params.textDocument.uri)) {
-                return formatTolkFile(params.textDocument.uri, params.range)
+            const uri = params.textDocument.uri
+            const settings = await getDocumentSettings(uri)
+
+            if (isTolkFile(uri)) {
+                return formatTolkFile(uri, params.range, settings.tolk.formatter)
             }
 
             return null
