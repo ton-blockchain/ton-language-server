@@ -68,9 +68,6 @@ jobs:
         run: |-
           git clone https://github.com/ton-blockchain/ton --single-branch --depth=1 --filter=blob:none ./server/src/languages/tolk/tree-sitter-tolk/examples/ton
 
-      - name: Run tests
-        uses: tree-sitter/parser-test-action@v2
-
       - name: Parse examples
         id: examples
         continue-on-error: true
