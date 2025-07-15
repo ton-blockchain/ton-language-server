@@ -74,11 +74,11 @@ jobs:
         uses: tree-sitter/parse-action@v4
         with:
           files: |
-            **/examples/*.tolk
-            **/examples/ton/**/tolk-stdlib/*.tolk
-            **/examples/ton/**/tolk-tester/tests/*.tolk
+            server/src/languages/tolk/tree-sitter-tolk/examples/*.tolk
+            server/src/languages/tolk/tree-sitter-tolk/examples/ton/**/tolk-stdlib/*.tolk
+            server/src/languages/tolk/tree-sitter-tolk/examples/ton/**/tolk-tester/tests/*.tolk
           invalid-files: |
-            **/examples/ton/**/tolk-tester/tests/invalid-*/*.tolk
+            server/src/languages/tolk/tree-sitter-tolk/examples/ton/**/tolk-tester/tests/invalid-*/*.tolk
 
       - uses: actions/upload-artifact@v4
         if: steps.examples.outputs.failures != ''
