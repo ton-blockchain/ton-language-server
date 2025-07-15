@@ -50,6 +50,9 @@ jobs:
           version: 3.1.54
           actions-cache-folder: "emsdk-cache"
 
+      - name: Set up tree-sitter
+        uses: tree-sitter/setup-action/cli@v2
+
       - name: Install dependencies
         env:
           YARN_ENABLE_HARDENED_MODE: false
@@ -60,3 +63,27 @@ jobs:
 
       - name: Test parsers
         run: yarn test:grammars
+
+      - name: Set up examples
+        run: |-
+          git clone https://github.com/ton-blockchain/ton --single-branch --depth=1 --filter=blob:none ./server/src/languages/tolk/tree-sitter-tolk/examples
+
+      - name: Run tests
+        uses: tree-sitter/parser-test-action@v2
+
+      - name: Parse examples
+        id: examples
+        continue-on-error: true
+        uses: tree-sitter/parse-action@v4
+        with:
+          files: |
+            examples/**/tolk-stdlib/*.go
+            examples/**/tolk-tester/tests/*.go
+          invalid-files: |
+            examples/**/tolk-tester/tests/invalid-*/*.go
+
+      - uses: actions/upload-artifact@v4
+        if: steps.examples.outputs.failures != ''
+        with:
+          name: failures-${{matrix.os}}
+          path: ${{steps.examples.outputs.failures}}
