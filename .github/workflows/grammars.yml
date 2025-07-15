@@ -66,7 +66,7 @@ jobs:
 
       - name: Set up examples
         run: |-
-          git clone https://github.com/ton-blockchain/ton --single-branch --depth=1 --filter=blob:none ./server/src/languages/tolk/tree-sitter-tolk/examples
+          git clone https://github.com/ton-blockchain/ton --single-branch --depth=1 --filter=blob:none ./server/src/languages/tolk/tree-sitter-tolk/examples/ton
 
       - name: Run tests
         uses: tree-sitter/parser-test-action@v2
@@ -77,10 +77,10 @@ jobs:
         uses: tree-sitter/parse-action@v4
         with:
           files: |
-            examples/**/tolk-stdlib/*.go
-            examples/**/tolk-tester/tests/*.go
+            examples/ton/**/tolk-stdlib/*.go
+            examples/ton/**/tolk-tester/tests/*.go
           invalid-files: |
-            examples/**/tolk-tester/tests/invalid-*/*.go
+            examples/ton/**/tolk-tester/tests/invalid-*/*.go
 
       - uses: actions/upload-artifact@v4
         if: steps.examples.outputs.failures != ''
