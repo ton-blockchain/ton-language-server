@@ -396,6 +396,11 @@
                         "type": "boolean",
                         "default": true,
                         "description": "Show method ID hints for functions with method_id"
+                    },
+                    "ton.func.hints.implicitConstantType": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Show type hints for constants without explicit type"
                     }
                 }
             },
