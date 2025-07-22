@@ -87,6 +87,11 @@ export class Reference {
             // so process whole `foo: Int` node
             const parent = this.element.node.parent
             if (!parent) return true
+            if (parent.type === "tensor_expression") {
+                // catch (error)
+                //        ^^^^^ this
+                return proc.execute(this.element, state)
+            }
             return proc.execute(Reference.declarationAstToNode(parent, this.element.file), state)
         }
 
@@ -108,6 +113,16 @@ export class Reference {
         // foo: int
         // ^^^^^^^^ this
         const parent = identifier.parent
+
+        if (parent?.type === "tensor_expression") {
+            // catch (error)
+            //        ^^^^^ parent
+            // ^^^^^^^^^^^^^ grand
+            const grand = parent.parent
+            if (grand?.type === "catch_clause") {
+                return true
+            }
+        }
 
         // foo: in
         // ^^^ this
@@ -219,13 +234,24 @@ export class Reference {
             // catch (error)
             // catch (error, data)
             if (descendant.type === "catch_clause") {
-                const catchVar1 = descendant.childForFieldName("catch_var1")
-                if (catchVar1) {
-                    if (!proc.execute(new NamedNode(catchVar1, file), state)) return false
-                }
-                const catchVar2 = descendant.childForFieldName("catch_var2")
-                if (catchVar2) {
-                    if (!proc.execute(new NamedNode(catchVar2, file), state)) return false
+                // catch (error)
+                //       ^^^^^^^ this
+                const expr = descendant.childForFieldName("catch_expr")
+                if (expr?.type === "tensor_expression") {
+                    // catch (data, error)
+                    //        ^^^^  ^^^^^ this
+                    const expressions = expr
+                        .childrenForFieldName("expressions")
+                        .filter(it => it?.isNamed)
+
+                    const [catchVar1, catchVar2] = expressions
+
+                    if (catchVar1) {
+                        if (!proc.execute(new NamedNode(catchVar1, file), state)) return false
+                    }
+                    if (catchVar2) {
+                        if (!proc.execute(new NamedNode(catchVar2, file), state)) return false
+                    }
                 }
             }
 
