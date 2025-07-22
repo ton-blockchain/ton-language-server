@@ -306,16 +306,15 @@
                     "type": "FIELD",
                     "name": "value",
                     "content": {
-                        "type": "CHOICE",
-                        "members": [
-                            {
-                                "type": "SYMBOL",
-                                "name": "_expression"
-                            }
-                        ]
+                        "type": "SYMBOL",
+                        "name": "constant_declaration_value"
                     }
                 }
             ]
+        },
+        "constant_declaration_value": {
+            "type": "SYMBOL",
+            "name": "_expression"
         },
         "function_declaration": {
             "type": "SEQ",
