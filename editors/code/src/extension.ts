@@ -609,6 +609,10 @@ Node.js: ${info.environment.nodeVersion ?? "Unknown"}`
                 }
             }
         }),
+        vscode.commands.registerCommand("ton.copyToClipboard", (str: string) => {
+            void vscode.env.clipboard.writeText(str)
+            void vscode.window.showInformationMessage(`Copied ${str} to clipboard`)
+        }),
     )
 }
 
