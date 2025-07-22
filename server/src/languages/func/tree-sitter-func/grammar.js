@@ -359,9 +359,9 @@ const FUNC_GRAMMAR = {
     primitive_type: $ => choice("int", "cell", "slice", "builder", "cont", "tuple"),
     // constant_type: $ => choice("int", "slice"),
 
-    tensor_type: $ => choice(seq("(", ")"), seq("(", commaSep2($._type_hint), ")")),
+    tensor_type: $ => choice(seq("(", ")"), seq("(", field("types", commaSep2($._type_hint)), ")")),
 
-    tuple_type: $ => seq("[", commaSep($._type_hint), "]"),
+    tuple_type: $ => seq("[", field("types", commaSep($._type_hint)), "]"),
 
     var_type: _ => "var",
     hole_type: $ => alias($.underscore, $.hole_type),
