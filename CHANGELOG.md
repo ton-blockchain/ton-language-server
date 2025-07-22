@@ -9,13 +9,13 @@ All notable changes to this project will be documented in this file.
 #### Tolk
 
 - feat(tolk/documentation): support inline field comments in https://github.com/ton-blockchain/ton-language-server/pull/64
+- feat(tolk/inspections): add `NeedNotNullUnwrapping` inspection in https://github.com/ton-blockchain/ton-language-server/pull/72
 
 #### Func
 
 - feat(func/lens): add code lens for integer string literals like `"..."c` for FunC in https://github.com/ton-blockchain/ton-language-server/pull/63
 - feat(func/resolving): support catch variables resolving and find references in https://github.com/ton-blockchain/ton-language-server/pull/65
 - feat(func/inlay-hints): show implicit constant types in https://github.com/ton-blockchain/ton-language-server/pull/67
-- feat(tolk/inspections): add `NeedNotNullUnwrapping` inspection in https://github.com/ton-blockchain/ton-language-server/pull/72
 
 ### Fixed
 
