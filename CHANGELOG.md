@@ -2,6 +2,42 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.3.0] - 22.07.2025
+
+### Added
+
+#### Tolk
+
+- feat(tolk/documentation): support inline field comments in https://github.com/ton-blockchain/ton-language-server/pull/64
+
+#### Func
+
+- feat(func/lens): add code lens for integer string literals like `"..."c` for FunC in https://github.com/ton-blockchain/ton-language-server/pull/63
+- feat(func/resolving): support catch variables resolving and find references in https://github.com/ton-blockchain/ton-language-server/pull/65
+- feat(func/inlay-hints): show implicit constant types in https://github.com/ton-blockchain/ton-language-server/pull/67
+- feat(tolk/inspections): add `NeedNotNullUnwrapping` inspection in https://github.com/ton-blockchain/ton-language-server/pull/72
+
+### Fixed
+
+#### Tolk
+
+- fix(tolk): don't add `;` for imports in https://github.com/ton-blockchain/ton-language-server/pull/49
+- fix(tolk/completion): don't show type parameter in value completion in https://github.com/ton-blockchain/ton-language-server/pull/69
+- fix(tolk/completion): don't add `;` for top level declaration in completion in https://github.com/ton-blockchain/ton-language-server/pull/74
+
+#### FunC
+
+- fix(func/resolving): fix resolving for tensor/tuple variables with underscore in https://github.com/ton-blockchain/ton-language-server/pull/68
+- fix(func/grammar): accept `<` and `>` as part of identifier in https://github.com/ton-blockchain/ton-language-server/pull/70
+- fix(func/documentation): correctly show constant value in hover documentation in https://github.com/ton-blockchain/ton-language-server/pull/71
+- fix(func/inspections): disable unused import inspection for now in https://github.com/ton-blockchain/ton-language-server/pull/75
+
+### Other
+
+- feat(ci): add auto mirroring for Tolk tree-sitter grammar in https://github.com/ton-blockchain/ton-language-server/pull/12
+- chore: bump tolkfmt to 0.0.13 in https://github.com/ton-blockchain/ton-language-server/pull/47
+- refactor(tree-sitter-tolk): improve overall tree-sitter-tolk description in https://github.com/ton-blockchain/ton-language-server/pull/48
+
 ## [0.2.0] - 14.07.2025
 
 This release is dedicated to FunC and Tolk.
