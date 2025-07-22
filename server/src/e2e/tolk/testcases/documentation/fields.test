@@ -1,0 +1,52 @@
+========================================================================
+Inline field documentation without comma
+========================================================================
+struct Foo {
+    <caret>value: int // comment here
+}
+------------------------------------------------------------------------
+```tolk
+struct Foo
+value: int
+```
+comment here
+
+========================================================================
+Inline field documentation with comma
+========================================================================
+struct Foo {
+    <caret>value: int, // comment here
+}
+------------------------------------------------------------------------
+```tolk
+struct Foo
+value: int
+```
+comment here
+
+========================================================================
+Inline field documentation with several comments
+========================================================================
+struct Foo {
+    <caret>value: int, /* comment */ /* comment2 */
+}
+------------------------------------------------------------------------
+```tolk
+struct Foo
+value: int
+```
+comment
+
+========================================================================
+Inline field documentation with plain documentation
+========================================================================
+struct Foo {
+    // documentation here
+    <caret>value: int, // comment here
+}
+------------------------------------------------------------------------
+```tolk
+struct Foo
+value: int
+```
+documentation here

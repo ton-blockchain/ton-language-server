@@ -231,7 +231,7 @@ value: int
 some useful field
 
 ========================================================================
-Struct field documentation with inline  comment
+Struct field documentation with inline comment
 ========================================================================
 struct Foo {
     <caret>value: int, // some useful field
@@ -242,6 +242,7 @@ struct Foo {
 struct Foo
 value: int
 ```
+some useful field
 
 ========================================================================
 Type alias documentation
