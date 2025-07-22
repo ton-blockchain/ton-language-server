@@ -36,10 +36,10 @@ export class TopLevelCompletionProvider implements CompletionProvider<Completion
         result.add({
             label: `type`,
             labelDetails: {
-                detail: " Int = int;",
+                detail: " Int = int",
             },
             kind: CompletionItemKind.Keyword,
-            insertText: "type ${1:Int} = ${2:int};$0",
+            insertText: "type ${1:Int} = ${2:int}$0",
             insertTextFormat: InsertTextFormat.Snippet,
             weight: CompletionWeight.KEYWORD,
         })
@@ -50,7 +50,7 @@ export class TopLevelCompletionProvider implements CompletionProvider<Completion
                 detail: " FOO: <type> = <value>",
             },
             kind: CompletionItemKind.Keyword,
-            insertText: "const ${1:FOO}: ${2:int} = ${3:0};$0",
+            insertText: "const ${1:FOO}: ${2:int} = ${3:0}$0",
             insertTextFormat: InsertTextFormat.Snippet,
             weight: CompletionWeight.KEYWORD,
         })
@@ -61,7 +61,7 @@ export class TopLevelCompletionProvider implements CompletionProvider<Completion
                 detail: " foo: <type> = <value>",
             },
             kind: CompletionItemKind.Keyword,
-            insertText: "global ${1:foo}: ${2:int};$0",
+            insertText: "global ${1:foo}: ${2:int}$0",
             insertTextFormat: InsertTextFormat.Snippet,
             weight: CompletionWeight.KEYWORD,
         })
