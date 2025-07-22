@@ -13,7 +13,7 @@ Top level completion
 13 method fun Foo.name(self) {}
 13 static method fun Foo.name() {}
 13 struct Name {}
-13 type Int = int;
+13 type Int = int
 13 asm fun name() asm "..."
 14 onBouncedMessage
 14 onExternalMessage
@@ -37,7 +37,7 @@ fun foo() {}
 13 method fun Foo.name(self) {}
 13 static method fun Foo.name() {}
 13 struct Name {}
-13 type Int = int;
+13 type Int = int
 13 asm fun name() asm "..."
 14 onBouncedMessage
 14 onExternalMessage
@@ -63,7 +63,7 @@ fun foo() {}
 13 method fun Foo.name(self) {}
 13 static method fun Foo.name() {}
 13 struct Name {}
-13 type Int = int;
+13 type Int = int
 13 asm fun name() asm "..."
 14 onBouncedMessage
 14 onExternalMessage
