@@ -434,7 +434,8 @@
                                 "deprecated-symbol-usage",
                                 "unused-import",
                                 "struct-initialization",
-                                "cannot-reassign"
+                                "cannot-reassign",
+                                "need-not-null-unwrapping"
                             ]
                         },
                         "default": [

@@ -363,6 +363,15 @@ class InferenceWalker {
 
     public constructor(public ctx: InferenceContext) {}
 
+    public static methodCandidates(
+        ctx: InferenceContext,
+        qualifierTy: Ty,
+        searchName: string,
+    ): MethodBase[] {
+        const walker = new InferenceWalker(ctx)
+        return walker.methodCandidates(qualifierTy, searchName)
+    }
+
     public inferConstant(constant: Constant, flow: FlowContext): FlowContext {
         const expression = constant.value()?.node
         if (!expression) return flow
@@ -2658,4 +2667,12 @@ export function functionTypeOf(func: FunctionBase): FuncTy | null {
         return type
     }
     return null
+}
+
+export function methodCandidates(
+    ctx: InferenceContext,
+    qualifierTy: Ty,
+    searchName: string,
+): MethodBase[] {
+    return InferenceWalker.methodCandidates(ctx, qualifierTy, searchName)
 }
