@@ -4,6 +4,8 @@ import {NamedNode} from "@server/languages/func/psi/FuncNode"
 import {Constant, Func, GlobalVariable, TypeParameter} from "@server/languages/func/psi/Decls"
 import {parentOfType} from "@server/psi/utils"
 import type {Node as SyntaxNode} from "web-tree-sitter"
+import {typeOf} from "@server/languages/func/types/infer"
+import {UnknownTy} from "@server/languages/func/types/ty"
 
 /**
  * Returns the documentation for the given symbol in Markdown format, or null
@@ -36,8 +38,8 @@ export function generateFuncDocFor(node: NamedNode, _place: SyntaxNode): string 
         }
         case "constant_declaration": {
             const constant = new Constant(astNode, node.file)
-            const type = node.node.childForFieldName("type")
-            const typeName = type?.text ?? "unknown"
+            const type = typeOf(astNode, node.file) ?? UnknownTy.UNKNOWN
+            const typeName = type.name()
 
             const value = constant.value()
             if (!value) return null

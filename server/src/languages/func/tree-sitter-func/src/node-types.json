@@ -2468,40 +2468,53 @@
     {
         "type": "tensor_type",
         "named": true,
-        "fields": {},
-        "children": {
-            "multiple": true,
-            "required": false,
-            "types": [
-                {
-                    "type": "function_type",
-                    "named": true
-                },
-                {
-                    "type": "hole_type",
-                    "named": true
-                },
-                {
-                    "type": "primitive_type",
-                    "named": true
-                },
-                {
-                    "type": "tensor_type",
-                    "named": true
-                },
-                {
-                    "type": "tuple_type",
-                    "named": true
-                },
-                {
-                    "type": "type_identifier",
-                    "named": true
-                },
-                {
-                    "type": "var_type",
-                    "named": true
-                }
-            ]
+        "fields": {
+            "types": {
+                "multiple": true,
+                "required": false,
+                "types": [
+                    {
+                        "type": "(",
+                        "named": false
+                    },
+                    {
+                        "type": ")",
+                        "named": false
+                    },
+                    {
+                        "type": ",",
+                        "named": false
+                    },
+                    {
+                        "type": "function_type",
+                        "named": true
+                    },
+                    {
+                        "type": "hole_type",
+                        "named": true
+                    },
+                    {
+                        "type": "primitive_type",
+                        "named": true
+                    },
+                    {
+                        "type": "tensor_type",
+                        "named": true
+                    },
+                    {
+                        "type": "tuple_type",
+                        "named": true
+                    },
+                    {
+                        "type": "type_identifier",
+                        "named": true
+                    },
+                    {
+                        "type": "var_type",
+                        "named": true
+                    }
+                ]
+            }
         }
     },
     {
@@ -2561,40 +2574,53 @@
     {
         "type": "tuple_type",
         "named": true,
-        "fields": {},
-        "children": {
-            "multiple": true,
-            "required": false,
-            "types": [
-                {
-                    "type": "function_type",
-                    "named": true
-                },
-                {
-                    "type": "hole_type",
-                    "named": true
-                },
-                {
-                    "type": "primitive_type",
-                    "named": true
-                },
-                {
-                    "type": "tensor_type",
-                    "named": true
-                },
-                {
-                    "type": "tuple_type",
-                    "named": true
-                },
-                {
-                    "type": "type_identifier",
-                    "named": true
-                },
-                {
-                    "type": "var_type",
-                    "named": true
-                }
-            ]
+        "fields": {
+            "types": {
+                "multiple": true,
+                "required": false,
+                "types": [
+                    {
+                        "type": "(",
+                        "named": false
+                    },
+                    {
+                        "type": ")",
+                        "named": false
+                    },
+                    {
+                        "type": ",",
+                        "named": false
+                    },
+                    {
+                        "type": "function_type",
+                        "named": true
+                    },
+                    {
+                        "type": "hole_type",
+                        "named": true
+                    },
+                    {
+                        "type": "primitive_type",
+                        "named": true
+                    },
+                    {
+                        "type": "tensor_type",
+                        "named": true
+                    },
+                    {
+                        "type": "tuple_type",
+                        "named": true
+                    },
+                    {
+                        "type": "type_identifier",
+                        "named": true
+                    },
+                    {
+                        "type": "var_type",
+                        "named": true
+                    }
+                ]
+            }
         }
     },
     {
