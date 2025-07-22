@@ -119,6 +119,7 @@ import {
 import {IndexingRootKind} from "@server/indexing/indexing"
 import {FuncIndexingRoot} from "@server/languages/func/indexing-root"
 import {formatTolkFile} from "@server/languages/tolk/format/format"
+import {collectFuncCodeLenses} from "@server/languages/func/lens"
 
 /**
  * Whenever LS is initialized.
@@ -250,7 +251,7 @@ async function findTolkStdlib(settings: ServerSettings, rootDir: string): Promis
     if (stdlibPath === null) {
         console.error(
             "Tolk standard library not found! Searched in:\n",
-            searchDirs.map(dir => path.join(rootDir, dir)).join("\n"),
+            searchDirs.map(dir => `- ${dir}`).join("\n"),
         )
 
         showErrorMessage(
@@ -972,6 +973,20 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
     )
 
     connection.onRequest(
+        lsp.CodeLensRequest.type,
+        async (params: lsp.CodeLensParams): Promise<lsp.CodeLens[] | null> => {
+            const uri = params.textDocument.uri
+
+            if (isFuncFile(uri)) {
+                const file = await findFuncFile(uri)
+                return collectFuncCodeLenses(file)
+            }
+
+            return null
+        },
+    )
+
+    connection.onRequest(
         lsp.ExecuteCommandRequest.type,
         async (params: lsp.ExecuteCommandParams): Promise<string | null> => {
             const tolkCommand = await provideExecuteTolkCommand(params)
@@ -1081,6 +1096,9 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
             typeDefinitionProvider: true,
             renameProvider: {
                 prepareProvider: true,
+            },
+            codeLensProvider: {
+                resolveProvider: false,
             },
             hoverProvider: true,
             inlayHintProvider: true,
