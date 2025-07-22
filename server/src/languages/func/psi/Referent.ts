@@ -115,9 +115,9 @@ export class Referent extends BaseReferent<NamedNode> {
             return Referent.localSearchScope(ownerBlock)
         }
 
-        if (parent.type === "catch_clause") {
+        if (parent.type === "tensor_expression" && parent.parent?.type === "catch_clause") {
             // search only in catch block
-            return Referent.localSearchScope(parent.lastChild)
+            return Referent.localSearchScope(parent.parent.lastChild)
         }
 
         if (node.type === "parameter_declaration") {

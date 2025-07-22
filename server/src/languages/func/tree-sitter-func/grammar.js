@@ -332,7 +332,8 @@ const FUNC_GRAMMAR = {
     _expr100: $ => prec(100, choice($._nontype_expr100)),
 
     parenthesized_expression: $ => seq("(", $._expression, ")"),
-    tensor_expression: $ => choice(seq("(", ")"), seq("(", commaSep2($._expression), ")")),
+    tensor_expression: $ =>
+        choice(seq("(", ")"), seq("(", field("expressions", commaSep2($._expression)), ")")),
     typed_tuple: $ => seq("[", commaSep($._expression), "]"),
 
     // ----------------------------------------------------------
