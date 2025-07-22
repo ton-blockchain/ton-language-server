@@ -1,0 +1,96 @@
+========================================================================
+Simple nullable builtin type
+========================================================================
+fun int.someMethod(self) {}
+
+fun main(value: int?) {
+    value.someMethod();
+}
+------------------------------------------------------------------------
+3 0:8 to 0:18 Method 'someMethod' is never used (tolk)
+0 3:10 to 3:20 Cannot call method `someMethod` on nullable type `int?`, you need to unwrap it with `!` or explicitly check for `value != null` (tolk)
+
+========================================================================
+Simple nullable builtin type, fixed
+========================================================================
+fun int.someMethod(self) {}
+
+fun main(value: int?) {
+    value!.someMethod();
+}
+------------------------------------------------------------------------
+no issues
+
+========================================================================
+Simple nullable builtin type, fixed 2
+========================================================================
+fun int.someMethod(self) {}
+
+fun main(value: int?) {
+    if (value == null) {
+        return
+    }
+    value.someMethod();
+}
+------------------------------------------------------------------------
+no issues
+
+========================================================================
+Simple nullable builtin type, fixed 3
+========================================================================
+fun int.someMethod(self) {}
+
+fun main(value: int?) {
+    if (value != null) {
+        value.someMethod();
+    }
+}
+------------------------------------------------------------------------
+no issues
+
+========================================================================
+Tensor nullable builtin type
+========================================================================
+fun (int, slice).someMethod(self) {}
+
+fun main(value: (int, slice)?) {
+    value.someMethod();
+}
+------------------------------------------------------------------------
+3 0:17 to 0:27 Method 'someMethod' is never used (tolk)
+0 3:10 to 3:20 Cannot call method `someMethod` on nullable type `(int, slice)?`, you need to unwrap it with `!` or explicitly check for `value != null` (tolk)
+
+========================================================================
+Simple nullable builtin type without methods
+========================================================================
+fun main(value: int?) {
+    value.someMethod();
+}
+------------------------------------------------------------------------
+no issues
+
+========================================================================
+Simple nullable builtin type with several methods
+========================================================================
+fun (int, slice).someMethod(self) {}
+fun T.someMethod(self) {}
+
+fun main(value: int?) {
+    value.someMethod();
+}
+------------------------------------------------------------------------
+3 0:17 to 0:27 Method 'someMethod' is never used (tolk)
+
+========================================================================
+Simple nullable builtin type with complex qualifier
+========================================================================
+fun int.someMethod(self) {}
+
+fun getData(): int? { return null }
+
+fun main() {
+    getData().someMethod();
+}
+------------------------------------------------------------------------
+3 0:8 to 0:18 Method 'someMethod' is never used (tolk)
+0 5:14 to 5:24 Cannot call method `someMethod` on nullable type `int?`, you need to unwrap it with `!` or explicitly check for `getData() != null` (tolk)

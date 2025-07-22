@@ -11,6 +11,7 @@ import {TypeCompatibilityInspection} from "@server/languages/tolk/inspections/Ty
 import {CannotReassignInspection} from "@server/languages/tolk/inspections/CannotReassignInspection"
 import {UnusedTopLevelDeclarationInspection} from "@server/languages/tolk/inspections/UnusedTopLevelDeclarationInspection"
 import {UnusedTypeParameterInspection} from "@server/languages/tolk/inspections/UnusedTypeParameterInspection"
+import {NeedNotNullUnwrappingInspection} from "@server/languages/tolk/inspections/NeedNotNullUnwrappingInspection"
 
 export async function runTolkInspections(
     uri: string,
@@ -27,6 +28,7 @@ export async function runTolkInspections(
         new StructInitializationInspection(),
         new TypeCompatibilityInspection(),
         new CannotReassignInspection(),
+        new NeedNotNullUnwrappingInspection(),
     ]
 
     const settings = await getDocumentSettings(uri)
