@@ -2881,56 +2881,237 @@
     {
         "type": "typed_tuple",
         "named": true,
-        "fields": {},
-        "children": {
-            "multiple": true,
-            "required": false,
-            "types": [
-                {
-                    "type": "function_application",
-                    "named": true
-                },
-                {
-                    "type": "identifier",
-                    "named": true
-                },
-                {
-                    "type": "local_vars_declaration",
-                    "named": true
-                },
-                {
-                    "type": "method_call",
-                    "named": true
-                },
-                {
-                    "type": "number_literal",
-                    "named": true
-                },
-                {
-                    "type": "parenthesized_expression",
-                    "named": true
-                },
-                {
-                    "type": "slice_string_literal",
-                    "named": true
-                },
-                {
-                    "type": "string_literal",
-                    "named": true
-                },
-                {
-                    "type": "tensor_expression",
-                    "named": true
-                },
-                {
-                    "type": "typed_tuple",
-                    "named": true
-                },
-                {
-                    "type": "underscore",
-                    "named": true
-                }
-            ]
+        "fields": {
+            "expressions": {
+                "multiple": true,
+                "required": false,
+                "types": [
+                    {
+                        "type": "!=",
+                        "named": false
+                    },
+                    {
+                        "type": "%",
+                        "named": false
+                    },
+                    {
+                        "type": "%=",
+                        "named": false
+                    },
+                    {
+                        "type": "&",
+                        "named": false
+                    },
+                    {
+                        "type": "&=",
+                        "named": false
+                    },
+                    {
+                        "type": "*",
+                        "named": false
+                    },
+                    {
+                        "type": "*=",
+                        "named": false
+                    },
+                    {
+                        "type": "+",
+                        "named": false
+                    },
+                    {
+                        "type": "+=",
+                        "named": false
+                    },
+                    {
+                        "type": ",",
+                        "named": false
+                    },
+                    {
+                        "type": "-",
+                        "named": false
+                    },
+                    {
+                        "type": "-=",
+                        "named": false
+                    },
+                    {
+                        "type": "/",
+                        "named": false
+                    },
+                    {
+                        "type": "/%",
+                        "named": false
+                    },
+                    {
+                        "type": "/=",
+                        "named": false
+                    },
+                    {
+                        "type": ":",
+                        "named": false
+                    },
+                    {
+                        "type": "<",
+                        "named": false
+                    },
+                    {
+                        "type": "<<",
+                        "named": false
+                    },
+                    {
+                        "type": "<<=",
+                        "named": false
+                    },
+                    {
+                        "type": "<=",
+                        "named": false
+                    },
+                    {
+                        "type": "<=>",
+                        "named": false
+                    },
+                    {
+                        "type": "=",
+                        "named": false
+                    },
+                    {
+                        "type": "==",
+                        "named": false
+                    },
+                    {
+                        "type": ">",
+                        "named": false
+                    },
+                    {
+                        "type": ">=",
+                        "named": false
+                    },
+                    {
+                        "type": ">>",
+                        "named": false
+                    },
+                    {
+                        "type": ">>=",
+                        "named": false
+                    },
+                    {
+                        "type": "?",
+                        "named": false
+                    },
+                    {
+                        "type": "^",
+                        "named": false
+                    },
+                    {
+                        "type": "^%",
+                        "named": false
+                    },
+                    {
+                        "type": "^%=",
+                        "named": false
+                    },
+                    {
+                        "type": "^/",
+                        "named": false
+                    },
+                    {
+                        "type": "^/=",
+                        "named": false
+                    },
+                    {
+                        "type": "^=",
+                        "named": false
+                    },
+                    {
+                        "type": "^>>",
+                        "named": false
+                    },
+                    {
+                        "type": "^>>=",
+                        "named": false
+                    },
+                    {
+                        "type": "function_application",
+                        "named": true
+                    },
+                    {
+                        "type": "identifier",
+                        "named": true
+                    },
+                    {
+                        "type": "local_vars_declaration",
+                        "named": true
+                    },
+                    {
+                        "type": "method_call",
+                        "named": true
+                    },
+                    {
+                        "type": "number_literal",
+                        "named": true
+                    },
+                    {
+                        "type": "parenthesized_expression",
+                        "named": true
+                    },
+                    {
+                        "type": "slice_string_literal",
+                        "named": true
+                    },
+                    {
+                        "type": "string_literal",
+                        "named": true
+                    },
+                    {
+                        "type": "tensor_expression",
+                        "named": true
+                    },
+                    {
+                        "type": "typed_tuple",
+                        "named": true
+                    },
+                    {
+                        "type": "underscore",
+                        "named": true
+                    },
+                    {
+                        "type": "|",
+                        "named": false
+                    },
+                    {
+                        "type": "|=",
+                        "named": false
+                    },
+                    {
+                        "type": "~",
+                        "named": false
+                    },
+                    {
+                        "type": "~%",
+                        "named": false
+                    },
+                    {
+                        "type": "~%=",
+                        "named": false
+                    },
+                    {
+                        "type": "~/",
+                        "named": false
+                    },
+                    {
+                        "type": "~/=",
+                        "named": false
+                    },
+                    {
+                        "type": "~>>",
+                        "named": false
+                    },
+                    {
+                        "type": "~>>=",
+                        "named": false
+                    }
+                ]
+            }
         }
     },
     {

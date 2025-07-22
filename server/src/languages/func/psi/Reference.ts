@@ -331,6 +331,13 @@ export class Reference {
                         }
                     }
                 }
+
+                if (firstChild?.type === "typed_tuple") {
+                    // [_, int a, int b] = [1, 2];
+                    if (!this.processVariableDeclaration(firstChild, proc, file, state)) {
+                        return false
+                    }
+                }
             }
         }
         return true
@@ -355,6 +362,23 @@ export class Reference {
             for (const variable of vars) {
                 if (!variable) continue
                 if (!this.processVariableDeclaration(variable, proc, file, state)) return false
+            }
+        }
+
+        if (lhs.type === "typed_tuple" || lhs.type === "tensor_expression") {
+            const vars = lhs.childrenForFieldName("expressions")
+            for (const variable of vars) {
+                if (!variable) continue
+                if (!this.processVariableDeclaration(variable, proc, file, state)) return false
+            }
+        }
+
+        if (lhs.type === "local_vars_declaration") {
+            const innerLhs = lhs.childForFieldName("lhs")
+            if (innerLhs) {
+                if (!this.processVariableDeclaration(innerLhs, proc, file, state)) {
+                    return false
+                }
             }
         }
 
