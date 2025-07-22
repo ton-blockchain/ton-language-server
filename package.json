@@ -454,7 +454,9 @@
                                 "unused-import"
                             ]
                         },
-                        "default": [],
+                        "default": [
+                            "unused-import"
+                        ],
                         "description": "List of disabled code inspections for FunC. All inspections are enabled by default."
                     }
                 }
