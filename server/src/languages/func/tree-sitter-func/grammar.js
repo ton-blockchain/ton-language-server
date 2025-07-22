@@ -382,7 +382,7 @@ const FUNC_GRAMMAR = {
     slice_string_literal: _ => /"[^"]*"[sa]/,
 
     // actually, FunC identifiers are much more flexible
-    identifier: _ => /`[^`]+`|[a-zA-Z0-9_\$%][^\s\+\-\*\/%,\.;\(\)\{\}\[\]=<>\|\^\~]*/,
+    identifier: _ => /`[^`]+`|[a-zA-Z0-9_\$%][^\s\+\-\*\/%,\.;\(\)\{\}\[\]=\|\^\~]*/,
     underscore: _ => "_",
 
     // multiline_comment: $ => seq('{-', repeat(choice(/./, $.multiline_comment)), '-}'),

@@ -52,7 +52,7 @@
         "test:grammars:tolk": "cd ./server/src/languages/tolk/tree-sitter-tolk/ && tree-sitter test",
         "test:grammars:fift": "cd ./server/src/languages/fift/tree-sitter-fift/ && tree-sitter test",
         "test:grammars:tlb": "cd ./server/src/languages/tlb/tree-sitter-tlb/ && tree-sitter test",
-        "play:grammars:func": "cd ./server/src/languages/func/tree-sitter-func/ && tree-sitter build --wasm && tree-sitter playground",
+        "play:grammars:func": "cd ./server/src/languages/func/tree-sitter-func/ && tree-sitter generate && tree-sitter build --wasm && tree-sitter playground",
         "parse:grammars:func": "cd ./server/src/languages/func/tree-sitter-func/ && tree-sitter parse -D --open-log main.fc",
         "test:e2e": "yarn test:e2e:tolk",
         "test:e2e:compile": "tsc -p ./server/src/e2e/tsconfig.json",
