@@ -55,6 +55,8 @@ export class ReferenceCompletionProcessor implements ScopeProcessor {
             }
         }
 
+        if (node instanceof TypeParameter) return false
+
         // since structs can be created like `Foo{}` we allow them
         if (node instanceof Struct) return true
         return true
