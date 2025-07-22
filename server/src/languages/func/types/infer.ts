@@ -86,6 +86,12 @@ export function typeOf(node: SyntaxNode, file: FuncFile): Ty | undefined {
         return PrimitiveTy.SLICE
     }
 
+    if (node.type === "constant_declaration_value") {
+        const inner = node.firstChild
+        if (!inner) return undefined
+        return typeOf(inner, file)
+    }
+
     if (node.type === "function_declaration") {
         const func = new Func(node, file)
         const parameterTypes = func

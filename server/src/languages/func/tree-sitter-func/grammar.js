@@ -61,8 +61,9 @@ const FUNC_GRAMMAR = {
             field("type", optional($._type_hint)),
             field("name", $.identifier),
             "=",
-            field("value", choice($._expression)),
+            field("value", $.constant_declaration_value),
         ),
+    constant_declaration_value: $ => $._expression,
 
     // ----------------------------------------------------------
     // functions and their body
