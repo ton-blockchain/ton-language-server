@@ -7515,9 +7515,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ton-assembly-test-dev@npm:0.0.16":
-  version: 0.0.16
-  resolution: "ton-assembly-test-dev@npm:0.0.16"
+"ton-assembly@npm:0.2.0":
+  version: 0.2.0
+  resolution: "ton-assembly@npm:0.2.0"
   dependencies:
     "@ton/core": "npm:^0.60.1"
     "@tonstudio/parser-runtime": "npm:^0.0.1"
@@ -7527,7 +7527,8 @@ __metadata:
   bin:
     tasm: dist/cli/assembler.js
     tdisasm: dist/cli/disassembler.js
-  checksum: 10c0/e0a89d357d123fd371cd8b9eee1595b4ce72be6aa9bd754bf1b5adf3e9b2477438cb41d6a9c2241ede12cfcaa27448d559cd041bafadde8780be6f60e71cdff4
+    tfift: dist/cli/fift-compiler.js
+  checksum: 10c0/63758e73048c4f4035b0e4ecc1518b37a69d1c357268bd98577bd031729dbb237cf1f81cc9856682642c361b54ca9be7be86da52cdb63560156fc35d32271cdf
   languageName: node
   linkType: hard
 
@@ -8020,7 +8021,7 @@ __metadata:
     mocha: "npm:^10.3.0"
     prettier: "npm:3.4.2"
     tolkfmt-test-dev: "npm:0.0.15"
-    ton-assembly-test-dev: "npm:0.0.16"
+    ton-assembly: "npm:0.2.0"
     tree-sitter-cli: "npm:^0.25.8"
     ts-jest: "npm:^29.2.6"
     ts-loader: "npm:^9.5.1"
