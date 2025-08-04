@@ -162,7 +162,7 @@ const TOLK_GRAMMAR = {
             optional(field("arguments", $.annotation_arguments)),
         ),
 
-    annotation_arguments: $ => seq("(", repeat($._expression), optional(","), ")"),
+    annotation_arguments: $ => seq("(", commaSep($._expression), optional(","), ")"),
 
     type_parameters: $ => seq("<", commaSep($.type_parameter), optional(","), ">"),
     type_parameter: $ =>
