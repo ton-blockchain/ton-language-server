@@ -7502,16 +7502,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tolkfmt-test-dev@npm:0.0.13":
-  version: 0.0.13
-  resolution: "tolkfmt-test-dev@npm:0.0.13"
+"tolkfmt-test-dev@npm:0.0.15":
+  version: 0.0.15
+  resolution: "tolkfmt-test-dev@npm:0.0.15"
   dependencies:
     cac: "npm:^6.7.14"
     glob: "npm:^10.3.10"
     web-tree-sitter: "npm:^0.25.6"
   bin:
     tolkfmt: bin/tolkfmt
-  checksum: 10c0/27f91099eb1ca20d389b1a6dc8b5be341800883bd38b44399011bea2e620793c61d2439093ca1b32350932baf20a48e0a0b513cdb037c941a0aa75427e671b99
+  checksum: 10c0/25263729c0e2426ab54347d3b44f01abf89985f4d74c6e0e57a9911a4a4f2d493f157bf782a2e24df937d0362887f6d9b181123a983a320fc6975320d9a0dc47
   languageName: node
   linkType: hard
 
@@ -8019,7 +8019,7 @@ __metadata:
     jest: "npm:^29.7.0"
     mocha: "npm:^10.3.0"
     prettier: "npm:3.4.2"
-    tolkfmt-test-dev: "npm:0.0.13"
+    tolkfmt-test-dev: "npm:0.0.15"
     ton-assembly-test-dev: "npm:0.0.16"
     tree-sitter-cli: "npm:^0.25.8"
     ts-jest: "npm:^29.2.6"
