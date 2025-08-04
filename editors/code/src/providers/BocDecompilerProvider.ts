@@ -1,7 +1,7 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Studio
 import * as vscode from "vscode"
-import * as tasm from "ton-assembly-test-dev"
+import * as tasm from "ton-assembly"
 
 export class BocDecompilerProvider implements vscode.TextDocumentContentProvider {
     private readonly _onDidChange: vscode.EventEmitter<vscode.Uri> = new vscode.EventEmitter()
