@@ -21,6 +21,7 @@ import {
     TensorTy,
     TupleTy,
     Ty,
+    TypeAliasTy,
     UnionTy,
 } from "@server/languages/tolk/types/ty"
 import type {Field} from "@server/languages/tolk/psi/Decls"
@@ -224,6 +225,10 @@ export class FillStructInitBase implements Intention {
 
         if (type instanceof UnionTy) {
             return this.typeDefaultValue(type.elements[0])
+        }
+
+        if (type instanceof TypeAliasTy) {
+            return this.typeDefaultValue(type.innerTy)
         }
 
         return "null"
