@@ -184,3 +184,66 @@ fun some()/* : [int, bool, int] */ {
 fun test()/* : void */ {
     val res/* : [int, bool, int] */ = some();
 }
+
+========================================================================
+Function with several boolean return
+========================================================================
+fun some(some: bool) {
+    if (some) { return false; }
+    return true;
+}
+
+fun test() {
+    val res = some();
+}
+------------------------------------------------------------------------
+fun some(some: bool)/* : bool */ {
+    if (some) { return false; }
+    return true;
+}
+
+fun test()/* : void */ {
+    val res/* : bool */ = some();
+}
+
+========================================================================
+Function with several boolean return 2
+========================================================================
+fun some(some: bool) {
+    if (some) { return true; }
+    return true;
+}
+
+fun test() {
+    val res = some();
+}
+------------------------------------------------------------------------
+fun some(some: bool)/* : bool */ {
+    if (some) { return true; }
+    return true;
+}
+
+fun test()/* : void */ {
+    val res/* : bool */ = some();
+}
+
+========================================================================
+Function with several boolean return 3
+========================================================================
+fun some(some: bool) {
+    if (some) { return false; }
+    return false;
+}
+
+fun test() {
+    val res = some();
+}
+------------------------------------------------------------------------
+fun some(some: bool)/* : bool */ {
+    if (some) { return false; }
+    return false;
+}
+
+fun test()/* : void */ {
+    val res/* : bool */ = some();
+}

@@ -783,6 +783,16 @@ export function joinTypes(left: Ty, right: Ty): Ty {
     if (right instanceof NeverTy) return left
     if (right instanceof NullTy) return UnionTy.create([left, right])
 
+    if (left instanceof BoolTy && left.value && right instanceof BoolTy && right.value) {
+        return BoolTy.TRUE // true & true => true
+    }
+    if (left instanceof BoolTy && !left.value && right instanceof BoolTy && !right.value) {
+        return BoolTy.FALSE // false & false => false
+    }
+    if (left instanceof BoolTy && right instanceof BoolTy) {
+        return BoolTy.BOOL // true & false => bool
+    }
+
     if (
         left instanceof TensorTy &&
         right instanceof TensorTy &&
