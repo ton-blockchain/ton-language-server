@@ -34,6 +34,32 @@ fun foo() {
 
 ========================================================================
 @intention Fill all fields...
+Fill all fields for struct with single alias field
+========================================================================
+type Int = int
+
+struct Foo {
+    value: Int;
+}
+
+fun foo() {
+    Foo{<caret>};
+}
+------------------------------------------------------------------------
+type Int = int
+
+struct Foo {
+    value: Int;
+}
+
+fun foo() {
+    Foo{
+        value: 0,
+    };
+}
+
+========================================================================
+@intention Fill all fields...
 Fill all fields for struct with several fields
 ========================================================================
 struct Foo {
