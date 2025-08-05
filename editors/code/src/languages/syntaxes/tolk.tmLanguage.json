@@ -14,9 +14,26 @@
             "end": "\\*/"
         },
         {
+            "name": "string.quoted.triple",
+            "begin": "\"\"\"",
+            "end": "\"\"\"",
+            "patterns": [
+                {
+                    "name": "constant.character.escape",
+                    "match": "\\\\."
+                }
+            ]
+        },
+        {
             "name": "string.quoted.double",
             "begin": "\"",
-            "end": "\""
+            "end": "\"",
+            "patterns": [
+                {
+                    "name": "constant.character.escape",
+                    "match": "\\\\."
+                }
+            ]
         },
         {
             "name": "constant.numeric",
