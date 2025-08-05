@@ -21,6 +21,7 @@ export class CompletionContext {
     public isAnnotationName: boolean = false
     public expectMatchArm: boolean = false
     public catchVariable: boolean = false
+    public fieldInit: boolean = false
 
     // struct fields
     public inNameOfFieldInit: boolean = false
@@ -57,6 +58,13 @@ export class CompletionContext {
 
         if (parent.type === "catch_clause" && element.node.type === "identifier") {
             this.catchVariable = true
+        }
+
+        if (parent.type === "instance_argument") {
+            const value = parent.childForFieldName("value")
+            if (value?.equals(element.node)) {
+                this.fieldInit = true
+            }
         }
 
         if (parent.type === "binary_operator" && parent.parent?.type === "match_arm") {

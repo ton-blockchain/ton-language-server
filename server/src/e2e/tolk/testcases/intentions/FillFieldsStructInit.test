@@ -432,3 +432,33 @@ fun foo() {
         body: null,
     });
 }
+
+========================================================================
+@intention Fill all fields...
+Struct with Cell<Foo> field
+========================================================================
+struct Inner {
+    bar: int
+}
+
+struct Data {
+    foo: Cell<Inner>
+}
+
+fun test() {
+    Data {<caret>}
+}
+------------------------------------------------------------------------
+struct Inner {
+    bar: int
+}
+
+struct Data {
+    foo: Cell<Inner>
+}
+
+fun test() {
+    Data {
+        foo: Inner {}.toCell(),
+    }
+}
