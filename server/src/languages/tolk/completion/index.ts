@@ -33,6 +33,7 @@ import {MatchArmsCompletionProvider} from "@server/languages/tolk/completion/pro
 import {CompletionItemAdditionalInformation} from "@server/completion/CompletionItemAdditionalInformation"
 import {StorageCompletionProvider} from "@server/languages/tolk/completion/providers/StorageCompletionProvider"
 import {FieldInitCompletionProvider} from "@server/languages/tolk/completion/providers/FieldInitCompletionProvider"
+import {FunctionNameCompletionProvider} from "@server/languages/tolk/completion/providers/FunctionNameCompletionProvider"
 
 export async function provideTolkCompletion(
     file: TolkFile,
@@ -114,6 +115,7 @@ export async function provideTolkCompletion(
         new MatchArmsCompletionProvider(ref),
         new StorageCompletionProvider(),
         new FieldInitCompletionProvider(),
+        new FunctionNameCompletionProvider(),
     ]
 
     for (const provider of providers) {

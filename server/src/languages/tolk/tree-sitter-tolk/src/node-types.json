@@ -1899,7 +1899,7 @@
             },
             "parameters": {
                 "multiple": false,
-                "required": true,
+                "required": false,
                 "types": [
                     {
                         "type": "parameter_list",
@@ -2087,7 +2087,7 @@
             },
             "body": {
                 "multiple": false,
-                "required": true,
+                "required": false,
                 "types": [
                     {
                         "type": "block_statement",
@@ -2107,7 +2107,7 @@
             },
             "parameters": {
                 "multiple": false,
-                "required": true,
+                "required": false,
                 "types": [
                     {
                         "type": "parameter_list",
@@ -3405,7 +3405,7 @@
             },
             "parameters": {
                 "multiple": false,
-                "required": true,
+                "required": false,
                 "types": [
                     {
                         "type": "parameter_list",

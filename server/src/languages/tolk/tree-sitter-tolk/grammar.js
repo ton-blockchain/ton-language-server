@@ -126,9 +126,9 @@ const TOLK_GRAMMAR = {
             "fun",
             field("name", $.identifier),
             optional(field("type_parameters", $.type_parameters)),
-            field("parameters", $.parameter_list),
+            optional(field("parameters", $.parameter_list)),
             optional(seq(":", field("return_type", optional($._type_hint)))),
-            $._function_body,
+            optional($._function_body),
         ),
 
     method_receiver: $ => seq(field("receiver_type", $._type_hint), "."),
@@ -139,9 +139,9 @@ const TOLK_GRAMMAR = {
             field("receiver", $.method_receiver),
             field("name", $.identifier),
             optional(field("type_parameters", $.type_parameters)),
-            field("parameters", $.parameter_list),
+            optional(field("parameters", $.parameter_list)),
             optional(seq(":", field("return_type", optional($._type_hint)))),
-            $._function_body,
+            optional($._function_body),
         ),
     get_method_declaration: $ =>
         seq(
@@ -149,9 +149,9 @@ const TOLK_GRAMMAR = {
             "get",
             optional("fun"),
             field("name", $.identifier),
-            field("parameters", $.parameter_list),
+            optional(field("parameters", $.parameter_list)),
             optional(seq(":", field("return_type", optional($._type_hint)))),
-            field("body", $.block_statement),
+            optional(field("body", $.block_statement)),
         ),
 
     annotation_list: $ => repeat1($.annotation),

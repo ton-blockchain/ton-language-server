@@ -261,3 +261,45 @@ fun foo() {
 14 var
 14 vart
 14 while
+
+========================================================================
+Function name completion with only fun
+========================================================================
+fun <caret>
+------------------------------------------------------------------------
+2  main() {}
+2  onBouncedMessage(in: InMessageBounced) {}
+2  onExternalMessage(inMsg: slice) {}
+2  onInternalMessage(in: InMessage) {}
+2  onRunTickTock(isTock: bool) {}
+2  onSplitInstall() {}
+2  onSplitPrepare() {}
+
+========================================================================
+Function name completion with all signature
+========================================================================
+fun <caret>(): int {}
+------------------------------------------------------------------------
+2  main()
+2  onBouncedMessage(in: InMessageBounced)
+2  onExternalMessage(inMsg: slice)
+2  onInternalMessage(in: InMessage)
+2  onRunTickTock(isTock: bool)
+2  onSplitInstall()
+2  onSplitPrepare()
+
+========================================================================
+Method name completion with only fun
+========================================================================
+fun int.pa<caret>
+------------------------------------------------------------------------
+2  packToBuilder(self, mutate b: builder)
+2  unpackFromSlice(mutate s: slice) {}
+
+========================================================================
+Method name completion with all signature
+========================================================================
+fun int.pa<caret>() {}
+------------------------------------------------------------------------
+2  packToBuilder(self, mutate b: builder)
+2  unpackFromSlice(mutate s: slice)
