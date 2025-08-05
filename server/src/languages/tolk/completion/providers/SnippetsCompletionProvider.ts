@@ -10,7 +10,7 @@ export class SnippetsCompletionProvider implements CompletionProvider<Completion
         return ctx.isStatement && !ctx.topLevel && !ctx.afterDot
     }
 
-    public addCompletion(_ctx: CompletionContext, result: CompletionResult): void {
+    public addCompletion(ctx: CompletionContext, result: CompletionResult): void {
         result.add({
             label: "val",
             kind: CompletionItemKind.Snippet,
@@ -99,5 +99,18 @@ export class SnippetsCompletionProvider implements CompletionProvider<Completion
             insertText: "try {\n\t${1}\n} catch (e) {\n\t${2}\n}",
             weight: CompletionWeight.SNIPPET,
         })
+
+        // if:
+        // try { ... } <caret>
+        const prevSibling = ctx.element.node.parent?.previousSibling
+        if (prevSibling?.firstChild?.type === "try") {
+            result.add({
+                label: "catch",
+                kind: CompletionItemKind.Snippet,
+                insertTextFormat: InsertTextFormat.Snippet,
+                insertText: "catch (${1:e}) {\n\t$0\n}",
+                weight: CompletionWeight.CONTEXT_ELEMENT,
+            })
+        }
     }
 }
