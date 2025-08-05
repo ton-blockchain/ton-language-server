@@ -7,7 +7,7 @@ import {CompletionResult, CompletionWeight} from "@server/completion/WeightedCom
 import {Reference} from "@server/languages/tolk/psi/Reference"
 import {NamedNode} from "@server/languages/tolk/psi/TolkNode"
 import {typeOf} from "@server/languages/tolk/type-inference"
-import {InstantiationTy} from "@server/languages/tolk/types/ty"
+import {InstantiationTy, StructTy} from "@server/languages/tolk/types/ty"
 
 export class FieldInitCompletionProvider implements CompletionProvider<CompletionContext> {
     public isAvailable(ctx: CompletionContext): boolean {
@@ -30,7 +30,8 @@ export class FieldInitCompletionProvider implements CompletionProvider<Completio
         if (
             fieldType instanceof InstantiationTy &&
             fieldType.types.length > 0 &&
-            fieldType.innerTy.name() === "Cell"
+            fieldType.innerTy.name() === "Cell" &&
+            fieldType.types[0] instanceof StructTy
         ) {
             // Cell<Foo> => Foo{}.toCell()
             const argTy = fieldType.types[0]
