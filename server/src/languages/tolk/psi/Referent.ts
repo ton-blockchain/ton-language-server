@@ -99,16 +99,19 @@ export class Referent extends BaseReferent<NamedNode> {
                 }
             }
 
+            const resolvedNode = Reference.multiResolve(new NamedNode(node, file))
+
             if (
                 node.type === "type_identifier" &&
                 parent.type === "method_receiver" &&
-                parent.childForFieldName("receiver_type")?.equals(node)
+                parent.childForFieldName("receiver_type")?.equals(node) &&
+                resolvedNode.length === 1 && // resolved only to itself
+                resolvedNode[0].node.equals(node)
             ) {
                 // T in `fun T.bar() {}`
                 return true
             }
 
-            const resolvedNode = Reference.multiResolve(new NamedNode(node, file))
             for (const target of resolvedNode) {
                 const identifier = target.nameIdentifier()
                 if (!identifier) return true
