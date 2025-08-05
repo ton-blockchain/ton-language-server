@@ -25,6 +25,8 @@ export class ReferenceCompletionProvider implements CompletionProvider<Completio
             !ctx.isAnnotationName &&
             !ctx.structTopLevel &&
             !ctx.catchVariable &&
+            !ctx.isFunctionName &&
+            !ctx.isMethodName &&
             !ctx.expectMatchArm
         )
     }

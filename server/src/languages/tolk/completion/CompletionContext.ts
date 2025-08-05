@@ -22,6 +22,8 @@ export class CompletionContext {
     public expectMatchArm: boolean = false
     public catchVariable: boolean = false
     public fieldInit: boolean = false
+    public isFunctionName: boolean = false
+    public isMethodName: boolean = false
 
     // struct fields
     public inNameOfFieldInit: boolean = false
@@ -65,6 +67,20 @@ export class CompletionContext {
             if (value?.equals(element.node)) {
                 this.fieldInit = true
             }
+        }
+
+        if (
+            parent.type === "function_declaration" &&
+            parent.childForFieldName("name")?.equals(element.node)
+        ) {
+            this.isFunctionName = true
+        }
+
+        if (
+            parent.type === "method_declaration" &&
+            parent.childForFieldName("name")?.equals(element.node)
+        ) {
+            this.isMethodName = true
         }
 
         if (parent.type === "binary_operator" && parent.parent?.type === "match_arm") {
@@ -141,6 +157,8 @@ export class CompletionContext {
             !this.structTopLevel &&
             !this.expectMatchArm &&
             !this.catchVariable &&
+            !this.isFunctionName &&
+            !this.isMethodName &&
             !this.isAnnotationName
         )
     }
