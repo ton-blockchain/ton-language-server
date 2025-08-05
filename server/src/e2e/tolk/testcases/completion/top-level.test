@@ -19,6 +19,7 @@ Top level completion
 14 onExternalMessage
 14 onInternalMessage
 14 onTickTock
+14 storage
 
 ========================================================================
 Top level completion after declaration
@@ -43,6 +44,7 @@ fun foo() {}
 14 onExternalMessage
 14 onInternalMessage
 14 onTickTock
+14 storage
 
 ========================================================================
 Top level completion before declaration and after import
@@ -69,6 +71,7 @@ fun foo() {}
 14 onExternalMessage
 14 onInternalMessage
 14 onTickTock
+14 storage
 
 ========================================================================
 No top level completion inside function
