@@ -20,6 +20,7 @@ export class CompletionContext {
     public insideImport: boolean = false
     public isAnnotationName: boolean = false
     public expectMatchArm: boolean = false
+    public catchVariable: boolean = false
 
     // struct fields
     public inNameOfFieldInit: boolean = false
@@ -52,6 +53,10 @@ export class CompletionContext {
 
         if (parent.type === "annotation") {
             this.isAnnotationName = true
+        }
+
+        if (parent.type === "catch_clause" && element.node.type === "identifier") {
+            this.catchVariable = true
         }
 
         if (parent.type === "binary_operator" && parent.parent?.type === "match_arm") {
@@ -127,6 +132,7 @@ export class CompletionContext {
             !this.insideImport &&
             !this.structTopLevel &&
             !this.expectMatchArm &&
+            !this.catchVariable &&
             !this.isAnnotationName
         )
     }
