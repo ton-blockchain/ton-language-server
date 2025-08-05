@@ -15,6 +15,7 @@ import {
     BytesNTy,
     CoinsTy,
     FieldsOwnerTy,
+    InstantiationTy,
     IntTy,
     NullTy,
     StructTy,
@@ -228,6 +229,17 @@ export class FillStructInitBase implements Intention {
         }
 
         if (type instanceof TypeAliasTy) {
+            return this.typeDefaultValue(type.innerTy)
+        }
+
+        if (type instanceof InstantiationTy) {
+            if (
+                type.innerTy instanceof StructTy &&
+                type.innerTy.name() === "Cell" &&
+                type.types.length > 0
+            ) {
+                return this.typeDefaultValue(type.types[0]) + ".toCell()"
+            }
             return this.typeDefaultValue(type.innerTy)
         }
 
