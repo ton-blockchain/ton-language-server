@@ -21,6 +21,7 @@ import {CompletionWeight, WeightedCompletionItem} from "@server/completion/Weigh
 import {ResolveState} from "@server/psi/ResolveState"
 import {TypeInferer} from "@server/languages/tolk/TypeInferer"
 import {CompletionItemAdditionalInformation} from "@server/completion/CompletionItemAdditionalInformation"
+import {typeOf} from "@server/languages/tolk/type-inference"
 
 export class ReferenceCompletionProcessor implements ScopeProcessor {
     public constructor(private readonly ctx: CompletionContext) {}
@@ -225,7 +226,7 @@ export class ReferenceCompletionProcessor implements ScopeProcessor {
             if (!parent) return true
 
             if (parent.type === "catch_clause") {
-                const typeName = "any"
+                const typeName = typeOf(node.node, node.file)?.name() ?? "unknown"
 
                 this.addItem({
                     label: name,
@@ -240,7 +241,7 @@ export class ReferenceCompletionProcessor implements ScopeProcessor {
                 })
             }
         } else if (node.node.type === "var_declaration") {
-            const typeName = TypeInferer.inferType(node)?.name() ?? "unknown"
+            const typeName = typeOf(node.node, node.file)?.name() ?? "unknown"
 
             const comma = this.ctx.inMultilineStructInit ? "," : ""
             const suffix = this.ctx.inNameOfFieldInit ? `${comma}$0` : ""
