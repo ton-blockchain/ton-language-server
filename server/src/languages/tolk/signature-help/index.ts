@@ -1,4 +1,4 @@
-import type {Node as SyntaxNode} from "web-tree-sitter"
+import type {Node as SyntaxNode, Point} from "web-tree-sitter"
 import {TolkFile} from "@server/languages/tolk/psi/TolkFile"
 import * as lsp from "vscode-languageserver"
 import {CallLike, NamedNode, TolkNode} from "@server/languages/tolk/psi/TolkNode"
@@ -40,23 +40,20 @@ export async function provideTolkSignatureInfo(
     //    |    |____________|
     //    |_________________|
     //
-    // To find the active parameter, it is enough to find the last comma, which has a position in
-    // the line less than the cursor position. To simplify the algorithm, we consider the opening
-    // bracket as a kind of comma for the zero element.
-    // If the cursor position is greater than the position of any comma, then we consider that this
-    // is the last parameter.
-    //
-    // TODO: support multiline calls
+    // To find the active parameter, we find the last comma before the cursor position.
+    // We consider the opening bracket as a kind of comma for the zero element.
+    // This algorithm supports both single-line and multi-line calls.
 
     const argsCommas = rawArguments.filter(value => value.text === "," || value.text === "(")
 
     let currentIndex = 0
     for (const [i, argComma] of argsCommas.entries()) {
-        if (argComma.endPosition.column > params.position.character) {
+        if (isPositionAfterOrEqual(params.position, argComma.endPosition)) {
+            currentIndex = i
+        } else {
             // found comma after cursor
             break
         }
-        currentIndex = i
     }
 
     return {
@@ -190,4 +187,14 @@ export function findSignatureHelpTarget(
 function nodeAtPosition(params: lsp.TextDocumentPositionParams, file: File): SyntaxNode | null {
     const cursorPosition = asParserPoint(params.position)
     return file.rootNode.descendantForPosition(cursorPosition)
+}
+
+function isPositionAfterOrEqual(position1: lsp.Position, position2: Point): boolean {
+    if (position1.line > position2.row) {
+        return true
+    }
+    if (position1.line === position2.row) {
+        return position1.character >= position2.column
+    }
+    return false
 }
