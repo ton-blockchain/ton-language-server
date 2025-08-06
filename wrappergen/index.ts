@@ -312,7 +312,7 @@ function generateStructLoad(ctx: Ctx, ty: StructTy): string {
         const [prefix, bits] = packPrefix
         lines.push(
             `    const opcode = BigInt(slice.loadUint(${bits}))`,
-            `    if (opcode !== 0x${prefix.toString(16)}n) { throw new Error(\`Invalid prefix for ${ty.name()}, expected: 0x${prefix.toString(16)}, got: \${opcode}\`) }`,
+            `    if (opcode !== 0x${prefix.toString(16)}n) { throw new Error(\`Invalid prefix for ${ty.name()}, expected: 0x${prefix.toString(16)}, got: 0x\${opcode.toString(16)}\`) }`,
         )
     }
 
