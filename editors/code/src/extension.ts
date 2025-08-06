@@ -656,16 +656,14 @@ Node.js: ${info.environment.nodeVersion ?? "Unknown"}`
         vscode.commands.registerCommand("ton.openFile", async (filePath: string, line?: number) => {
             try {
                 const uri = await resolveFile(filePath)
-                const document = await vscode.workspace.openTextDocument(uri)
-                const editor = await vscode.window.showTextDocument(document)
 
                 if (line !== undefined && line > 0) {
-                    const position = new vscode.Position(line - 1, 0)
-                    editor.selection = new vscode.Selection(position, position)
-                    editor.revealRange(
-                        new vscode.Range(position, position),
-                        vscode.TextEditorRevealType.InCenter,
-                    )
+                    const uriWithFragment = uri.with({
+                        fragment: `L${line}`,
+                    })
+                    await vscode.commands.executeCommand("vscode.open", uriWithFragment)
+                } else {
+                    await vscode.commands.executeCommand("vscode.open", uri)
                 }
             } catch (error) {
                 vscode.window.showErrorMessage(`Failed to open file: ${filePath}`)
