@@ -54,7 +54,8 @@ export class TypeInferer {
         return new TypeInferer().inferType(node)
     }
 
-    public inferType(node: TolkNode): Ty | null {
+    public inferType(node: TolkNode | null): Ty | null {
+        if (!node) return null
         return TOLK_CACHE.typeCache.cached(node.node.id, () => this.inferTypeImpl(node))
     }
 
@@ -669,7 +670,11 @@ export class TypeInferer {
 
     private inferTypeFromResolved(resolved: NamedNode): Ty | null {
         if (resolved instanceof Struct) {
-            const baseTy = new StructTy(resolved.name(), resolved)
+            const baseTy = new StructTy(
+                resolved.fields().map(it => this.inferType(it.typeNode()) ?? UnknownTy.UNKNOWN),
+                resolved.name(),
+                resolved,
+            )
 
             const typeParameters = resolved.typeParameters()
             if (typeParameters.length > 0) {
