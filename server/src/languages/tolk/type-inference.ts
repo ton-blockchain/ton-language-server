@@ -1587,6 +1587,7 @@ class InferenceWalker {
             case ">":
             case "<=":
             case ">=":
+            case "<=>":
             case "!=":
             case "==": {
                 const isInverted = operator === "!="
@@ -1646,6 +1647,24 @@ class InferenceWalker {
                 const falseFlow = flowAfterRight.falseFlow
 
                 return new ExprFlow(outFlow, trueFlow, falseFlow)
+            }
+            case "&":
+            case "|": {
+                flow = this.inferExpression(left, flow, false).outFlow
+                if (!right) {
+                    return ExprFlow.create(flow, usedAsCondition)
+                }
+
+                flow = this.inferExpression(right, flow, false).outFlow
+
+                const leftType = this.ctx.getType(left)
+                if (leftType instanceof BoolTy) {
+                    this.ctx.setType(node, BoolTy.BOOL)
+                    break
+                }
+
+                this.ctx.setType(node, IntTy.INT)
+                break
             }
             default: {
                 flow = this.inferExpression(left, flow, false).outFlow
@@ -2219,11 +2238,9 @@ class InferenceWalker {
         let resultType: Ty
         switch (operator) {
             case "!": {
-                let exprType = this.ctx.getType(argument) ?? BoolTy.BOOL
-                if (exprType instanceof BoolTy) {
-                    exprType = exprType.negate()
-                }
-                this.ctx.setType(node, exprType)
+                const exprType = this.ctx.getType(argument) ?? BoolTy.BOOL
+                const actualExprType = exprType instanceof BoolTy ? exprType.negate() : BoolTy.BOOL
+                this.ctx.setType(node, actualExprType)
                 return new ExprFlow(afterArg.outFlow, afterArg.falseFlow, afterArg.trueFlow)
             }
             case "-":
