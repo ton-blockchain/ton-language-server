@@ -360,7 +360,7 @@ struct Foo {
     a: cell?
 }
 ```
-**Size:** 1 bits, 0..1 refs.
+**Size:** 1 bit, 0..1 refs.
 
 ---
 
@@ -376,7 +376,7 @@ struct Foo {
     a: Cell<int32>?
 }
 ```
-**Size:** 1 bits, 0..1 refs.
+**Size:** 1 bit, 0..1 refs.
 
 ---
 
@@ -510,6 +510,6 @@ type <caret>MyInt = (int32 | int64, cell)
 ```tolk
 type MyInt = (int32 | int64, cell)
 ```
-**Size:** 33..65 bits, 1 refs.
+**Size:** 33..65 bits, 1 ref.
 
 ---

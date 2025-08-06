@@ -137,7 +137,7 @@ export function createUnpredictableInfinitySizeOf(): SizeOf {
 
 export function sizeOfPresentation(size: SizeOf): string {
     if (!size.valid) {
-        return "invalid size"
+        return "unknown or invalid size"
     }
     if (size.minBits === size.maxBits && size.minRefs === size.maxRefs) {
         if (size.minRefs === 0) {
@@ -145,18 +145,20 @@ export function sizeOfPresentation(size: SizeOf): string {
         }
         return `${size.minBits} bits, ${size.minRefs} refs`
     }
-    return `${formatRange(size.minBits, size.maxBits)} bits, ${formatRange(size.minRefs, size.maxRefs)} refs`
+    return `${formatRange(size.minBits, size.maxBits, "bit")}, ${formatRange(size.minRefs, size.maxRefs, "ref")}`
 }
 
-function formatRange(first: number, second: number): string {
+function formatRange(first: number, second: number, name: string): string {
     if (first === second) {
-        return first.toString()
+        if (first === 1) {
+            return `${first} ${name}`
+        }
+        return first.toString() + " " + name + "s"
     }
 
-    return `${first}..${second}`
+    return `${first}..${second} ${name}s`
 }
 
-// Mirrors the logic from C++ pack-unpack-serializers.cpp
 function calculateSizeOf(ty: Ty, ctx: EstimateContext): SizeOf {
     if (ty instanceof StructTy) {
         let sum = createSizeOf(0)
@@ -236,22 +238,22 @@ function calculateSizeOf(ty: Ty, ctx: EstimateContext): SizeOf {
         }
 
         if (ty.elements.length > 0) {
-            // Multiple constructors case, mirrors S_MultipleConstructors::estimate()
-            // Generate opcodes to get accurate prefix sizes
+            // multiple constructors case, mirrors S_MultipleConstructors::estimate()
+            // generate opcodes to get accurate prefix sizes
             const opcodes = autoGenerateOpcodesForUnion(ty)
 
             if (!opcodes) {
-                // Invalid union configuration, return invalid size
+                // invalid union configuration, return invalid size
                 return createInvalidSizeOf()
             }
 
-            // Calculate variants size using the first variant as baseline
+            // calculate variants size using the first variant as baseline
             let variantsSize = ctx.estimateAny(
                 ty.elements[0],
                 PrefixEstimateMode.DoNothingAlreadyIncluded,
             )
 
-            // Use the actual opcode prefix size
+            // use the actual opcode prefix size
             let prefixSize = createSizeOf(opcodes[0].prefixLen)
 
             for (let i = 1; i < ty.elements.length; i++) {
@@ -261,7 +263,7 @@ function calculateSizeOf(ty: Ty, ctx: EstimateContext): SizeOf {
                 )
                 variantsSize = EstimateContext.minmax(variantsSize, nextVariantSize)
 
-                // Use actual prefix length from generated opcodes
+                // use actual prefix length from generated opcodes
                 prefixSize = EstimateContext.minmax(prefixSize, createSizeOf(opcodes[i].prefixLen))
             }
 
@@ -388,7 +390,7 @@ export function autoGenerateOpcodesForUnion(unionType: UnionTy): PackOpcode[] | 
     let nHaveOpcode = 0
     let hasNull = false
 
-    // Count how many variants have opcodes
+    // count how many variants have opcodes
     for (const variant of variants) {
         const unwrapped = variant.unwrapAlias()
 
@@ -401,7 +403,7 @@ export function autoGenerateOpcodesForUnion(unionType: UnionTy): PackOpcode[] | 
         }
     }
 
-    // Case 1: All variants have opcodes, just use them
+    // case 1: All variants have opcodes, just use them
     if (nHaveOpcode === variants.length) {
         for (const variant of variants) {
             const unwrapped = variant.unwrapAlias()
@@ -432,12 +434,12 @@ export function autoGenerateOpcodesForUnion(unionType: UnionTy): PackOpcode[] | 
         return result
     }
 
-    // Case 2: Some have opcodes, some don't, this is an error
+    // case 2: Some have opcodes, some don't, this is an error
     if (nHaveOpcode > 0) {
         return undefined
     }
 
-    // Case 3: None have opcodes, generate prefix tree
+    // case 3: None have opcodes, generate prefix tree
     // Examples: int32 | int64 | int128 / int32 | A | null / A | B / A | B | C
     // If null exists, it's 0, all others are 1+tree: A|B|C|D|null => 0 | 100+A | 101+B | 110+C | 111+D
     // If no null, just distribute sequentially: A|B|C => 00+A | 01+B | 10+C
