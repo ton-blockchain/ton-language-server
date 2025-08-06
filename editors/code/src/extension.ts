@@ -196,6 +196,46 @@ async function startServer(context: vscode.ExtensionContext): Promise<vscode.Dis
     })
 }
 
+async function resolveFile(filePath: string): Promise<vscode.Uri> {
+    if (path.isAbsolute(filePath)) {
+        return vscode.Uri.file(filePath)
+    } else {
+        const workspaceFolders = vscode.workspace.workspaceFolders
+        if (!workspaceFolders || workspaceFolders.length === 0) {
+            throw new Error("No workspace folder found")
+        }
+
+        const workspaceRoot = workspaceFolders[0].uri.fsPath
+        const fullPath = path.join(workspaceRoot, "contracts", filePath)
+
+        try {
+            const uri = vscode.Uri.file(fullPath)
+            await vscode.workspace.fs.stat(uri)
+            return uri
+        } catch {
+            const foundFiles = await vscode.workspace.findFiles(
+                `**/${path.basename(filePath)}`,
+                "**/node_modules/**",
+                10,
+            )
+
+            if (foundFiles.length === 0) {
+                throw new Error(`File not found: ${filePath}`)
+            }
+
+            if (foundFiles.length === 1) {
+                return foundFiles[0]
+            } else {
+                // Ищем точное совпадение пути
+                const exactMatch = foundFiles.find(
+                    file => file.fsPath.endsWith(filePath) || file.fsPath.includes(filePath),
+                )
+                return exactMatch ?? foundFiles[0]
+            }
+        }
+    }
+}
+
 function registerCommands(disposables: vscode.Disposable[]): void {
     disposables.push(
         vscode.commands.registerCommand("tolk.showToolchainInfo", async () => {
@@ -612,6 +652,25 @@ Node.js: ${info.environment.nodeVersion ?? "Unknown"}`
         vscode.commands.registerCommand("ton.copyToClipboard", (str: string) => {
             void vscode.env.clipboard.writeText(str)
             void vscode.window.showInformationMessage(`Copied ${str} to clipboard`)
+        }),
+        vscode.commands.registerCommand("ton.openFile", async (filePath: string, line?: number) => {
+            try {
+                const uri = await resolveFile(filePath)
+                const document = await vscode.workspace.openTextDocument(uri)
+                const editor = await vscode.window.showTextDocument(document)
+
+                if (line !== undefined && line > 0) {
+                    const position = new vscode.Position(line - 1, 0)
+                    editor.selection = new vscode.Selection(position, position)
+                    editor.revealRange(
+                        new vscode.Range(position, position),
+                        vscode.TextEditorRevealType.InCenter,
+                    )
+                }
+            } catch (error) {
+                vscode.window.showErrorMessage(`Failed to open file: ${filePath}`)
+                console.error("Error opening file:", error)
+            }
         }),
     )
 }
