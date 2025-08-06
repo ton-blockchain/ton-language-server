@@ -27,6 +27,7 @@ export default tseslint.config(
             ".vscode-test/*",
             "dist/*",
             "docs/*",
+            "**/*.wrapper.ts",
             "server/src/languages/tolk/tree-sitter-tolk/",
             "server/src/languages/fift/tree-sitter-fift/",
             "server/src/languages/tolk/tree-sitter-tolk/",

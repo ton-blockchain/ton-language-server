@@ -391,6 +391,18 @@ class InferenceWalker {
         return flow
     }
 
+    public inferStruct(struct: Struct, flow: FlowContext): FlowContext {
+        const fieldsTy = struct.fields().map(field => {
+            flow = this.inferField(field, flow)
+            return this.ctx.getType(field.node) ?? UnknownTy.UNKNOWN
+        })
+
+        const structTy = new StructTy(fieldsTy, struct.name(), struct)
+        this.ctx.setType(struct.node, structTy)
+        this.ctx.setType(struct.nameIdentifier(), structTy)
+        return flow
+    }
+
     public inferField(field: Field, flow: FlowContext): FlowContext {
         const typeHint = field.typeNode()?.node
         const typeHintTy = this.convertType(typeHint, field.file)
@@ -2574,6 +2586,9 @@ function inferImpl(decl: NamedNode): InferenceResult {
     if (decl instanceof GlobalVariable) {
         walker.inferGlobalVariable(decl, flow)
     }
+    if (decl instanceof Struct) {
+        walker.inferStruct(decl, flow)
+    }
     if (decl instanceof Field) {
         walker.inferField(decl, flow)
     }
@@ -2592,6 +2607,9 @@ interface SyntaxNodeWithCache extends SyntaxNode {
 function findCacheOwner(ownable: SyntaxNodeWithCache, file: TolkFile): NamedNode | null {
     if (ownable.cacheOwner) {
         return ownable.cacheOwner
+    }
+    if (ownable.type === "struct_declaration") {
+        return new Struct(ownable, file)
     }
     if (ownable.type === "function_declaration") {
         return new FunctionBase(ownable, file)
@@ -2616,6 +2634,7 @@ function findCacheOwner(ownable: SyntaxNodeWithCache, file: TolkFile): NamedNode
     }
     const parent = parentOfType(
         ownable,
+        "struct_declaration",
         "function_declaration",
         "method_declaration",
         "get_method_declaration",
@@ -2624,6 +2643,9 @@ function findCacheOwner(ownable: SyntaxNodeWithCache, file: TolkFile): NamedNode
         "struct_field_declaration",
         "type_alias_declaration",
     )
+    if (parent?.type === "struct_declaration") {
+        return new Struct(parent, file)
+    }
     if (parent?.type === "function_declaration") {
         return new FunctionBase(parent, file)
     }
