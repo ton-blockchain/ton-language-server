@@ -900,7 +900,7 @@ class InferenceWalker {
         // infer generic parameters
         // val a = 100;
         // a = getT(); // T = int
-        if (hint && functionType.returnTy.hasGenerics()) {
+        if (hint && functionType.returnTy.hasGenerics() && !hint.hasGenerics()) {
             sub = sub.deduce(functionType.returnTy, hint)
         }
 
