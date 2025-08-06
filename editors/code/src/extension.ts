@@ -196,6 +196,45 @@ async function startServer(context: vscode.ExtensionContext): Promise<vscode.Dis
     })
 }
 
+async function resolveFile(filePath: string): Promise<vscode.Uri> {
+    if (path.isAbsolute(filePath)) {
+        return vscode.Uri.file(filePath)
+    }
+
+    const workspaceFolders = vscode.workspace.workspaceFolders
+    if (!workspaceFolders || workspaceFolders.length === 0) {
+        throw new Error("No workspace folder found")
+    }
+
+    const workspaceRoot = workspaceFolders[0].uri.fsPath
+    const fullPath = path.join(workspaceRoot, "contracts", filePath)
+
+    try {
+        const uri = vscode.Uri.file(fullPath)
+        await vscode.workspace.fs.stat(uri)
+        return uri
+    } catch {
+        const foundFiles = await vscode.workspace.findFiles(
+            `**/${path.basename(filePath)}`,
+            "**/node_modules/**", // no need to search in node_modules
+            10,
+        )
+
+        if (foundFiles.length === 0) {
+            throw new Error(`File not found: ${filePath}`)
+        }
+
+        if (foundFiles.length === 1) {
+            return foundFiles[0]
+        } else {
+            const exactMatch = foundFiles.find(
+                file => file.fsPath.endsWith(filePath) || file.fsPath.includes(filePath),
+            )
+            return exactMatch ?? foundFiles[0]
+        }
+    }
+}
+
 function registerCommands(disposables: vscode.Disposable[]): void {
     disposables.push(
         vscode.commands.registerCommand("tolk.showToolchainInfo", async () => {
@@ -612,6 +651,23 @@ Node.js: ${info.environment.nodeVersion ?? "Unknown"}`
         vscode.commands.registerCommand("ton.copyToClipboard", (str: string) => {
             void vscode.env.clipboard.writeText(str)
             void vscode.window.showInformationMessage(`Copied ${str} to clipboard`)
+        }),
+        vscode.commands.registerCommand("ton.openFile", async (filePath: string, line?: number) => {
+            try {
+                const uri = await resolveFile(filePath)
+
+                if (line !== undefined && line > 0) {
+                    const uriWithFragment = uri.with({
+                        fragment: `L${line}`,
+                    })
+                    await vscode.commands.executeCommand("vscode.open", uriWithFragment)
+                } else {
+                    await vscode.commands.executeCommand("vscode.open", uri)
+                }
+            } catch (error) {
+                vscode.window.showErrorMessage(`Failed to open file: ${filePath}`)
+                console.error("Error opening file:", error)
+            }
         }),
     )
 }

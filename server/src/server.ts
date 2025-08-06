@@ -120,6 +120,7 @@ import {IndexingRootKind} from "@server/indexing/indexing"
 import {FuncIndexingRoot} from "@server/languages/func/indexing-root"
 import {formatTolkFile} from "@server/languages/tolk/format/format"
 import {collectFuncCodeLenses} from "@server/languages/func/lens"
+import {collectFiftCodeLenses} from "@server/languages/fift/lens"
 
 /**
  * Whenever LS is initialized.
@@ -979,6 +980,11 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
         lsp.CodeLensRequest.type,
         async (params: lsp.CodeLensParams): Promise<lsp.CodeLens[] | null> => {
             const uri = params.textDocument.uri
+
+            if (isFiftFile(uri)) {
+                const file = await findFiftFile(uri)
+                return collectFiftCodeLenses(file)
+            }
 
             if (isFuncFile(uri)) {
                 const file = await findFuncFile(uri)
