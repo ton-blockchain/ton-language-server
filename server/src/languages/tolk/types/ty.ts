@@ -122,6 +122,14 @@ export abstract class NonNamedTy implements Ty {
 }
 
 export class FieldsOwnerTy<Anchor extends FieldsOwner> extends NamedTy<Anchor> {
+    public constructor(
+        public fieldsTy: Ty[],
+        _name: string,
+        anchor: Anchor | null,
+    ) {
+        super(_name, anchor)
+    }
+
     public fields(): Field[] {
         if (this.anchor === null) return []
         return this.anchor.fields()
@@ -129,6 +137,14 @@ export class FieldsOwnerTy<Anchor extends FieldsOwner> extends NamedTy<Anchor> {
 }
 
 export class StructTy extends FieldsOwnerTy<Struct> {
+    public override substitute(mapping: Map<string, Ty>): Ty {
+        return new StructTy(
+            this.fieldsTy.map(it => it.substitute(mapping)),
+            this.name(),
+            this.anchor,
+        )
+    }
+
     public override canRhsBeAssigned(other: Ty): boolean {
         if (this === other) return true
         if (other instanceof TypeAliasTy) return this.canRhsBeAssigned(other.innerTy)

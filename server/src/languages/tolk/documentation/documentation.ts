@@ -18,7 +18,7 @@ import {generateTlBTypeDoc} from "@server/languages/tolk/documentation/tlb-type-
 import type {Node as SyntaxNode} from "web-tree-sitter"
 import {TypeInferer} from "@server/languages/tolk/TypeInferer"
 import {functionTypeOf, typeOf} from "@server/languages/tolk/type-inference"
-import {StructTy, UnionTy} from "@server/languages/tolk/types/ty"
+import {StructTy, UnionTy, UnknownTy} from "@server/languages/tolk/types/ty"
 import {EstimateContext, sizeOfPresentation} from "@server/languages/tolk/types/size-of"
 
 /**
@@ -238,7 +238,11 @@ export function generateTolkDocFor(node: NamedNode, place: SyntaxNode): string |
 }
 
 function structSizeOf(struct: Struct): string {
-    const ty = new StructTy(struct.name(), struct)
+    const ty = new StructTy(
+        struct.fields().map(it => typeOf(it.node, it.file) ?? UnknownTy.UNKNOWN),
+        struct.name(),
+        struct,
+    )
     const sizeOf = EstimateContext.estimate(ty)
     if (!sizeOf.valid) return ""
     const sizeOfPres = sizeOfPresentation(sizeOf)

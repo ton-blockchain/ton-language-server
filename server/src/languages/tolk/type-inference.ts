@@ -44,7 +44,7 @@ import {TOLK_CACHE} from "@server/languages/tolk/cache"
 import {filePathToUri} from "@server/files"
 import {trimBackticks} from "@server/languages/tolk/lang/names-util"
 
-class GenericSubstitutions {
+export class GenericSubstitutions {
     public constructor(public mapping: Map<string, Ty> = new Map()) {}
 
     public deduce(paramTy: Ty | null, argTy: Ty): GenericSubstitutions {

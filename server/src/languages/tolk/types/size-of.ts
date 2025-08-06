@@ -21,7 +21,7 @@ import {
     UnknownTy,
     NeverTy,
 } from "@server/languages/tolk/types/ty"
-import {typeOf} from "@server/languages/tolk/type-inference"
+import {GenericSubstitutions, typeOf} from "@server/languages/tolk/type-inference"
 
 export interface SizeOf {
     readonly valid: boolean
@@ -182,15 +182,23 @@ function calculateSizeOf(ty: Ty, ctx: EstimateContext): SizeOf {
             }
         }
 
-        const fields = ty.fields()
-        for (const field of fields) {
-            const nameNode = field.nameNode()
-            if (!nameNode) return createInvalidSizeOf()
-            const fieldTy = typeOf(nameNode.node, nameNode.file)
-            if (!fieldTy) return createInvalidSizeOf()
+        if (ty.fieldsTy.length === 0) {
+            // fallback
+            const fields = ty.fields()
+            for (const field of fields) {
+                const nameNode = field.nameNode()
+                if (!nameNode) return createInvalidSizeOf()
+                const fieldTy = typeOf(nameNode.node, nameNode.file)
+                if (!fieldTy) return createInvalidSizeOf()
 
-            const fieldSize = ctx.estimateAny(fieldTy)
-            sum = EstimateContext.sum(sum, fieldSize)
+                const fieldSize = ctx.estimateAny(fieldTy)
+                sum = EstimateContext.sum(sum, fieldSize)
+            }
+        } else {
+            for (const field of ty.fieldsTy) {
+                const fieldSize = ctx.estimateAny(field)
+                sum = EstimateContext.sum(sum, fieldSize)
+            }
         }
 
         return sum
@@ -287,6 +295,19 @@ function calculateSizeOf(ty: Ty, ctx: EstimateContext): SizeOf {
         if (ty.innerTy.name() === "Cell") {
             // Cell<Foo>, same as cell
             return createSizeOf(0, 0, 1, 1)
+        }
+
+        if (ty.innerTy instanceof StructTy || ty.innerTy instanceof TypeAliasTy) {
+            const parameters = ty.innerTy.anchor?.typeParameters() ?? []
+            const types = ty.types
+
+            const mapping: Map<string, Ty> = new Map()
+
+            for (let i = 0; i < Math.min(parameters.length, types.length); i++) {
+                GenericSubstitutions.deduceTo(mapping, new TypeParameterTy(parameters[i]), types[i])
+            }
+
+            return calculateSizeOf(ty.innerTy.substitute(mapping), ctx)
         }
 
         // for instantiated types, use unpredictable size, TODO
