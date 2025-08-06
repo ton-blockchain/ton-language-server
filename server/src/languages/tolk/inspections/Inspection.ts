@@ -13,6 +13,7 @@ export const InspectionIds = {
     STRUCT_INITIALIZATION: "struct-initialization",
     TYPE_COMPATIBILITY: "type-compatibility",
     CANNOT_REASSIGN: "cannot-reassign",
+    MISSED_SEMICOLON: "missed-semicolon",
     NEED_NOT_NULL_UNWRAPPING: "need-not-null-unwrapping",
 } as const
 

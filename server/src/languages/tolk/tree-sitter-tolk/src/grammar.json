@@ -1431,6 +1431,10 @@
                 {
                     "type": "SYMBOL",
                     "name": "assert_statement"
+                },
+                {
+                    "type": "SYMBOL",
+                    "name": "expression_statement"
                 }
             ]
         },
@@ -1442,19 +1446,6 @@
                     "name": "_statement_ending_with_brace"
                 },
                 {
-                    "type": "SEQ",
-                    "members": [
-                        {
-                            "type": "SYMBOL",
-                            "name": "_statement_require_semicolon_unless_last"
-                        },
-                        {
-                            "type": "STRING",
-                            "value": ";"
-                        }
-                    ]
-                },
-                {
                     "type": "PREC_RIGHT",
                     "value": 0,
                     "content": {
@@ -1462,7 +1453,7 @@
                         "members": [
                             {
                                 "type": "SYMBOL",
-                                "name": "expression_statement"
+                                "name": "_statement_require_semicolon_unless_last"
                             },
                             {
                                 "type": "CHOICE",
