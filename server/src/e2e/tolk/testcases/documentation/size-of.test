@@ -477,6 +477,36 @@ struct Foo {
 ---
 
 ========================================================================
+Size of: With RemainingBitsAndRefs
+========================================================================
+type ForwardPayloadRemainder = RemainingBitsAndRefs
+
+struct (0x0f8a7ea5) <caret>AskToTransfer {
+    queryId: uint64
+    jettonAmount: coins
+    transferRecipient: address
+    sendExcessesTo: address
+    customPayload: cell?
+    forwardTonAmount: coins
+    forwardPayload: ForwardPayloadRemainder
+}
+------------------------------------------------------------------------
+```tolk
+struct (0x0f8a7ea5) AskToTransfer {
+    queryId: uint64
+    jettonAmount: coins
+    transferRecipient: address
+    sendExcessesTo: address
+    customPayload: cell?
+    forwardTonAmount: coins
+    forwardPayload: ForwardPayloadRemainder
+}
+```
+**Size:** 109..9999 bits, 0..5 refs.
+
+---
+
+========================================================================
 Size of: Alias for int32
 ========================================================================
 type <caret>MyInt = int32
