@@ -216,7 +216,7 @@ async function resolveFile(filePath: string): Promise<vscode.Uri> {
     } catch {
         const foundFiles = await vscode.workspace.findFiles(
             `**/${path.basename(filePath)}`,
-            "**/node_modules/**",
+            "**/node_modules/**", // no need to search in node_modules
             10,
         )
 
@@ -227,7 +227,6 @@ async function resolveFile(filePath: string): Promise<vscode.Uri> {
         if (foundFiles.length === 1) {
             return foundFiles[0]
         } else {
-            // Ищем точное совпадение пути
             const exactMatch = foundFiles.find(
                 file => file.fsPath.endsWith(filePath) || file.fsPath.includes(filePath),
             )
