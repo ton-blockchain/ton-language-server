@@ -101,17 +101,17 @@ export class EstimateContext {
 }
 
 export function createSizeOf(
-    min_bits: number,
-    max_bits?: number,
-    min_refs?: number,
-    max_refs?: number,
+    minBits: number,
+    maxBits?: number,
+    minRefs?: number,
+    maxRefs?: number,
 ): SizeOf {
     return {
         valid: true,
-        minBits: min_bits,
-        maxBits: max_bits ?? min_bits,
-        minRefs: min_refs ?? 0,
-        maxRefs: max_refs ?? min_refs ?? 0,
+        minBits: minBits,
+        maxBits: maxBits ?? minBits,
+        minRefs: minRefs ?? 0,
+        maxRefs: maxRefs ?? minRefs ?? 0,
     }
 }
 
