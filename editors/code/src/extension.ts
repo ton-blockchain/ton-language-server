@@ -199,39 +199,39 @@ async function startServer(context: vscode.ExtensionContext): Promise<vscode.Dis
 async function resolveFile(filePath: string): Promise<vscode.Uri> {
     if (path.isAbsolute(filePath)) {
         return vscode.Uri.file(filePath)
-    } else {
-        const workspaceFolders = vscode.workspace.workspaceFolders
-        if (!workspaceFolders || workspaceFolders.length === 0) {
-            throw new Error("No workspace folder found")
+    }
+
+    const workspaceFolders = vscode.workspace.workspaceFolders
+    if (!workspaceFolders || workspaceFolders.length === 0) {
+        throw new Error("No workspace folder found")
+    }
+
+    const workspaceRoot = workspaceFolders[0].uri.fsPath
+    const fullPath = path.join(workspaceRoot, "contracts", filePath)
+
+    try {
+        const uri = vscode.Uri.file(fullPath)
+        await vscode.workspace.fs.stat(uri)
+        return uri
+    } catch {
+        const foundFiles = await vscode.workspace.findFiles(
+            `**/${path.basename(filePath)}`,
+            "**/node_modules/**",
+            10,
+        )
+
+        if (foundFiles.length === 0) {
+            throw new Error(`File not found: ${filePath}`)
         }
 
-        const workspaceRoot = workspaceFolders[0].uri.fsPath
-        const fullPath = path.join(workspaceRoot, "contracts", filePath)
-
-        try {
-            const uri = vscode.Uri.file(fullPath)
-            await vscode.workspace.fs.stat(uri)
-            return uri
-        } catch {
-            const foundFiles = await vscode.workspace.findFiles(
-                `**/${path.basename(filePath)}`,
-                "**/node_modules/**",
-                10,
+        if (foundFiles.length === 1) {
+            return foundFiles[0]
+        } else {
+            // Ищем точное совпадение пути
+            const exactMatch = foundFiles.find(
+                file => file.fsPath.endsWith(filePath) || file.fsPath.includes(filePath),
             )
-
-            if (foundFiles.length === 0) {
-                throw new Error(`File not found: ${filePath}`)
-            }
-
-            if (foundFiles.length === 1) {
-                return foundFiles[0]
-            } else {
-                // Ищем точное совпадение пути
-                const exactMatch = foundFiles.find(
-                    file => file.fsPath.endsWith(filePath) || file.fsPath.includes(filePath),
-                )
-                return exactMatch ?? foundFiles[0]
-            }
+            return exactMatch ?? foundFiles[0]
         }
     }
 }
