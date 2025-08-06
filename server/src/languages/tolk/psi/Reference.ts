@@ -28,6 +28,9 @@ import {
     Ty,
     FieldsOwnerTy,
     InstantiationTy,
+    BuiltinTy,
+    UnionTy,
+    NullTy,
 } from "@server/languages/tolk/types/ty"
 import {TypeInferer} from "@server/languages/tolk/TypeInferer"
 import {parentOfType} from "@server/psi/utils"
@@ -363,18 +366,18 @@ export class Reference {
             // first process instantiation methods
             if (!this.processTypeMethods(qualifierType, proc, state)) return false
 
-            // and then underlying type
             const innerTy = qualifierType.unwrapInstantiation()
+
+            if (innerTy.name() === "Cell") {
+                const callTy = new BuiltinTy("cell", null)
+                const nullableCellTy = new UnionTy([callTy, NullTy.NULL])
+                if (!this.processType(qualifier, callTy, proc, state)) return false
+                if (!this.processType(qualifier, nullableCellTy, proc, state)) return false
+            }
+
+            // and then underlying type
             return this.processType(qualifier, innerTy, proc, state)
         }
-
-        // if (qualifierType instanceof OptionTy) {
-        //     // first process type alias methods
-        //     if (!this.processTypeMethods(qualifierType, proc, state)) return false
-        //
-        //     // and then underlying type
-        //     return this.processType(qualifier, qualifierType.innerTy, proc, state)
-        // }
 
         return this.processTypeMethods(qualifierType, proc, state)
     }
@@ -419,6 +422,21 @@ export class Reference {
                             expected instanceof InstantiationTy
                         ) {
                             return receiverType.innerTy.name() === expected.innerTy.name()
+                        }
+                    }
+
+                    if (receiver?.type === "nullable_type") {
+                        const inner = receiver.childForFieldName("inner")
+                        if (expected instanceof UnionTy) {
+                            const asNullable = expected.asNullable()
+                            if (asNullable !== undefined) {
+                                return this.typeMatches(
+                                    file,
+                                    asNullable[0],
+                                    asNullable[0].name(),
+                                    inner,
+                                )
+                            }
                         }
                     }
 

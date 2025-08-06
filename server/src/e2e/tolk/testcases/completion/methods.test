@@ -97,3 +97,31 @@ fun main() {
 13 as
 1  add(self)
 1  add2(self)
+
+========================================================================
+T? instance method on T
+========================================================================
+struct Data {
+    data: Cell<int32>?
+}
+
+fun main() {
+    val data: Data;
+
+    if (data.data == null) {
+        return;
+    }
+
+    data.data.<caret>;
+}
+------------------------------------------------------------------------
+9  tvmCell: cell   of Cell
+1  beginParse(self): slice
+1  calculateSize(self, maxCells: int): (int, int, int, bool)
+1  calculateSizeStrict(self, maxCells: int): (int, int, int)
+1  depth(self): int
+1  forceLoadLazyObject(self): slice
+1  hash(self): uint256
+1  load(self, options: UnpackOptions = {}): T
+1  stackMoveToTop(mutate self): void
+1  toCell(self, options: PackOptions = {}): Cell<T>
