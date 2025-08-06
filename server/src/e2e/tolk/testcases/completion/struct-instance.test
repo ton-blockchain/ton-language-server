@@ -185,5 +185,4 @@ fun test() {
 21 InMessage {}
 21 InMessageBounced {}
 21 Inner {}
-21 StateInit {}
 14 Inner {}.toCell()

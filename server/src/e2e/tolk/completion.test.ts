@@ -25,7 +25,6 @@ suite("Completion Test Suite", () => {
             this.editor.revealRange(new vscode.Range(position, position))
 
             const textBeforeCursor = this.findWordBeforeCursor(position)
-
             const items = await vscode.commands.executeCommand<vscode.CompletionList>(
                 "vscode.executeCompletionItemProvider",
                 this.document.uri,
@@ -35,7 +34,7 @@ suite("Completion Test Suite", () => {
 
             const finalItems = items.items.filter(item => {
                 const label = typeof item.label === "object" ? item.label.label : item.label
-                return label.includes(textBeforeCursor.trim())
+                return label.startsWith(textBeforeCursor.trim())
             })
 
             if (finalItems.length > 200) {

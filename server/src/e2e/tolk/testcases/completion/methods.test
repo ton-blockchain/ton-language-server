@@ -65,3 +65,35 @@ fun main() {
 1  getDeclaredPackPrefix(): int  of T
 1  getDeclaredPackPrefixLen(): int  of T
 1  new(): Second<T>  of Second<T>
+
+========================================================================
+Instance method for Foo<T> completion for generic struct
+========================================================================
+struct Collection<T> {}
+
+fun Collection<T>.add(self) {}
+
+fun main() {
+    val arr: Collection<int32>;
+    arr.a<caret>
+}
+------------------------------------------------------------------------
+13 as
+1  add(self)
+
+========================================================================
+Instance method for Foo<int32> completion for generic struct
+========================================================================
+struct Collection<T> {}
+
+fun Collection<T>.add(self) {}
+fun Collection<int32>.add2(self) {}
+
+fun main() {
+    val arr: Collection<int32>;
+    arr.a<caret>
+}
+------------------------------------------------------------------------
+13 as
+1  add(self)
+1  add2(self)
