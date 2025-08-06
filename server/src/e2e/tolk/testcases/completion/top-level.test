@@ -294,7 +294,6 @@ Method name completion with only fun
 fun int.pa<caret>
 ------------------------------------------------------------------------
 2  packToBuilder(self, mutate b: builder)
-2  unpackFromSlice(mutate s: slice) {}
 
 ========================================================================
 Method name completion with all signature
@@ -302,4 +301,17 @@ Method name completion with all signature
 fun int.pa<caret>() {}
 ------------------------------------------------------------------------
 2  packToBuilder(self, mutate b: builder)
+
+========================================================================
+Method name completion with only fun 2
+========================================================================
+fun int.unpa<caret>
+------------------------------------------------------------------------
+2  unpackFromSlice(mutate s: slice) {}
+
+========================================================================
+Method name completion with all signature 2
+========================================================================
+fun int.unpa<caret>() {}
+------------------------------------------------------------------------
 2  unpackFromSlice(mutate s: slice)
