@@ -435,7 +435,8 @@
                                 "unused-import",
                                 "struct-initialization",
                                 "cannot-reassign",
-                                "need-not-null-unwrapping"
+                                "need-not-null-unwrapping",
+                                "missed-semicolon"
                             ]
                         },
                         "default": [

@@ -218,12 +218,12 @@ const TOLK_GRAMMAR = {
             $.continue_statement,
             $.throw_statement,
             $.assert_statement,
+            $.expression_statement,
         ),
     _statement: $ =>
         choice(
             $._statement_ending_with_brace,
-            seq($._statement_require_semicolon_unless_last, ";"),
-            prec.right(seq($.expression_statement, optional(";"))),
+            prec.right(seq($._statement_require_semicolon_unless_last, optional(";"))),
         ),
 
     local_vars_declaration: $ =>
