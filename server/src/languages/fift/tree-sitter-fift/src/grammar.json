@@ -592,7 +592,7 @@
         },
         "identifier": {
             "type": "PATTERN",
-            "value": "[~a-zA-Z$_%?][a-zA-Z0-9$_?~()]*"
+            "value": "[~a-zA-Z$_%?][a-zA-Z0-9$_?~.()]*"
         },
         "negative_identifier": {
             "type": "SEQ",
