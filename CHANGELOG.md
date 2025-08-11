@@ -2,6 +2,40 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.4.0] - 11.08.2025
+
+### Added
+
+- feat(tolk/vscode): better support for triple-quotes strings in https://github.com/ton-blockchain/ton-language-server/pull/104
+- feat(tolk/stdlib): support TOLK_STDLIB env for stdlib search in https://github.com/ton-blockchain/ton-language-server/pull/102
+- feat(tolk/fmt): bump tolkfmt to v0.0.15 in https://github.com/ton-blockchain/ton-language-server/pull/93
+- feat(tolk/completion): add `storage` snippet in https://github.com/ton-blockchain/ton-language-server/pull/107
+- feat(tolk/completion): add snippet for `catch`, fix completion for catch variable names in https://github.com/ton-blockchain/ton-language-server/pull/110
+- feat(tolk/completion): add completion option for field with `Cell<Foo>` type, to create `Foo {}.toCell()` expression in https://github.com/ton-blockchain/ton-language-server/pull/112
+- feat(tolk/completion): add completion for entry point function names and for builtin methods in https://github.com/ton-blockchain/ton-language-server/pull/114
+- feat(tolk/completion): better support for nullable methods in https://github.com/ton-blockchain/ton-language-server/pull/118
+- feat(tolk/signature-help): support signature help for multiline calls in https://github.com/ton-blockchain/ton-language-server/pull/111
+- feat(tolk/inspections): don't require `;` in grammar and give an error later in https://github.com/ton-blockchain/ton-language-server/pull/126
+- feat(tolk/documentation): show size of alias/struct in https://github.com/ton-blockchain/ton-language-server/pull/115
+- feat(fift/navigation): add lens to go to Tolk sources for this definition in https://github.com/ton-blockchain/ton-language-server/pull/124
+
+### Fixes
+
+- fix(tolk/grammar): support annotations with several arguments in grammar in https://github.com/ton-blockchain/ton-language-server/pull/95
+- fix(tolk/intentions): add the correct default value for field with alias type in https://github.com/ton-blockchain/ton-language-server/pull/97
+- fix(tolk/type-inference): correctly infer return type of function with several return with boolean literals in https://github.com/ton-blockchain/ton-language-server/pull/98
+- fix(tolk/completion): show the correct type for variable in completion in https://github.com/ton-blockchain/ton-language-server/pull/106
+- fix(tolk/find-references): correctly find reference for methods in https://github.com/ton-blockchain/ton-language-server/pull/108
+- fix(tolk/type-inference): fix type inference inside generic calls in https://github.com/ton-blockchain/ton-language-server/pull/119
+- fix(tolk/type-inference): fix type inference for some operators in https://github.com/ton-blockchain/ton-language-server/pull/120
+- fix(boc): use the latest TASM in https://github.com/ton-blockchain/ton-language-server/pull/100
+- fix(fift/highlighting): fix highlighting and go to definition for Fift names with dot in https://github.com/ton-blockchain/ton-language-server/pull/122
+
+### Other
+
+- chore: bump tolkfmt to v0.0.16 in https://github.com/ton-blockchain/ton-language-server/pull/113
+- feat(tests): improve completion tests in https://github.com/ton-blockchain/ton-language-server/pull/116
+
 ## [0.3.0] - 22.07.2025
 
 ### Added
