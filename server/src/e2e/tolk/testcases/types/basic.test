@@ -245,7 +245,7 @@ ok
 ========================================================================
 Null literal type inference
 ========================================================================
-type null = builtin_type;
+type null = builtin;
 
 fun main() {
     val data = null;

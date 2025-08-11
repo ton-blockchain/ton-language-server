@@ -294,7 +294,7 @@ fun test() {
 ========================================================================
 Function and type with the same name
 ========================================================================
-type address = builtin_type;
+type address = builtin;
 
 fun address(): <caret>address {}
 
@@ -308,7 +308,7 @@ fun test() {
 ========================================================================
 Function and type with the same name 2
 ========================================================================
-type address = builtin_type;
+type address = builtin;
 
 fun address(): <caret>address {}
 
@@ -324,7 +324,7 @@ fun test() {
 ========================================================================
 Variable shadowing for function
 ========================================================================
-type address = builtin_type;
+type address = builtin;
 
 fun address(): <caret>address {}
 

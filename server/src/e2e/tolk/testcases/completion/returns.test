@@ -10,7 +10,7 @@ fun test() {
 ========================================================================
 Return completion inside void function
 ========================================================================
-type void = builtin_type;
+type void = builtin;
 
 fun test(): void {
     ret<caret>
@@ -31,7 +31,7 @@ fun test(): int {
 ========================================================================
 Return completion inside int27 function
 ========================================================================
-type intN = builtin_type;
+type intN = builtin;
 
 fun test(): int27 {
     ret<caret>
@@ -43,7 +43,7 @@ fun test(): int27 {
 ========================================================================
 Return completion inside uint32 function
 ========================================================================
-type uintN = builtin_type;
+type uintN = builtin;
 
 fun test(): uint32 {
     ret<caret>
