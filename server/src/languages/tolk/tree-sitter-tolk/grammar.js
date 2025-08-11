@@ -76,7 +76,7 @@ const TOLK_GRAMMAR = {
                 optional(field("type_parameters", $.type_parameters)),
                 "=",
                 optional("|"),
-                field("underlying_type", $._type_hint),
+                field("underlying_type", choice($._type_hint, $.builtin_specifier)),
                 optional(";"),
             ),
         ),

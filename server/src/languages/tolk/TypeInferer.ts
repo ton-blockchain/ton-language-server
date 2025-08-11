@@ -700,7 +700,7 @@ export class TypeInferer {
             if (underlyingType === null) return null
 
             const underlyingTypeName = underlyingType.text
-            if (underlyingTypeName === "builtin_type") {
+            if (underlyingTypeName === "builtin_type" || underlyingTypeName === "builtin") {
                 const name = resolved.name()
                 switch (name) {
                     case "void": {
