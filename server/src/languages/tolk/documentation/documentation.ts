@@ -118,7 +118,7 @@ export function generateTolkDocFor(node: NamedNode, place: SyntaxNode): string |
             const alias = new TypeAlias(node.node, node.file)
             const underlyingTypeNode = alias.underlyingType()
             const underlyingTypeText = underlyingTypeNode?.text ?? ""
-            if (underlyingTypeText === "builtin_type") {
+            if (underlyingTypeText === "builtin") {
                 const typeName = place.text
                 const bitTypeNameOrUndefined = bitTypeName(typeName)
                 const tlbDoc =

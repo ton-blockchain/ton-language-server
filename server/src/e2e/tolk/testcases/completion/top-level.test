@@ -213,7 +213,6 @@ fun foo() {
 24 bits{X}
 24 bool
 24 builder
-24 builtin_type
 24 bytes32
 24 bytesN
 24 bytes{X}
@@ -231,6 +230,7 @@ fun foo() {
 24 int8
 24 intN
 24 int{X}
+24 map
 24 never
 24 null
 24 self

@@ -128,7 +128,7 @@ type self = builtin;
 /// ```
 /// var maybeValue: int? = null;
 /// ```
-type null = builtin_type;
+type null = builtin;
 
 // builtin operators
 // they are internally stored as functions, because at IR level, there is no difference
