@@ -310,8 +310,17 @@
                         "type": "FIELD",
                         "name": "underlying_type",
                         "content": {
-                            "type": "SYMBOL",
-                            "name": "_type_hint"
+                            "type": "CHOICE",
+                            "members": [
+                                {
+                                    "type": "SYMBOL",
+                                    "name": "_type_hint"
+                                },
+                                {
+                                    "type": "SYMBOL",
+                                    "name": "builtin_specifier"
+                                }
+                            ]
                         }
                     },
                     {

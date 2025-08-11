@@ -5529,6 +5529,10 @@
                 "required": true,
                 "types": [
                     {
+                        "type": "builtin_specifier",
+                        "named": true
+                    },
+                    {
                         "type": "fun_callable_type",
                         "named": true
                     },
