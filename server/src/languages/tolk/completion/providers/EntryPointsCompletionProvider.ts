@@ -21,7 +21,7 @@ export class EntryPointsCompletionProvider implements CompletionProvider<Complet
         result.add({
             label: `onBouncedMessage`,
             kind: CompletionItemKind.Snippet,
-            insertText: `fun onInternalMessage(in: InMessageBounced) {$0}`,
+            insertText: `fun onBouncedMessage(in: InMessageBounced) {$0}`,
             insertTextFormat: InsertTextFormat.Snippet,
             weight: CompletionWeight.KEYWORD,
         })
