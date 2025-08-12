@@ -670,11 +670,16 @@ export class TypeInferer {
 
     private inferTypeFromResolved(resolved: NamedNode): Ty | null {
         if (resolved instanceof Struct) {
-            const baseTy = new StructTy(
-                resolved.fields().map(it => this.inferType(it.typeNode()) ?? UnknownTy.UNKNOWN),
-                resolved.name(),
-                resolved,
-            )
+            const fieldTypes = resolved.fields().map(it => {
+                try {
+                    return this.inferType(it.typeNode()) ?? UnknownTy.UNKNOWN
+                } catch {
+                    // cyclic dependency
+                    return UnknownTy.UNKNOWN
+                }
+            })
+
+            const baseTy = new StructTy(fieldTypes, resolved.name(), resolved)
 
             const typeParameters = resolved.typeParameters()
             if (typeParameters.length > 0) {
