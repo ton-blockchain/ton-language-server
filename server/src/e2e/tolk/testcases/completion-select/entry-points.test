@@ -10,7 +10,7 @@ onBouncedMessage entry point
 ========================================================================
 onBouncedMessage<caret>
 ------------------------------------------------------------------------
-fun onInternalMessage(in: InMessageBounced) {<caret>}
+fun onBouncedMessage(in: InMessageBounced) {<caret>}
 
 ========================================================================
 onExternalMessage entry point
