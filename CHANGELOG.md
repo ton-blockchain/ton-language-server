@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file.
 
 ## [0.4.1] - 12.08.2025
 
-Added
+### Added
 
 - feat(tolk/grammar): support `type int = builtin` and use new syntax for stubs in https://github.com/ton-blockchain/ton-language-server/pull/129
 - feat(tolk/grammar): don't use `builtin_type` at all in https://github.com/ton-blockchain/ton-language-server/pull/130
