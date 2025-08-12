@@ -394,3 +394,23 @@ fun main() {
 }
 ------------------------------------------------------------------------
 ok
+
+========================================================================
+Cyclic dependency with Cell in struct
+========================================================================
+struct SwapStep {
+    pool: address
+    minAmountOut: coins
+    nextStep: Cell<SwapStep>?
+}
+
+fun main() {
+    val foo = SwapStep{};
+//!     ^ SwapStep
+    val step = foo.nextStep!
+//!     ^ Cell<SwapStep>
+    val loadedStep = foo.nextStep!.load()
+//!     ^ SwapStep
+}
+------------------------------------------------------------------------
+ok
