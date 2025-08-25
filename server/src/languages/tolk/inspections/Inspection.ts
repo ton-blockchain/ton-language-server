@@ -15,6 +15,7 @@ export const InspectionIds = {
     CANNOT_REASSIGN: "cannot-reassign",
     MISSED_SEMICOLON: "missed-semicolon",
     NEED_NOT_NULL_UNWRAPPING: "need-not-null-unwrapping",
+    CALL_ARGUMENTS_COUNT_MISMATCH: "call-arguments-count-mismatch",
 } as const
 
 export type InspectionId = (typeof InspectionIds)[keyof typeof InspectionIds]
