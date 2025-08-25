@@ -436,7 +436,8 @@
                                 "struct-initialization",
                                 "cannot-reassign",
                                 "need-not-null-unwrapping",
-                                "missed-semicolon"
+                                "missed-semicolon",
+                                "call-arguments-count-mismatch"
                             ]
                         },
                         "default": [
