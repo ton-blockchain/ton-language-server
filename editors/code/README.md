@@ -82,8 +82,8 @@ configurations, check out the [toolchain management] guide.
 
 ### VS Code / VSCodium / Cursor / Windsurf
 
-1. Get the latest `.vsix` file from [releases](https://github.com/ton-blockchain/ton-language-server/releases) from
-   [VS Code marketplace](https://marketplace.visualstudio.com/items?itemName=ton-core.vscode-ton)
+1. Get the latest `.vsix` file from [releases](https://github.com/ton-blockchain/ton-language-server/releases), from
+   [VS Code marketplace](https://marketplace.visualstudio.com/items?itemName=ton-core.vscode-ton),
    or from [Open VSX Registry](https://open-vsx.org/extension/ton-core/vscode-ton)
 2. In VS Code:
     - Open the Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P`)
