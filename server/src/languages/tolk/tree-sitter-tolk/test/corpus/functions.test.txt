@@ -298,6 +298,16 @@ get fun foo() asm "FOO"
     (parameter_list)
     (asm_body
       (string_literal)))
+  (function_declaration
+    (identifier)
+    (parameter_list)
+    (asm_body
+      (string_literal)))
+  (function_declaration
+    (identifier)
+    (parameter_list)
+    (asm_body
+      (string_literal)))
   (get_method_declaration
     (identifier)
     (parameter_list)
