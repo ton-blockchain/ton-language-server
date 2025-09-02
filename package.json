@@ -278,7 +278,8 @@
             },
             {
                 "command": "tolk.getUnresolvedIdentifiers",
-                "title": "Tolk: Get Unresolved Identifiers"
+                "title": "Tolk: Get Unresolved Identifiers",
+                "category": "Tolk"
             },
             {
                 "command": "ton.debug",
