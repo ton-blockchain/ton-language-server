@@ -22,6 +22,7 @@ import {TypeInferer} from "@server/languages/tolk/TypeInferer"
 import {functionTypeOf, typeOf} from "@server/languages/tolk/type-inference"
 import {StructTy, UnionTy, UnknownTy} from "@server/languages/tolk/types/ty"
 import {EstimateContext, sizeOfPresentation} from "@server/languages/tolk/types/size-of"
+import {ConstantEvaluator} from "@server/languages/tolk/evaluation/ConstantEvaluator"
 
 /**
  * Returns the documentation for the given symbol in Markdown format, or null
@@ -180,8 +181,22 @@ export function generateTolkDocFor(node: NamedNode, place: SyntaxNode): string |
             const value = constant.value()
             if (!value) return null
 
+            let evaluatedValueText = ""
+
+            if (!ConstantEvaluator.isSimpleLiteral(constant.value()?.node)) {
+                const evaluationResult = ConstantEvaluator.evaluateConstant(constant)
+
+                if (evaluationResult.value !== null && evaluationResult.type !== "unknown") {
+                    const formattedValue = ConstantEvaluator.formatValue(evaluationResult)
+                    evaluatedValueText = ` // ${formattedValue}`
+                }
+            }
+
             const doc = node.documentation()
-            return defaultResult(`const ${node.name()}: ${type} = ${value.node.text}`, doc)
+            return defaultResult(
+                `const ${node.name()}: ${type} = ${value.node.text}${evaluatedValueText}`,
+                doc,
+            )
         }
         case "global_var_declaration": {
             const variable = new GlobalVariable(astNode, node.file)

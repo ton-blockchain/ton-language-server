@@ -1,0 +1,79 @@
+========================================================================
+Compile-time functions evaluation, CRC functions
+========================================================================
+const CRC32_TEST = stringCrc32("some_str");
+const CRC16_TEST = stringCrc16("some_str");
+const CRC32_HELLO = stringCrc32("hello");
+const CRC16_HELLO = stringCrc16("hello");
+
+fun main() {
+    return 0;
+}
+------------------------------------------------------------------------
+const CRC32_TEST/* : int */ = stringCrc32("some_str")/*  /* = 4013618352 (0xEF3AF4B0) */ */;
+const CRC16_TEST/* : int */ = stringCrc16("some_str")/*  /* = 53407 (0xD09F) */ */;
+const CRC32_HELLO/* : int */ = stringCrc32("hello")/*  /* = 907060870 (0x3610A686) */ */;
+const CRC16_HELLO/* : int */ = stringCrc16("hello")/*  /* = 50018 (0xC362) */ */;
+
+fun main()/* : int */ {
+    return 0;
+}
+
+========================================================================
+Compile-time functions evaluation, SHA256 functions
+========================================================================
+const SHA256_TEST = stringSha256("some_crypto_key");
+const SHA256_32_TEST = stringSha256_32("some_crypto_key");
+const SHA256_HELLO = stringSha256("hello");
+const SHA256_32_HELLO = stringSha256_32("hello");
+
+fun main() {
+    return 0;
+}
+------------------------------------------------------------------------
+const SHA256_TEST/* : int */ = stringSha256("some_crypto_key")/*  /* = 0x1C30C3FA846E4D85FB39C4A1C791F66A66DA7DE5D1ED24FCA94208F7F6D3CB21 */ */;
+const SHA256_32_TEST/* : int */ = stringSha256_32("some_crypto_key")/*  /* = 472957946 (0x1C30C3FA) */ */;
+const SHA256_HELLO/* : int */ = stringSha256("hello")/*  /* = 0x2CF24DBA5FB0A30E26E83B2AC5B9E29E1B161E5C1FA7425E73043362938B9824 */ */;
+const SHA256_32_HELLO/* : int */ = stringSha256_32("hello")/*  /* = 754077114 (0x2CF24DBA) */ */;
+
+fun main()/* : int */ {
+    return 0;
+}
+
+========================================================================
+Compile-time functions evaluation, stringToBase256
+========================================================================
+const BASE256_AB = stringToBase256("AB");
+const BASE256_HELLO = stringToBase256("hello");
+const BASE256_A = stringToBase256("A");
+
+fun main() {
+    return 0;
+}
+------------------------------------------------------------------------
+const BASE256_AB/* : int */ = stringToBase256("AB")/*  /* = 16706 (0x4142) */ */;
+const BASE256_HELLO/* : int */ = stringToBase256("hello")/*  /* = 0x68656C6C6F */ */;
+const BASE256_A/* : int */ = stringToBase256("A")/*  /* = 65 (0x41) */ */;
+
+fun main()/* : int */ {
+    return 0;
+}
+
+========================================================================
+Invalid compile-time function calls
+========================================================================
+const INVALID_ARG = stringCrc32(42); // Should not evaluate
+const NON_CONST_STR = someFunction();
+const INVALID_REF = stringCrc32(NON_CONST_STR); // Should not evaluate
+
+fun main() {
+    return 0;
+}
+------------------------------------------------------------------------
+const INVALID_ARG/* : int */ = stringCrc32(42); // Should not evaluate
+const NON_CONST_STR = someFunction();
+const INVALID_REF/* : int */ = stringCrc32(NON_CONST_STR); // Should not evaluate
+
+fun main()/* : int */ {
+    return 0;
+}

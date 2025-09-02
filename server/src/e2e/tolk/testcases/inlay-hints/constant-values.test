@@ -1,0 +1,54 @@
+========================================================================
+Constant value inlay hints, basic
+========================================================================
+const SIMPLE_CONST = 42 + 8;
+const HEX_CONST = 0xFF & 0x0F;
+const BOOL_CONST = !false;
+
+fun main() {
+    return 0;
+}
+------------------------------------------------------------------------
+const SIMPLE_CONST/* : int */ = 42 + 8/*  /* = 50 (0x32) */ */;
+const HEX_CONST/* : int */ = 0xFF & 0x0F/*  /* = 15 (0xF) */ */;
+const BOOL_CONST/* : bool */ = !false/*  /* = true */ */;
+
+fun main()/* : int */ {
+    return 0;
+}
+
+========================================================================
+Constant value inlay hints, references
+========================================================================
+const BASE = 10;
+const DERIVED = BASE * 3;
+const COMPLEX = (BASE + DERIVED) / 2;
+
+fun main() {
+    return 0;
+}
+------------------------------------------------------------------------
+const BASE/* : int */ = 10;
+const DERIVED/* : int */ = BASE * 3/*  /* = 30 (0x1E) */ */;
+const COMPLEX/* : int */ = (BASE + DERIVED) / 2/*  /* = 20 (0x14) */ */;
+
+fun main()/* : int */ {
+    return 0;
+}
+
+========================================================================
+Constant value inlay hints, circular dependency
+========================================================================
+const CIRC_A = CIRC_B + 1;
+const CIRC_B = CIRC_A, 1;
+
+fun main() {
+    return 0;
+}
+------------------------------------------------------------------------
+const CIRC_A/* : int */ = CIRC_B + 1;
+const CIRC_B/* : int */ = CIRC_A, 1;
+
+fun main()/* : int */ {
+    return 0;
+}
