@@ -49,6 +49,10 @@ function processParameters(
             // don't show hints for single letter parameters
             continue
         }
+        if (paramName === "constString") {
+            // not very useful information
+            continue
+        }
 
         if (arg.text === paramName || arg.text.endsWith(`.${paramName}`)) {
             // no need to add a hint for `takeFoo(foo)` or `takeFoo(val.foo)`
