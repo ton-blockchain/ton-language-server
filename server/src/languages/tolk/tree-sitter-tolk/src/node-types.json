@@ -2288,12 +2288,40 @@
                     }
                 ]
             },
-            "body": {
+            "asm_body": {
                 "multiple": false,
                 "required": false,
                 "types": [
                     {
+                        "type": "asm_body",
+                        "named": true
+                    }
+                ]
+            },
+            "body": {
+                "multiple": true,
+                "required": false,
+                "types": [
+                    {
+                        "type": "asm_body",
+                        "named": true
+                    },
+                    {
                         "type": "block_statement",
+                        "named": true
+                    },
+                    {
+                        "type": "builtin_specifier",
+                        "named": true
+                    }
+                ]
+            },
+            "builtin_specifier": {
+                "multiple": false,
+                "required": false,
+                "types": [
+                    {
+                        "type": "builtin_specifier",
                         "named": true
                     }
                 ]

@@ -16,6 +16,7 @@
     ],
     "scripts": {
         "test": "tree-sitter test",
+        "test:update": "tree-sitter test -u",
         "play": "yarn run grammar:wasm && tree-sitter playground",
         "grammar:wasm": "tree-sitter generate && tree-sitter build --wasm"
     },
