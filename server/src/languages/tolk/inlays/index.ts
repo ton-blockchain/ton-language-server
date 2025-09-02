@@ -10,6 +10,7 @@ import {
     functionReturnTypeHint,
     variableDeclarationTypeHint,
 } from "@server/languages/tolk/inlays/type-hints"
+import {constantValueHint} from "@server/languages/tolk/inlays/constant-value-hints"
 import {getMethodId} from "@server/languages/tolk/inlays/get-method-id"
 import {FunctionBase} from "@server/languages/tolk/psi/Decls"
 import {Expression} from "@server/languages/tolk/psi/TolkNode"
@@ -21,6 +22,7 @@ export function collectTolkInlays(
         parameters: boolean
         types: boolean
         showMethodId: boolean
+        constantValues: boolean
     },
 ): lsp.InlayHint[] | null {
     if (hints.disable) return []
@@ -49,8 +51,13 @@ export function collectTolkInlays(
             return true
         }
 
-        if (type === "constant_declaration" && hints.types) {
-            constantDeclarationTypeHint(n, file, result)
+        if (type === "constant_declaration") {
+            if (hints.types) {
+                constantDeclarationTypeHint(n, file, result)
+            }
+            if (hints.constantValues) {
+                constantValueHint(n, file, result)
+            }
             return true
         }
 

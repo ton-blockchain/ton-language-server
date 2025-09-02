@@ -36,6 +36,7 @@ export interface TolkSettings {
         readonly types: boolean
         readonly parameters: boolean
         readonly showMethodId: boolean
+        readonly constantValues: boolean
     }
     readonly inspections: {
         readonly disabled: readonly string[] // list of disabled inspection ids
@@ -90,6 +91,7 @@ const tolkDefaultSettings: TolkSettings = {
         types: true,
         parameters: true,
         showMethodId: true,
+        constantValues: true,
     },
     inspections: {
         disabled: [], // no disabled inspections by default
@@ -155,6 +157,9 @@ function mergeSettings(vsSettings: Partial<ServerSettings>): ServerSettings {
                     vsSettings.tolk?.hints.parameters ?? defaultSettings.tolk.hints.parameters,
                 showMethodId:
                     vsSettings.tolk?.hints.showMethodId ?? defaultSettings.tolk.hints.showMethodId,
+                constantValues:
+                    vsSettings.tolk?.hints.constantValues ??
+                    defaultSettings.tolk.hints.constantValues,
             },
             inspections: {
                 disabled:
