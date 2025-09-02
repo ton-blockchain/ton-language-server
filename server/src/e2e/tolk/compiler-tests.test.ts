@@ -43,8 +43,6 @@ suite("Compiler Tests Suite", () => {
             )
             const tolkFiles = glob.sync(testCasesPath, {windowsPathsNoEscape: true})
 
-            console.log("tolkFiles", tolkFiles.length)
-
             for (const tolkFile of tolkFiles) {
                 const testName = path.basename(tolkFile, ".tolk")
 

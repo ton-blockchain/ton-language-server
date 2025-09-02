@@ -519,6 +519,7 @@ class InferenceWalker {
     public inferReturnType(): Ty {
         const returnTypes = this.ctx.returnTypes
         if (returnTypes.length === 0) return VoidTy.VOID
+        if (returnTypes.length === 1) return returnTypes[0]
 
         let joined: Ty | null = null
 
@@ -697,7 +698,7 @@ class InferenceWalker {
     }
 
     private processReturnStatement(node: SyntaxNode, flow: FlowContext): FlowContext {
-        const expression = node.child(1)
+        const expression = node.childForFieldName("body")
         if (expression) {
             flow = this.inferExpression(
                 expression,
