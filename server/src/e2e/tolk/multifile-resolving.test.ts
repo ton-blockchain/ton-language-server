@@ -56,12 +56,12 @@ suite("Multi file Resolve Test Suite", () => {
                     if (target instanceof vscode.Location) {
                         return `${this.formatLocation(pos)} -> ${this.formatLocation(
                             target.range.start,
-                        )} (${path.relative(this.testDir, target.uri.fsPath)}) resolved`
+                        )} (${normalizePath(path.relative(this.testDir, target.uri.fsPath))}) resolved`
                     }
 
                     return `${this.formatLocation(pos)} -> ${this.formatLocation(
                         target.targetRange.start,
-                    )} (${path.relative(this.testDir, target.targetUri.fsPath)}) resolved`
+                    )} (${normalizePath(path.relative(this.testDir, target.targetUri.fsPath))}) resolved`
                 })
                 .join("\n")
         }
@@ -109,3 +109,5 @@ suite("Multi file Resolve Test Suite", () => {
 
     testSuite.runTestsFromDirectory("multifile-resolving")
 })
+
+const normalizePath = (path: string): string => path.replace(/\\/g, "/")
