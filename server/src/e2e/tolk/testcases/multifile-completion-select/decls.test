@@ -5,7 +5,7 @@ fun foo() {
     getTvmRegisterC3<caret>;
 }
 ------------------------------------------------------------------------
-import "@stdlib/tvm-lowlevel";
+import "@stdlib/tvm-lowlevel"
 
 fun foo() {
     getTvmRegisterC3()<caret>;
@@ -20,7 +20,7 @@ fun foo() {
 ---FILE:other.tolk
 fun someGlobalFunction() {}
 ------------------------------------------------------------------------
-import "other";
+import "other"
 
 fun foo() {
     someGlobalFunction()<caret>;

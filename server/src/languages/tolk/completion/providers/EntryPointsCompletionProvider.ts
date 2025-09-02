@@ -1,14 +1,11 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
 import {CompletionItemKind, InsertTextFormat} from "vscode-languageserver-types"
-import type {CompletionProvider} from "@server/languages/tolk/completion/CompletionProvider"
+import type {CompletionProvider} from "@server/completion/CompletionProvider"
 import type {CompletionContext} from "@server/languages/tolk/completion/CompletionContext"
-import {
-    CompletionResult,
-    CompletionWeight,
-} from "@server/languages/tolk/completion/WeightedCompletionItem"
+import {CompletionResult, CompletionWeight} from "@server/completion/WeightedCompletionItem"
 
-export class EntryPointsCompletionProvider implements CompletionProvider {
+export class EntryPointsCompletionProvider implements CompletionProvider<CompletionContext> {
     public isAvailable(ctx: CompletionContext): boolean {
         return ctx.topLevel
     }
@@ -24,7 +21,7 @@ export class EntryPointsCompletionProvider implements CompletionProvider {
         result.add({
             label: `onBouncedMessage`,
             kind: CompletionItemKind.Snippet,
-            insertText: `fun onInternalMessage(in: InMessageBounced) {$0}`,
+            insertText: `fun onBouncedMessage(in: InMessageBounced) {$0}`,
             insertTextFormat: InsertTextFormat.Snippet,
             weight: CompletionWeight.KEYWORD,
         })

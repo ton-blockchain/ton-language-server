@@ -1,0 +1,102 @@
+========================================================================
+Enum completion as type
+========================================================================
+enum Color {
+    Red = 10,
+    Blue,
+}
+
+fun main() {
+    val foo: Colo<caret>
+}
+------------------------------------------------------------------------
+12 Color
+
+========================================================================
+Enum completion as expression
+========================================================================
+enum Color {
+    Red = 10,
+    Blue,
+}
+
+fun main() {
+    Colo<caret>
+}
+------------------------------------------------------------------------
+19 Color.Blue   of Color
+19 Color.Red = 10   of Color
+12 Color
+
+========================================================================
+@strategy includes
+Enum member completion as expression
+========================================================================
+enum Color {
+    Red = 10,
+    Blue,
+}
+
+fun main() {
+    Red<caret>
+}
+------------------------------------------------------------------------
+19 Color.Red = 10   of Color
+
+========================================================================
+Enum member completion after enum name
+========================================================================
+enum Color {
+    Red = 10,
+    Blue,
+}
+
+fun main() {
+    Color.<caret>
+}
+------------------------------------------------------------------------
+19 Blue   of Color
+19 Red = 10   of Color
+1  forceLoadLazyObject(self): slice
+1  fromCell(packedCell: cell, options: UnpackOptions = {}): T  of T
+1  fromSlice(rawSlice: slice, options: UnpackOptions = {}): T  of T
+1  getDeclaredPackPrefix(): int  of T
+1  getDeclaredPackPrefixLen(): int  of T
+1  stackMoveToTop(mutate self): void
+1  toCell(self, options: PackOptions = {}): Cell<T>
+
+========================================================================
+Enum static method completion
+========================================================================
+enum Color {
+    Red = 10,
+    Blue = 200 + 100,
+}
+
+fun Color.max() {
+    return Color.Red;
+}
+
+fun main() {
+    Color.max<caret>;
+}
+------------------------------------------------------------------------
+1  max()  of Color
+
+========================================================================
+Enum instance method completion
+========================================================================
+enum Color {
+    Red = 10,
+    Blue = 200 + 100,
+}
+
+fun Color.isRed(self) {
+    return self == Color.Red;
+}
+
+fun main(c: Color) {
+    c.isR<caret>;
+}
+------------------------------------------------------------------------
+1  isRed(self)

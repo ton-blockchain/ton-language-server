@@ -44,10 +44,26 @@ export interface TolkSettings {
         readonly typeAware: boolean
         readonly addImports: boolean
     }
+    readonly formatter: {
+        readonly useFormatter: boolean
+        readonly sortImports: boolean
+    }
+}
+
+export interface FuncSettings {
+    readonly hints: {
+        readonly disable: boolean
+        readonly showMethodId: boolean
+        readonly showImplicitConstantType: boolean
+    }
+    readonly inspections: {
+        readonly disabled: readonly string[] // list of disabled inspection ids
+    }
 }
 
 export interface ServerSettings {
     readonly tolk: TolkSettings
+    readonly func: FuncSettings
     readonly fift: FiftSettings
 }
 
@@ -82,10 +98,24 @@ const tolkDefaultSettings: TolkSettings = {
         typeAware: true,
         addImports: true,
     },
+    formatter: {
+        useFormatter: true,
+        sortImports: true,
+    },
 }
 
 const defaultSettings: ServerSettings = {
     tolk: tolkDefaultSettings,
+    func: {
+        hints: {
+            disable: false,
+            showMethodId: true,
+            showImplicitConstantType: true,
+        },
+        inspections: {
+            disabled: [], // no disabled inspections by default
+        },
+    },
     fift: {
         hints: {
             showGasConsumption: true,
@@ -138,6 +168,29 @@ function mergeSettings(vsSettings: Partial<ServerSettings>): ServerSettings {
                 addImports:
                     vsSettings.tolk?.completion.addImports ??
                     defaultSettings.tolk.completion.addImports,
+            },
+            formatter: {
+                useFormatter:
+                    vsSettings.tolk?.formatter.useFormatter ??
+                    defaultSettings.tolk.formatter.useFormatter,
+                sortImports:
+                    vsSettings.tolk?.formatter.sortImports ??
+                    defaultSettings.tolk.formatter.sortImports,
+            },
+        },
+        func: {
+            hints: {
+                disable: vsSettings.func?.hints.disable ?? defaultSettings.func.hints.disable,
+                showMethodId:
+                    vsSettings.func?.hints.showMethodId ?? defaultSettings.func.hints.showMethodId,
+                showImplicitConstantType:
+                    vsSettings.func?.hints.showImplicitConstantType ??
+                    defaultSettings.func.hints.showImplicitConstantType,
+            },
+            inspections: {
+                disabled:
+                    vsSettings.func?.inspections.disabled ??
+                    defaultSettings.func.inspections.disabled,
             },
         },
         fift: {

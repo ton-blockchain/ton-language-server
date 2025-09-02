@@ -94,6 +94,7 @@ struct Foo {
 24 int64
 24 int8
 24 int{X}
+24 map
 24 never
 24 null
 24 self

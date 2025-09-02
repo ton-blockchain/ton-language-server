@@ -4,7 +4,14 @@ import type * as lsp from "vscode-languageserver"
 import type {TolkFile} from "@server/languages/tolk/psi/TolkFile"
 import {UnusedInspection} from "./UnusedInspection"
 import {Inspection, InspectionIds} from "./Inspection"
-import {Constant, Func, GlobalVariable, Struct, TypeAlias} from "@server/languages/tolk/psi/Decls"
+import {
+    Constant,
+    Enum,
+    Func,
+    GlobalVariable,
+    Struct,
+    TypeAlias,
+} from "@server/languages/tolk/psi/Decls"
 
 const IMPLICITLY_USED_FUNCTIONS: Set<string> = new Set([
     "onInternalMessage",
@@ -39,6 +46,9 @@ export class UnusedTopLevelDeclarationInspection extends UnusedInspection implem
         }
         for (const struct of file.getStructs()) {
             this.inspectStruct(struct, diagnostics)
+        }
+        for (const enum_ of file.getEnums()) {
+            this.inspectEnum(enum_, diagnostics)
         }
     }
 
@@ -111,6 +121,22 @@ export class UnusedTopLevelDeclarationInspection extends UnusedInspection implem
                 kind: "Field",
                 code: "unused-field",
                 rangeNode: field.node,
+            })
+        }
+    }
+
+    private inspectEnum(enum_: Enum, diagnostics: lsp.Diagnostic[]): void {
+        this.checkUnused(enum_.nameIdentifier(), enum_.file, diagnostics, {
+            kind: "Enum",
+            code: "unused-enum",
+            rangeNode: enum_.nameIdentifier(),
+        })
+
+        for (const member of enum_.members()) {
+            this.checkUnused(member.nameIdentifier(), enum_.file, diagnostics, {
+                kind: "Enum member",
+                code: "unused-enum-member",
+                rangeNode: member.node,
             })
         }
     }

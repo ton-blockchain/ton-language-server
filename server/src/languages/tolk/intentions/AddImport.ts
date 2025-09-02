@@ -45,7 +45,7 @@ export class AddImport implements Intention {
 
         const extraLine = positionToInsert.line === 0 && ctx.file.imports().length === 0 ? "\n" : ""
 
-        diff.appendAsPrevLine(positionToInsert.line, `import "${importPath}";${extraLine}`)
+        diff.appendAsPrevLine(positionToInsert.line, `import "${importPath}"${extraLine}`)
 
         return diff.toWorkspaceEdit()
     }
@@ -56,6 +56,7 @@ export class AddImport implements Intention {
             index.elementByName(IndexKey.TypeAlias, name) ??
             index.elementByName(IndexKey.Funcs, name) ??
             index.elementByName(IndexKey.Structs, name) ??
+            index.elementByName(IndexKey.Enums, name) ??
             index.elementByName(IndexKey.Constants, name) ??
             undefined
         )

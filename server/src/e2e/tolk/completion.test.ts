@@ -10,6 +10,7 @@ suite("Completion Test Suite", () => {
     const testSuite = new (class extends BaseTestSuite {
         public async getCompletions(
             input: string,
+            matchStrategy: string,
             triggerCharacter?: string,
         ): Promise<CompletionItem[]> {
             const textWithoutCaret = input.replace("<caret>", "")
@@ -25,7 +26,6 @@ suite("Completion Test Suite", () => {
             this.editor.revealRange(new vscode.Range(position, position))
 
             const textBeforeCursor = this.findWordBeforeCursor(position)
-
             const items = await vscode.commands.executeCommand<vscode.CompletionList>(
                 "vscode.executeCompletionItemProvider",
                 this.document.uri,
@@ -35,7 +35,10 @@ suite("Completion Test Suite", () => {
 
             const finalItems = items.items.filter(item => {
                 const label = typeof item.label === "object" ? item.label.label : item.label
-                return label.includes(textBeforeCursor.trim())
+                if (matchStrategy === "includes") {
+                    return label.includes(textBeforeCursor.trim())
+                }
+                return label.startsWith(textBeforeCursor.trim())
             })
 
             if (finalItems.length > 200) {
@@ -48,7 +51,8 @@ suite("Completion Test Suite", () => {
             test(`Completion: ${testCase.name}`, async () => {
                 await this.setupAdditionalFiles(testCase)
 
-                const completions = await this.getCompletions(testCase.input, ".")
+                const matchStrategy = testCase.properties.get("strategy") ?? "startsWith"
+                const completions = await this.getCompletions(testCase.input, matchStrategy, ".")
 
                 const items = completions
                     .filter(item => Number(item.kind) !== 0)

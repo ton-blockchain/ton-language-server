@@ -49,6 +49,10 @@ type dict =
     | cell
     | null
 ```
+**Size:** 1 bit, 0..1 refs.
+
+---
+
 In Tolk v1.x there would be a type `map<K,V>`.
 Currently, working with dictionaries is still low-level, with raw cells.
 But just for clarity, we use "dict" instead of a "cell?" where a cell-dictionary is assumed.

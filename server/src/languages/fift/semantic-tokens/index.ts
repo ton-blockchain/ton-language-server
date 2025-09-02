@@ -2,12 +2,10 @@
 //  Copyright © 2025 TON Studio
 import type {SemanticTokens} from "vscode-languageserver"
 import {RecursiveVisitor} from "@server/visitor/visitor"
-import {SemanticTokensBuilder} from "vscode-languageserver/lib/common/semanticTokens"
 import {SemanticTokenTypes} from "vscode-languageserver-protocol"
-import type {Node as SyntaxNode} from "web-tree-sitter"
-import * as lsp from "vscode-languageserver"
 import {FiftReference} from "@server/languages/fift/psi/FiftReference"
 import {FiftFile} from "@server/languages/fift/psi/FiftFile"
+import {Tokens} from "@server/semantic/tokens"
 
 export function provideFiftSemanticTokens(
     file: FiftFile,
@@ -15,21 +13,9 @@ export function provideFiftSemanticTokens(
         enabled: boolean
     },
 ): SemanticTokens | null {
-    if (!settings.enabled) {
-        return null
-    }
+    if (!settings.enabled) return null
 
-    const builder = new SemanticTokensBuilder()
-
-    function pushToken(n: SyntaxNode, tokenType: lsp.SemanticTokenTypes): void {
-        builder.push(
-            n.startPosition.row,
-            n.startPosition.column,
-            n.endPosition.column - n.startPosition.column,
-            Object.keys(lsp.SemanticTokenTypes).indexOf(tokenType.toString()),
-            0,
-        )
-    }
+    const tokens = new Tokens()
 
     RecursiveVisitor.visit(file.rootNode, (node): boolean => {
         if (
@@ -41,7 +27,7 @@ export function provideFiftSemanticTokens(
         ) {
             const nameNode = node.childForFieldName("name")
             if (nameNode) {
-                pushToken(nameNode, SemanticTokenTypes.function)
+                tokens.node(nameNode, SemanticTokenTypes.function)
             }
         }
 
@@ -52,12 +38,15 @@ export function provideFiftSemanticTokens(
         ) {
             const def = FiftReference.resolve(node, file)
             if (def) {
-                pushToken(node, SemanticTokenTypes.function)
+                tokens.node(node, SemanticTokenTypes.function)
             }
         }
 
         return true
     })
 
-    return builder.build()
+    return {
+        resultId: Date.now().toString(),
+        data: tokens.result(),
+    }
 }

@@ -1,0 +1,495 @@
+========================================================================
+Too many arguments in function call
+========================================================================
+fun add(a: int, b: int): int {
+    return a + b;
+}
+
+fun main() {
+    add(1, 2, 3);
+}
+------------------------------------------------------------------------
+0 5:14 to 5:15 Too many arguments in call to 'add', expected 2, have 3 (tolk)
+
+========================================================================
+Too few arguments in function call
+========================================================================
+fun add(a: int, b: int): int {
+    return a + b;
+}
+
+fun main() {
+    add(1);
+}
+------------------------------------------------------------------------
+0 5:9 to 5:10 Too few arguments in call to 'add', expected 2, have 1 (tolk)
+
+========================================================================
+Correct number of arguments
+========================================================================
+fun add(a: int, b: int): int {
+    return a + b;
+}
+
+fun main() {
+    add(1, 2);
+}
+------------------------------------------------------------------------
+no issues
+
+========================================================================
+Function with no parameters, too many arguments
+========================================================================
+fun getValue(): int {
+    return 42;
+}
+
+fun main() {
+    getValue(1);
+}
+------------------------------------------------------------------------
+0 5:13 to 5:14 Too many arguments in call to 'getValue', expected 0, have 1 (tolk)
+
+========================================================================
+Function with no parameters, correct call
+========================================================================
+fun getValue(): int {
+    return 42;
+}
+
+fun main() {
+    getValue();
+}
+------------------------------------------------------------------------
+no issues
+
+========================================================================
+Function with default parameters, all arguments provided
+========================================================================
+fun greet(name: slice, prefix: slice = "Hello"): slice {
+    return prefix + " " + name;
+}
+
+fun main() {
+    greet("World", "Hi");
+}
+------------------------------------------------------------------------
+no issues
+
+========================================================================
+Function with default parameters, partial arguments
+========================================================================
+fun greet(name: slice, prefix: slice = "Hello"): slice {
+    return prefix + " " + name;
+}
+
+fun main() {
+    greet("World");
+}
+------------------------------------------------------------------------
+no issues
+
+========================================================================
+Function with default parameters, too few arguments
+========================================================================
+fun greet(name: slice, prefix: slice = "Hello"): slice {
+    return prefix + " " + name;
+}
+
+fun main() {
+    greet();
+}
+------------------------------------------------------------------------
+0 5:10 to 5:11 Too few arguments in call to 'greet', expected 2, have 0 (tolk)
+
+========================================================================
+Function with default parameters, too many arguments
+========================================================================
+fun greet(name: slice, prefix: slice = "Hello"): slice {
+    return prefix + " " + name;
+}
+
+fun main() {
+    greet("World", "Hi", "Extra");
+}
+------------------------------------------------------------------------
+0 5:25 to 5:32 Too many arguments in call to 'greet', expected 2, have 3 (tolk)
+
+========================================================================
+Multiple default parameters
+========================================================================
+fun configure(host: slice, port: int = 8080, ssl: bool = false): slice {
+    return host + ":" + port;
+}
+
+fun main() {
+    configure("localhost");
+    configure("localhost", 3000);
+    configure("localhost", 3000, true);
+}
+------------------------------------------------------------------------
+3 0:45 to 0:48 Parameter 'ssl' is never used (tolk)
+
+========================================================================
+Multiple default parameters, too few
+========================================================================
+fun configure(host: slice, port: int = 8080, ssl: bool = false): slice {
+    return host + ":" + port;
+}
+
+fun main() {
+    configure();
+}
+------------------------------------------------------------------------
+3 0:45 to 0:48 Parameter 'ssl' is never used (tolk)
+0 5:14 to 5:15 Too few arguments in call to 'configure', expected 3, have 0 (tolk)
+
+========================================================================
+Multiple default parameters, too many
+========================================================================
+fun configure(host: slice, port: int = 8080, ssl: bool = false): slice {
+    return host + ":" + port;
+}
+
+fun main() {
+    configure("localhost", 3000, true, "extra");
+}
+------------------------------------------------------------------------
+3 0:45 to 0:48 Parameter 'ssl' is never used (tolk)
+0 5:39 to 5:46 Too many arguments in call to 'configure', expected 3, have 4 (tolk)
+
+========================================================================
+Instance method call, correct arguments
+========================================================================
+struct Point {
+    x: int;
+    y: int;
+}
+
+fun Point.distance(self, other: Point): int {
+    return abs(self.x, other.x) + abs(self.y, other.y);
+}
+
+fun main() {
+    val p1 = Point{x: 0, y: 0};
+    val p2 = Point{x: 3, y: 4};
+    p1.distance(p2);
+}
+------------------------------------------------------------------------
+0 6:23 to 6:30 Too many arguments in call to 'abs', expected 1, have 2 (tolk)
+0 6:46 to 6:53 Too many arguments in call to 'abs', expected 1, have 2 (tolk)
+
+========================================================================
+Instance method call, too many arguments
+========================================================================
+struct Point {
+    x: int;
+    y: int;
+}
+
+fun Point.distance(self, other: Point): int {
+    return abs(self.x, other.x) + abs(self.y, other.y);
+}
+
+fun main() {
+    val p1 = Point{x: 0, y: 0};
+    val p2 = Point{x: 3, y: 4};
+    p1.distance(p2, p1);
+}
+------------------------------------------------------------------------
+0 6:23 to 6:30 Too many arguments in call to 'abs', expected 1, have 2 (tolk)
+0 6:46 to 6:53 Too many arguments in call to 'abs', expected 1, have 2 (tolk)
+0 12:4 to 12:23 Too many arguments in call to 'distance', expected 1, have 2 (tolk)
+
+========================================================================
+Instance method call, too few arguments
+========================================================================
+struct Point {
+    x: int;
+    y: int;
+}
+
+fun Point.distance(self, other: Point): int {
+    return abs(self.x, other.x) + abs(self.y, other.y);
+}
+
+fun main() {
+    val p1 = Point{x: 0, y: 0};
+    p1.distance();
+}
+------------------------------------------------------------------------
+0 6:23 to 6:30 Too many arguments in call to 'abs', expected 1, have 2 (tolk)
+0 6:46 to 6:53 Too many arguments in call to 'abs', expected 1, have 2 (tolk)
+0 11:16 to 11:17 Too few arguments in call to 'distance', expected 1, have 0 (tolk)
+
+========================================================================
+Static method call via struct, correct arguments
+========================================================================
+struct Math {
+}
+
+fun Math.add(a: int, b: int): int {
+    return a + b;
+}
+
+fun main() {
+    Math.add(1, 2);
+}
+------------------------------------------------------------------------
+no issues
+
+========================================================================
+Static method call via struct, too many arguments
+========================================================================
+struct Math {
+}
+
+fun Math.add(a: int, b: int): int {
+    return a + b;
+}
+
+fun main() {
+    Math.add(1, 2, 3);
+}
+------------------------------------------------------------------------
+0 8:19 to 8:20 Too many arguments in call to 'add', expected 2, have 3 (tolk)
+
+========================================================================
+Method with default parameters, instance call
+========================================================================
+struct Logger {
+    level: int;
+}
+
+fun Logger.log(message: slice, level: int = 1): void {
+    // log implementation
+}
+
+fun main() {
+    val logger = Logger{level: 0};
+    logger.log("Info");
+    logger.log("Error", 2);
+}
+------------------------------------------------------------------------
+0 11:4 to 11:26 Too many arguments in call to 'log', expected 1, have 2 (tolk)
+
+========================================================================
+Method with default parameters, too many arguments
+========================================================================
+struct Logger {
+    level: int;
+}
+
+fun Logger.log(message: slice, level: int = 1): void {
+    // log implementation
+}
+
+fun main() {
+    val logger = Logger{level: 0};
+    logger.log("Info", 2, "extra");
+}
+------------------------------------------------------------------------
+0 10:26 to 10:33 Too many arguments in call to 'log', expected 1, have 3 (tolk)
+
+========================================================================
+Nested function calls
+========================================================================
+fun add(a: int, b: int): int {
+    return a + b;
+}
+
+fun multiply(a: int, b: int): int {
+    return a * b;
+}
+
+fun main() {
+    add(multiply(2, 3), multiply(4));
+}
+------------------------------------------------------------------------
+0 9:34 to 9:35 Too few arguments in call to 'multiply', expected 2, have 1 (tolk)
+
+========================================================================
+Complex expression in function call
+========================================================================
+fun calculate(a: int, b: int, c: int): int {
+    return a + b * c;
+}
+
+fun getValue(): int {
+    return 10;
+}
+
+fun main() {
+    calculate(1 + 2, getValue(), 5, 6);
+}
+------------------------------------------------------------------------
+0 9:36 to 9:37 Too many arguments in call to 'calculate', expected 3, have 4 (tolk)
+
+========================================================================
+Static method call with generic
+========================================================================
+struct Iterator<T = int> {
+    data: T
+}
+
+fun Iterator<T>.new(): Iterator<T> {}
+
+fun main() {
+    Iterator<int>.new();
+}
+------------------------------------------------------------------------
+3 1:4 to 1:11 Field 'data' is never used (tolk)
+
+========================================================================
+Static method call with generic, too many arguments
+========================================================================
+struct Iterator<T = int> {
+    data: T
+}
+
+fun Iterator<T>.new(): Iterator<T> {}
+
+fun main() {
+    Iterator<int>.new(1, 2);
+}
+------------------------------------------------------------------------
+3 1:4 to 1:11 Field 'data' is never used (tolk)
+0 7:22 to 7:26 Too many arguments in call to 'new', expected 0, have 2 (tolk)
+
+========================================================================
+Instance method call as static, too many arguments
+========================================================================
+struct Iterator<T = int> {
+    data: T
+}
+
+fun Iterator<T>.new(): Iterator<T> {}
+
+fun Iterator<T>.data(self): T {
+    return self.data;
+}
+
+fun main() {
+    val it = Iterator<int>.new(1, 2);
+    Iterator<int>.data(it);
+}
+------------------------------------------------------------------------
+3 6:16 to 6:20 Method 'data' is never used (tolk)
+0 11:31 to 11:35 Too many arguments in call to 'new', expected 0, have 2 (tolk)
+
+========================================================================
+Instance method call as static, too few arguments
+========================================================================
+struct Iterator<T = int> {
+    data: T
+}
+
+fun Iterator<T>.new(): Iterator<T> {}
+
+fun Iterator<T>.data(self): T {
+    return self.data;
+}
+
+fun main() {
+    val it = Iterator<int>.new(1, 2);
+    Iterator<int>.data();
+}
+------------------------------------------------------------------------
+3 6:16 to 6:20 Method 'data' is never used (tolk)
+3 11:8 to 11:10 Variable 'it' is never used (tolk)
+0 11:31 to 11:35 Too many arguments in call to 'new', expected 0, have 2 (tolk)
+
+========================================================================
+Instance method call as static, too many arguments
+========================================================================
+struct Iterator<T = int> {
+    data: T
+}
+
+fun Iterator<T>.new(): Iterator<T> {}
+
+fun Iterator<T>.data(self): T {
+    return self.data;
+}
+
+fun main() {
+    val it = Iterator<int>.new(1, 2);
+    Iterator<int>.data(it, 1, 2);
+}
+------------------------------------------------------------------------
+3 6:16 to 6:20 Method 'data' is never used (tolk)
+0 11:31 to 11:35 Too many arguments in call to 'new', expected 0, have 2 (tolk)
+
+========================================================================
+Enum static method call
+========================================================================
+enum Color {
+    Red = 10,
+    Blue = 200 + 100,
+}
+
+fun Color.max() {
+    return Color.Red;
+}
+
+fun main() {
+    Color.max();
+}
+------------------------------------------------------------------------
+3 2:4 to 2:20 Enum member 'Blue' is never used (tolk)
+
+========================================================================
+Enum static method call, too many arguments
+========================================================================
+enum Color {
+    Red = 10,
+    Blue = 200 + 100,
+}
+
+fun Color.max() {
+    return Color.Red;
+}
+
+fun main() {
+    Color.max(1);
+}
+------------------------------------------------------------------------
+3 2:4 to 2:20 Enum member 'Blue' is never used (tolk)
+0 10:14 to 10:15 Too many arguments in call to 'max', expected 0, have 1 (tolk)
+
+========================================================================
+Enum instance method call
+========================================================================
+enum Color {
+    Red = 10,
+    Blue = 200 + 100,
+}
+
+fun Color.isRed(self) {
+    return self == Color.Red;
+}
+
+fun main(c: Color) {
+    c.isRed();
+}
+------------------------------------------------------------------------
+3 2:4 to 2:20 Enum member 'Blue' is never used (tolk)
+
+========================================================================
+Enum instance method call, too many arguments
+========================================================================
+enum Color {
+    Red = 10,
+    Blue = 200 + 100,
+}
+
+fun Color.isRed(self) {
+    return self == Color.Red;
+}
+
+fun main(c: Color) {
+    c.isRed(1);
+}
+------------------------------------------------------------------------
+3 2:4 to 2:20 Enum member 'Blue' is never used (tolk)
+0 10:4 to 10:14 Too many arguments in call to 'isRed', expected 0, have 1 (tolk)

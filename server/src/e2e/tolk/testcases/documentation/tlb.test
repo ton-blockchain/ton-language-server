@@ -1,7 +1,7 @@
 ========================================================================
 Struct field int32 tlb type
 ========================================================================
-type intN = builtin_type;
+type intN = builtin;
 
 struct Foo {
     value: <caret>int32,
@@ -18,7 +18,7 @@ type int32 = builtin
 ========================================================================
 Struct field uint32 tlb type
 ========================================================================
-type uintN = builtin_type;
+type uintN = builtin;
 
 struct Foo {
     value: <caret>uint32,
@@ -35,7 +35,7 @@ type uint32 = builtin
 ========================================================================
 Struct field int24 tlb type
 ========================================================================
-type intN = builtin_type;
+type intN = builtin;
 
 struct Foo {
     value: <caret>int24,
@@ -54,7 +54,7 @@ Arbitrary bit-width signed integer type
 ========================================================================
 Struct field uint244 tlb type
 ========================================================================
-type uintN = builtin_type;
+type uintN = builtin;
 
 struct Foo {
     value: <caret>uint244,
@@ -73,7 +73,7 @@ Arbitrary bit-width unsigned integer type
 ========================================================================
 Struct field uint9999 tlb type
 ========================================================================
-type uintN = builtin_type;
+type uintN = builtin;
 
 struct Foo {
     value: <caret>uint9999,

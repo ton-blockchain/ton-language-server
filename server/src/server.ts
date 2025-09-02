@@ -5,19 +5,20 @@ import {DocumentStore} from "./document-store"
 import {initParser} from "./parser"
 import {asParserPoint} from "@server/utils/position"
 import {index as tolkIndex, IndexRoot as TolkIndexRoot} from "@server/languages/tolk/indexes"
+import {index as funcIndex, IndexRoot as FuncIndexRoot} from "@server/languages/func/indexes"
 import * as lsp from "vscode-languageserver"
-import {DidChangeWatchedFilesParams, FileChangeType} from "vscode-languageserver"
+import {DidChangeWatchedFilesParams, FileChangeType, RenameFilesParams} from "vscode-languageserver"
 import * as path from "node:path"
 import {globalVFS} from "@server/vfs/global"
 import {existsVFS} from "@server/vfs/files-adapter"
 import type {ClientOptions} from "@shared/config-scheme"
 import {
     DocumentationAtPositionRequest,
+    SetToolchainVersionNotification,
+    SetToolchainVersionParams,
     TypeAtPositionParams,
     TypeAtPositionRequest,
     TypeAtPositionResponse,
-    SetToolchainVersionNotification,
-    SetToolchainVersionParams,
 } from "@shared/shared-msgtypes"
 import {Logger} from "@server/utils/logger"
 import {clearDocumentSettings, getDocumentSettings, ServerSettings} from "@server/settings/settings"
@@ -33,12 +34,16 @@ import {
     FIFT_PARSED_FILES_CACHE,
     filePathToUri,
     findFiftFile,
+    findFuncFile,
     findTlbFile,
     findTolkFile,
+    FUNC_PARSED_FILES_CACHE,
     isFiftFile,
+    isFuncFile,
     isTlbFile,
     isTolkFile,
     reparseFiftFile,
+    reparseFuncFile,
     reparseTlbFile,
     reparseTolkFile,
     TLB_PARSED_FILES_CACHE,
@@ -56,7 +61,7 @@ import {provideTlbCompletion} from "@server/languages/tlb/completion"
 import {TLB_CACHE} from "@server/languages/tlb/cache"
 import {provideTlbReferences} from "@server/languages/tlb/references"
 import {TextDocument} from "vscode-languageserver-textdocument"
-import {TolkIndexingRoot, TolkIndexingRootKind} from "@server/tolk-indexing-root"
+import {TolkIndexingRoot} from "@server/languages/tolk/indexing-root"
 import {TOLK_CACHE} from "@server/languages/tolk/cache"
 import {provideTolkSemanticTokens} from "@server/languages/tolk/semantic-tokens"
 import {
@@ -78,8 +83,9 @@ import {
     provideTolkCompletionResolve,
 } from "@server/languages/tolk/completion"
 import {
-    setProjectTolkStdlibPath,
     InvalidToolchainError,
+    setProjectTolkStdlibPath,
+    tolkStdlibSearchPaths,
 } from "@server/languages/tolk/toolchain/toolchain"
 import {
     provideTolkDocumentSymbols,
@@ -89,7 +95,32 @@ import {collectTolkInlays} from "@server/languages/tolk/inlays"
 import {provideTolkSignatureInfo} from "@server/languages/tolk/signature-help"
 import {provideTolkDocumentation} from "@server/languages/tolk/documentation"
 import {provideTolkTypeAtPosition} from "@server/languages/tolk/custom/type-at-position"
-import {onFileRenamed, processFileRenaming} from "@server/languages/tolk/rename/file-renaming"
+import {
+    onTolkFileRenamed,
+    processTolkFileRenaming,
+} from "@server/languages/tolk/rename/file-renaming"
+import {provideFuncDefinition} from "@server/languages/func/find-definitions"
+import {provideFuncSemanticTokens} from "@server/languages/func/semantic-tokens"
+import {provideFuncCompletion} from "@server/languages/func/completion"
+import {provideFuncReferences} from "@server/languages/func/find-references"
+import {provideFuncRename, provideFuncRenamePrepare} from "@server/languages/func/rename"
+import {
+    provideFuncDocumentSymbols,
+    provideFuncWorkspaceSymbols,
+} from "@server/languages/func/symbols"
+import {provideFuncDocumentation} from "@server/languages/func/documentation"
+import {collectFuncInlays} from "@server/languages/func/inlays"
+import {provideFuncFoldingRanges} from "@server/languages/func/foldings"
+import {runFuncInspections} from "@server/languages/func/inspections"
+import {
+    onFuncFileRenamed,
+    processFuncFileRenaming,
+} from "@server/languages/func/rename/file-renaming"
+import {IndexingRootKind} from "@server/indexing/indexing"
+import {FuncIndexingRoot} from "@server/languages/func/indexing-root"
+import {formatTolkFile} from "@server/languages/tolk/format/format"
+import {collectFuncCodeLenses} from "@server/languages/func/lens"
+import {collectFiftCodeLenses} from "@server/languages/fift/lens"
 
 /**
  * Whenever LS is initialized.
@@ -164,6 +195,15 @@ async function handleFileOpen(
         }
     }
 
+    if (isFuncFile(uri, event)) {
+        const file = await findFuncFile(uri)
+        funcIndex.addFile(uri, file)
+
+        if (initializationFinished) {
+            await runFuncInspections(uri, file, true)
+        }
+    }
+
     if (isFiftFile(uri, event)) {
         await findFiftFile(uri)
     }
@@ -185,7 +225,15 @@ async function findTolkStdlib(settings: ServerSettings, rootDir: string): Promis
         return settings.tolk.stdlib.path
     }
 
-    const searchDirs = ["node_modules/@ton/tolk-js/dist/tolk-stdlib", "stdlib"]
+    const tolkStdlibEnv = process.env["TOLK_STDLIB"]
+
+    const searchDirs = [
+        `${rootDir}/node_modules/@ton/tolk-js/dist/tolk-stdlib`,
+        `${rootDir}/stdlib`,
+        `${rootDir}/tolk-stdlib`,
+        ...(tolkStdlibEnv ? [tolkStdlibEnv] : []),
+        ...tolkStdlibSearchPaths(),
+    ]
 
     const testStdlibOath = process.env["TEST_TOLK_STDLIB_PATH"]
     if (testStdlibOath) {
@@ -194,7 +242,7 @@ async function findTolkStdlib(settings: ServerSettings, rootDir: string): Promis
 
     async function findDirectory(): Promise<string | null> {
         for (const searchDir of searchDirs) {
-            if (await existsVFS(globalVFS, filePathToUri(path.join(rootDir, searchDir)))) {
+            if (await existsVFS(globalVFS, filePathToUri(searchDir))) {
                 return searchDir
             }
         }
@@ -202,12 +250,12 @@ async function findTolkStdlib(settings: ServerSettings, rootDir: string): Promis
         return null
     }
 
-    const localFolder = await findDirectory()
+    const stdlibPath = await findDirectory()
 
-    if (localFolder === null) {
+    if (stdlibPath === null) {
         console.error(
             "Tolk standard library not found! Searched in:\n",
-            searchDirs.map(dir => path.join(rootDir, dir)).join("\n"),
+            searchDirs.map(dir => `- ${dir}`).join("\n"),
         )
 
         showErrorMessage(
@@ -216,7 +264,6 @@ async function findTolkStdlib(settings: ServerSettings, rootDir: string): Promis
         return null
     }
 
-    const stdlibPath = path.join(rootDir, localFolder)
     console.info(`Using Tolk Standard library from ${stdlibPath}`)
     return stdlibPath
 }
@@ -278,7 +325,7 @@ async function initialize(): Promise<void> {
         const stdlibUri = filePathToUri(stdlibPath)
         tolkIndex.withStdlibRoot(new TolkIndexRoot("stdlib", stdlibUri))
 
-        const stdlibRoot = new TolkIndexingRoot(stdlibUri, TolkIndexingRootKind.Stdlib)
+        const stdlibRoot = new TolkIndexingRoot(stdlibUri, IndexingRootKind.Stdlib)
         await stdlibRoot.index()
     }
 
@@ -289,17 +336,25 @@ async function initialize(): Promise<void> {
     if (stubsPath !== null) {
         const stubsUri = filePathToUri(stubsPath)
         tolkIndex.withStubsRoot(new TolkIndexRoot("stubs", stubsUri))
+        funcIndex.withStubsRoot(new FuncIndexRoot("stubs", stubsUri))
 
         console.info(`Using Tolk Stubs from ${stubsPath}`)
 
-        const stubsRoot = new TolkIndexingRoot(stubsUri, TolkIndexingRootKind.Stdlib)
+        const stubsRoot = new TolkIndexingRoot(stubsUri, IndexingRootKind.Stdlib)
         await stubsRoot.index()
+
+        const funcStubsRoot = new FuncIndexingRoot(stubsUri, IndexingRootKind.Stdlib)
+        await funcStubsRoot.index()
     }
 
     reporter.report(90, "Indexing: (3/3) Workspace")
     tolkIndex.withRoots([new TolkIndexRoot("workspace", rootUri)])
-    const tolkWorkspaceRoot = new TolkIndexingRoot(rootUri, TolkIndexingRootKind.Workspace)
+    const tolkWorkspaceRoot = new TolkIndexingRoot(rootUri, IndexingRootKind.Workspace)
     await tolkWorkspaceRoot.index()
+
+    funcIndex.withRoots([new FuncIndexRoot("workspace", rootUri)])
+    const funcWorkspaceRoot = new FuncIndexingRoot(rootUri, IndexingRootKind.Workspace)
+    await funcWorkspaceRoot.index()
 
     reporter.report(100, "Ready")
 
@@ -388,9 +443,10 @@ const onInitialize = async (initParams: lsp.InitializeParams): Promise<lsp.Initi
 
     const treeSitterUri = opts?.treeSitterWasmUri ?? `${__dirname}/tree-sitter.wasm`
     const tolkLangUri = opts?.tolkLangWasmUri ?? `${__dirname}/tree-sitter-tolk.wasm`
+    const funcLangUri = opts?.funcLangWasmUri ?? `${__dirname}/tree-sitter-func.wasm`
     const fiftLangUri = opts?.fiftLangWasmUri ?? `${__dirname}/tree-sitter-fift.wasm`
     const tlbLangUri = opts?.tlbLangWasmUri ?? `${__dirname}/tree-sitter-tlb.wasm`
-    await initParser(treeSitterUri, tolkLangUri, fiftLangUri, tlbLangUri)
+    await initParser(treeSitterUri, tolkLangUri, funcLangUri, fiftLangUri, tlbLangUri)
 
     const documents = new DocumentStore(connection)
 
@@ -435,6 +491,16 @@ const onInitialize = async (initParams: lsp.InitializeParams): Promise<lsp.Initi
                 await runTolkInspections(uri, file, false) // linters require saved files, see onDidSave
             }
         }
+
+        if (isFuncFile(uri, event)) {
+            funcIndex.fileChanged(uri)
+            const file = reparseFuncFile(uri, event.document.getText())
+            funcIndex.addFile(uri, file, false)
+
+            if (initializationFinished) {
+                await runFuncInspections(uri, file, false) // linters require saved files, see onDidSave
+            }
+        }
     })
 
     documents.onDidSave(async event => {
@@ -443,6 +509,13 @@ const onInitialize = async (initParams: lsp.InitializeParams): Promise<lsp.Initi
             if (initializationFinished) {
                 const file = await findTolkFile(uri)
                 await runTolkInspections(uri, file, true)
+            }
+        }
+
+        if (isFuncFile(uri, event)) {
+            if (initializationFinished) {
+                const file = await findFuncFile(uri)
+                await runFuncInspections(uri, file, true)
             }
         }
     })
@@ -482,11 +555,53 @@ const onInitialize = async (initParams: lsp.InitializeParams): Promise<lsp.Initi
                     tolkIndex.removeFile(uri)
                 }
             }
+
+            if (isFuncFile(uri)) {
+                if (change.type === FileChangeType.Created) {
+                    console.info(`Find external create of ${uri}`)
+                    const file = await findFuncFile(uri)
+                    funcIndex.addFile(uri, file)
+                    continue
+                }
+
+                if (!FUNC_PARSED_FILES_CACHE.has(uri)) {
+                    // we don't care about non-parsed files
+                    continue
+                }
+
+                if (change.type === FileChangeType.Changed) {
+                    console.info(`Find external change of ${uri}`)
+                    funcIndex.fileChanged(uri)
+                    const file = await findFuncFile(uri, true)
+                    funcIndex.addFile(uri, file, false)
+                }
+
+                if (change.type === FileChangeType.Deleted) {
+                    console.info(`Find external delete of ${uri}`)
+                    funcIndex.removeFile(uri)
+                }
+            }
         }
     })
 
-    connection.onRequest("workspace/willRenameFiles", processFileRenaming)
-    connection.onNotification("workspace/didRenameFiles", onFileRenamed)
+    connection.onRequest(
+        "workspace/willRenameFiles",
+        async (params: RenameFilesParams): Promise<lsp.WorkspaceEdit | null> => {
+            const edits = await processTolkFileRenaming(params)
+            if (edits) {
+                return edits
+            }
+            const funcEdits = await processFuncFileRenaming(params)
+            if (funcEdits) {
+                return funcEdits
+            }
+            return null
+        },
+    )
+    connection.onNotification("workspace/didRenameFiles", (params: RenameFilesParams) => {
+        onTolkFileRenamed(params)
+        onFuncFileRenamed(params)
+    })
 
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     connection.onDidChangeConfiguration(async () => {
@@ -561,6 +676,13 @@ const onInitialize = async (initParams: lsp.InitializeParams): Promise<lsp.Initi
             return provideTolkDocumentation(hoverNode, file)
         }
 
+        if (isFuncFile(uri)) {
+            const file = await findFuncFile(params.textDocument.uri)
+            const hoverNode = nodeAtPosition(params, file)
+            if (!hoverNode) return null
+            return provideFuncDocumentation(hoverNode, file)
+        }
+
         return null
     }
 
@@ -593,6 +715,14 @@ const onInitialize = async (initParams: lsp.InitializeParams): Promise<lsp.Initi
                 if (!hoverNode) return []
 
                 return provideTolkDefinition(hoverNode, file)
+            }
+
+            if (isFuncFile(uri)) {
+                const file = await findFuncFile(uri)
+                const hoverNode = nodeAtPosition(params, file)
+                if (!hoverNode) return []
+
+                return provideFuncDefinition(hoverNode, file)
             }
 
             return []
@@ -629,6 +759,11 @@ const onInitialize = async (initParams: lsp.InitializeParams): Promise<lsp.Initi
                 return provideTolkCompletion(file, params, uri)
             }
 
+            if (isFuncFile(uri)) {
+                const file = await findFuncFile(uri)
+                return provideFuncCompletion(file, params, uri)
+            }
+
             if (isTlbFile(uri)) {
                 const file = await findTlbFile(uri)
                 return provideTlbCompletion(file, params, uri)
@@ -657,6 +792,11 @@ const onInitialize = async (initParams: lsp.InitializeParams): Promise<lsp.Initi
                 return collectTolkInlays(file, settings.tolk.hints)
             }
 
+            if (isFuncFile(uri)) {
+                const file = await findFuncFile(uri)
+                return collectFuncInlays(file, settings.func.hints)
+            }
+
             return null
         },
     )
@@ -669,6 +809,11 @@ const onInitialize = async (initParams: lsp.InitializeParams): Promise<lsp.Initi
             if (isTolkFile(uri)) {
                 const file = await findTolkFile(uri)
                 return provideTolkRename(params, file)
+            }
+
+            if (isFuncFile(uri)) {
+                const file = await findFuncFile(uri)
+                return provideFuncRename(params, file)
             }
 
             return null
@@ -684,6 +829,18 @@ const onInitialize = async (initParams: lsp.InitializeParams): Promise<lsp.Initi
                 const file = await findTolkFile(uri)
 
                 const result = provideTolkRenamePrepare(params, file)
+                if (typeof result === "string") {
+                    showErrorMessage(result)
+                    return null
+                }
+
+                return result
+            }
+
+            if (isFuncFile(uri)) {
+                const file = await findFuncFile(uri)
+
+                const result = provideFuncRenamePrepare(params, file)
                 if (typeof result === "string") {
                     showErrorMessage(result)
                     return null
@@ -743,6 +900,13 @@ const onInitialize = async (initParams: lsp.InitializeParams): Promise<lsp.Initi
                 return result
             }
 
+            if (isFuncFile(uri)) {
+                const file = await findFuncFile(uri)
+                const node = nodeAtPosition(params, file)
+                if (!node) return null
+                return provideFuncReferences(node, file)
+            }
+
             return null
         },
     )
@@ -775,6 +939,11 @@ const onInitialize = async (initParams: lsp.InitializeParams): Promise<lsp.Initi
                 return provideTolkFoldingRanges(file)
             }
 
+            if (isFuncFile(uri)) {
+                const file = await findFuncFile(uri)
+                return provideFuncFoldingRanges(file)
+            }
+
             return null
         },
     )
@@ -790,6 +959,11 @@ const onInitialize = async (initParams: lsp.InitializeParams): Promise<lsp.Initi
                 return provideTolkSemanticTokens(file)
             }
 
+            if (isFuncFile(uri)) {
+                const file = await findFuncFile(uri)
+                return provideFuncSemanticTokens(file)
+            }
+
             if (isFiftFile(uri)) {
                 const file = await findFiftFile(uri)
                 return provideFiftSemanticTokens(file, settings.fift.semanticHighlighting)
@@ -798,6 +972,25 @@ const onInitialize = async (initParams: lsp.InitializeParams): Promise<lsp.Initi
             if (isTlbFile(uri)) {
                 const file = await findTlbFile(uri)
                 return provideTlbSemanticTokens(file)
+            }
+
+            return null
+        },
+    )
+
+    connection.onRequest(
+        lsp.CodeLensRequest.type,
+        async (params: lsp.CodeLensParams): Promise<lsp.CodeLens[] | null> => {
+            const uri = params.textDocument.uri
+
+            if (isFiftFile(uri)) {
+                const file = await findFiftFile(uri)
+                return collectFiftCodeLenses(file)
+            }
+
+            if (isFuncFile(uri)) {
+                const file = await findFuncFile(uri)
+                return collectFuncCodeLenses(file)
             }
 
             return null
@@ -837,6 +1030,11 @@ const onInitialize = async (initParams: lsp.InitializeParams): Promise<lsp.Initi
                 return provideTolkDocumentSymbols(file)
             }
 
+            if (isFuncFile(uri)) {
+                const file = await findFuncFile(uri)
+                return provideFuncDocumentSymbols(file)
+            }
+
             if (isTlbFile(uri)) {
                 const file = await findTlbFile(uri)
                 return provideTlbDocumentSymbols(file)
@@ -847,8 +1045,36 @@ const onInitialize = async (initParams: lsp.InitializeParams): Promise<lsp.Initi
     )
 
     connection.onRequest(lsp.WorkspaceSymbolRequest.type, (): lsp.WorkspaceSymbol[] => {
-        return provideTolkWorkspaceSymbols()
+        return [...provideTolkWorkspaceSymbols(), ...provideFuncWorkspaceSymbols()]
     })
+
+    connection.onRequest(
+        lsp.DocumentFormattingRequest.type,
+        async (params: lsp.DocumentFormattingParams): Promise<lsp.TextEdit[] | null> => {
+            const uri = params.textDocument.uri
+            const settings = await getDocumentSettings(uri)
+
+            if (isTolkFile(uri)) {
+                return formatTolkFile(uri, undefined, settings.tolk.formatter)
+            }
+
+            return null
+        },
+    )
+
+    connection.onRequest(
+        lsp.DocumentRangeFormattingRequest.type,
+        async (params: lsp.DocumentRangeFormattingParams): Promise<lsp.TextEdit[] | null> => {
+            const uri = params.textDocument.uri
+            const settings = await getDocumentSettings(uri)
+
+            if (isTolkFile(uri)) {
+                return formatTolkFile(uri, params.range, settings.tolk.formatter)
+            }
+
+            return null
+        },
+    )
 
     // Custom LSP requests
 
@@ -874,12 +1100,16 @@ const onInitialize = async (initParams: lsp.InitializeParams): Promise<lsp.Initi
         capabilities: {
             textDocumentSync: lsp.TextDocumentSyncKind.Incremental,
             documentFormattingProvider: true,
+            documentRangeFormattingProvider: true,
             documentSymbolProvider: true,
             workspaceSymbolProvider: true,
             definitionProvider: true,
             typeDefinitionProvider: true,
             renameProvider: {
                 prepareProvider: true,
+            },
+            codeLensProvider: {
+                resolveProvider: false,
             },
             hoverProvider: true,
             inlayHintProvider: true,
@@ -888,7 +1118,7 @@ const onInitialize = async (initParams: lsp.InitializeParams): Promise<lsp.Initi
             foldingRangeProvider: true,
             completionProvider: {
                 resolveProvider: true,
-                triggerCharacters: [".", "@"], // @ for annotations
+                triggerCharacters: [".", "@", "#"], // @ for annotations, # for imports/pragmas
             },
             signatureHelpProvider: {
                 triggerCharacters: ["(", ","],
@@ -923,7 +1153,7 @@ const onInitialize = async (initParams: lsp.InitializeParams): Promise<lsp.Initi
                             {
                                 scheme: "file",
                                 pattern: {
-                                    glob: "**/*.tolk",
+                                    glob: "**/*.{tolk,func,fc}",
                                 },
                             },
                         ],
@@ -933,7 +1163,7 @@ const onInitialize = async (initParams: lsp.InitializeParams): Promise<lsp.Initi
                             {
                                 scheme: "file",
                                 pattern: {
-                                    glob: "**/*.tolk",
+                                    glob: "**/*.{tolk,func,fc}",
                                 },
                             },
                         ],

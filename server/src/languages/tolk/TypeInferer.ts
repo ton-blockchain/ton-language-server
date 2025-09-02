@@ -35,6 +35,7 @@ import {
 import {Reference} from "@server/languages/tolk/psi/Reference"
 import {
     Constant,
+    Enum,
     Func,
     FunctionBase,
     GlobalVariable,
@@ -54,7 +55,8 @@ export class TypeInferer {
         return new TypeInferer().inferType(node)
     }
 
-    public inferType(node: TolkNode): Ty | null {
+    public inferType(node: TolkNode | null): Ty | null {
+        if (!node) return null
         return TOLK_CACHE.typeCache.cached(node.node.id, () => this.inferTypeImpl(node))
     }
 
@@ -669,7 +671,16 @@ export class TypeInferer {
 
     private inferTypeFromResolved(resolved: NamedNode): Ty | null {
         if (resolved instanceof Struct) {
-            const baseTy = new StructTy(resolved.name(), resolved)
+            const fieldTypes = resolved.fields().map(it => {
+                try {
+                    return this.inferType(it.typeNode()) ?? UnknownTy.UNKNOWN
+                } catch {
+                    // cyclic dependency
+                    return UnknownTy.UNKNOWN
+                }
+            })
+
+            const baseTy = new StructTy(fieldTypes, resolved.name(), resolved)
 
             const typeParameters = resolved.typeParameters()
             if (typeParameters.length > 0) {
@@ -690,12 +701,15 @@ export class TypeInferer {
 
             return baseTy
         }
+        if (resolved instanceof Enum) {
+            return resolved.declaredType()
+        }
         if (resolved instanceof TypeAlias) {
             const underlyingType = resolved.underlyingType()
             if (underlyingType === null) return null
 
             const underlyingTypeName = underlyingType.text
-            if (underlyingTypeName === "builtin_type") {
+            if (underlyingTypeName === "builtin") {
                 const name = resolved.name()
                 switch (name) {
                     case "void": {

@@ -3,6 +3,8 @@
 import {NamedNode} from "@server/languages/tolk/psi/TolkNode"
 import {
     Constant,
+    Enum,
+    EnumMember,
     Field,
     Func,
     GetMethod,
@@ -18,10 +20,8 @@ import {generateTlBTypeDoc} from "@server/languages/tolk/documentation/tlb-type-
 import type {Node as SyntaxNode} from "web-tree-sitter"
 import {TypeInferer} from "@server/languages/tolk/TypeInferer"
 import {functionTypeOf, typeOf} from "@server/languages/tolk/type-inference"
-import {UnionTy} from "@server/languages/tolk/types/ty"
-
-const CODE_FENCE = "```"
-const DOC_TMPL = `${CODE_FENCE}tolk\n{signature}\n${CODE_FENCE}\n{documentation}\n`
+import {StructTy, UnionTy, UnknownTy} from "@server/languages/tolk/types/ty"
+import {EstimateContext, sizeOfPresentation} from "@server/languages/tolk/types/size-of"
 
 /**
  * Returns the documentation for the given symbol in Markdown format, or null
@@ -36,6 +36,12 @@ export function generateTolkDocFor(node: NamedNode, place: SyntaxNode): string |
         const owner = symbol.owner()
         if (!owner) return null // not possible in correct code
         return "struct " + owner.name() + "\n"
+    }
+
+    function renderEnumOwnerPresentation(symbol: EnumMember): string | null {
+        const owner = symbol.owner()
+        if (!owner) return null // not possible in correct code
+        return "enum " + owner.name() + "\n"
     }
 
     switch (astNode.type) {
@@ -108,8 +114,32 @@ export function generateTolkDocFor(node: NamedNode, place: SyntaxNode): string |
 
             const bodyPresentation = fields.length === 0 ? "{}" : "{\n" + fields.join("\n") + "\n}"
 
+            const sizeDoc = structSizeOf(struct)
+
             return defaultResult(
                 `struct ${packPrefixPresentation}${node.name()}${typeParametersPresentation} ${bodyPresentation}`,
+                sizeDoc + doc,
+            )
+        }
+        case "enum_declaration": {
+            const doc = node.documentation()
+            const enum_ = new Enum(node.node, node.file)
+
+            const backedType = enum_.backedType()
+            const backedTypePresentation = backedType ? `: ${backedType.text}` : ""
+
+            const members = enum_.members().map(member => {
+                const name = member.nameNode()
+                if (!name) return null
+
+                return `    ${member.name()}${member.defaultValuePresentation()}`
+            })
+
+            const bodyPresentation =
+                members.length === 0 ? "{}" : "{\n" + members.join("\n") + "\n}"
+
+            return defaultResult(
+                `enum ${node.name()}${backedTypePresentation} ${bodyPresentation}`,
                 doc,
             )
         }
@@ -118,7 +148,7 @@ export function generateTolkDocFor(node: NamedNode, place: SyntaxNode): string |
             const alias = new TypeAlias(node.node, node.file)
             const underlyingTypeNode = alias.underlyingType()
             const underlyingTypeText = underlyingTypeNode?.text ?? ""
-            if (underlyingTypeText === "builtin_type") {
+            if (underlyingTypeText === "builtin") {
                 const typeName = place.text
                 const bitTypeNameOrUndefined = bitTypeName(typeName)
                 const tlbDoc =
@@ -136,9 +166,11 @@ export function generateTolkDocFor(node: NamedNode, place: SyntaxNode): string |
 
             const typeParametersPresentation = alias.typeParametersPresentation()
 
+            const sizeDoc = aliasSizeOf(alias)
+
             return defaultResult(
                 `type ${node.name()}${typeParametersPresentation} = ${underlyingTypePresentation}`,
-                doc,
+                sizeDoc + doc,
             )
         }
         case "constant_declaration": {
@@ -175,6 +207,21 @@ export function generateTolkDocFor(node: NamedNode, place: SyntaxNode): string |
                 doc,
             )
         }
+        case "enum_member_declaration": {
+            const doc = node.documentation()
+            const member = new EnumMember(node.node, node.file)
+
+            const ownerPresentation = renderEnumOwnerPresentation(member)
+            if (!ownerPresentation) return null // not possible in correct code
+
+            const name = member.nameNode()
+            if (!name) return null
+
+            return defaultResult(
+                `${ownerPresentation}${node.name()}${member.defaultValuePresentation()}`,
+                doc,
+            )
+        }
         case "var_declaration": {
             const name = astNode.childForFieldName("name")?.text ?? "unknown"
 
@@ -196,7 +243,7 @@ export function generateTolkDocFor(node: NamedNode, place: SyntaxNode): string |
                 return defaultResult(`${kind} ${name}: ${type} ${valuePresentation}`)
             }
 
-            // TODO: better support for tensor/ tuple variables
+            // TODO: better support for tensor/tuple variables
             return defaultResult(owner.text)
         }
         case "identifier": {
@@ -235,6 +282,29 @@ export function generateTolkDocFor(node: NamedNode, place: SyntaxNode): string |
     return null
 }
 
+function structSizeOf(struct: Struct): string {
+    const ty = new StructTy(
+        struct.fields().map(it => typeOf(it.node, it.file) ?? UnknownTy.UNKNOWN),
+        struct.name(),
+        struct,
+    )
+    const sizeOf = EstimateContext.estimate(ty)
+    if (!sizeOf.valid) return ""
+    const sizeOfPres = sizeOfPresentation(sizeOf)
+    return `**Size:** ${sizeOfPres}.\n\n---\n\n`
+}
+
+function aliasSizeOf(alias: TypeAlias): string {
+    const ty = typeOf(alias.node, alias.file)
+    if (!ty) return ""
+    const sizeOf = EstimateContext.estimate(ty)
+    if (!sizeOf.valid) return ""
+    const sizeOfPres = sizeOfPresentation(sizeOf)
+    return `**Size:** ${sizeOfPres}.\n\n---\n\n`
+}
+
 function defaultResult(signature: string, documentation: string = ""): string {
+    const CODE_FENCE = "```"
+    const DOC_TMPL = `${CODE_FENCE}tolk\n{signature}\n${CODE_FENCE}\n{documentation}\n`
     return DOC_TMPL.replace("{signature}", signature).replace("{documentation}", documentation)
 }

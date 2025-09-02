@@ -1,19 +1,16 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
-import type {CompletionProvider} from "@server/languages/tolk/completion/CompletionProvider"
+import type {CompletionProvider} from "@server/completion/CompletionProvider"
 import {CompletionItemKind, InsertTextFormat} from "vscode-languageserver-types"
 import type {CompletionContext} from "@server/languages/tolk/completion/CompletionContext"
-import {
-    CompletionResult,
-    CompletionWeight,
-} from "@server/languages/tolk/completion/WeightedCompletionItem"
+import {CompletionResult, CompletionWeight} from "@server/completion/WeightedCompletionItem"
 
-export class SnippetsCompletionProvider implements CompletionProvider {
+export class SnippetsCompletionProvider implements CompletionProvider<CompletionContext> {
     public isAvailable(ctx: CompletionContext): boolean {
         return ctx.isStatement && !ctx.topLevel && !ctx.afterDot
     }
 
-    public addCompletion(_ctx: CompletionContext, result: CompletionResult): void {
+    public addCompletion(ctx: CompletionContext, result: CompletionResult): void {
         result.add({
             label: "val",
             kind: CompletionItemKind.Snippet,
@@ -102,5 +99,18 @@ export class SnippetsCompletionProvider implements CompletionProvider {
             insertText: "try {\n\t${1}\n} catch (e) {\n\t${2}\n}",
             weight: CompletionWeight.SNIPPET,
         })
+
+        // if:
+        // try { ... } <caret>
+        const prevSibling = ctx.element.node.parent?.previousSibling
+        if (prevSibling?.firstChild?.type === "try") {
+            result.add({
+                label: "catch",
+                kind: CompletionItemKind.Snippet,
+                insertTextFormat: InsertTextFormat.Snippet,
+                insertText: "catch (${1:e}) {\n\t$0\n}",
+                weight: CompletionWeight.CONTEXT_ELEMENT,
+            })
+        }
     }
 }

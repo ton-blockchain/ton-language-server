@@ -4,6 +4,7 @@ import {
     BoolTy,
     BuiltinTy,
     CoinsTy,
+    EnumTy,
     FuncTy,
     InstantiationTy,
     IntTy,
@@ -23,6 +24,8 @@ import {
 import {Node as SyntaxNode} from "web-tree-sitter"
 import {
     Constant,
+    Enum,
+    EnumMember,
     Field,
     FunctionBase,
     GetMethod,
@@ -44,7 +47,7 @@ import {TOLK_CACHE} from "@server/languages/tolk/cache"
 import {filePathToUri} from "@server/files"
 import {trimBackticks} from "@server/languages/tolk/lang/names-util"
 
-class GenericSubstitutions {
+export class GenericSubstitutions {
     public constructor(public mapping: Map<string, Ty> = new Map()) {}
 
     public deduce(paramTy: Ty | null, argTy: Ty): GenericSubstitutions {
@@ -363,6 +366,15 @@ class InferenceWalker {
 
     public constructor(public ctx: InferenceContext) {}
 
+    public static methodCandidates(
+        ctx: InferenceContext,
+        qualifierTy: Ty,
+        searchName: string,
+    ): MethodBase[] {
+        const walker = new InferenceWalker(ctx)
+        return walker.methodCandidates(qualifierTy, searchName)
+    }
+
     public inferConstant(constant: Constant, flow: FlowContext): FlowContext {
         const expression = constant.value()?.node
         if (!expression) return flow
@@ -398,6 +410,27 @@ class InferenceWalker {
         this.ctx.setType(field.node, typeHintTy)
         this.ctx.setResolved(field.node, field)
 
+        return flow
+    }
+
+    public inferEnumMember(member: EnumMember, flow: FlowContext): FlowContext {
+        const defaultValue = member.defaultValue()?.node
+        if (defaultValue) {
+            const flowAfterExpression = this.inferExpression(defaultValue, flow, false)
+            const exprType = this.ctx.getType(defaultValue)
+            this.ctx.setType(member.node, exprType)
+            return flowAfterExpression.outFlow
+        }
+
+        const owner = member.owner()
+
+        if (owner) {
+            const type = owner.declaredType()
+            this.ctx.setType(member.nameNode()?.node, type)
+            this.ctx.setType(member.node, type)
+        }
+
+        this.ctx.setResolved(member.node, member)
         return flow
     }
 
@@ -892,7 +925,7 @@ class InferenceWalker {
         // infer generic parameters
         // val a = 100;
         // a = getT(); // T = int
-        if (hint && functionType.returnTy.hasGenerics()) {
+        if (hint && functionType.returnTy.hasGenerics() && !hint.hasGenerics()) {
             sub = sub.deduce(functionType.returnTy, hint)
         }
 
@@ -1023,6 +1056,21 @@ class InferenceWalker {
             }
         }
 
+        if (baseType instanceof EnumTy) {
+            for (const member of baseType.members()) {
+                if (member.name(false) === fieldNode.text) {
+                    resolved = member
+
+                    this.ctx.setResolved(node, resolved)
+                    this.ctx.setResolved(fieldNode, resolved)
+
+                    this.ctx.setType(node, baseType)
+                    this.ctx.setType(fieldNode, baseType)
+                    break
+                }
+            }
+        }
+
         if (resolved) {
             return ExprFlow.create(flowAfterQualifier.outFlow, usedAsCondition)
         }
@@ -1143,6 +1191,7 @@ class InferenceWalker {
         }
 
         // step 3: try to match generic receivers, e.g. `Container<T>.copy` / `(T?|slice).copy` but NOT `T.copy`
+        const qualifierBaseType = qualifierType.baseType()
         this.processMethods(searchName, method => {
             const receiverTypeNode = method.receiverTypeNode()
             if (!receiverTypeNode) return true
@@ -1150,6 +1199,15 @@ class InferenceWalker {
 
             // Foo<T>, but not T
             if (receiverType?.hasGenerics() && !(receiverType instanceof TypeParameterTy)) {
+                const receiverBaseType = receiverType.baseType()
+
+                if (qualifierBaseType instanceof StructTy && receiverBaseType instanceof StructTy) {
+                    if (!qualifierBaseType.equals(receiverBaseType)) {
+                        // different struct names
+                        return true
+                    }
+                }
+
                 const subst = GenericSubstitutions.deduce(receiverType, qualifierType)
                 const substituted = receiverType.substitute(subst.mapping)
 
@@ -1569,6 +1627,7 @@ class InferenceWalker {
             case ">":
             case "<=":
             case ">=":
+            case "<=>":
             case "!=":
             case "==": {
                 const isInverted = operator === "!="
@@ -1628,6 +1687,24 @@ class InferenceWalker {
                 const falseFlow = flowAfterRight.falseFlow
 
                 return new ExprFlow(outFlow, trueFlow, falseFlow)
+            }
+            case "&":
+            case "|": {
+                flow = this.inferExpression(left, flow, false).outFlow
+                if (!right) {
+                    return ExprFlow.create(flow, usedAsCondition)
+                }
+
+                flow = this.inferExpression(right, flow, false).outFlow
+
+                const leftType = this.ctx.getType(left)
+                if (leftType instanceof BoolTy) {
+                    this.ctx.setType(node, BoolTy.BOOL)
+                    break
+                }
+
+                this.ctx.setType(node, IntTy.INT)
+                break
             }
             default: {
                 flow = this.inferExpression(left, flow, false).outFlow
@@ -1753,6 +1830,12 @@ class InferenceWalker {
                 return nextFlow
             }
             this.ctx.setType(node, this.typeInferer.inferType(resolved))
+            return nextFlow
+        }
+
+        if (resolved instanceof Enum) {
+            const type = new EnumTy(resolved.name(), resolved)
+            this.ctx.setType(node, type)
             return nextFlow
         }
 
@@ -2201,11 +2284,9 @@ class InferenceWalker {
         let resultType: Ty
         switch (operator) {
             case "!": {
-                let exprType = this.ctx.getType(argument) ?? BoolTy.BOOL
-                if (exprType instanceof BoolTy) {
-                    exprType = exprType.negate()
-                }
-                this.ctx.setType(node, exprType)
+                const exprType = this.ctx.getType(argument) ?? BoolTy.BOOL
+                const actualExprType = exprType instanceof BoolTy ? exprType.negate() : BoolTy.BOOL
+                this.ctx.setType(node, actualExprType)
                 return new ExprFlow(afterArg.outFlow, afterArg.falseFlow, afterArg.trueFlow)
             }
             case "-":
@@ -2542,6 +2623,9 @@ function inferImpl(decl: NamedNode): InferenceResult {
     if (decl instanceof Field) {
         walker.inferField(decl, flow)
     }
+    if (decl instanceof EnumMember) {
+        walker.inferEnumMember(decl, flow)
+    }
     if (decl instanceof TypeAlias) {
         walker.inferTypeAlias(decl, flow)
     }
@@ -2576,6 +2660,9 @@ function findCacheOwner(ownable: SyntaxNodeWithCache, file: TolkFile): NamedNode
     if (ownable.type === "struct_field_declaration") {
         return new Field(ownable, file)
     }
+    if (ownable.type === "enum_member_declaration") {
+        return new EnumMember(ownable, file)
+    }
     if (ownable.type === "type_alias_declaration") {
         return new TypeAlias(ownable, file)
     }
@@ -2587,6 +2674,7 @@ function findCacheOwner(ownable: SyntaxNodeWithCache, file: TolkFile): NamedNode
         "constant_declaration",
         "global_var_declaration",
         "struct_field_declaration",
+        "enum_member_declaration",
         "type_alias_declaration",
     )
     if (parent?.type === "function_declaration") {
@@ -2606,6 +2694,9 @@ function findCacheOwner(ownable: SyntaxNodeWithCache, file: TolkFile): NamedNode
     }
     if (parent?.type === "struct_field_declaration") {
         return new Field(parent, file)
+    }
+    if (parent?.type === "enum_member_declaration") {
+        return new EnumMember(parent, file)
     }
     if (parent?.type === "type_alias_declaration") {
         return new TypeAlias(parent, file)
@@ -2649,4 +2740,12 @@ export function functionTypeOf(func: FunctionBase): FuncTy | null {
         return type
     }
     return null
+}
+
+export function methodCandidates(
+    ctx: InferenceContext,
+    qualifierTy: Ty,
+    searchName: string,
+): MethodBase[] {
+    return InferenceWalker.methodCandidates(ctx, qualifierTy, searchName)
 }

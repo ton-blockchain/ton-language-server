@@ -6,6 +6,8 @@ import {
     Field,
     TypeAlias,
     TypeParameter,
+    Enum,
+    EnumMember,
 } from "@server/languages/tolk/psi/Decls"
 import {NamedNode} from "@server/languages/tolk/psi/TolkNode"
 
@@ -122,6 +124,14 @@ export abstract class NonNamedTy implements Ty {
 }
 
 export class FieldsOwnerTy<Anchor extends FieldsOwner> extends NamedTy<Anchor> {
+    public constructor(
+        public fieldsTy: Ty[],
+        _name: string,
+        anchor: Anchor | null,
+    ) {
+        super(_name, anchor)
+    }
+
     public fields(): Field[] {
         if (this.anchor === null) return []
         return this.anchor.fields()
@@ -129,6 +139,32 @@ export class FieldsOwnerTy<Anchor extends FieldsOwner> extends NamedTy<Anchor> {
 }
 
 export class StructTy extends FieldsOwnerTy<Struct> {
+    public override substitute(mapping: Map<string, Ty>): Ty {
+        return new StructTy(
+            this.fieldsTy.map(it => it.substitute(mapping)),
+            this.name(),
+            this.anchor,
+        )
+    }
+
+    public override canRhsBeAssigned(other: Ty): boolean {
+        if (this === other) return true
+        if (other instanceof TypeAliasTy) return this.canRhsBeAssigned(other.innerTy)
+        if (other instanceof NeverTy) return true
+        return this._name === other.name()
+    }
+}
+
+export class EnumTy extends NamedTy<Enum> {
+    public members(): EnumMember[] {
+        if (this.anchor === null) return []
+        return this.anchor.members()
+    }
+
+    public override substitute(_mapping: Map<string, Ty>): Ty {
+        return new EnumTy(this.name(), this.anchor)
+    }
+
     public override canRhsBeAssigned(other: Ty): boolean {
         if (this === other) return true
         if (other instanceof TypeAliasTy) return this.canRhsBeAssigned(other.innerTy)
@@ -782,6 +818,16 @@ export function joinTypes(left: Ty, right: Ty): Ty {
     if (right instanceof UnknownTy) return UnknownTy.UNKNOWN
     if (right instanceof NeverTy) return left
     if (right instanceof NullTy) return UnionTy.create([left, right])
+
+    if (left instanceof BoolTy && left.value && right instanceof BoolTy && right.value) {
+        return BoolTy.TRUE // true & true => true
+    }
+    if (left instanceof BoolTy && !left.value && right instanceof BoolTy && !right.value) {
+        return BoolTy.FALSE // false & false => false
+    }
+    if (left instanceof BoolTy && right instanceof BoolTy) {
+        return BoolTy.BOOL // true & false => bool
+    }
 
     if (
         left instanceof TensorTy &&

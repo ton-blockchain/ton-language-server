@@ -6,6 +6,8 @@ import {ScopeProcessor} from "@server/languages/tolk/psi/Reference"
 import {NamedNode, TolkNode} from "@server/languages/tolk/psi/TolkNode"
 import {
     Constant,
+    Enum,
+    EnumMember,
     Field,
     Func,
     GlobalVariable,
@@ -17,19 +19,11 @@ import {
     TypeParameter,
 } from "@server/languages/tolk/psi/Decls"
 import {CompletionContext} from "./CompletionContext"
-import {
-    CompletionWeight,
-    WeightedCompletionItem,
-} from "@server/languages/tolk/completion/WeightedCompletionItem"
-import {TolkFile} from "@server/languages/tolk/psi/TolkFile"
+import {CompletionWeight, WeightedCompletionItem} from "@server/completion/WeightedCompletionItem"
 import {ResolveState} from "@server/psi/ResolveState"
 import {TypeInferer} from "@server/languages/tolk/TypeInferer"
-
-export interface CompletionItemAdditionalInformation {
-    readonly name: string | undefined
-    readonly file: TolkFile | undefined
-    readonly elementFile: TolkFile | undefined
-}
+import {CompletionItemAdditionalInformation} from "@server/completion/CompletionItemAdditionalInformation"
+import {typeOf} from "@server/languages/tolk/type-inference"
 
 export class ReferenceCompletionProcessor implements ScopeProcessor {
     public constructor(private readonly ctx: CompletionContext) {}
@@ -40,20 +34,17 @@ export class ReferenceCompletionProcessor implements ScopeProcessor {
         if (this.ctx.isType) {
             if (node instanceof NamedNode) {
                 const name = node.name()
-                if (
-                    name === "builtin_type" ||
-                    name === "intN" ||
-                    name === "uintN" ||
-                    name === "nitsN" ||
-                    name === "bytesN"
-                ) {
+                if (name === "intN" || name === "uintN" || name === "nitsN" || name === "bytesN") {
                     // intN-like types  implemented in VariableSizeTypeCompletionProvider
                     return false
                 }
             }
 
             return (
-                node instanceof TypeAlias || node instanceof Struct || node instanceof TypeParameter
+                node instanceof TypeAlias ||
+                node instanceof Struct ||
+                node instanceof Enum ||
+                node instanceof TypeParameter
             )
         }
 
@@ -64,8 +55,11 @@ export class ReferenceCompletionProcessor implements ScopeProcessor {
             }
         }
 
+        if (node instanceof TypeParameter) return false
+
         // since structs can be created like `Foo{}` we allow them
         if (node instanceof Struct) return true
+        if (node instanceof Enum) return true // for Color.Red
         return true
     }
 
@@ -83,10 +77,11 @@ export class ReferenceCompletionProcessor implements ScopeProcessor {
             return true
         }
 
-        const additionalData = {
+        const additionalData: CompletionItemAdditionalInformation = {
             elementFile: node.file,
             file: this.ctx.element.file,
             name: name,
+            language: "tolk",
         }
 
         if (node instanceof StaticMethod) {
@@ -164,6 +159,15 @@ export class ReferenceCompletionProcessor implements ScopeProcessor {
                 weight: CompletionWeight.STRUCT,
                 data: additionalData,
             })
+        } else if (node instanceof Enum) {
+            this.addItem({
+                label: name,
+                kind: CompletionItemKind.Enum,
+                insertText: `${rawName}$0`,
+                insertTextFormat: InsertTextFormat.Snippet,
+                weight: CompletionWeight.ENUM,
+                data: additionalData,
+            })
         } else if (node instanceof TypeAlias) {
             this.addItem({
                 label: name,
@@ -226,12 +230,37 @@ export class ReferenceCompletionProcessor implements ScopeProcessor {
                 weight: CompletionWeight.FIELD,
                 data: additionalData,
             })
+        } else if (node instanceof EnumMember) {
+            const owner = node.owner()?.name() ?? ""
+
+            const defaultValuePresentation = node.defaultValuePresentation()
+
+            const parent = this.ctx.element.node.parent
+
+            // Add enum name qualifier for
+            // Red<caret>
+            // but not for
+            // Color.Red<caret>
+            const prefix = parent?.type === "dot_access" ? "" : owner + "."
+
+            this.addItem({
+                label: prefix + rawName,
+                kind: CompletionItemKind.EnumMember,
+                labelDetails: {
+                    detail: defaultValuePresentation,
+                    description: ` of ${owner}`,
+                },
+                insertText: prefix + rawName,
+                insertTextFormat: InsertTextFormat.Snippet,
+                weight: CompletionWeight.FIELD,
+                data: additionalData,
+            })
         } else if (node.node.type === "identifier") {
             const parent = node.node.parent
             if (!parent) return true
 
             if (parent.type === "catch_clause") {
-                const typeName = "any"
+                const typeName = typeOf(node.node, node.file)?.name() ?? "unknown"
 
                 this.addItem({
                     label: name,
@@ -246,7 +275,7 @@ export class ReferenceCompletionProcessor implements ScopeProcessor {
                 })
             }
         } else if (node.node.type === "var_declaration") {
-            const typeName = TypeInferer.inferType(node)?.name() ?? "unknown"
+            const typeName = typeOf(node.node, node.file)?.name() ?? "unknown"
 
             const comma = this.ctx.inMultilineStructInit ? "," : ""
             const suffix = this.ctx.inNameOfFieldInit ? `${comma}$0` : ""
@@ -308,7 +337,7 @@ export class ReferenceCompletionProcessor implements ScopeProcessor {
     }
 
     private needSemicolon(node: SyntaxNode): boolean {
-        if (this.ctx.beforeSemicolon) {
+        if (this.ctx.beforeSemicolon || this.ctx.beforeParen) {
             return false
         }
 

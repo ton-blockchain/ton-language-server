@@ -260,3 +260,40 @@ fun inc(x: int, by: int = 1+C) {}
           (number_literal)
           (identifier))))
     (block_statement)))
+
+========================================================================
+Assembly functions
+========================================================================
+
+fun foo() asm "FOO"
+fun foo() asm "FOO" "BAR" "BAZ"
+fun foo() asm """FOO"""
+fun foo() asm """
+    FOO
+"""
+fun foo() asm """
+    FOO
+    BAR
+    BAZ
+"""
+
+------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    (identifier)
+    (parameter_list)
+    (asm_body
+      (string_literal)))
+  (function_declaration
+    (identifier)
+    (parameter_list)
+    (asm_body
+      (string_literal)
+      (string_literal)
+      (string_literal)))
+  (function_declaration
+    (identifier)
+    (parameter_list)
+    (asm_body
+      (string_literal))))

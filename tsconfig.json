@@ -17,7 +17,7 @@
             "@shared/*": ["shared/src/*"]
         }
     },
-    "include": ["server/src/**/*", "client/src/**/*"],
+    "include": ["server/src/**/*", "editors/code/src/**/*"],
     "exclude": ["node_modules", ".vscode-test"],
-    "references": [{"path": "./client"}, {"path": "./server"}]
+    "references": [{"path": "./editors"}, {"path": "./server"}]
 }

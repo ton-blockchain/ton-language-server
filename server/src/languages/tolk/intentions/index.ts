@@ -1,6 +1,6 @@
 import * as lsp from "vscode-languageserver"
 import {findTolkFile, TOLK_PARSED_FILES_CACHE} from "@server/files"
-import {GlobalSearchScope, LocalSearchScope, Referent} from "@server/languages/tolk/psi/Referent"
+import {Referent} from "@server/languages/tolk/psi/Referent"
 import {File} from "@server/psi/File"
 import type {Node as SyntaxNode} from "web-tree-sitter"
 import {asParserPoint} from "@server/utils/position"
@@ -21,6 +21,7 @@ import {NamedNode} from "@server/languages/tolk/psi/TolkNode"
 import {Reference} from "@server/languages/tolk/psi/Reference"
 import {parentOfType} from "@server/psi/utils"
 import {inferenceOf} from "@server/languages/tolk/type-inference"
+import {LocalSearchScope} from "@server/references/referent"
 
 export const TOLK_INTENTIONS: Intention[] = [
     new AddImport(),
@@ -50,14 +51,12 @@ export async function provideExecuteTolkCommand(
         if (!scope) return "Scope not found"
 
         if (scope instanceof LocalSearchScope) return scope.toString()
-        if (scope instanceof GlobalSearchScope) {
-            if (scope.files.length > 10) {
-                return "GlobalSearchScope{...}"
-            }
 
-            return `GlobalSearchScope{${scope.files.map(it => it.name + ".tolk").join(", ")}}`
+        if (scope.files.length > 10) {
+            return "GlobalSearchScope{...}"
         }
-        return "Unknown"
+
+        return `GlobalSearchScope{${scope.files.map(it => it.name + ".tolk").join(", ")}}`
     }
 
     if (params.command === "tolk.getUnresolvedIdentifiers") {
@@ -96,6 +95,8 @@ export async function provideExecuteTolkCommand(
                     parent.type === "type_alias_declaration" ||
                     parent.type === "struct_declaration" ||
                     parent.type === "struct_field_declaration" ||
+                    parent.type === "enum_declaration" ||
+                    parent.type === "enum_member_declaration" ||
                     parent.type === "parameter_declaration") &&
                 parent.childForFieldName("name")?.equals(node)
             ) {

@@ -245,7 +245,7 @@ ok
 ========================================================================
 Null literal type inference
 ========================================================================
-type null = builtin_type;
+type null = builtin;
 
 fun main() {
     val data = null;
@@ -391,6 +391,26 @@ Try catch variable 2 type inference
 fun main() {
     try {} catch (e, d) {}
 //!                  ^ unknown
+}
+------------------------------------------------------------------------
+ok
+
+========================================================================
+Cyclic dependency with Cell in struct
+========================================================================
+struct SwapStep {
+    pool: address
+    minAmountOut: coins
+    nextStep: Cell<SwapStep>?
+}
+
+fun main() {
+    val foo = SwapStep{};
+//!     ^ SwapStep
+    val step = foo.nextStep!
+//!     ^ Cell<SwapStep>
+    val loadedStep = foo.nextStep!.load()
+//!     ^ SwapStep
 }
 ------------------------------------------------------------------------
 ok

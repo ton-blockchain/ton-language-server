@@ -3,7 +3,7 @@ import type {Node as SyntaxNode} from "web-tree-sitter"
 import {TlbFile} from "@server/languages/tlb/psi/TlbFile"
 import {asLspRange} from "@server/utils/position"
 import {DeclarationNode, NamedNode} from "@server/languages/tlb/psi/TlbNode"
-import {TlbReference} from "@server/languages/tlb/psi/TlbReference"
+import {Reference} from "@server/languages/tlb/psi/Reference"
 import {BUILTIN_TYPES} from "@server/languages/tlb/completion/providers/BuiltinTypesCompletionProvider"
 import {generateDeclarationDoc} from "@server/languages/tlb/documentation/documentation"
 
@@ -31,7 +31,7 @@ export function provideTlbDocumentation(hoverNode: SyntaxNode, file: TlbFile): l
         return null
     }
 
-    const results = TlbReference.multiResolve(new NamedNode(hoverNode, file))
+    const results = Reference.multiResolve(new NamedNode(hoverNode, file))
     if (results.length === 0) {
         const typeDoc = generateTypeDoc(text)
         if (typeDoc) {

@@ -1,14 +1,11 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Studio
 import {CompletionItemKind, InsertTextFormat} from "vscode-languageserver-types"
-import type {CompletionProvider} from "@server/languages/tolk/completion/CompletionProvider"
+import type {CompletionProvider} from "@server/completion/CompletionProvider"
 import type {CompletionContext} from "@server/languages/tolk/completion/CompletionContext"
-import {
-    CompletionResult,
-    CompletionWeight,
-} from "@server/languages/tolk/completion/WeightedCompletionItem"
+import {CompletionResult, CompletionWeight} from "@server/completion/WeightedCompletionItem"
 
-export class TopLevelCompletionProvider implements CompletionProvider {
+export class TopLevelCompletionProvider implements CompletionProvider<CompletionContext> {
     public isAvailable(ctx: CompletionContext): boolean {
         return ctx.topLevel
     }
@@ -17,10 +14,10 @@ export class TopLevelCompletionProvider implements CompletionProvider {
         result.add({
             label: `import`,
             labelDetails: {
-                detail: ` "";`,
+                detail: ` ""`,
             },
             kind: CompletionItemKind.Keyword,
-            insertText: `import "$1";$0`,
+            insertText: `import "$1"$0`,
             insertTextFormat: InsertTextFormat.Snippet,
             weight: CompletionWeight.KEYWORD,
         })
@@ -37,12 +34,23 @@ export class TopLevelCompletionProvider implements CompletionProvider {
         })
 
         result.add({
-            label: `type`,
+            label: `enum`,
             labelDetails: {
-                detail: " Int = int;",
+                detail: " Name {}",
             },
             kind: CompletionItemKind.Keyword,
-            insertText: "type ${1:Int} = ${2:int};$0",
+            insertText: "enum ${1:Name} {$0}",
+            insertTextFormat: InsertTextFormat.Snippet,
+            weight: CompletionWeight.KEYWORD,
+        })
+
+        result.add({
+            label: `type`,
+            labelDetails: {
+                detail: " Int = int",
+            },
+            kind: CompletionItemKind.Keyword,
+            insertText: "type ${1:Int} = ${2:int}$0",
             insertTextFormat: InsertTextFormat.Snippet,
             weight: CompletionWeight.KEYWORD,
         })
@@ -53,7 +61,7 @@ export class TopLevelCompletionProvider implements CompletionProvider {
                 detail: " FOO: <type> = <value>",
             },
             kind: CompletionItemKind.Keyword,
-            insertText: "const ${1:FOO}: ${2:int} = ${3:0};$0",
+            insertText: "const ${1:FOO}: ${2:int} = ${3:0}$0",
             insertTextFormat: InsertTextFormat.Snippet,
             weight: CompletionWeight.KEYWORD,
         })
@@ -64,7 +72,7 @@ export class TopLevelCompletionProvider implements CompletionProvider {
                 detail: " foo: <type> = <value>",
             },
             kind: CompletionItemKind.Keyword,
-            insertText: "global ${1:foo}: ${2:int};$0",
+            insertText: "global ${1:foo}: ${2:int}$0",
             insertTextFormat: InsertTextFormat.Snippet,
             weight: CompletionWeight.KEYWORD,
         })

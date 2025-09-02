@@ -1,23 +1,12 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Studio
-import {FoldingRange, FoldingRangeKind} from "vscode-languageserver-types"
+import {FoldingRange} from "vscode-languageserver-types"
 import {RecursiveVisitor} from "@server/visitor/visitor"
-import type {Point} from "web-tree-sitter"
-import type * as lsp from "vscode-languageserver"
 import {FiftFile} from "@server/languages/fift/psi/FiftFile"
+import {genericFolding} from "@server/foldings"
 
 export function provideFiftFoldingRanges(file: FiftFile): FoldingRange[] {
     const result: FoldingRange[] = []
-
-    const genericFolding = (start: Point, end: Point): lsp.FoldingRange => {
-        return {
-            kind: FoldingRangeKind.Region,
-            startLine: start.row,
-            endLine: end.row - 1,
-            startCharacter: end.column,
-            endCharacter: end.column,
-        }
-    }
 
     RecursiveVisitor.visit(file.rootNode, (n): boolean => {
         if (

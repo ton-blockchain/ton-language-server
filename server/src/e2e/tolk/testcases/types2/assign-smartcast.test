@@ -27,7 +27,7 @@ Smart cast on assignment, union type value
 ========================================================================
 fun main() {
     val value: int | bool | null = 10 as int | bool;
-//!     ^ int | bool | null
+//!     ^ int | bool
     value;
 //! ^ int | bool
 }

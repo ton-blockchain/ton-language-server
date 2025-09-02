@@ -31,6 +31,7 @@ const TOLK_GRAMMAR = {
             $.constant_declaration,
             $.type_alias_declaration,
             $.struct_declaration,
+            $.enum_declaration,
             $.function_declaration,
             $.method_declaration,
             $.get_method_declaration,
@@ -76,7 +77,7 @@ const TOLK_GRAMMAR = {
                 optional(field("type_parameters", $.type_parameters)),
                 "=",
                 optional("|"),
-                field("underlying_type", $._type_hint),
+                field("underlying_type", choice($._type_hint, $.builtin_specifier)),
                 optional(";"),
             ),
         ),
@@ -110,6 +111,29 @@ const TOLK_GRAMMAR = {
             optional(seq("=", field("default", $._expression))),
         ),
 
+    enum_declaration: $ =>
+        seq(
+            optional(field("annotations", $.annotation_list)),
+            "enum",
+            field("name", $.identifier),
+            optional(seq(":", field("backed_type", $._type_hint))),
+            optional(field("body", $.enum_body)),
+        ),
+    enum_body: $ =>
+        seq(
+            "{",
+            optional(
+                seq(
+                    $.enum_member_declaration,
+                    repeat(seq(optional(","), $.enum_member_declaration)),
+                ),
+            ),
+            optional(","),
+            "}",
+        ),
+    enum_member_declaration: $ =>
+        seq(field("name", $.identifier), optional(seq("=", field("default", $._expression)))),
+
     // ----------------------------------------------------------
     // functions and their body
 
@@ -126,9 +150,9 @@ const TOLK_GRAMMAR = {
             "fun",
             field("name", $.identifier),
             optional(field("type_parameters", $.type_parameters)),
-            field("parameters", $.parameter_list),
+            optional(field("parameters", $.parameter_list)),
             optional(seq(":", field("return_type", optional($._type_hint)))),
-            $._function_body,
+            optional($._function_body),
         ),
 
     method_receiver: $ => seq(field("receiver_type", $._type_hint), "."),
@@ -139,9 +163,9 @@ const TOLK_GRAMMAR = {
             field("receiver", $.method_receiver),
             field("name", $.identifier),
             optional(field("type_parameters", $.type_parameters)),
-            field("parameters", $.parameter_list),
+            optional(field("parameters", $.parameter_list)),
             optional(seq(":", field("return_type", optional($._type_hint)))),
-            $._function_body,
+            optional($._function_body),
         ),
     get_method_declaration: $ =>
         seq(
@@ -149,9 +173,9 @@ const TOLK_GRAMMAR = {
             "get",
             optional("fun"),
             field("name", $.identifier),
-            field("parameters", $.parameter_list),
+            optional(field("parameters", $.parameter_list)),
             optional(seq(":", field("return_type", optional($._type_hint)))),
-            field("body", $.block_statement),
+            optional(field("body", $.block_statement)),
         ),
 
     annotation_list: $ => repeat1($.annotation),
@@ -162,7 +186,7 @@ const TOLK_GRAMMAR = {
             optional(field("arguments", $.annotation_arguments)),
         ),
 
-    annotation_arguments: $ => seq("(", repeat($._expression), optional(","), ")"),
+    annotation_arguments: $ => seq("(", commaSep($._expression), optional(","), ")"),
 
     type_parameters: $ => seq("<", commaSep($.type_parameter), optional(","), ">"),
     type_parameter: $ =>
@@ -218,12 +242,12 @@ const TOLK_GRAMMAR = {
             $.continue_statement,
             $.throw_statement,
             $.assert_statement,
+            $.expression_statement,
         ),
     _statement: $ =>
         choice(
             $._statement_ending_with_brace,
-            seq($._statement_require_semicolon_unless_last, ";"),
-            prec.right(seq($.expression_statement, optional(";"))),
+            prec.right(seq($._statement_require_semicolon_unless_last, optional(";"))),
         ),
 
     local_vars_declaration: $ =>
@@ -611,7 +635,13 @@ const TOLK_GRAMMAR = {
     // common constructions
 
     number_literal: $ => token(choice(seq("0x", /[0-9a-fA-F]+/), seq("0b", /[01]+/), /[0-9]+/)),
-    string_literal: $ => /"[^"]*"\w?/,
+    string_literal: $ =>
+        token(
+            choice(
+                /"""\s*[\s\S]*?"""/, // triple quotes
+                /"(?:[^"\\\n]|\\.)*"/, // sing quote
+            ),
+        ),
     boolean_literal: $ => choice("true", "false"),
     null_literal: $ => "null",
     underscore: $ => "_",

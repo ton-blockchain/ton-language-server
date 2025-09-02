@@ -34,6 +34,32 @@ fun foo() {
 
 ========================================================================
 @intention Fill all fields...
+Fill all fields for struct with single alias field
+========================================================================
+type Int = int
+
+struct Foo {
+    value: Int;
+}
+
+fun foo() {
+    Foo{<caret>};
+}
+------------------------------------------------------------------------
+type Int = int
+
+struct Foo {
+    value: Int;
+}
+
+fun foo() {
+    Foo{
+        value: 0,
+    };
+}
+
+========================================================================
+@intention Fill all fields...
 Fill all fields for struct with several fields
 ========================================================================
 struct Foo {
@@ -405,4 +431,34 @@ fun foo() {
         dest: address(""),
         body: null,
     });
+}
+
+========================================================================
+@intention Fill all fields...
+Struct with Cell<Foo> field
+========================================================================
+struct Inner {
+    bar: int
+}
+
+struct Data {
+    foo: Cell<Inner>
+}
+
+fun test() {
+    Data {<caret>}
+}
+------------------------------------------------------------------------
+struct Inner {
+    bar: int
+}
+
+struct Data {
+    foo: Cell<Inner>
+}
+
+fun test() {
+    Data {
+        foo: Inner {}.toCell(),
+    }
 }

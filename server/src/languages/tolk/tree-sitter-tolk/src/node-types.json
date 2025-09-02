@@ -1545,6 +1545,209 @@
         "fields": {}
     },
     {
+        "type": "enum_body",
+        "named": true,
+        "fields": {},
+        "children": {
+            "multiple": true,
+            "required": false,
+            "types": [
+                {
+                    "type": "enum_member_declaration",
+                    "named": true
+                }
+            ]
+        }
+    },
+    {
+        "type": "enum_declaration",
+        "named": true,
+        "fields": {
+            "annotations": {
+                "multiple": false,
+                "required": false,
+                "types": [
+                    {
+                        "type": "annotation_list",
+                        "named": true
+                    }
+                ]
+            },
+            "backed_type": {
+                "multiple": false,
+                "required": false,
+                "types": [
+                    {
+                        "type": "fun_callable_type",
+                        "named": true
+                    },
+                    {
+                        "type": "nullable_type",
+                        "named": true
+                    },
+                    {
+                        "type": "parenthesized_type",
+                        "named": true
+                    },
+                    {
+                        "type": "tensor_type",
+                        "named": true
+                    },
+                    {
+                        "type": "tuple_type",
+                        "named": true
+                    },
+                    {
+                        "type": "type_identifier",
+                        "named": true
+                    },
+                    {
+                        "type": "type_instantiatedTs",
+                        "named": true
+                    },
+                    {
+                        "type": "union_type",
+                        "named": true
+                    }
+                ]
+            },
+            "body": {
+                "multiple": false,
+                "required": false,
+                "types": [
+                    {
+                        "type": "enum_body",
+                        "named": true
+                    }
+                ]
+            },
+            "name": {
+                "multiple": false,
+                "required": true,
+                "types": [
+                    {
+                        "type": "identifier",
+                        "named": true
+                    }
+                ]
+            }
+        }
+    },
+    {
+        "type": "enum_member_declaration",
+        "named": true,
+        "fields": {
+            "default": {
+                "multiple": false,
+                "required": false,
+                "types": [
+                    {
+                        "type": "assignment",
+                        "named": true
+                    },
+                    {
+                        "type": "binary_operator",
+                        "named": true
+                    },
+                    {
+                        "type": "boolean_literal",
+                        "named": true
+                    },
+                    {
+                        "type": "cast_as_operator",
+                        "named": true
+                    },
+                    {
+                        "type": "dot_access",
+                        "named": true
+                    },
+                    {
+                        "type": "function_call",
+                        "named": true
+                    },
+                    {
+                        "type": "generic_instantiation",
+                        "named": true
+                    },
+                    {
+                        "type": "identifier",
+                        "named": true
+                    },
+                    {
+                        "type": "is_type_operator",
+                        "named": true
+                    },
+                    {
+                        "type": "lazy_expression",
+                        "named": true
+                    },
+                    {
+                        "type": "match_expression",
+                        "named": true
+                    },
+                    {
+                        "type": "not_null_operator",
+                        "named": true
+                    },
+                    {
+                        "type": "null_literal",
+                        "named": true
+                    },
+                    {
+                        "type": "number_literal",
+                        "named": true
+                    },
+                    {
+                        "type": "object_literal",
+                        "named": true
+                    },
+                    {
+                        "type": "parenthesized_expression",
+                        "named": true
+                    },
+                    {
+                        "type": "set_assignment",
+                        "named": true
+                    },
+                    {
+                        "type": "string_literal",
+                        "named": true
+                    },
+                    {
+                        "type": "tensor_expression",
+                        "named": true
+                    },
+                    {
+                        "type": "ternary_operator",
+                        "named": true
+                    },
+                    {
+                        "type": "typed_tuple",
+                        "named": true
+                    },
+                    {
+                        "type": "unary_operator",
+                        "named": true
+                    },
+                    {
+                        "type": "underscore",
+                        "named": true
+                    }
+                ]
+            },
+            "name": {
+                "multiple": false,
+                "required": true,
+                "types": [
+                    {
+                        "type": "identifier",
+                        "named": true
+                    }
+                ]
+            }
+        }
+    },
+    {
         "type": "expression_statement",
         "named": true,
         "fields": {},
@@ -1899,7 +2102,7 @@
             },
             "parameters": {
                 "multiple": false,
-                "required": true,
+                "required": false,
                 "types": [
                     {
                         "type": "parameter_list",
@@ -2087,7 +2290,7 @@
             },
             "body": {
                 "multiple": false,
-                "required": true,
+                "required": false,
                 "types": [
                     {
                         "type": "block_statement",
@@ -2107,7 +2310,7 @@
             },
             "parameters": {
                 "multiple": false,
-                "required": true,
+                "required": false,
                 "types": [
                     {
                         "type": "parameter_list",
@@ -3405,7 +3608,7 @@
             },
             "parameters": {
                 "multiple": false,
-                "required": true,
+                "required": false,
                 "types": [
                     {
                         "type": "parameter_list",
@@ -4543,6 +4746,10 @@
                     "named": true
                 },
                 {
+                    "type": "enum_declaration",
+                    "named": true
+                },
+                {
                     "type": "function_declaration",
                     "named": true
                 },
@@ -5529,6 +5736,10 @@
                 "required": true,
                 "types": [
                     {
+                        "type": "builtin_specifier",
+                        "named": true
+                    },
+                    {
                         "type": "fun_callable_type",
                         "named": true
                     },
@@ -6363,6 +6574,10 @@
     },
     {
         "type": "else",
+        "named": false
+    },
+    {
+        "type": "enum",
         "named": false
     },
     {

@@ -333,3 +333,23 @@ fun main(): void {
 7:4 -> 0:5 resolved
 8:9 -> 2:13 resolved
 10:4 -> 4:4 resolved
+
+========================================================================
+Instance methods for generic
+========================================================================
+struct First<T> {}
+fun First<T>.new(): First<T> {}
+
+struct Second<T> {}
+fun Second<T>.new(): Second<T> {}
+fun Second<int>.new(): Second<int> {}
+
+fun main() {
+    val first = First<int>.<caret>new();
+    val second = Second<int>.<caret>new();
+    val third = Second<slice>.<caret>new();
+}
+------------------------------------------------------------------------
+8:27 -> 1:13 resolved
+9:29 -> 5:16 resolved
+10:30 -> 4:14 resolved

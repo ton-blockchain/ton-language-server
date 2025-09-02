@@ -203,8 +203,6 @@ fun foo() {
 ========================================================================
 Optional field
 ========================================================================
-primitive int;
-
 struct Point {
     x: int?;
 }
@@ -213,15 +211,13 @@ fun foo() {
     Point {};
 }
 ------------------------------------------------------------------------
-3 3:4 to 3:11 Field 'x' is never used (tolk)
-3 6:4 to 6:7 Function 'foo' is never used (tolk)
-0 7:4 to 7:9 Field 'x' is required but not initialized (tolk)
+3 1:4 to 1:11 Field 'x' is never used (tolk)
+3 4:4 to 4:7 Function 'foo' is never used (tolk)
+0 5:4 to 5:9 Field 'x' is required but not initialized (tolk)
 
 ========================================================================
 Optional fields
 ========================================================================
-primitive int;
-
 struct Point {
     x: int?;
     y: int?;
@@ -231,16 +227,14 @@ fun foo() {
     Point {};
 }
 ------------------------------------------------------------------------
-3 3:4 to 3:11 Field 'x' is never used (tolk)
-3 4:4 to 4:11 Field 'y' is never used (tolk)
-3 7:4 to 7:7 Function 'foo' is never used (tolk)
-0 8:4 to 8:9 Fields 'x', 'y' are required but not initialized (tolk)
+3 1:4 to 1:11 Field 'x' is never used (tolk)
+3 2:4 to 2:11 Field 'y' is never used (tolk)
+3 5:4 to 5:7 Function 'foo' is never used (tolk)
+0 6:4 to 6:9 Fields 'x', 'y' are required but not initialized (tolk)
 
 ========================================================================
 Optional fields and non-optional
 ========================================================================
-primitive int;
-
 struct Point {
     x: int?;
     y: int?;
@@ -251,17 +245,15 @@ fun foo() {
     Point {};
 }
 ------------------------------------------------------------------------
-3 3:4 to 3:11 Field 'x' is never used (tolk)
-3 4:4 to 4:11 Field 'y' is never used (tolk)
-3 5:4 to 5:10 Field 'z' is never used (tolk)
-3 8:4 to 8:7 Function 'foo' is never used (tolk)
-0 9:4 to 9:9 Fields 'x', 'y', 'z' are required but not initialized (tolk)
+3 1:4 to 1:11 Field 'x' is never used (tolk)
+3 2:4 to 2:11 Field 'y' is never used (tolk)
+3 3:4 to 3:10 Field 'z' is never used (tolk)
+3 6:4 to 6:7 Function 'foo' is never used (tolk)
+0 7:4 to 7:9 Fields 'x', 'y', 'z' are required but not initialized (tolk)
 
 ========================================================================
 Optional fields and non-optional 2
 ========================================================================
-primitive int;
-
 struct Point {
     x: int?;
     y: int?;
@@ -272,10 +264,10 @@ fun foo() {
     Point { z: 10 };
 }
 ------------------------------------------------------------------------
-3 3:4 to 3:11 Field 'x' is never used (tolk)
-3 4:4 to 4:11 Field 'y' is never used (tolk)
-3 8:4 to 8:7 Function 'foo' is never used (tolk)
-0 9:4 to 9:9 Fields 'x', 'y' are required but not initialized (tolk)
+3 1:4 to 1:11 Field 'x' is never used (tolk)
+3 2:4 to 2:11 Field 'y' is never used (tolk)
+3 6:4 to 6:7 Function 'foo' is never used (tolk)
+0 7:4 to 7:9 Fields 'x', 'y' are required but not initialized (tolk)
 
 ========================================================================
 Never field can be omitted

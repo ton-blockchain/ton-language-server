@@ -97,6 +97,9 @@ struct <caret>Foo {}
 ```tolk
 struct Foo {}
 ```
+**Size:** 0 bits.
+
+---
 
 ========================================================================
 Struct documentation without body
@@ -107,9 +110,15 @@ struct <caret>Bar
 ```tolk
 struct Foo {}
 ```
+**Size:** 0 bits.
+
+---
 ```tolk
 struct Bar {}
 ```
+**Size:** 0 bits.
+
+---
 
 ========================================================================
 Struct documentation
@@ -125,6 +134,9 @@ struct Foo {
     other: bool
 }
 ```
+**Size:** 258 bits.
+
+---
 
 ========================================================================
 Struct with pack prefix documentation
@@ -140,6 +152,9 @@ struct (0x100) Foo {
     other: bool
 }
 ```
+**Size:** 270 bits.
+
+---
 
 ========================================================================
 Struct with pack prefix and type parameters documentation
@@ -155,6 +170,9 @@ struct (0x100) Foo<TName, TValue=int> {
     other: TValue
 }
 ```
+**Size:** 12..9999 bits, 0..8 refs.
+
+---
 
 ========================================================================
 Struct with comments inside
@@ -186,6 +204,10 @@ struct CreateMessageOptions<TBody = never> {
     body: TBody
 }
 ```
+**Size:** 8..9999 bits, 0..9 refs.
+
+---
+
 Options for creating an outgoing message.
 Consider [createMessage] for examples.
 
@@ -231,7 +253,7 @@ value: int
 some useful field
 
 ========================================================================
-Struct field documentation with inline  comment
+Struct field documentation with inline comment
 ========================================================================
 struct Foo {
     <caret>value: int, // some useful field
@@ -242,6 +264,7 @@ struct Foo {
 struct Foo
 value: int
 ```
+some useful field
 
 ========================================================================
 Type alias documentation
@@ -251,6 +274,9 @@ type <caret>Int = int;
 ```tolk
 type Int = int
 ```
+**Size:** 257 bits.
+
+---
 
 ========================================================================
 Type alias with type parameters documentation
@@ -262,6 +288,9 @@ type Foo<TName, TValue=slice> =
     | TName
     | TValue
 ```
+**Size:** 1..9999 bits, 0..4 refs.
+
+---
 
 ========================================================================
 Type alias with union type documentation
@@ -293,11 +322,14 @@ type AllowedOpToElectorContract =
     | AllowedOpElectorVoteForComplaint
     | AllowedOpElectorVoteForProposal
 ```
+**Size:** 2 bits.
+
+---
 
 ========================================================================
 Type alias with builtin type
 ========================================================================
-type <caret>int = builtin_type;
+type <caret>int = builtin;
 ------------------------------------------------------------------------
 ```tolk
 type int = builtin

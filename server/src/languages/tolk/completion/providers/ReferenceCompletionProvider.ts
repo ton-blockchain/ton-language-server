@@ -1,21 +1,23 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
-import type {CompletionProvider} from "@server/languages/tolk/completion/CompletionProvider"
+import type {CompletionProvider} from "@server/completion/CompletionProvider"
 import type {CompletionContext} from "@server/languages/tolk/completion/CompletionContext"
 import {Reference, ScopeProcessor} from "@server/languages/tolk/psi/Reference"
 import {ReferenceCompletionProcessor} from "@server/languages/tolk/completion/ReferenceCompletionProcessor"
 import {NamedNode, TolkNode} from "@server/languages/tolk/psi/TolkNode"
-import type {CompletionResult} from "@server/languages/tolk/completion/WeightedCompletionItem"
+import type {CompletionResult} from "@server/completion/WeightedCompletionItem"
 import {ResolveState} from "@server/psi/ResolveState"
 import {FieldsOwnerTy} from "@server/languages/tolk/types/ty"
 import {typeOf} from "@server/languages/tolk/type-inference"
+import {index, IndexKey} from "@server/languages/tolk/indexes"
+import {Enum} from "@server/languages/tolk/psi/Decls"
 
 enum CompletionKind {
     ONLY_FIELDS = "ONLY_FIELDS",
     ALL = "ALL",
 }
 
-export class ReferenceCompletionProvider implements CompletionProvider {
+export class ReferenceCompletionProvider implements CompletionProvider<CompletionContext> {
     public constructor(private readonly ref: Reference) {}
 
     public isAvailable(ctx: CompletionContext): boolean {
@@ -24,6 +26,9 @@ export class ReferenceCompletionProvider implements CompletionProvider {
             !ctx.insideImport &&
             !ctx.isAnnotationName &&
             !ctx.structTopLevel &&
+            !ctx.catchVariable &&
+            !ctx.isFunctionName &&
+            !ctx.isMethodName &&
             !ctx.expectMatchArm
         )
     }
@@ -38,6 +43,21 @@ export class ReferenceCompletionProvider implements CompletionProvider {
         if (kind === CompletionKind.ALL) {
             this.ref.processResolveVariants(processor, state.withValue("completion", "true"))
         }
+
+        index.processElementsByKey(
+            IndexKey.Enums,
+            new (class implements ScopeProcessor {
+                public execute(node: Enum, state: ResolveState): boolean {
+                    for (const member of node.members()) {
+                        if (!processor.execute(member, state.withValue("need-prefix", "true"))) {
+                            return false
+                        }
+                    }
+                    return true
+                }
+            })(),
+            state,
+        )
 
         // TODO: think about case:
         //   debug.pr<caret>

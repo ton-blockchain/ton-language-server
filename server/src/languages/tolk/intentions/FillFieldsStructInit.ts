@@ -14,13 +14,16 @@ import {
     BuiltinTy,
     BytesNTy,
     CoinsTy,
+    EnumTy,
     FieldsOwnerTy,
+    InstantiationTy,
     IntTy,
     NullTy,
     StructTy,
     TensorTy,
     TupleTy,
     Ty,
+    TypeAliasTy,
     UnionTy,
 } from "@server/languages/tolk/types/ty"
 import type {Field} from "@server/languages/tolk/psi/Decls"
@@ -166,7 +169,7 @@ export class FillStructInitBase implements Intention {
         return this.typeDefaultValue(type)
     }
 
-    private static typeDefaultValue(type: Ty | BuiltinTy | StructTy | TupleTy): string {
+    private static typeDefaultValue(type: Ty | BuiltinTy | StructTy | EnumTy | TupleTy): string {
         if (type instanceof NullTy) {
             return "null"
         }
@@ -214,6 +217,11 @@ export class FillStructInitBase implements Intention {
             return `${type.name()} {}`
         }
 
+        if (type instanceof EnumTy) {
+            // Color.Red or Color
+            return type.anchor?.members()[0]?.name() ?? type.name()
+        }
+
         if (type instanceof TupleTy) {
             return `[${type.elements.map(it => this.typeDefaultValue(it)).join(", ")}]`
         }
@@ -224,6 +232,21 @@ export class FillStructInitBase implements Intention {
 
         if (type instanceof UnionTy) {
             return this.typeDefaultValue(type.elements[0])
+        }
+
+        if (type instanceof TypeAliasTy) {
+            return this.typeDefaultValue(type.innerTy)
+        }
+
+        if (type instanceof InstantiationTy) {
+            if (
+                type.innerTy instanceof StructTy &&
+                type.innerTy.name() === "Cell" &&
+                type.types.length > 0
+            ) {
+                return this.typeDefaultValue(type.types[0]) + ".toCell()"
+            }
+            return this.typeDefaultValue(type.innerTy)
         }
 
         return "null"

@@ -7502,9 +7502,22 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ton-assembly-test-dev@npm:0.0.16":
+"tolkfmt-test-dev@npm:0.0.16":
   version: 0.0.16
-  resolution: "ton-assembly-test-dev@npm:0.0.16"
+  resolution: "tolkfmt-test-dev@npm:0.0.16"
+  dependencies:
+    cac: "npm:^6.7.14"
+    glob: "npm:^10.3.10"
+    web-tree-sitter: "npm:^0.25.6"
+  bin:
+    tolkfmt: bin/tolkfmt
+  checksum: 10c0/f87a935da5934d51bf9e040077179cb068a3dd733d40184ad8e1684910836cc9efc780fea5dc98f825d5daac03c020a363bbb7c49176a9af5ad2af46f7aa40f5
+  languageName: node
+  linkType: hard
+
+"ton-assembly@npm:0.2.0":
+  version: 0.2.0
+  resolution: "ton-assembly@npm:0.2.0"
   dependencies:
     "@ton/core": "npm:^0.60.1"
     "@tonstudio/parser-runtime": "npm:^0.0.1"
@@ -7514,16 +7527,17 @@ __metadata:
   bin:
     tasm: dist/cli/assembler.js
     tdisasm: dist/cli/disassembler.js
-  checksum: 10c0/e0a89d357d123fd371cd8b9eee1595b4ce72be6aa9bd754bf1b5adf3e9b2477438cb41d6a9c2241ede12cfcaa27448d559cd041bafadde8780be6f60e71cdff4
+    tfift: dist/cli/fift-compiler.js
+  checksum: 10c0/63758e73048c4f4035b0e4ecc1518b37a69d1c357268bd98577bd031729dbb237cf1f81cc9856682642c361b54ca9be7be86da52cdb63560156fc35d32271cdf
   languageName: node
   linkType: hard
 
-"tree-sitter-cli@npm:^0.25.0":
-  version: 0.25.1
-  resolution: "tree-sitter-cli@npm:0.25.1"
+"tree-sitter-cli@npm:^0.25.8":
+  version: 0.25.8
+  resolution: "tree-sitter-cli@npm:0.25.8"
   bin:
     tree-sitter: cli.js
-  checksum: 10c0/c61e68d3a1274be1f213b0d9cfdc42b27603293b848c419268edacdf914d7bbd3e3f79d88274e1f33f93a1abe8f254a80ed89af5bdc4807d062141996e486b9c
+  checksum: 10c0/a87ade0276e3052b2d3f95c7d39cd80ac72063e9a38b53d9e10d005a2d672b81e8a69d0cc73f5aa5a890892222cf4576742582df76434005d093775560798faf
   languageName: node
   linkType: hard
 
@@ -8006,8 +8020,9 @@ __metadata:
     jest: "npm:^29.7.0"
     mocha: "npm:^10.3.0"
     prettier: "npm:3.4.2"
-    ton-assembly-test-dev: "npm:0.0.16"
-    tree-sitter-cli: "npm:^0.25.0"
+    tolkfmt-test-dev: "npm:0.0.16"
+    ton-assembly: "npm:0.2.0"
+    tree-sitter-cli: "npm:^0.25.8"
     ts-jest: "npm:^29.2.6"
     ts-loader: "npm:^9.5.1"
     ts-node: "npm:^10.9.2"
@@ -8058,10 +8073,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"web-tree-sitter@npm:^0.25.0":
-  version: 0.25.1
-  resolution: "web-tree-sitter@npm:0.25.1"
-  checksum: 10c0/0b94c7488d8196d9c9019e50903088705b4f659ae182153461d9819e6eec921941c4866dace43e698f09e800ac4de3cfc19ca85caa1dee52db54135213412ded
+"web-tree-sitter@npm:^0.25.0, web-tree-sitter@npm:^0.25.6":
+  version: 0.25.7
+  resolution: "web-tree-sitter@npm:0.25.7"
+  checksum: 10c0/75799ec043455364c1f24a8d4a1bb94b22cbf655b109fdc72038d661a6224ee99f313e44625758dec59a5192aab4ba53315745c3cc86ca4c524e74a247b4d964
   languageName: node
   linkType: hard
 

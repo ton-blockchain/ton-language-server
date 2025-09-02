@@ -1,5 +1,8 @@
 # TON Language Server
 
+Language server and an [extension for VS Code](./editors/code) and VSCode-based editors with comprehensive support for
+TON Blockchain languages and technologies including Tolk, FunC, Fift assembly, TL-B, BoC and Blueprint.
+
 **[Features] • [Installation] • [Troubleshooting]**
 
 [Features]: #features
@@ -11,9 +14,6 @@
 [![Open VSX Downloads](https://img.shields.io/open-vsx/dt/ton-core/vscode-ton?color=white&labelColor=white&logo=vscodium&logoColor=black)](https://open-vsx.org/extension/ton-core/vscode-ton)
 
 ---
-
-This language server and an extension for VSCode-based editors provide comprehensive support for TON Blockchain
-languages and technologies including Tolk, FunC, Fift assembly, TL-B, BoC and Blueprint.
 
 ## Features
 
@@ -33,7 +33,16 @@ Tolk support includes:
 
 FunC support includes:
 
-- Basic syntax highlighting
+- Semantic syntax highlighting
+- Code completion, imports completion
+- Go to definition
+- Find all references, workspace symbol search, symbol renaming
+- Automatic import updates when renaming and moving files
+- Types and documentation on hover
+- Inlay hints for method id
+- On-the-fly inspections
+- Build and test projects based on Blueprint
+- Debug Blueprint-based projects
 
 Fift assembly support includes:
 
@@ -73,8 +82,8 @@ configurations, check out the [toolchain management] guide.
 
 ### VS Code / VSCodium / Cursor / Windsurf
 
-1. Get the latest `.vsix` file from [releases](https://github.com/ton-blockchain/ton-language-server/releases) from
-   [VS Code marketplace](https://marketplace.visualstudio.com/items?itemName=ton-core.vscode-ton)
+1. Get the latest `.vsix` file from [releases](https://github.com/ton-blockchain/ton-language-server/releases), from
+   [VS Code marketplace](https://marketplace.visualstudio.com/items?itemName=ton-core.vscode-ton),
    or from [Open VSX Registry](https://open-vsx.org/extension/ton-core/vscode-ton)
 2. In VS Code:
     - Open the Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P`)
@@ -134,7 +143,7 @@ codium --install-extension vscode-ton-VERSION.vsix
         "clients": {
             "ton": {
                 "enabled": true,
-                "command": ["node", "path/to/language-server/dist/server.js", "--stdio"],
+                "command": ["node", "path/to/language-server/server.js", "--stdio"],
                 "selector": "source.tolk, source.fift, source.tlb",
             },
         },
@@ -161,7 +170,7 @@ Setup steps:
 
     return {
       default_config = {
-        cmd = { 'node', '/absolute/path/to/language-server/dist/server.js', '--stdio' },
+        cmd = { 'node', '/absolute/path/to/language-server/server.js', '--stdio' },
         filetypes = { 'tolk', 'fift', 'tlb' },
         root_dir = util.root_pattern('package.json', '.git'),
       },
@@ -241,7 +250,7 @@ Setup steps:
     if executable('node')
       au User lsp_setup call lsp#register_server({
             \ 'name': 'tolk',
-            \ 'cmd': {server_info->['node', '/absolute/path/to/language-server/dist/server.js', '--stdio']},
+            \ 'cmd': {server_info->['node', '/absolute/path/to/language-server/server.js', '--stdio']},
             \ 'allowlist': ['tolk'],
             \ })
     endif
@@ -257,9 +266,8 @@ Setup steps:
     language-servers = ["ton-language-server"]
 
     [language-server.ton-language-server]
-
     command = "node"
-    args = ["/absolute/path/to/language-server/dist/server.js", "--stdio"]
+    args = ["/absolute/path/to/language-server/server.js", "--stdio"]
     ```
 
 2. Replace `path/to/language-server` with the actual path where you cloned the repository
@@ -269,6 +277,11 @@ Setup steps:
 
 See [TROUBLESHOOTING.md](./docs/manual/troubleshooting.md).
 
-# License
+## Thanks
+
+- Big thanks to [TonTech](https://ton.tech) for [FunC debugger
+  implementation](https://github.com/krigga/tvm-debugger)!
+
+## License
 
 MIT

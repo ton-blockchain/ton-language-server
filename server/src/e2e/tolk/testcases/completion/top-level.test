@@ -4,21 +4,23 @@ Top level completion
 <caret>
 ------------------------------------------------------------------------
 13 const FOO: <type> = <value>
+13 enum Name {}
 13 fun name() {}
 13 get fun name() {}
 13 global foo: <type> = <value>
-13 import "";
+13 import ""
 13 inline fun name() {}
 13 inline_ref fun name() {}
 13 method fun Foo.name(self) {}
 13 static method fun Foo.name() {}
 13 struct Name {}
-13 type Int = int;
+13 type Int = int
 13 asm fun name() asm "..."
 14 onBouncedMessage
 14 onExternalMessage
 14 onInternalMessage
 14 onTickTock
+14 storage
 
 ========================================================================
 Top level completion after declaration
@@ -28,21 +30,23 @@ fun foo() {}
 <caret>
 ------------------------------------------------------------------------
 13 const FOO: <type> = <value>
+13 enum Name {}
 13 fun name() {}
 13 get fun name() {}
 13 global foo: <type> = <value>
-13 import "";
+13 import ""
 13 inline fun name() {}
 13 inline_ref fun name() {}
 13 method fun Foo.name(self) {}
 13 static method fun Foo.name() {}
 13 struct Name {}
-13 type Int = int;
+13 type Int = int
 13 asm fun name() asm "..."
 14 onBouncedMessage
 14 onExternalMessage
 14 onInternalMessage
 14 onTickTock
+14 storage
 
 ========================================================================
 Top level completion before declaration and after import
@@ -54,21 +58,23 @@ import "./file.tolk";
 fun foo() {}
 ------------------------------------------------------------------------
 13 const FOO: <type> = <value>
+13 enum Name {}
 13 fun name() {}
 13 get fun name() {}
 13 global foo: <type> = <value>
-13 import "";
+13 import ""
 13 inline fun name() {}
 13 inline_ref fun name() {}
 13 method fun Foo.name(self) {}
 13 static method fun Foo.name() {}
 13 struct Name {}
-13 type Int = int;
+13 type Int = int
 13 asm fun name() asm "..."
 14 onBouncedMessage
 14 onExternalMessage
 14 onInternalMessage
 14 onTickTock
+14 storage
 
 ========================================================================
 No top level completion inside function
@@ -210,7 +216,6 @@ fun foo() {
 24 bits{X}
 24 bool
 24 builder
-24 builtin_type
 24 bytes32
 24 bytesN
 24 bytes{X}
@@ -228,6 +233,7 @@ fun foo() {
 24 int8
 24 intN
 24 int{X}
+24 map
 24 never
 24 null
 24 self
@@ -258,3 +264,57 @@ fun foo() {
 14 var
 14 vart
 14 while
+
+========================================================================
+Function name completion with only fun
+========================================================================
+fun <caret>
+------------------------------------------------------------------------
+2  main() {}
+2  onBouncedMessage(in: InMessageBounced) {}
+2  onExternalMessage(inMsg: slice) {}
+2  onInternalMessage(in: InMessage) {}
+2  onRunTickTock(isTock: bool) {}
+2  onSplitInstall() {}
+2  onSplitPrepare() {}
+
+========================================================================
+Function name completion with all signature
+========================================================================
+fun <caret>(): int {}
+------------------------------------------------------------------------
+2  main()
+2  onBouncedMessage(in: InMessageBounced)
+2  onExternalMessage(inMsg: slice)
+2  onInternalMessage(in: InMessage)
+2  onRunTickTock(isTock: bool)
+2  onSplitInstall()
+2  onSplitPrepare()
+
+========================================================================
+Method name completion with only fun
+========================================================================
+fun int.pa<caret>
+------------------------------------------------------------------------
+2  packToBuilder(self, mutate b: builder)
+
+========================================================================
+Method name completion with all signature
+========================================================================
+fun int.pa<caret>() {}
+------------------------------------------------------------------------
+2  packToBuilder(self, mutate b: builder)
+
+========================================================================
+Method name completion with only fun 2
+========================================================================
+fun int.unpa<caret>
+------------------------------------------------------------------------
+2  unpackFromSlice(mutate s: slice) {}
+
+========================================================================
+Method name completion with all signature 2
+========================================================================
+fun int.unpa<caret>() {}
+------------------------------------------------------------------------
+2  unpackFromSlice(mutate s: slice)

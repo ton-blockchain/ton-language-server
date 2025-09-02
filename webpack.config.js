@@ -17,7 +17,7 @@ const config = {
 
     entry: {
         server: "./server/src/server.ts",
-        client: "./client/src/extension.ts",
+        client: "./editors/code/src/extension.ts",
     }, // the entry point of this extension, 📖 -> https://webpack.js.org/configuration/entry-context/
     output: {
         // the bundle is stored in the 'dist' folder (check package.json), 📖 -> https://webpack.js.org/configuration/output/
@@ -60,13 +60,24 @@ const config = {
         }),
         new CopyPlugin({
             patterns: [
-                {from: "./node_modules/web-tree-sitter/tree-sitter.wasm", to: distDir},
+                {
+                    from: "./node_modules/web-tree-sitter/tree-sitter.wasm",
+                    to: distDir,
+                },
                 {
                     from: "./server/src/languages/tolk/stubs/stubs.tolk",
                     to: path.join(distDir, "stubs"),
                 },
                 {
+                    from: "./server/src/languages/func/stubs/stubs.fc",
+                    to: path.join(distDir, "stubs"),
+                },
+                {
                     from: "./server/src/languages/tolk/tree-sitter-tolk/tree-sitter-tolk.wasm",
+                    to: distDir,
+                },
+                {
+                    from: "./server/src/languages/func/tree-sitter-func/tree-sitter-func.wasm",
                     to: distDir,
                 },
                 {
@@ -77,21 +88,22 @@ const config = {
                     from: "./server/src/languages/tlb/tree-sitter-tlb/tree-sitter-tlb.wasm",
                     to: distDir,
                 },
-                {from: "./client/src/assets/icons/ton-icon.svg", to: path.join(distDir, "icons")},
                 {
-                    from: "./client/src/assets/icons/icon-tlb-dark.svg",
-                    to: path.join(distDir, "icons"),
-                },
-                {
-                    from: "./client/src/assets/icons/icon-boc-dark.svg",
-                    to: path.join(distDir, "icons"),
+                    from: "./editors/code/src/assets/icons/*",
+                    to: path.join(distDir, "icons", "[name][ext]"),
                 },
                 {
                     from: "server/src/languages/fift/asm/asm.json",
                     to: distDir,
                 },
-                {from: "./package.server.json", to: path.join(distDir, "package.json")},
-                {from: "./README.md", to: path.join(distDir, "README.md")},
+                {
+                    from: "./package.server.json",
+                    to: path.join(distDir, "package.json"),
+                },
+                {
+                    from: "./README.md",
+                    to: path.join(distDir, "README.md"),
+                },
             ],
         }),
     ],

@@ -480,7 +480,6 @@ Rename builtin type
 ========================================================================
 fun test(): int {
 //!         ^ bool
-    }
 }
 ------------------------------------------------------------------------
 The element can't be renamed.
@@ -491,7 +490,135 @@ Rename stdlib function
 fun test(): int {
     minMax();
 //! ^ otherFunc
-    }
 }
 ------------------------------------------------------------------------
 The element can't be renamed.
+
+========================================================================
+Wrap in backtick for keyword name
+========================================================================
+fun foo() {}
+
+fun test(): int {
+    foo();
+//! ^ return
+}
+------------------------------------------------------------------------
+fun `return`() {}
+
+fun test(): int {
+    `return`();
+//! ^ return
+}
+
+========================================================================
+Wrap in backtick for keyword name 2
+========================================================================
+fun foo() {}
+
+fun test(): int {
+    foo();
+//! ^ match
+}
+------------------------------------------------------------------------
+fun `match`() {}
+
+fun test(): int {
+    `match`();
+//! ^ match
+}
+
+========================================================================
+Rename struct name with methods
+========================================================================
+struct Storage {}
+//!    ^ MyStorage
+
+fun Storage.load() {
+    return Storage.fromCell(contract.getData());
+}
+
+fun Storage.save(self) {
+    contract.setData(self.toCell());
+}
+------------------------------------------------------------------------
+struct MyStorage {}
+//!    ^ MyStorage
+
+fun MyStorage.load() {
+    return MyStorage.fromCell(contract.getData());
+}
+
+fun MyStorage.save(self) {
+    contract.setData(self.toCell());
+}
+
+========================================================================
+Rename enum
+========================================================================
+enum Color {
+//!  ^ MyColor
+    Red = 10,
+    Blue = 200 + 100,
+}
+
+fun main() {
+    Color.Red;
+
+    val a: Color = Color.Blue;
+    match (a) {
+        Color.Red => {}
+        Color.Blue => {}
+    }
+}
+------------------------------------------------------------------------
+enum MyColor {
+//!  ^ MyColor
+    Red = 10,
+    Blue = 200 + 100,
+}
+
+fun main() {
+    MyColor.Red;
+
+    val a: MyColor = MyColor.Blue;
+    match (a) {
+        MyColor.Red => {}
+        MyColor.Blue => {}
+    }
+}
+
+========================================================================
+Rename enum member
+========================================================================
+enum Color {
+    Red = 10,
+//! ^ MyRed
+    Blue = 200 + 100,
+}
+
+fun main() {
+    Color.Red;
+
+    val a: Color = Color.Blue;
+    match (a) {
+        Color.Red => {}
+        Color.Blue => {}
+    }
+}
+------------------------------------------------------------------------
+enum Color {
+    MyRed = 10,
+//! ^ MyRed
+    Blue = 200 + 100,
+}
+
+fun main() {
+    Color.MyRed;
+
+    val a: Color = Color.Blue;
+    match (a) {
+        Color.MyRed => {}
+        Color.Blue => {}
+    }
+}

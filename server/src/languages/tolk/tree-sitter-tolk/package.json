@@ -1,23 +1,30 @@
 {
     "name": "tree-sitter-tolk",
     "version": "0.4.5",
-    "description": "Tolk grammar for node-tree-sitter",
+    "description": "A tree-sitter grammar for the Tolk assembly programming language",
+    "repository": "https://github.com/ton-blockchain/tree-sitter-tolk",
+    "license": "MIT",
+    "author": "TON Blockchain",
     "main": "bindings/node",
     "keywords": [
+        "incremental",
+        "parsing",
+        "tree-sitter",
+        "tolk",
         "parser",
         "lexer"
     ],
-    "author": "TON Blockchain",
-    "license": "MIT",
     "scripts": {
-        "test": "tree-sitter test"
+        "test": "tree-sitter test",
+        "play": "yarn run grammar:wasm && tree-sitter playground",
+        "grammar:wasm": "tree-sitter generate && tree-sitter build --wasm"
     },
     "dependencies": {
-        "node-addon-api": "^7.1.0",
-        "node-gyp-build": "^4.8.0"
+        "node-addon-api": "^8.4.0",
+        "node-gyp-build": "^4.8.4"
     },
     "peerDependencies": {
-        "tree-sitter": "^0.21.0"
+        "tree-sitter": "^0.21.1"
     },
     "peerDependenciesMeta": {
         "tree_sitter": {
@@ -37,5 +44,6 @@
             ],
             "highlights": "queries/highlights.scm"
         }
-    ]
+    ],
+    "packageManager": "yarn@4.6.0"
 }

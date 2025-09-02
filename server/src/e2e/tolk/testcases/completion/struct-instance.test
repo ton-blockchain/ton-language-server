@@ -160,3 +160,29 @@ fun main(foo: Foo = {<caret>}) {}
 ------------------------------------------------------------------------
 9  first : int    of Foo
 9  second : slice    of Foo
+
+========================================================================
+Fields completion with Cell<T> type
+========================================================================
+struct Cell<T> {
+    tvmCell: cell
+}
+
+struct Inner {
+    bar: int
+}
+
+struct Data {
+    foo: Cell<Inner>
+}
+
+fun test() {
+    Data {
+        foo: In<caret>,
+    }
+}
+------------------------------------------------------------------------
+21 InMessage {}
+21 InMessageBounced {}
+21 Inner {}
+14 Inner {}.toCell()

@@ -2,11 +2,11 @@
 //  Copyright © 2025 TON Studio
 
 import {DeclarationNode, NamedFieldNode, NamedNode, ParameterNode, TlbNode} from "../psi/TlbNode"
-import {ScopeProcessor} from "../psi/TlbReference"
+import {ScopeProcessor} from "../psi/Reference"
 import {CompletionContext} from "@server/languages/tlb/completion/CompletionContext"
 import {CompletionItem, CompletionItemKind, InsertTextFormat} from "vscode-languageserver-types"
 import {ResolveState} from "@server/psi/ResolveState"
-import {WeightedCompletionItem} from "@server/languages/tlb/completion/WeightedCompletionItem"
+import {WeightedCompletionItem} from "@server/completion/WeightedCompletionItem"
 
 export class ReferenceCompletionProcessor implements ScopeProcessor {
     public constructor(private readonly ctx: CompletionContext) {}

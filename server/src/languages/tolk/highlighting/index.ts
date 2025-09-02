@@ -18,7 +18,6 @@ export function provideTolkDocumentHighlight(
     const result = new Referent(highlightNode, file).findReferences({
         includeDefinition: true,
         sameFileOnly: true,
-        includeSelf: true,
     })
     if (result.length === 0) return null
 

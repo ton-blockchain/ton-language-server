@@ -12,11 +12,11 @@
         "BoC",
         "TL-B"
     ],
-    "version": "0.1.1",
+    "version": "0.4.1",
     "engines": {
         "vscode": "^1.63.0"
     },
-    "icon": "client/src/assets/logo.png",
+    "icon": "editors/code/src/assets/logo.png",
     "activationEvents": [
         "onLanguage:tolk",
         "onLanguage:func",
@@ -36,17 +36,20 @@
     "license": "MIT",
     "scripts": {
         "test": "yarn jest",
-        "build": "webpack && node ./scripts/set-executable.js ./dist/server.js",
-        "package": "npx vsce package --no-yarn --readme-path README-extension.md",
+        "build": "webpack && node ./.scripts/set-executable.js ./dist/server.js",
+        "package": "npx vsce package --no-yarn --readme-path editors/code/README.md",
         "lint": "eslint --cache .",
         "fmt": "prettier --write -l --cache .",
         "fmt:check": "prettier --check --cache .",
         "grammar:wasm": "yarn grammar:tolk:wasm && yarn grammar:fift:wasm && yarn grammar:tlb:wasm",
         "grammar:tolk:wasm": "cd server/src/languages/tolk/tree-sitter-tolk && tree-sitter generate && tree-sitter build --wasm",
+        "grammar:func:wasm": "cd server/src/languages/func/tree-sitter-func && tree-sitter generate && tree-sitter build --wasm",
         "grammar:fift:wasm": "cd server/src/languages/fift/tree-sitter-fift && tree-sitter generate && tree-sitter build --wasm",
         "grammar:tlb:wasm": "cd server/src/languages/tlb/tree-sitter-tlb && tree-sitter generate && tree-sitter build --wasm",
         "watch": "webpack --watch",
         "precommit": "yarn build && yarn fmt && yarn lint",
+        "play:grammars:tolk": "cd ./server/src/languages/tolk/tree-sitter-tolk/ && tree-sitter generate && tree-sitter build --wasm && tree-sitter playground",
+        "parse:grammars:tolk": "cd ./server/src/languages/tolk/tree-sitter-tolk/ && tree-sitter parse -D --open-log main.tolk",
         "test:grammars": "yarn test:grammars:tolk && yarn test:grammars:fift && yarn test:grammars:tlb",
         "test:grammars:tolk": "cd ./server/src/languages/tolk/tree-sitter-tolk/ && tree-sitter test",
         "test:grammars:fift": "cd ./server/src/languages/fift/tree-sitter-fift/ && tree-sitter test",
@@ -95,7 +98,7 @@
                     "light": "./dist/icons/ton-icon.svg",
                     "dark": "./dist/icons/ton-icon.svg"
                 },
-                "configuration": "./client/src/languages/tolk-language-configuration.json"
+                "configuration": "./editors/code/src/languages/tolk-language-configuration.json"
             },
             {
                 "id": "func",
@@ -110,7 +113,7 @@
                     "light": "./dist/icons/ton-icon.svg",
                     "dark": "./dist/icons/ton-icon.svg"
                 },
-                "configuration": "./client/src/languages/func-language-configuration.json"
+                "configuration": "./editors/code/src/languages/func-language-configuration.json"
             },
             {
                 "id": "tasm",
@@ -125,7 +128,7 @@
                     "light": "./dist/icons/ton-icon.svg",
                     "dark": "./dist/icons/ton-icon.svg"
                 },
-                "configuration": "./client/src/languages/tasm-language-configuration.json"
+                "configuration": "./editors/code/src/languages/tasm-language-configuration.json"
             },
             {
                 "id": "fift",
@@ -139,7 +142,7 @@
                     "light": "./dist/icons/ton-icon.svg",
                     "dark": "./dist/icons/ton-icon.svg"
                 },
-                "configuration": "./client/src/languages/fift-language-configuration.json"
+                "configuration": "./editors/code/src/languages/fift-language-configuration.json"
             },
             {
                 "id": "boc",
@@ -166,37 +169,48 @@
                     "light": "./dist/icons/icon-tlb-dark.svg",
                     "dark": "./dist/icons/icon-tlb-dark.svg"
                 },
-                "configuration": "./client/src/languages/tlb-language-configuration.json"
+                "configuration": "./editors/code/src/languages/tlb-language-configuration.json"
             }
         ],
         "grammars": [
             {
                 "language": "tolk",
                 "scopeName": "source.tolk",
-                "path": "./client/src/languages/syntaxes/tolk.tmLanguage.json"
+                "path": "./editors/code/src/languages/syntaxes/tolk.tmLanguage.json"
             },
             {
                 "language": "func",
                 "scopeName": "source.func",
-                "path": "./client/src/languages/syntaxes/func.tmLanguage.json"
+                "path": "./editors/code/src/languages/syntaxes/func.tmLanguage.json"
             },
             {
                 "language": "tasm",
                 "scopeName": "source.tasm",
-                "path": "./client/src/languages/syntaxes/tasm.tmLanguage.json"
+                "path": "./editors/code/src/languages/syntaxes/tasm.tmLanguage.json"
             },
             {
                 "language": "fift",
                 "scopeName": "source.fift",
-                "path": "./client/src/languages/syntaxes/fift.tmLanguage.json"
+                "path": "./editors/code/src/languages/syntaxes/fift.tmLanguage.json"
             },
             {
                 "language": "tlb",
                 "scopeName": "source.tlb",
-                "path": "./client/src/languages/syntaxes/tlb.tmLanguage.json"
+                "path": "./editors/code/src/languages/syntaxes/tlb.tmLanguage.json"
             }
         ],
         "snippets": [],
+        "debuggers": [
+            {
+                "type": "tvm",
+                "label": "TVM Debug"
+            }
+        ],
+        "breakpoints": [
+            {
+                "language": "func"
+            }
+        ],
         "commands": [
             {
                 "command": "tolk.build",
@@ -266,6 +280,10 @@
                 "command": "tolk.getUnresolvedIdentifiers",
                 "title": "Tolk: Get Unresolved Identifiers",
                 "category": "Tolk"
+            },
+            {
+                "command": "ton.debug",
+                "title": "TON: Debug contract"
             }
         ],
         "keybindings": [
@@ -368,7 +386,22 @@
                     "ton.tolk.hints.showMethodId": {
                         "type": "boolean",
                         "default": true,
-                        "description": "Show method ID hints for contract functions"
+                        "description": "Show method ID hints for get methods"
+                    },
+                    "ton.func.hints.disable": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Disable all inlay hints for FunC"
+                    },
+                    "ton.func.hints.showMethodId": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Show method ID hints for functions with method_id"
+                    },
+                    "ton.func.hints.implicitConstantType": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Show type hints for constants without explicit type"
                     }
                 }
             },
@@ -396,18 +429,38 @@
                             "type": "string",
                             "enum": [
                                 "unused-parameter",
+                                "unused-type-parameter",
                                 "unused-variable",
                                 "unused-top-level-declaration",
                                 "deprecated-symbol-usage",
                                 "unused-import",
                                 "struct-initialization",
-                                "cannot-reassign"
+                                "cannot-reassign",
+                                "need-not-null-unwrapping",
+                                "missed-semicolon",
+                                "call-arguments-count-mismatch"
                             ]
                         },
                         "default": [
                             "type-compatibility"
                         ],
                         "description": "List of disabled code inspections. All inspections are enabled by default."
+                    },
+                    "ton.func.inspections.disabled": {
+                        "type": "array",
+                        "items": {
+                            "type": "string",
+                            "enum": [
+                                "unused-parameter",
+                                "unused-type-parameter",
+                                "unused-variable",
+                                "unused-import"
+                            ]
+                        },
+                        "default": [
+                            "unused-import"
+                        ],
+                        "description": "List of disabled code inspections for FunC. All inspections are enabled by default."
                     }
                 }
             },
@@ -453,6 +506,21 @@
                         "description": "Automatically open decompiled Fift assembly when opening BoC files"
                     }
                 }
+            },
+            {
+                "title": "Formatter",
+                "properties": {
+                    "ton.tolk.formatter.useFormatter": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Use experimental Tolk formatter"
+                    },
+                    "ton.tolk.formatter.sortImports": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Sort imports on format"
+                    }
+                }
             }
         ],
         "customEditors": [
@@ -490,7 +558,8 @@
         "@ton/core": "0.60.1",
         "@ton/crypto": "^3.3.0",
         "glob": "^11.0.1",
-        "ton-assembly-test-dev": "0.0.16",
+        "tolkfmt-test-dev": "0.0.16",
+        "ton-assembly": "0.2.0",
         "vscode-languageclient": "^8.0.2",
         "vscode-languageserver": "^8.0.2",
         "vscode-languageserver-textdocument": "^1.0.7",
@@ -515,7 +584,7 @@
         "jest": "^29.7.0",
         "mocha": "^10.3.0",
         "prettier": "3.4.2",
-        "tree-sitter-cli": "^0.25.0",
+        "tree-sitter-cli": "^0.25.8",
         "ts-jest": "^29.2.6",
         "ts-loader": "^9.5.1",
         "ts-node": "^10.9.2",

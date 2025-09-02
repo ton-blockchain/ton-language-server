@@ -7,6 +7,7 @@ import {NamedNode} from "@server/languages/tolk/psi/TolkNode"
 import {Reference} from "@server/languages/tolk/psi/Reference"
 import type {Node as SyntaxNode} from "web-tree-sitter"
 import type {Position} from "vscode-languageclient"
+import {KEYWORDS} from "@server/languages/tolk/lang/names-util"
 
 export function provideTolkRename(params: lsp.RenameParams, file: TolkFile): WorkspaceEdit | null {
     const renameNode = findRenameTarget(params, file)
@@ -15,7 +16,6 @@ export function provideTolkRename(params: lsp.RenameParams, file: TolkFile): Wor
     const result = new Referent(renameNode, file).findReferences({
         includeDefinition: true,
         sameFileOnly: false,
-        includeSelf: false,
     })
     if (result.length === 0) return null
 
@@ -82,6 +82,7 @@ export function provideTolkRenamePrepare(
 }
 
 function isValidIdentifier(name: string): boolean {
+    if (KEYWORDS.has(name)) return false
     return /^[A-Z_a-z]\w*$/.test(name)
 }
 

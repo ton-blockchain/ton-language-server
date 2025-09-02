@@ -303,3 +303,209 @@ fun foo() {
         else => {<caret>},
     }
 }
+
+========================================================================
+Match over type completion, union type, fill all
+========================================================================
+fun foo(value: int | slice) {
+    match (value) {
+        Fill<caret>
+    }
+}
+------------------------------------------------------------------------
+fun foo(value: int | slice) {
+    match (value) {
+        int => {<caret>}
+        slice => {}
+        else => {}
+    }
+}
+
+========================================================================
+Match over type completion, union type 2, fill all
+========================================================================
+struct MintNewJettons
+struct BurnNotificationForMinter
+struct RequestWalletAddress
+struct ChangeMinterAdmin
+struct ChangeMinterContent
+
+type AllowedMessageToMinter =
+    | MintNewJettons
+    | BurnNotificationForMinter
+    | RequestWalletAddress
+    | ChangeMinterAdmin
+    | ChangeMinterContent
+
+fun main(msg: AllowedMessageToMinter) {
+    match (msg) {
+        Fill<caret>
+    }
+}
+------------------------------------------------------------------------
+struct MintNewJettons
+struct BurnNotificationForMinter
+struct RequestWalletAddress
+struct ChangeMinterAdmin
+struct ChangeMinterContent
+
+type AllowedMessageToMinter =
+    | MintNewJettons
+    | BurnNotificationForMinter
+    | RequestWalletAddress
+    | ChangeMinterAdmin
+    | ChangeMinterContent
+
+fun main(msg: AllowedMessageToMinter) {
+    match (msg) {
+        MintNewJettons => {<caret>}
+        BurnNotificationForMinter => {}
+        RequestWalletAddress => {}
+        ChangeMinterAdmin => {}
+        ChangeMinterContent => {}
+        else => {}
+    }
+}
+
+========================================================================
+Match over struct type completion, union type, fill all
+========================================================================
+struct Foo {}
+
+fun foo(value: Foo) {
+    match (value) {
+        Fill<caret>
+    }
+}
+------------------------------------------------------------------------
+struct Foo {}
+
+fun foo(value: Foo) {
+    match (value) {
+        Foo => {<caret>}
+        else => {}
+    }
+}
+
+========================================================================
+Match over value completion, no fill all
+========================================================================
+const Fill = 100
+
+fun foo(value: int) {
+    match (value) {
+        Fil<caret>
+    }
+}
+------------------------------------------------------------------------
+const Fill = 100
+
+fun foo(value: int) {
+    match (value) {
+        Fill<caret> => {}
+    }
+}
+
+========================================================================
+Match over enum completion
+========================================================================
+enum Color {
+    Red = 10,
+    Blue,
+}
+
+fun foo(color: Color) {
+    match (color) {
+        Red<caret>
+    }
+}
+------------------------------------------------------------------------
+enum Color {
+    Red = 10,
+    Blue,
+}
+
+fun foo(color: Color) {
+    match (color) {
+        Color.Red<caret> => {}
+    }
+}
+
+========================================================================
+Match over enum completion with single filled arm
+========================================================================
+enum Color {
+    Red = 10,
+    Blue,
+}
+
+fun foo(color: Color) {
+    match (color) {
+        Color.Red => {}
+        Blue<caret>
+    }
+}
+------------------------------------------------------------------------
+enum Color {
+    Red = 10,
+    Blue,
+}
+
+fun foo(color: Color) {
+    match (color) {
+        Color.Red => {}
+        Color.Blue<caret> => {}
+    }
+}
+
+========================================================================
+Match over enum completion with enum name
+========================================================================
+enum Color {
+    Red = 10,
+    Blue,
+}
+
+fun foo(color: Color) {
+    match (color) {
+        Color.<caret>
+    }
+}
+------------------------------------------------------------------------
+enum Color {
+    Red = 10,
+    Blue,
+}
+
+fun foo(color: Color) {
+    match (color) {
+        Color.Blue<caret>
+    }
+}
+
+========================================================================
+Match over enum else completion
+========================================================================
+enum Color {
+    Red = 10,
+    Blue,
+}
+
+fun foo(color: Color) {
+    match (color) {
+        Color.Red => {}
+        els<caret>
+    }
+}
+------------------------------------------------------------------------
+enum Color {
+    Red = 10,
+    Blue,
+}
+
+fun foo(color: Color) {
+    match (color) {
+        Color.Red => {}
+        else => {<caret>},
+    }
+}

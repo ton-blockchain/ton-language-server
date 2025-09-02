@@ -30,6 +30,7 @@ export default tseslint.config(
             "server/src/languages/tolk/tree-sitter-tolk/",
             "server/src/languages/fift/tree-sitter-fift/",
             "server/src/languages/tolk/tree-sitter-tolk/",
+            "server/src/languages/func/tree-sitter-func/",
             "server/src/languages/tlb/tree-sitter-tlb/",
         ],
     },

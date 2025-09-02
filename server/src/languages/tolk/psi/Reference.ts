@@ -7,6 +7,7 @@ import {TOLK_CACHE} from "@server/languages/tolk/cache"
 import type {Node as SyntaxNode} from "web-tree-sitter"
 import {
     Constant,
+    Enum,
     Func,
     GetMethod,
     GlobalVariable,
@@ -28,6 +29,10 @@ import {
     Ty,
     FieldsOwnerTy,
     InstantiationTy,
+    BuiltinTy,
+    UnionTy,
+    NullTy,
+    EnumTy,
 } from "@server/languages/tolk/types/ty"
 import {TypeInferer} from "@server/languages/tolk/TypeInferer"
 import {parentOfType} from "@server/psi/utils"
@@ -205,9 +210,11 @@ export class Reference {
             parent.type === "global_var_declaration" ||
             parent.type === "type_alias_declaration" ||
             parent.type === "struct_field_declaration" ||
+            parent.type === "enum_member_declaration" ||
             parent.type === "parameter_declaration" ||
             parent.type === "var_declaration" ||
             parent.type === "struct_declaration" ||
+            parent.type === "enum_declaration" ||
             parent.type === "function_declaration" ||
             parent.type === "method_declaration" ||
             parent.type === "get_method_declaration" ||
@@ -224,6 +231,9 @@ export class Reference {
         }
         if (node.type === "struct_declaration") {
             return new Struct(node, file)
+        }
+        if (node.type === "enum_declaration") {
+            return new Enum(node, file)
         }
         if (node.type === "function_declaration") {
             return new Func(node, file)
@@ -291,12 +301,29 @@ export class Reference {
         if (resolved) {
             // static methods like Foo.bar();
             if (resolved instanceof Struct || resolved instanceof TypeAlias) {
-                return this.processStaticMethods(resolved, proc, state)
+                return this.processStaticMethods(resolved.name(), proc, state)
             }
         }
 
         const qualifierType = inference?.typeOf(qualifier.node)?.unwrapOption()
         if (!qualifierType) return true
+
+        if (qualifier.node.type === "generic_instantiation") {
+            // Foo<int>.bar()
+            const baseType = qualifierType.unwrapInstantiation()
+            return this.processStaticMethods(baseType.name(), proc, state)
+        }
+
+        const unwrappedQualifierType = qualifierType.unwrapAlias()
+        if (resolved && unwrappedQualifierType instanceof EnumTy) {
+            // `Color.Red` support even if Color is an alias to enum
+            if (!Reference.processNamedEls(proc, state, unwrappedQualifierType.members())) {
+                return false
+            }
+            if (!this.processStaticMethods(resolved.name(), proc, state)) {
+                return false
+            }
+        }
 
         if (!this.processType(qualifier, qualifierType, proc, state)) return false
 
@@ -306,7 +333,7 @@ export class Reference {
     }
 
     private processStaticMethods(
-        resolved: NamedNode | null,
+        typeName: string,
         proc: ScopeProcessor,
         state: ResolveState,
     ): boolean {
@@ -315,10 +342,19 @@ export class Reference {
             new (class implements ScopeProcessor {
                 public execute(node: InstanceMethod | StaticMethod, state: ResolveState): boolean {
                     if (node instanceof InstanceMethod) return true
-                    const receiverType = node.receiverTypeString()
-                    if (receiverType === resolved?.name() || receiverType === "T") {
+                    const receiverTypeString = node.receiverTypeString()
+                    if (receiverTypeString === typeName || receiverTypeString === "T") {
                         return proc.execute(node, state)
                     }
+
+                    const receiverType = node.receiverTypeNode()
+                    if (receiverType?.type === "type_instantiatedTs") {
+                        const innerName = receiverType.childForFieldName("name")?.text
+                        if (innerName === typeName) {
+                            return proc.execute(node, state)
+                        }
+                    }
+
                     return true
                 }
             })(),
@@ -348,18 +384,18 @@ export class Reference {
             // first process instantiation methods
             if (!this.processTypeMethods(qualifierType, proc, state)) return false
 
-            // and then underlying type
             const innerTy = qualifierType.unwrapInstantiation()
+
+            if (innerTy.name() === "Cell") {
+                const callTy = new BuiltinTy("cell", null)
+                const nullableCellTy = new UnionTy([callTy, NullTy.NULL])
+                if (!this.processType(qualifier, callTy, proc, state)) return false
+                if (!this.processType(qualifier, nullableCellTy, proc, state)) return false
+            }
+
+            // and then underlying type
             return this.processType(qualifier, innerTy, proc, state)
         }
-
-        // if (qualifierType instanceof OptionTy) {
-        //     // first process type alias methods
-        //     if (!this.processTypeMethods(qualifierType, proc, state)) return false
-        //
-        //     // and then underlying type
-        //     return this.processType(qualifier, qualifierType.innerTy, proc, state)
-        // }
 
         return this.processTypeMethods(qualifierType, proc, state)
     }
@@ -404,6 +440,21 @@ export class Reference {
                             expected instanceof InstantiationTy
                         ) {
                             return receiverType.innerTy.name() === expected.innerTy.name()
+                        }
+                    }
+
+                    if (receiver?.type === "nullable_type") {
+                        const inner = receiver.childForFieldName("inner")
+                        if (expected instanceof UnionTy) {
+                            const asNullable = expected.asNullable()
+                            if (asNullable !== undefined) {
+                                return this.typeMatches(
+                                    file,
+                                    asNullable[0],
+                                    asNullable[0].name(),
+                                    inner,
+                                )
+                            }
                         }
                     }
 
@@ -675,6 +726,7 @@ export class Reference {
             }
 
             if (!index.processElsByKeyAndFile(IndexKey.Structs, file, proc, state)) return false
+            if (!index.processElsByKeyAndFile(IndexKey.Enums, file, proc, state)) return false
             if (!index.processElsByKeyAndFile(IndexKey.TypeAlias, file, proc, state)) return false
         }
 
@@ -724,6 +776,7 @@ export class Reference {
         }
 
         if (!fileIndex.processElementsByKey(IndexKey.Structs, proc, state)) return false
+        if (!fileIndex.processElementsByKey(IndexKey.Enums, proc, state)) return false
         return fileIndex.processElementsByKey(IndexKey.TypeAlias, proc, state)
     }
 }

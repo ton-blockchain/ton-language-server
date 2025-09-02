@@ -35,3 +35,93 @@ fun foo(someParameter: int) {
 1  bad()  of Foo
 1  bar()  of Foo
 1  baz()  of Foo
+
+========================================================================
+Static methods completion for generic struct
+========================================================================
+struct Second<T> {}
+fun Second<T>.new(): Second<T> {}
+fun Second<int>.new(): Second<int> {}
+
+fun main() {
+    val first = First<int>.<caret>;
+}
+------------------------------------------------------------------------
+No completion items
+
+========================================================================
+Static methods completion for generic struct 2
+========================================================================
+struct Second<T> {}
+fun Second<T>.new(): Second<T> {}
+fun Second<int>.new(): Second<int> {}
+
+fun main() {
+    val first = Second<int>.<caret>;
+}
+------------------------------------------------------------------------
+1  fromCell(packedCell: cell, options: UnpackOptions = {}): T  of T
+1  fromSlice(rawSlice: slice, options: UnpackOptions = {}): T  of T
+1  getDeclaredPackPrefix(): int  of T
+1  getDeclaredPackPrefixLen(): int  of T
+1  new(): Second<T>  of Second<T>
+
+========================================================================
+Instance method for Foo<T> completion for generic struct
+========================================================================
+struct Collection<T> {}
+
+fun Collection<T>.add(self) {}
+
+fun main() {
+    val arr: Collection<int32>;
+    arr.a<caret>
+}
+------------------------------------------------------------------------
+13 as
+1  add(self)
+
+========================================================================
+Instance method for Foo<int32> completion for generic struct
+========================================================================
+struct Collection<T> {}
+
+fun Collection<T>.add(self) {}
+fun Collection<int32>.add2(self) {}
+
+fun main() {
+    val arr: Collection<int32>;
+    arr.a<caret>
+}
+------------------------------------------------------------------------
+13 as
+1  add(self)
+1  add2(self)
+
+========================================================================
+T? instance method on T
+========================================================================
+struct Data {
+    data: Cell<int32>?
+}
+
+fun main() {
+    val data: Data;
+
+    if (data.data == null) {
+        return;
+    }
+
+    data.data.<caret>;
+}
+------------------------------------------------------------------------
+9  tvmCell: cell   of Cell
+1  beginParse(self): slice
+1  calculateSize(self, maxCells: int): (int, int, int, bool)
+1  calculateSizeStrict(self, maxCells: int): (int, int, int)
+1  depth(self): int
+1  forceLoadLazyObject(self): slice
+1  hash(self): uint256
+1  load(self, options: UnpackOptions = {}): T
+1  stackMoveToTop(mutate self): void
+1  toCell(self, options: PackOptions = {}): Cell<T>
