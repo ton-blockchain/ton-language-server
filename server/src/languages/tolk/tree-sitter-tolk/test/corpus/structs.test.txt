@@ -69,7 +69,7 @@ struct Container<T = null> {
     (type_parameters
       (type_parameter
         (identifier)
-        (type_identifier)))
+        (null_literal)))
     (struct_body
       (struct_field_declaration
         (identifier)
