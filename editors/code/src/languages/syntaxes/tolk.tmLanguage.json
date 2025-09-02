@@ -49,15 +49,15 @@
         },
         {
             "name": "keyword.other",
-            "match": "\\b(import|export|true|false|null|redef|mutate|tolk|as|is|!is)\\b"
+            "match": "\\b(import|export|private|readonly|true|false|null|redef|mutate|tolk|as|is|!is)\\b"
         },
         {
             "name": "storage.type",
-            "match": "\\b(type|enum|int|cell|void|bool|slice|tuple|builder|continuation|never|coins|int\\d+|uint\\d+)\\b"
+            "match": "\\b(type|int|cell|void|bool|slice|tuple|builder|continuation|never|coins|int\\d+|uint\\d+)\\b"
         },
         {
             "name": "storage.modifier",
-            "match": "\\b(global|const|var|val|fun|get|struct)\\b"
+            "match": "\\b(global|const|var|val|fun|get|struct|enum)\\b"
         },
         {
             "name": "entity.name.type",
