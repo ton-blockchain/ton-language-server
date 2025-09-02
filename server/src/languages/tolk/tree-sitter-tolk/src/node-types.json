@@ -980,6 +980,10 @@
                         "named": true
                     },
                     {
+                        "type": "null_literal",
+                        "named": true
+                    },
+                    {
                         "type": "nullable_type",
                         "named": true
                     },
@@ -1175,6 +1179,10 @@
                 "types": [
                     {
                         "type": "fun_callable_type",
+                        "named": true
+                    },
+                    {
+                        "type": "null_literal",
                         "named": true
                     },
                     {
@@ -1582,6 +1590,10 @@
                         "named": true
                     },
                     {
+                        "type": "null_literal",
+                        "named": true
+                    },
+                    {
                         "type": "nullable_type",
                         "named": true
                     },
@@ -1863,6 +1875,10 @@
                         "named": true
                     },
                     {
+                        "type": "null_literal",
+                        "named": true
+                    },
+                    {
                         "type": "nullable_type",
                         "named": true
                     },
@@ -1898,6 +1914,10 @@
                 "types": [
                     {
                         "type": "fun_callable_type",
+                        "named": true
+                    },
+                    {
+                        "type": "null_literal",
                         "named": true
                     },
                     {
@@ -2116,6 +2136,10 @@
                 "types": [
                     {
                         "type": "fun_callable_type",
+                        "named": true
+                    },
+                    {
+                        "type": "null_literal",
                         "named": true
                     },
                     {
@@ -2355,6 +2379,10 @@
                         "named": true
                     },
                     {
+                        "type": "null_literal",
+                        "named": true
+                    },
+                    {
                         "type": "nullable_type",
                         "named": true
                     },
@@ -2416,6 +2444,10 @@
                 "types": [
                     {
                         "type": "fun_callable_type",
+                        "named": true
+                    },
+                    {
+                        "type": "null_literal",
                         "named": true
                     },
                     {
@@ -2725,6 +2757,10 @@
                         "named": true
                     },
                     {
+                        "type": "null_literal",
+                        "named": true
+                    },
+                    {
                         "type": "nullable_type",
                         "named": true
                     },
@@ -2878,6 +2914,10 @@
                 "types": [
                     {
                         "type": "fun_callable_type",
+                        "named": true
+                    },
+                    {
+                        "type": "null_literal",
                         "named": true
                     },
                     {
@@ -3381,6 +3421,10 @@
                         "named": true
                     },
                     {
+                        "type": "null_literal",
+                        "named": true
+                    },
+                    {
                         "type": "nullable_type",
                         "named": true
                     },
@@ -3663,6 +3707,10 @@
                         "named": true
                     },
                     {
+                        "type": "null_literal",
+                        "named": true
+                    },
+                    {
                         "type": "nullable_type",
                         "named": true
                     },
@@ -3714,6 +3762,10 @@
                 "types": [
                     {
                         "type": "fun_callable_type",
+                        "named": true
+                    },
+                    {
+                        "type": "null_literal",
                         "named": true
                     },
                     {
@@ -3865,6 +3917,10 @@
                         "named": true
                     },
                     {
+                        "type": "null_literal",
+                        "named": true
+                    },
+                    {
                         "type": "nullable_type",
                         "named": true
                     },
@@ -3916,6 +3972,10 @@
                 "types": [
                     {
                         "type": "fun_callable_type",
+                        "named": true
+                    },
+                    {
+                        "type": "null_literal",
                         "named": true
                     },
                     {
@@ -4096,6 +4156,10 @@
                         "named": true
                     },
                     {
+                        "type": "null_literal",
+                        "named": true
+                    },
+                    {
                         "type": "nullable_type",
                         "named": true
                     },
@@ -4256,6 +4320,10 @@
                 "types": [
                     {
                         "type": "fun_callable_type",
+                        "named": true
+                    },
+                    {
+                        "type": "null_literal",
                         "named": true
                     },
                     {
@@ -5004,6 +5072,10 @@
                         "named": true
                     },
                     {
+                        "type": "null_literal",
+                        "named": true
+                    },
+                    {
                         "type": "nullable_type",
                         "named": true
                     },
@@ -5148,6 +5220,10 @@
             "types": [
                 {
                     "type": "fun_callable_type",
+                    "named": true
+                },
+                {
+                    "type": "null_literal",
                     "named": true
                 },
                 {
@@ -5667,6 +5743,10 @@
                     "named": true
                 },
                 {
+                    "type": "null_literal",
+                    "named": true
+                },
+                {
                     "type": "nullable_type",
                     "named": true
                 },
@@ -5772,6 +5852,10 @@
                         "named": true
                     },
                     {
+                        "type": "null_literal",
+                        "named": true
+                    },
+                    {
                         "type": "nullable_type",
                         "named": true
                     },
@@ -5839,6 +5923,10 @@
                 "types": [
                     {
                         "type": "fun_callable_type",
+                        "named": true
+                    },
+                    {
+                        "type": "null_literal",
                         "named": true
                     },
                     {
@@ -6140,6 +6228,10 @@
                         "named": true
                     },
                     {
+                        "type": "null_literal",
+                        "named": true
+                    },
+                    {
                         "type": "nullable_type",
                         "named": true
                     },
@@ -6175,6 +6267,10 @@
                 "types": [
                     {
                         "type": "fun_callable_type",
+                        "named": true
+                    },
+                    {
+                        "type": "null_literal",
                         "named": true
                     },
                     {
@@ -6239,6 +6335,10 @@
                 "types": [
                     {
                         "type": "fun_callable_type",
+                        "named": true
+                    },
+                    {
+                        "type": "null_literal",
                         "named": true
                     },
                     {

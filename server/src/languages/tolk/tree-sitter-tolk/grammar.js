@@ -596,6 +596,7 @@ const TOLK_GRAMMAR = {
                 $.fun_callable_type,
                 $.nullable_type,
                 $.union_type,
+                $.null_literal,
             ),
         ),
 
@@ -638,7 +639,7 @@ const TOLK_GRAMMAR = {
     string_literal: $ =>
         token(
             choice(
-                /"""\s*[\s\S]*?"""/, // triple quotes
+                seq('"""', repeat(choice(/[^"]/, /"[^"]/, /""[^"]/)), '"""'),
                 /"(?:[^"\\\n]|\\.)*"/, // sing quote
             ),
         ),
