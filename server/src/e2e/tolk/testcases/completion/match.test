@@ -260,3 +260,108 @@ fun foo(value: Foo) {
 }
 ------------------------------------------------------------------------
 No completion items
+
+========================================================================
+@strategy includes
+Match over enum completion
+========================================================================
+enum Color {
+    Red = 10,
+    Blue,
+}
+
+fun foo(color: Color) {
+    match (color) {
+        Red<caret>
+    }
+}
+------------------------------------------------------------------------
+19 Color.Red = 10   of Color
+
+========================================================================
+@strategy includes
+Match over enum completion with single filled arm
+========================================================================
+enum Color {
+    Red = 10,
+    Blue,
+}
+
+fun foo(color: Color) {
+    match (color) {
+        Color.Red => {}
+        Blue<caret>
+    }
+}
+------------------------------------------------------------------------
+19 Color.Blue   of Color
+
+========================================================================
+@strategy includes
+Match over enum completion with single filled arm with same name
+========================================================================
+enum Color {
+    Red = 10,
+    Blue,
+}
+
+fun foo(color: Color) {
+    match (color) {
+        Color.Red => {}
+        Red<caret>
+    }
+}
+------------------------------------------------------------------------
+No completion items
+
+========================================================================
+Match over enum completion with enum name
+========================================================================
+enum Color {
+    Red = 10,
+    Blue,
+}
+
+fun foo(color: Color) {
+    match (color) {
+        Color.<caret>
+    }
+}
+------------------------------------------------------------------------
+19 Blue   of Color
+19 Red = 10   of Color
+
+========================================================================
+Match over enum completion with enum name with single filled arm
+========================================================================
+enum Color {
+    Red = 10,
+    Blue,
+}
+
+fun foo(color: Color) {
+    match (color) {
+        Color.Red => {}
+        Color.<caret>
+    }
+}
+------------------------------------------------------------------------
+19 Blue   of Color
+19 Red = 10   of Color
+
+========================================================================
+Match over enum else completion
+========================================================================
+enum Color {
+    Red = 10,
+    Blue,
+}
+
+fun foo(color: Color) {
+    match (color) {
+        Color.Red => {}
+        els<caret>
+    }
+}
+------------------------------------------------------------------------
+22 else => {}

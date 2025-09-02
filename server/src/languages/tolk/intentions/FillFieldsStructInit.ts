@@ -14,6 +14,7 @@ import {
     BuiltinTy,
     BytesNTy,
     CoinsTy,
+    EnumTy,
     FieldsOwnerTy,
     InstantiationTy,
     IntTy,
@@ -168,7 +169,7 @@ export class FillStructInitBase implements Intention {
         return this.typeDefaultValue(type)
     }
 
-    private static typeDefaultValue(type: Ty | BuiltinTy | StructTy | TupleTy): string {
+    private static typeDefaultValue(type: Ty | BuiltinTy | StructTy | EnumTy | TupleTy): string {
         if (type instanceof NullTy) {
             return "null"
         }
@@ -214,6 +215,11 @@ export class FillStructInitBase implements Intention {
 
         if (type instanceof StructTy) {
             return `${type.name()} {}`
+        }
+
+        if (type instanceof EnumTy) {
+            // Color.Red or Color
+            return type.anchor?.members()[0]?.name() ?? type.name()
         }
 
         if (type instanceof TupleTy) {

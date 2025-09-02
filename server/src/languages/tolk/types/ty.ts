@@ -6,6 +6,8 @@ import {
     Field,
     TypeAlias,
     TypeParameter,
+    Enum,
+    EnumMember,
 } from "@server/languages/tolk/psi/Decls"
 import {NamedNode} from "@server/languages/tolk/psi/TolkNode"
 
@@ -143,6 +145,24 @@ export class StructTy extends FieldsOwnerTy<Struct> {
             this.name(),
             this.anchor,
         )
+    }
+
+    public override canRhsBeAssigned(other: Ty): boolean {
+        if (this === other) return true
+        if (other instanceof TypeAliasTy) return this.canRhsBeAssigned(other.innerTy)
+        if (other instanceof NeverTy) return true
+        return this._name === other.name()
+    }
+}
+
+export class EnumTy extends NamedTy<Enum> {
+    public members(): EnumMember[] {
+        if (this.anchor === null) return []
+        return this.anchor.members()
+    }
+
+    public override substitute(_mapping: Map<string, Ty>): Ty {
+        return new EnumTy(this.name(), this.anchor)
     }
 
     public override canRhsBeAssigned(other: Ty): boolean {

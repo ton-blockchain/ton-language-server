@@ -2,7 +2,7 @@
 //  Copyright © 2025 TON Core
 import type {Node as SyntaxNode} from "web-tree-sitter"
 import * as lsp from "vscode-languageserver"
-import {BuiltinTy, FuncTy, StructTy, Ty, TypeAliasTy} from "@server/languages/tolk/types/ty"
+import {BuiltinTy, EnumTy, FuncTy, StructTy, Ty, TypeAliasTy} from "@server/languages/tolk/types/ty"
 import {InlayHintLabelPart} from "vscode-languageserver"
 import {toLocation} from "@server/languages/tolk/inlays/common"
 import {CallLike, Expression, VarDeclaration} from "@server/languages/tolk/psi/TolkNode"
@@ -183,7 +183,7 @@ function renderTypeToParts(ty: Ty): InlayHintLabelPart[] {
         ]
     }
 
-    if (ty instanceof StructTy || ty instanceof TypeAliasTy) {
+    if (ty instanceof StructTy || ty instanceof TypeAliasTy || ty instanceof EnumTy) {
         return [
             {
                 value: ty.name(),

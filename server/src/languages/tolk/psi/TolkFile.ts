@@ -3,6 +3,7 @@
 import {File} from "@server/psi/File"
 import {
     Constant,
+    Enum,
     Func,
     GetMethod,
     GlobalVariable,
@@ -165,6 +166,7 @@ export class TolkFile extends File {
                 "global_var_declaration",
                 "type_alias_declaration",
                 "struct_declaration",
+                "enum_declaration",
                 "constant_declaration",
             ],
             NamedNode,
@@ -196,6 +198,10 @@ export class TolkFile extends File {
 
     public getStructs(): Struct[] {
         return this.getNodesByType("struct_declaration", Struct)
+    }
+
+    public getEnums(): Enum[] {
+        return this.getNodesByType("enum_declaration", Enum)
     }
 
     public getConstants(): Constant[] {

@@ -419,3 +419,77 @@ fun main() {
 ------------------------------------------------------------------------
 3 6:16 to 6:20 Method 'data' is never used (tolk)
 0 11:31 to 11:35 Too many arguments in call to 'new', expected 0, have 2 (tolk)
+
+========================================================================
+Enum static method call
+========================================================================
+enum Color {
+    Red = 10,
+    Blue = 200 + 100,
+}
+
+fun Color.max() {
+    return Color.Red;
+}
+
+fun main() {
+    Color.max();
+}
+------------------------------------------------------------------------
+3 2:4 to 2:20 Enum member 'Blue' is never used (tolk)
+
+========================================================================
+Enum static method call, too many arguments
+========================================================================
+enum Color {
+    Red = 10,
+    Blue = 200 + 100,
+}
+
+fun Color.max() {
+    return Color.Red;
+}
+
+fun main() {
+    Color.max(1);
+}
+------------------------------------------------------------------------
+3 2:4 to 2:20 Enum member 'Blue' is never used (tolk)
+0 10:14 to 10:15 Too many arguments in call to 'max', expected 0, have 1 (tolk)
+
+========================================================================
+Enum instance method call
+========================================================================
+enum Color {
+    Red = 10,
+    Blue = 200 + 100,
+}
+
+fun Color.isRed(self) {
+    return self == Color.Red;
+}
+
+fun main(c: Color) {
+    c.isRed();
+}
+------------------------------------------------------------------------
+3 2:4 to 2:20 Enum member 'Blue' is never used (tolk)
+
+========================================================================
+Enum instance method call, too many arguments
+========================================================================
+enum Color {
+    Red = 10,
+    Blue = 200 + 100,
+}
+
+fun Color.isRed(self) {
+    return self == Color.Red;
+}
+
+fun main(c: Color) {
+    c.isRed(1);
+}
+------------------------------------------------------------------------
+3 2:4 to 2:20 Enum member 'Blue' is never used (tolk)
+0 10:4 to 10:14 Too many arguments in call to 'isRed', expected 0, have 1 (tolk)

@@ -4,6 +4,7 @@ import {NamedNode} from "@server/languages/tolk/psi/TolkNode"
 import {TolkFile} from "@server/languages/tolk/psi/TolkFile"
 import {
     Constant,
+    Enum,
     Func,
     GetMethod,
     GlobalVariable,
@@ -25,6 +26,7 @@ export interface IndexKeyToType {
     readonly [IndexKey.Methods]: InstanceMethod | StaticMethod
     readonly [IndexKey.GetMethods]: GetMethod
     readonly [IndexKey.Structs]: Struct
+    readonly [IndexKey.Enums]: Enum
     readonly [IndexKey.Constants]: Constant
 }
 
@@ -35,6 +37,7 @@ export enum IndexKey {
     Methods = "Methods",
     GetMethods = "GetMethods",
     Structs = "Structs",
+    Enums = "Enums",
     Constants = "Constants",
 }
 
@@ -50,6 +53,7 @@ export class FileIndex {
         [IndexKey.Methods]: (InstanceMethod | StaticMethod)[]
         [IndexKey.GetMethods]: GetMethod[]
         [IndexKey.Structs]: Struct[]
+        [IndexKey.Enums]: Enum[]
         [IndexKey.Constants]: Constant[]
     } = {
         [IndexKey.GlobalVariables]: [],
@@ -58,6 +62,7 @@ export class FileIndex {
         [IndexKey.Methods]: [],
         [IndexKey.GetMethods]: [],
         [IndexKey.Structs]: [],
+        [IndexKey.Enums]: [],
         [IndexKey.Constants]: [],
     }
 
@@ -90,6 +95,10 @@ export class FileIndex {
             if (node.type === "struct_declaration") {
                 const struct = new Struct(node, file)
                 index.elements[IndexKey.Structs].push(struct)
+            }
+            if (node.type === "enum_declaration") {
+                const enum_ = new Enum(node, file)
+                index.elements[IndexKey.Enums].push(enum_)
             }
             if (node.type === "constant_declaration") {
                 const constant = new Constant(node, file)
@@ -148,6 +157,11 @@ export class FileIndex {
                     | IndexKeyToType[K]
                     | null
             }
+            case IndexKey.Enums: {
+                return this.findElement(this.elements[IndexKey.Enums], name) as
+                    | IndexKeyToType[K]
+                    | null
+            }
             case IndexKey.Constants: {
                 return this.findElement(this.elements[IndexKey.Constants], name) as
                     | IndexKeyToType[K]
@@ -193,6 +207,9 @@ export class FileIndex {
                     this.elements[IndexKey.Structs],
                     name,
                 ) as IndexKeyToType[K][]
+            }
+            case IndexKey.Enums: {
+                return this.findElements(this.elements[IndexKey.Enums], name) as IndexKeyToType[K][]
             }
             case IndexKey.Constants: {
                 return this.findElements(
@@ -342,7 +359,8 @@ export class IndexRoot {
                 value.elementByName(IndexKey.TypeAlias, name) ??
                 value.elementByName(IndexKey.GlobalVariables, name) ??
                 value.elementByName(IndexKey.Constants, name) ??
-                value.elementByName(IndexKey.Structs, name)
+                value.elementByName(IndexKey.Structs, name) ??
+                value.elementByName(IndexKey.Enums, name)
 
             if (element) {
                 return true

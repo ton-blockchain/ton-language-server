@@ -405,3 +405,107 @@ fun foo(value: int) {
         Fill<caret> => {}
     }
 }
+
+========================================================================
+Match over enum completion
+========================================================================
+enum Color {
+    Red = 10,
+    Blue,
+}
+
+fun foo(color: Color) {
+    match (color) {
+        Red<caret>
+    }
+}
+------------------------------------------------------------------------
+enum Color {
+    Red = 10,
+    Blue,
+}
+
+fun foo(color: Color) {
+    match (color) {
+        Color.Red<caret> => {}
+    }
+}
+
+========================================================================
+Match over enum completion with single filled arm
+========================================================================
+enum Color {
+    Red = 10,
+    Blue,
+}
+
+fun foo(color: Color) {
+    match (color) {
+        Color.Red => {}
+        Blue<caret>
+    }
+}
+------------------------------------------------------------------------
+enum Color {
+    Red = 10,
+    Blue,
+}
+
+fun foo(color: Color) {
+    match (color) {
+        Color.Red => {}
+        Color.Blue<caret> => {}
+    }
+}
+
+========================================================================
+Match over enum completion with enum name
+========================================================================
+enum Color {
+    Red = 10,
+    Blue,
+}
+
+fun foo(color: Color) {
+    match (color) {
+        Color.<caret>
+    }
+}
+------------------------------------------------------------------------
+enum Color {
+    Red = 10,
+    Blue,
+}
+
+fun foo(color: Color) {
+    match (color) {
+        Color.Blue<caret>
+    }
+}
+
+========================================================================
+Match over enum else completion
+========================================================================
+enum Color {
+    Red = 10,
+    Blue,
+}
+
+fun foo(color: Color) {
+    match (color) {
+        Color.Red => {}
+        els<caret>
+    }
+}
+------------------------------------------------------------------------
+enum Color {
+    Red = 10,
+    Blue,
+}
+
+fun foo(color: Color) {
+    match (color) {
+        Color.Red => {}
+        else => {<caret>},
+    }
+}

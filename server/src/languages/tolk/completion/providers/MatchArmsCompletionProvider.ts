@@ -6,7 +6,7 @@ import type {CompletionContext} from "@server/languages/tolk/completion/Completi
 import {CompletionResult, CompletionWeight} from "@server/completion/WeightedCompletionItem"
 import {parentOfType} from "@server/psi/utils"
 import {inferenceOf} from "@server/languages/tolk/type-inference"
-import {StructTy, UnionTy} from "@server/languages/tolk/types/ty"
+import {EnumTy, StructTy, UnionTy} from "@server/languages/tolk/types/ty"
 import {ResolveState} from "@server/psi/ResolveState"
 import {ReferenceCompletionProcessor} from "@server/languages/tolk/completion/ReferenceCompletionProcessor"
 import {Reference} from "@server/languages/tolk/psi/Reference"
@@ -31,6 +31,61 @@ export class MatchArmsCompletionProvider implements CompletionProvider<Completio
 
         const exprTy = inference.typeOf(expr)?.baseType()
         if (!exprTy) return
+
+        if (exprTy instanceof EnumTy) {
+            const state = new ResolveState()
+            const processor = new ReferenceCompletionProcessor(ctx)
+
+            this.ref.processResolveVariants(processor, state.withValue("completion", "true"))
+
+            Reference.processNamedEls(
+                processor,
+                state.withValue("completion", "true"),
+                exprTy.members(),
+            )
+
+            let seenElse = false
+
+            const arms = body.namedChildren.filter(it => it?.type === "match_arm")
+
+            const handledMembers: Set<string> = new Set()
+            for (const arm of arms) {
+                if (!arm) continue
+                if (arm.childForFieldName("pattern_else")) {
+                    seenElse = true
+                    continue
+                }
+
+                const patternExpr = arm.childForFieldName("pattern_expr")
+                if (!patternExpr) continue
+                if (patternExpr.type !== "dot_access") continue
+
+                handledMembers.add(patternExpr.text)
+            }
+
+            for (const value of processor.result.values()) {
+                if (handledMembers.has(value.insertText ?? "")) continue
+
+                result.add({
+                    ...value,
+                    insertText: value.insertText + "$1 => {$0}",
+                })
+            }
+
+            if (!seenElse) {
+                result.add({
+                    label: "else",
+                    labelDetails: {
+                        detail: " => {}",
+                    },
+                    kind: CompletionItemKind.Event,
+                    insertTextFormat: InsertTextFormat.Snippet,
+                    insertText: "else => {$0},",
+                    weight: CompletionWeight.SNIPPET + 10,
+                })
+            }
+            return
+        }
 
         if (!(exprTy instanceof UnionTy) && !(exprTy instanceof StructTy)) {
             // non type-match

@@ -4,6 +4,7 @@ import {
     BoolTy,
     BuiltinTy,
     CoinsTy,
+    EnumTy,
     FuncTy,
     InstantiationTy,
     IntTy,
@@ -23,6 +24,8 @@ import {
 import {Node as SyntaxNode} from "web-tree-sitter"
 import {
     Constant,
+    Enum,
+    EnumMember,
     Field,
     FunctionBase,
     GetMethod,
@@ -407,6 +410,27 @@ class InferenceWalker {
         this.ctx.setType(field.node, typeHintTy)
         this.ctx.setResolved(field.node, field)
 
+        return flow
+    }
+
+    public inferEnumMember(member: EnumMember, flow: FlowContext): FlowContext {
+        const defaultValue = member.defaultValue()?.node
+        if (defaultValue) {
+            const flowAfterExpression = this.inferExpression(defaultValue, flow, false)
+            const exprType = this.ctx.getType(defaultValue)
+            this.ctx.setType(member.node, exprType)
+            return flowAfterExpression.outFlow
+        }
+
+        const owner = member.owner()
+
+        if (owner) {
+            const type = owner.declaredType()
+            this.ctx.setType(member.nameNode()?.node, type)
+            this.ctx.setType(member.node, type)
+        }
+
+        this.ctx.setResolved(member.node, member)
         return flow
     }
 
@@ -1026,6 +1050,21 @@ class InferenceWalker {
 
                     this.ctx.setType(node, type)
                     this.ctx.setType(fieldNode, type)
+                    break
+                }
+            }
+        }
+
+        if (baseType instanceof EnumTy) {
+            for (const member of baseType.members()) {
+                if (member.name(false) === fieldNode.text) {
+                    resolved = member
+
+                    this.ctx.setResolved(node, resolved)
+                    this.ctx.setResolved(fieldNode, resolved)
+
+                    this.ctx.setType(node, baseType)
+                    this.ctx.setType(fieldNode, baseType)
                     break
                 }
             }
@@ -1790,6 +1829,12 @@ class InferenceWalker {
                 return nextFlow
             }
             this.ctx.setType(node, this.typeInferer.inferType(resolved))
+            return nextFlow
+        }
+
+        if (resolved instanceof Enum) {
+            const type = new EnumTy(resolved.name(), resolved)
+            this.ctx.setType(node, type)
             return nextFlow
         }
 
@@ -2577,6 +2622,9 @@ function inferImpl(decl: NamedNode): InferenceResult {
     if (decl instanceof Field) {
         walker.inferField(decl, flow)
     }
+    if (decl instanceof EnumMember) {
+        walker.inferEnumMember(decl, flow)
+    }
     if (decl instanceof TypeAlias) {
         walker.inferTypeAlias(decl, flow)
     }
@@ -2611,6 +2659,9 @@ function findCacheOwner(ownable: SyntaxNodeWithCache, file: TolkFile): NamedNode
     if (ownable.type === "struct_field_declaration") {
         return new Field(ownable, file)
     }
+    if (ownable.type === "enum_member_declaration") {
+        return new EnumMember(ownable, file)
+    }
     if (ownable.type === "type_alias_declaration") {
         return new TypeAlias(ownable, file)
     }
@@ -2622,6 +2673,7 @@ function findCacheOwner(ownable: SyntaxNodeWithCache, file: TolkFile): NamedNode
         "constant_declaration",
         "global_var_declaration",
         "struct_field_declaration",
+        "enum_member_declaration",
         "type_alias_declaration",
     )
     if (parent?.type === "function_declaration") {
@@ -2641,6 +2693,9 @@ function findCacheOwner(ownable: SyntaxNodeWithCache, file: TolkFile): NamedNode
     }
     if (parent?.type === "struct_field_declaration") {
         return new Field(parent, file)
+    }
+    if (parent?.type === "enum_member_declaration") {
+        return new EnumMember(parent, file)
     }
     if (parent?.type === "type_alias_declaration") {
         return new TypeAlias(parent, file)

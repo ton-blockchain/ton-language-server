@@ -9,6 +9,7 @@
 "val" @keyword
 "lazy" @keyword
 "else" @keyword
+"enum" @keyword
 "true" @keyword
 "tolk" @keyword
 "const" @keyword

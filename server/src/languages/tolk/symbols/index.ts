@@ -3,6 +3,8 @@ import {SymbolKind} from "vscode-languageserver"
 import {NamedNode, TolkNode} from "@server/languages/tolk/psi/TolkNode"
 import {
     Constant,
+    Enum,
+    EnumMember,
     Field,
     Func,
     FunctionBase,
@@ -31,6 +33,9 @@ export function provideTolkDocumentSymbols(file: TolkFile): lsp.DocumentSymbol[]
         if (element instanceof Field) {
             const type = element.typeNode()?.node.text ?? "unknown"
             return `: ${type}`
+        }
+        if (element instanceof EnumMember) {
+            return element.defaultValuePresentation()
         }
         if (element instanceof Constant) {
             const type = element.typeNode()?.node.text ?? "unknown"
@@ -66,6 +71,9 @@ export function provideTolkDocumentSymbols(file: TolkFile): lsp.DocumentSymbol[]
         if (element instanceof Struct) {
             children.push(...element.fields())
         }
+        if (element instanceof Enum) {
+            children.push(...element.members())
+        }
 
         return [...children.map(el => createSymbol(el)), ...additionalChildren]
     }
@@ -83,6 +91,7 @@ export function provideTolkDocumentSymbols(file: TolkFile): lsp.DocumentSymbol[]
     file.getMethods().forEach(n => result.push(createSymbol(n)))
     file.getGetMethods().forEach(n => result.push(createSymbol(n)))
     file.getStructs().forEach(n => result.push(createSymbol(n)))
+    file.getEnums().forEach(n => result.push(createSymbol(n)))
     file.getTypeAliases().forEach(n => result.push(createSymbol(n)))
     file.getConstants().forEach(n => result.push(createSymbol(n)))
     file.getGlobalVariables().forEach(n => result.push(createSymbol(n)))
@@ -99,6 +108,22 @@ export function provideTolkWorkspaceSymbols(): lsp.WorkspaceSymbol[] {
             if (!(node instanceof NamedNode)) return true
             const nameIdentifier = node.nameIdentifier()
             if (!nameIdentifier) return true
+
+            if (node instanceof Enum) {
+                for (const member of node.members()) {
+                    const owner = member.owner()?.name() ?? "Unknown"
+
+                    result.push({
+                        name: owner + "." + member.name(),
+                        containerName: "",
+                        kind: symbolKind(member),
+                        location: {
+                            uri: member.file.uri,
+                            range: asLspRange(member.node),
+                        },
+                    })
+                }
+            }
 
             result.push({
                 name: symbolName(node),
@@ -119,6 +144,7 @@ export function provideTolkWorkspaceSymbols(): lsp.WorkspaceSymbol[] {
     index.processElementsByKey(IndexKey.Methods, proc, state)
     index.processElementsByKey(IndexKey.GetMethods, proc, state)
     index.processElementsByKey(IndexKey.Structs, proc, state)
+    index.processElementsByKey(IndexKey.Enums, proc, state)
     index.processElementsByKey(IndexKey.Constants, proc, state)
 
     return result
@@ -150,6 +176,9 @@ function symbolKind(node: NamedNode): lsp.SymbolKind {
     if (node instanceof Struct) {
         return lsp.SymbolKind.Struct
     }
+    if (node instanceof Enum) {
+        return lsp.SymbolKind.Enum
+    }
     if (node instanceof TypeAlias) {
         return lsp.SymbolKind.TypeParameter
     }
@@ -161,6 +190,9 @@ function symbolKind(node: NamedNode): lsp.SymbolKind {
     }
     if (node instanceof Field) {
         return lsp.SymbolKind.Field
+    }
+    if (node instanceof EnumMember) {
+        return lsp.SymbolKind.EnumMember
     }
     return lsp.SymbolKind.Object
 }

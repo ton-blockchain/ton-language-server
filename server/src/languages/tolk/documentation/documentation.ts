@@ -3,6 +3,8 @@
 import {NamedNode} from "@server/languages/tolk/psi/TolkNode"
 import {
     Constant,
+    Enum,
+    EnumMember,
     Field,
     Func,
     GetMethod,
@@ -34,6 +36,12 @@ export function generateTolkDocFor(node: NamedNode, place: SyntaxNode): string |
         const owner = symbol.owner()
         if (!owner) return null // not possible in correct code
         return "struct " + owner.name() + "\n"
+    }
+
+    function renderEnumOwnerPresentation(symbol: EnumMember): string | null {
+        const owner = symbol.owner()
+        if (!owner) return null // not possible in correct code
+        return "enum " + owner.name() + "\n"
     }
 
     switch (astNode.type) {
@@ -113,6 +121,28 @@ export function generateTolkDocFor(node: NamedNode, place: SyntaxNode): string |
                 sizeDoc + doc,
             )
         }
+        case "enum_declaration": {
+            const doc = node.documentation()
+            const enum_ = new Enum(node.node, node.file)
+
+            const backedType = enum_.backedType()
+            const backedTypePresentation = backedType ? `: ${backedType.text}` : ""
+
+            const members = enum_.members().map(member => {
+                const name = member.nameNode()
+                if (!name) return null
+
+                return `    ${member.name()}${member.defaultValuePresentation()}`
+            })
+
+            const bodyPresentation =
+                members.length === 0 ? "{}" : "{\n" + members.join("\n") + "\n}"
+
+            return defaultResult(
+                `enum ${node.name()}${backedTypePresentation} ${bodyPresentation}`,
+                doc,
+            )
+        }
         case "type_alias_declaration": {
             const doc = node.documentation()
             const alias = new TypeAlias(node.node, node.file)
@@ -174,6 +204,21 @@ export function generateTolkDocFor(node: NamedNode, place: SyntaxNode): string |
 
             return defaultResult(
                 `${ownerPresentation}${node.name()}: ${type}${field.defaultValuePresentation()}`,
+                doc,
+            )
+        }
+        case "enum_member_declaration": {
+            const doc = node.documentation()
+            const member = new EnumMember(node.node, node.file)
+
+            const ownerPresentation = renderEnumOwnerPresentation(member)
+            if (!ownerPresentation) return null // not possible in correct code
+
+            const name = member.nameNode()
+            if (!name) return null
+
+            return defaultResult(
+                `${ownerPresentation}${node.name()}${member.defaultValuePresentation()}`,
                 doc,
             )
         }

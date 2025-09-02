@@ -13,7 +13,8 @@ export function provideTolkFoldingRanges(file: TolkFile): FoldingRange[] {
             n.type === "block_statement" ||
             n.type === "object_literal_body" ||
             n.type === "match_body" ||
-            n.type === "struct_body"
+            n.type === "struct_body" ||
+            n.type === "enum_body"
         ) {
             const openBrace = n.firstChild
             const closeBrace = n.lastChild

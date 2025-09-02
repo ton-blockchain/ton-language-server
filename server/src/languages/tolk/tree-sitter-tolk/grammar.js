@@ -31,6 +31,7 @@ const TOLK_GRAMMAR = {
             $.constant_declaration,
             $.type_alias_declaration,
             $.struct_declaration,
+            $.enum_declaration,
             $.function_declaration,
             $.method_declaration,
             $.get_method_declaration,
@@ -109,6 +110,29 @@ const TOLK_GRAMMAR = {
             field("type", $._type_hint),
             optional(seq("=", field("default", $._expression))),
         ),
+
+    enum_declaration: $ =>
+        seq(
+            optional(field("annotations", $.annotation_list)),
+            "enum",
+            field("name", $.identifier),
+            optional(seq(":", field("backed_type", $._type_hint))),
+            optional(field("body", $.enum_body)),
+        ),
+    enum_body: $ =>
+        seq(
+            "{",
+            optional(
+                seq(
+                    $.enum_member_declaration,
+                    repeat(seq(optional(","), $.enum_member_declaration)),
+                ),
+            ),
+            optional(","),
+            "}",
+        ),
+    enum_member_declaration: $ =>
+        seq(field("name", $.identifier), optional(seq("=", field("default", $._expression)))),
 
     // ----------------------------------------------------------
     // functions and their body
