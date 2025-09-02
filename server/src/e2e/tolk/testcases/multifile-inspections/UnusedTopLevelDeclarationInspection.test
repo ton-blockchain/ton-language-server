@@ -37,7 +37,7 @@ type SnakeString = slice
 fun SnakeString.unpackFromSlice(mutate s: slice) {}
 fun SnakeString.packToBuilder(self, mutate b: builder) {}
 ------------------------------------------------------------------------
-3 0:5 to 0:16 Type alias 'SnakeString' is never used (tolk)
+no issues
 
 ========================================================================
 Unused top level declarations
