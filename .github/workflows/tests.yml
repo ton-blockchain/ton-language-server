@@ -25,7 +25,6 @@ jobs:
         os:
           - windows-latest
           - ubuntu-latest
-          - macos-latest
     steps:
       - name: Fetch Sources
         uses: actions/checkout@v4
