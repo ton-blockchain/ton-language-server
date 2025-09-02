@@ -439,6 +439,8 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
 
     workspaceFolders = initParams.workspaceFolders ?? []
     const opts = initParams.initializationOptions as ClientOptions | undefined
+    console.log("initializationOptions:", opts)
+
     const treeSitterUri = opts?.treeSitterWasmUri ?? `${__dirname}/tree-sitter.wasm`
     const tolkLangUri = opts?.tolkLangWasmUri ?? `${__dirname}/tree-sitter-tolk.wasm`
     const funcLangUri = opts?.funcLangWasmUri ?? `${__dirname}/tree-sitter-func.wasm`

@@ -3,10 +3,10 @@ name: E2E and Unit tests
 on:
   pull_request:
     branches:
-      - master
+      - main
   push:
     branches:
-      - master
+      - main
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -25,7 +25,6 @@ jobs:
         os:
           - windows-latest
           - ubuntu-latest
-          - macos-latest
     steps:
       - name: Fetch Sources
         uses: actions/checkout@v4
@@ -44,10 +43,19 @@ jobs:
           node-version: 22.x
           cache: "yarn"
 
+      - name: Setup EMSDK
+        uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: 3.1.54
+          actions-cache-folder: "emsdk-cache"
+
       - name: Install dependencies
         env:
           YARN_ENABLE_HARDENED_MODE: false
         run: yarn install --immutable
+
+      - name: Build WASM
+        run: yarn grammar:wasm
 
       - name: Build Extension
         run: yarn build
@@ -62,3 +70,11 @@ jobs:
       - name: Run e2e tests
         if: matrix.os != 'ubuntu-latest'
         run: yarn run test:e2e
+
+      - name: Upload Language Server Logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: language-server-logs-${{ matrix.os }}
+          path: dist/ton-language-server.log
+          if-no-files-found: ignore

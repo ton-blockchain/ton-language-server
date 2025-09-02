@@ -63,6 +63,7 @@ suite("Documentation Test Suite", () => {
                     .trim()
                     .replace(this.workingDir(), "<working-dir>")
                     .replace(workingDir, "<working-dir>")
+                    .replace(/\\/g, "/")
 
                 const expected = testCase.expected
                     .split("\n")
