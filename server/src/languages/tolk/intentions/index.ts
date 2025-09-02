@@ -95,6 +95,8 @@ export async function provideExecuteTolkCommand(
                     parent.type === "type_alias_declaration" ||
                     parent.type === "struct_declaration" ||
                     parent.type === "struct_field_declaration" ||
+                    parent.type === "enum_declaration" ||
+                    parent.type === "enum_member_declaration" ||
                     parent.type === "parameter_declaration") &&
                 parent.childForFieldName("name")?.equals(node)
             ) {

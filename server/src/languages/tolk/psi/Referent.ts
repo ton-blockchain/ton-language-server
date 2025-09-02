@@ -75,6 +75,8 @@ export class Referent extends BaseReferent<NamedNode> {
                 parent.type === "type_alias_declaration" ||
                 parent.type === "struct_declaration" ||
                 parent.type === "struct_field_declaration" ||
+                parent.type === "enum_declaration" ||
+                parent.type === "enum_member_declaration" ||
                 parent.type === "type_parameter" ||
                 parent.type === "parameter_declaration") && parent.childForFieldName("name")?.equals(node)
             ) {
@@ -182,12 +184,13 @@ export class Referent extends BaseReferent<NamedNode> {
             node.type === "get_method_declaration" ||
             node.type === "constant_declaration" ||
             node.type === "struct_declaration" ||
+            node.type === "enum_declaration" ||
             node.type === "type_alias_declaration"
         ) {
             return TolkGlobalSearchScope.importedFiles(this.resolved.file)
         }
 
-        if (node.type === "struct_field_declaration") {
+        if (node.type === "struct_field_declaration" || node.type === "enum_member_declaration") {
             return TolkGlobalSearchScope.importedFiles(this.resolved.file)
         }
 

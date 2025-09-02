@@ -7,6 +7,7 @@ import {TOLK_CACHE} from "@server/languages/tolk/cache"
 import type {Node as SyntaxNode} from "web-tree-sitter"
 import {
     Constant,
+    Enum,
     Func,
     GetMethod,
     GlobalVariable,
@@ -31,6 +32,7 @@ import {
     BuiltinTy,
     UnionTy,
     NullTy,
+    EnumTy,
 } from "@server/languages/tolk/types/ty"
 import {TypeInferer} from "@server/languages/tolk/TypeInferer"
 import {parentOfType} from "@server/psi/utils"
@@ -208,9 +210,11 @@ export class Reference {
             parent.type === "global_var_declaration" ||
             parent.type === "type_alias_declaration" ||
             parent.type === "struct_field_declaration" ||
+            parent.type === "enum_member_declaration" ||
             parent.type === "parameter_declaration" ||
             parent.type === "var_declaration" ||
             parent.type === "struct_declaration" ||
+            parent.type === "enum_declaration" ||
             parent.type === "function_declaration" ||
             parent.type === "method_declaration" ||
             parent.type === "get_method_declaration" ||
@@ -227,6 +231,9 @@ export class Reference {
         }
         if (node.type === "struct_declaration") {
             return new Struct(node, file)
+        }
+        if (node.type === "enum_declaration") {
+            return new Enum(node, file)
         }
         if (node.type === "function_declaration") {
             return new Func(node, file)
@@ -305,6 +312,17 @@ export class Reference {
             // Foo<int>.bar()
             const baseType = qualifierType.unwrapInstantiation()
             return this.processStaticMethods(baseType.name(), proc, state)
+        }
+
+        const unwrappedQualifierType = qualifierType.unwrapAlias()
+        if (resolved && unwrappedQualifierType instanceof EnumTy) {
+            // `Color.Red` support even if Color is an alias to enum
+            if (!Reference.processNamedEls(proc, state, unwrappedQualifierType.members())) {
+                return false
+            }
+            if (!this.processStaticMethods(resolved.name(), proc, state)) {
+                return false
+            }
         }
 
         if (!this.processType(qualifier, qualifierType, proc, state)) return false
@@ -708,6 +726,7 @@ export class Reference {
             }
 
             if (!index.processElsByKeyAndFile(IndexKey.Structs, file, proc, state)) return false
+            if (!index.processElsByKeyAndFile(IndexKey.Enums, file, proc, state)) return false
             if (!index.processElsByKeyAndFile(IndexKey.TypeAlias, file, proc, state)) return false
         }
 
@@ -757,6 +776,7 @@ export class Reference {
         }
 
         if (!fileIndex.processElementsByKey(IndexKey.Structs, proc, state)) return false
+        if (!fileIndex.processElementsByKey(IndexKey.Enums, proc, state)) return false
         return fileIndex.processElementsByKey(IndexKey.TypeAlias, proc, state)
     }
 }

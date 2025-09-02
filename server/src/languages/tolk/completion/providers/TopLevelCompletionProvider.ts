@@ -34,6 +34,17 @@ export class TopLevelCompletionProvider implements CompletionProvider<Completion
         })
 
         result.add({
+            label: `enum`,
+            labelDetails: {
+                detail: " Name {}",
+            },
+            kind: CompletionItemKind.Keyword,
+            insertText: "enum ${1:Name} {$0}",
+            insertTextFormat: InsertTextFormat.Snippet,
+            weight: CompletionWeight.KEYWORD,
+        })
+
+        result.add({
             label: `type`,
             labelDetails: {
                 detail: " Int = int",

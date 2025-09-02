@@ -13,6 +13,7 @@ export enum CompletionWeight {
     CONSTANT = 100,
     GLOBAL_VARIABLE = 105,
     STRUCT = 110,
+    ENUM = 115,
     TYPE_ALIAS = 120,
     LOWEST = 500,
 }

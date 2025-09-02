@@ -6,6 +6,8 @@ import {ScopeProcessor} from "@server/languages/tolk/psi/Reference"
 import {NamedNode, TolkNode} from "@server/languages/tolk/psi/TolkNode"
 import {
     Constant,
+    Enum,
+    EnumMember,
     Field,
     Func,
     GlobalVariable,
@@ -39,7 +41,10 @@ export class ReferenceCompletionProcessor implements ScopeProcessor {
             }
 
             return (
-                node instanceof TypeAlias || node instanceof Struct || node instanceof TypeParameter
+                node instanceof TypeAlias ||
+                node instanceof Struct ||
+                node instanceof Enum ||
+                node instanceof TypeParameter
             )
         }
 
@@ -54,6 +59,7 @@ export class ReferenceCompletionProcessor implements ScopeProcessor {
 
         // since structs can be created like `Foo{}` we allow them
         if (node instanceof Struct) return true
+        if (node instanceof Enum) return true // for Color.Red
         return true
     }
 
@@ -153,6 +159,15 @@ export class ReferenceCompletionProcessor implements ScopeProcessor {
                 weight: CompletionWeight.STRUCT,
                 data: additionalData,
             })
+        } else if (node instanceof Enum) {
+            this.addItem({
+                label: name,
+                kind: CompletionItemKind.Enum,
+                insertText: `${rawName}$0`,
+                insertTextFormat: InsertTextFormat.Snippet,
+                weight: CompletionWeight.ENUM,
+                data: additionalData,
+            })
         } else if (node instanceof TypeAlias) {
             this.addItem({
                 label: name,
@@ -211,6 +226,31 @@ export class ReferenceCompletionProcessor implements ScopeProcessor {
                     description: ` of ${owner}`,
                 },
                 insertText: thisPrefix + rawName + suffix,
+                insertTextFormat: InsertTextFormat.Snippet,
+                weight: CompletionWeight.FIELD,
+                data: additionalData,
+            })
+        } else if (node instanceof EnumMember) {
+            const owner = node.owner()?.name() ?? ""
+
+            const defaultValuePresentation = node.defaultValuePresentation()
+
+            const parent = this.ctx.element.node.parent
+
+            // Add enum name qualifier for
+            // Red<caret>
+            // but not for
+            // Color.Red<caret>
+            const prefix = parent?.type === "dot_access" ? "" : owner + "."
+
+            this.addItem({
+                label: prefix + rawName,
+                kind: CompletionItemKind.EnumMember,
+                labelDetails: {
+                    detail: defaultValuePresentation,
+                    description: ` of ${owner}`,
+                },
+                insertText: prefix + rawName,
                 insertTextFormat: InsertTextFormat.Snippet,
                 weight: CompletionWeight.FIELD,
                 data: additionalData,

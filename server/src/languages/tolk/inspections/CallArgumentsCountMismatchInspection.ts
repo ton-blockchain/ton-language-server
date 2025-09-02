@@ -5,7 +5,13 @@ import type {TolkFile} from "@server/languages/tolk/psi/TolkFile"
 import {asLspPosition, asLspRange} from "@server/utils/position"
 import {RecursiveVisitor} from "@server/visitor/visitor"
 import {Inspection, InspectionIds} from "./Inspection"
-import {FunctionBase, Struct, TypeAlias, TypeParameter} from "@server/languages/tolk/psi/Decls"
+import {
+    Enum,
+    FunctionBase,
+    Struct,
+    TypeAlias,
+    TypeParameter,
+} from "@server/languages/tolk/psi/Decls"
 import {CallLike, NamedNode} from "@server/languages/tolk/psi/TolkNode"
 import {Reference} from "@server/languages/tolk/psi/Reference"
 
@@ -86,6 +92,7 @@ export class CallArgumentsCountMismatchInspection implements Inspection {
         if (!resolvedQualifier) return false
         if (
             resolvedQualifier instanceof Struct ||
+            resolvedQualifier instanceof Enum ||
             resolvedQualifier instanceof TypeAlias ||
             resolvedQualifier instanceof TypeParameter
         ) {

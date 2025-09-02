@@ -552,3 +552,73 @@ fun MyStorage.load() {
 fun MyStorage.save(self) {
     contract.setData(self.toCell());
 }
+
+========================================================================
+Rename enum
+========================================================================
+enum Color {
+//!  ^ MyColor
+    Red = 10,
+    Blue = 200 + 100,
+}
+
+fun main() {
+    Color.Red;
+
+    val a: Color = Color.Blue;
+    match (a) {
+        Color.Red => {}
+        Color.Blue => {}
+    }
+}
+------------------------------------------------------------------------
+enum MyColor {
+//!  ^ MyColor
+    Red = 10,
+    Blue = 200 + 100,
+}
+
+fun main() {
+    MyColor.Red;
+
+    val a: MyColor = MyColor.Blue;
+    match (a) {
+        MyColor.Red => {}
+        MyColor.Blue => {}
+    }
+}
+
+========================================================================
+Rename enum member
+========================================================================
+enum Color {
+    Red = 10,
+//! ^ MyRed
+    Blue = 200 + 100,
+}
+
+fun main() {
+    Color.Red;
+
+    val a: Color = Color.Blue;
+    match (a) {
+        Color.Red => {}
+        Color.Blue => {}
+    }
+}
+------------------------------------------------------------------------
+enum Color {
+    MyRed = 10,
+//! ^ MyRed
+    Blue = 200 + 100,
+}
+
+fun main() {
+    Color.MyRed;
+
+    val a: Color = Color.Blue;
+    match (a) {
+        Color.MyRed => {}
+        Color.Blue => {}
+    }
+}

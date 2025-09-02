@@ -35,6 +35,7 @@ import {
 import {Reference} from "@server/languages/tolk/psi/Reference"
 import {
     Constant,
+    Enum,
     Func,
     FunctionBase,
     GlobalVariable,
@@ -699,6 +700,9 @@ export class TypeInferer {
             }
 
             return baseTy
+        }
+        if (resolved instanceof Enum) {
+            return resolved.declaredType()
         }
         if (resolved instanceof TypeAlias) {
             const underlyingType = resolved.underlyingType()

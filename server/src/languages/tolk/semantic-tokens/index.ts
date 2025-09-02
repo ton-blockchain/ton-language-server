@@ -54,6 +54,20 @@ export function provideTolkSemanticTokens(file: TolkFile): SemanticTokens {
             return true
         }
 
+        if (type === "enum_declaration") {
+            const name = n.childForFieldName("name")
+            if (!name) return true
+            tokens.node(name, lsp.SemanticTokenTypes.enum)
+            return true
+        }
+
+        if (type === "enum_member_declaration") {
+            const name = n.childForFieldName("name")
+            if (!name) return true
+            tokens.node(name, lsp.SemanticTokenTypes.enumMember)
+            return true
+        }
+
         if (type === "type_alias_declaration") {
             const name = n.childForFieldName("name")
             if (!name) return true
@@ -136,6 +150,10 @@ export function provideTolkSemanticTokens(file: TolkFile): SemanticTokens {
                     tokens.node(n, lsp.SemanticTokenTypes.struct)
                     break
                 }
+                case "enum_declaration": {
+                    tokens.node(n, lsp.SemanticTokenTypes.enum)
+                    break
+                }
                 case "function_declaration": {
                     tokens.node(n, lsp.SemanticTokenTypes.function)
                     break
@@ -147,6 +165,10 @@ export function provideTolkSemanticTokens(file: TolkFile): SemanticTokens {
                 }
                 case "struct_field_declaration": {
                     tokens.node(n, lsp.SemanticTokenTypes.property)
+                    break
+                }
+                case "enum_member_declaration": {
+                    tokens.node(n, lsp.SemanticTokenTypes.enumMember)
                     break
                 }
                 case "constant_declaration": {

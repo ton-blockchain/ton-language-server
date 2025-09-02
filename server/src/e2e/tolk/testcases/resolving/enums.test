@@ -1,0 +1,110 @@
+========================================================================
+Enum resolving
+========================================================================
+enum Color {
+    Red = 10,
+    Blue = 200 + 100,
+}
+
+fun main() {
+    <caret>Color.Red;
+
+    val a: <caret>Color = Color.Blue;
+    match (a) {
+        <caret>Color.Red => {}
+        <caret>Color.Blue => {}
+    }
+}
+------------------------------------------------------------------------
+6:4 -> 0:5 resolved
+8:11 -> 0:5 resolved
+10:8 -> 0:5 resolved
+11:8 -> 0:5 resolved
+
+========================================================================
+Enum member resolving
+========================================================================
+enum Color {
+    <caret>Red = 10,
+    <caret>Blue = 200 + 100,
+}
+
+fun main() {
+    Color.<caret>Red;
+
+    val a: Color = Color.<caret>Blue;
+    match (a) {
+        Color.<caret>Red => {}
+        Color.<caret>Blue => {}
+    }
+}
+------------------------------------------------------------------------
+1:4 -> 1:4 resolved
+2:4 -> 2:4 resolved
+6:10 -> 1:4 resolved
+8:25 -> 2:4 resolved
+10:14 -> 1:4 resolved
+11:14 -> 2:4 resolved
+
+========================================================================
+Enum member resolving via alias
+========================================================================
+enum ColorImpl {
+    <caret>Red = 10,
+    <caret>Blue = 200 + 100,
+}
+
+type Color = ColorImpl
+
+fun main() {
+    Color.<caret>Red;
+
+    val a: Color = Color.<caret>Blue;
+    match (a) {
+        Color.<caret>Red => {}
+        Color.<caret>Blue => {}
+    }
+}
+------------------------------------------------------------------------
+1:4 -> 1:4 resolved
+2:4 -> 2:4 resolved
+8:10 -> 1:4 resolved
+10:25 -> 2:4 resolved
+12:14 -> 1:4 resolved
+13:14 -> 2:4 resolved
+
+========================================================================
+Enum static method resolving
+========================================================================
+enum Color {
+    Red = 10,
+    Blue = 200 + 100,
+}
+
+fun Color.max() {
+    return Color.Red;
+}
+
+fun main() {
+    Color.<caret>max();
+}
+------------------------------------------------------------------------
+10:10 -> 5:10 resolved
+
+========================================================================
+Enum instance method resolving
+========================================================================
+enum Color {
+    Red = 10,
+    Blue = 200 + 100,
+}
+
+fun Color.isRed(self) {
+    return self == Color.Red;
+}
+
+fun main(c: Color) {
+    c.<caret>isRed();
+}
+------------------------------------------------------------------------
+10:6 -> 5:10 resolved

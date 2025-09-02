@@ -6,6 +6,7 @@ import {crc16} from "@server/utils/crc16"
 import {parentOfType} from "@server/psi/utils"
 import {RecursiveVisitor} from "@server/visitor/visitor"
 import {Reference} from "@server/languages/tolk/psi/Reference"
+import {EnumTy} from "@server/languages/tolk/types/ty"
 
 export class GlobalVariable extends NamedNode {
     public override kindName(): string {
@@ -468,6 +469,53 @@ export class Field extends NamedNode {
         const ownerNode = this.parentOfType("struct_declaration")
         if (!ownerNode) return null
         return new Struct(ownerNode, this.file)
+    }
+
+    public defaultValuePresentation(): string {
+        const defaultValueNode = this.node.childForFieldName("default")
+        if (!defaultValueNode) return ""
+        return ` = ${defaultValueNode.text}`
+    }
+
+    public defaultValue(): Expression | null {
+        const valueNode = this.node.childForFieldName("default")
+        if (valueNode === null) return null
+        return new Expression(valueNode, this.file)
+    }
+}
+
+export class Enum extends NamedNode {
+    public override kindName(): string {
+        return "enum"
+    }
+
+    public declaredType(): EnumTy {
+        return new EnumTy(this.name(), this)
+    }
+
+    public body(): SyntaxNode | null {
+        return this.node.childForFieldName("body")
+    }
+
+    public members(): EnumMember[] {
+        const body = this.node.childForFieldName("body")
+        if (!body) return []
+        return body.children
+            .filter(value => value?.type === "enum_member_declaration")
+            .filter(value => value !== null)
+            .map(value => new EnumMember(value, this.file))
+    }
+}
+
+export class EnumMember extends NamedNode {
+    public override kindName(): string {
+        return "enum member"
+    }
+
+    public owner(): Enum | null {
+        const ownerNode = this.parentOfType("enum_declaration")
+        if (!ownerNode) return null
+        return new Enum(ownerNode, this.file)
     }
 
     public defaultValuePresentation(): string {
