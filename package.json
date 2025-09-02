@@ -388,6 +388,11 @@
                         "default": true,
                         "description": "Show method ID hints for get methods"
                     },
+                    "ton.tolk.hints.constantValues": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Show computed values for constants"
+                    },
                     "ton.func.hints.disable": {
                         "type": "boolean",
                         "default": false,
@@ -558,7 +563,8 @@
         "@ton/core": "0.60.1",
         "@ton/crypto": "^3.3.0",
         "glob": "^11.0.1",
-        "tolkfmt-test-dev": "0.0.16",
+        "jssha": "^3.3.1",
+        "tolkfmt-test-dev": "0.0.20",
         "ton-assembly": "0.2.0",
         "vscode-languageclient": "^8.0.2",
         "vscode-languageserver": "^8.0.2",

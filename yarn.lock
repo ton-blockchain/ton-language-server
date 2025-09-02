@@ -5289,6 +5289,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"jssha@npm:^3.3.1":
+  version: 3.3.1
+  resolution: "jssha@npm:3.3.1"
+  checksum: 10c0/dccd89d1cb9ffdf27e34edfff6ca261a0b130554839ae1a9601e6c959d050daaac8095f02971ee0e13c624c886cad3e0e4fc52b056f53251a99094fde2a41188
+  languageName: node
+  linkType: hard
+
 "jszip@npm:^3.10.1":
   version: 3.10.1
   resolution: "jszip@npm:3.10.1"
@@ -7502,16 +7509,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tolkfmt-test-dev@npm:0.0.16":
-  version: 0.0.16
-  resolution: "tolkfmt-test-dev@npm:0.0.16"
+"tolkfmt-test-dev@npm:0.0.20":
+  version: 0.0.20
+  resolution: "tolkfmt-test-dev@npm:0.0.20"
   dependencies:
     cac: "npm:^6.7.14"
     glob: "npm:^10.3.10"
     web-tree-sitter: "npm:^0.25.6"
   bin:
     tolkfmt: bin/tolkfmt
-  checksum: 10c0/f87a935da5934d51bf9e040077179cb068a3dd733d40184ad8e1684910836cc9efc780fea5dc98f825d5daac03c020a363bbb7c49176a9af5ad2af46f7aa40f5
+  checksum: 10c0/0798473d3db93386ecea0e01da89f64872ff19bc1fa6d64f20580cbf5faed4389add5fb6ab37deb64f12a66131a77b4262fe058486a97890f4e6d13a1427d77a
   languageName: node
   linkType: hard
 
@@ -8018,9 +8025,10 @@ __metadata:
     glob: "npm:^11.0.1"
     husky: "npm:^9.1.7"
     jest: "npm:^29.7.0"
+    jssha: "npm:^3.3.1"
     mocha: "npm:^10.3.0"
     prettier: "npm:3.4.2"
-    tolkfmt-test-dev: "npm:0.0.16"
+    tolkfmt-test-dev: "npm:0.0.20"
     ton-assembly: "npm:0.2.0"
     tree-sitter-cli: "npm:^0.25.8"
     ts-jest: "npm:^29.2.6"

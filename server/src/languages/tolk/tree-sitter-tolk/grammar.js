@@ -175,7 +175,7 @@ const TOLK_GRAMMAR = {
             field("name", $.identifier),
             optional(field("parameters", $.parameter_list)),
             optional(seq(":", field("return_type", optional($._type_hint)))),
-            optional(field("body", $.block_statement)),
+            optional(field("body", $._function_body)),
         ),
 
     annotation_list: $ => repeat1($.annotation),
