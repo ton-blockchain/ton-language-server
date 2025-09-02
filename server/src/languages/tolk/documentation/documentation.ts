@@ -123,9 +123,12 @@ export function generateTolkDocFor(node: NamedNode, place: SyntaxNode): string |
         }
         case "enum_declaration": {
             const doc = node.documentation()
-            const struct = new Enum(node.node, node.file)
+            const enum_ = new Enum(node.node, node.file)
 
-            const members = struct.members().map(member => {
+            const backedType = enum_.backedType()
+            const backedTypePresentation = backedType ? `: ${backedType.text}` : ""
+
+            const members = enum_.members().map(member => {
                 const name = member.nameNode()
                 if (!name) return null
 
@@ -135,7 +138,10 @@ export function generateTolkDocFor(node: NamedNode, place: SyntaxNode): string |
             const bodyPresentation =
                 members.length === 0 ? "{}" : "{\n" + members.join("\n") + "\n}"
 
-            return defaultResult(`enum ${node.name()} ${bodyPresentation}`, doc)
+            return defaultResult(
+                `enum ${node.name()}${backedTypePresentation} ${bodyPresentation}`,
+                doc,
+            )
         }
         case "type_alias_declaration": {
             const doc = node.documentation()

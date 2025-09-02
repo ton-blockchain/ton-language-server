@@ -493,6 +493,10 @@ export class Enum extends NamedNode {
         return new EnumTy(this.name(), this)
     }
 
+    public backedType(): SyntaxNode | null {
+        return this.node.childForFieldName("backed_type")
+    }
+
     public body(): SyntaxNode | null {
         return this.node.childForFieldName("body")
     }
