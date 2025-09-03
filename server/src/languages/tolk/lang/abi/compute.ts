@@ -1,10 +1,19 @@
 import {TolkFile} from "@server/languages/tolk/psi/TolkFile"
-import {ContractAbi, GetMethod, Message, Storage} from "@shared/abi"
+import {ContractAbi, EntryPoint, GetMethod, Message, Storage} from "@shared/abi"
 
 export function contractAbi(file: TolkFile): ContractAbi | undefined {
     const getMethods: GetMethod[] = []
     const messages: Message[] = []
     let storage: Storage | undefined = undefined
+    let entryPoint: EntryPoint | undefined = undefined
+
+    file.getFunctions().forEach(func => {
+        if (func.name() === "onInternalMessage") {
+            entryPoint = {
+                pos: func.nameIdentifier()?.startPosition,
+            }
+        }
+    })
 
     file.getGetMethods().forEach(method => {
         getMethods.push({
@@ -56,6 +65,7 @@ export function contractAbi(file: TolkFile): ContractAbi | undefined {
     })
 
     return {
+        entryPoint,
         storage,
         getMethods,
         messages,

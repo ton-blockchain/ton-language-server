@@ -6,6 +6,7 @@ import {SandboxFormProvider} from "./SandboxFormProvider"
 import {GetContractAbiParams, GetContractAbiResponse} from "@shared/shared-msgtypes"
 import {ContractAbi, Field} from "@shared/abi"
 import {beginCell} from "@ton/core"
+import type {SandboxCodeLensProvider} from "./SandboxCodeLensProvider"
 
 interface SandboxTreeItem {
     readonly id: string
@@ -33,6 +34,7 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
     private deployedContracts: DeployedContract[] = []
     private sandboxStatus: "disconnected" | "connected" | "error" = "disconnected"
     private formProvider?: SandboxFormProvider
+    private codeLensProvider?: SandboxCodeLensProvider
 
     public constructor() {
         void this.checkSandboxStatus()
@@ -41,6 +43,10 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
     public setFormProvider(formProvider: SandboxFormProvider): void {
         this.formProvider = formProvider
         this.updateFormContracts()
+    }
+
+    public setCodeLensProvider(codeLensProvider: SandboxCodeLensProvider): void {
+        this.codeLensProvider = codeLensProvider
     }
 
     public refresh(): void {
@@ -252,18 +258,21 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
         })
         this.refresh()
         this.updateFormContracts()
+        this.codeLensProvider?.refresh()
     }
 
     public removeContract(address: string): void {
         this.deployedContracts = this.deployedContracts.filter(c => c.address !== address)
         this.refresh()
         this.updateFormContracts()
+        this.codeLensProvider?.refresh()
     }
 
     public clearContracts(): void {
         this.deployedContracts = []
         this.refresh()
         this.updateFormContracts()
+        this.codeLensProvider?.refresh()
     }
 
     public updateSandboxStatus(status: "connected" | "disconnected" | "error"): void {

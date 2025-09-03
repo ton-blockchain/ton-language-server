@@ -349,6 +349,26 @@
                 "command": "ton.sandbox.openContractOperations",
                 "title": "Open Contract Operations",
                 "category": "TON"
+            },
+            {
+                "command": "ton.sandbox.deployFromCodeLens",
+                "title": "Deploy Contract from CodeLens",
+                "category": "TON"
+            },
+            {
+                "command": "ton.sandbox.copyContractAddress",
+                "title": "Copy Contract Address",
+                "category": "TON"
+            },
+            {
+                "command": "ton.sandbox.openContractSendMessage",
+                "title": "Open Contract Send Message",
+                "category": "TON"
+            },
+            {
+                "command": "ton.sandbox.callGetMethodFromCodeLens",
+                "title": "Call Get Method from CodeLens",
+                "category": "TON"
             }
         ],
         "views": {
@@ -393,19 +413,6 @@
                     "when": "resourceExtname == '.boc'",
                     "command": "ton.saveBocDecompiled",
                     "group": "navigation"
-                }
-            ],
-            "editor/context": [
-                {
-                    "when": "editorLangId == 'tolk'",
-                    "command": "ton.sandbox.deployContract",
-                    "group": "ton@1"
-                }
-            ],
-            "commandPalette": [
-                {
-                    "command": "ton.sandbox.deployContract",
-                    "when": "editorLangId == 'tolk'"
                 }
             ],
             "view/title": [

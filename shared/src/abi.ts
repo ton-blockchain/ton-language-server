@@ -2,6 +2,11 @@ export interface ContractAbi {
     readonly storage: Storage | undefined
     readonly messages: readonly Message[]
     readonly getMethods: readonly GetMethod[]
+    readonly entryPoint: EntryPoint | undefined
+}
+
+export interface EntryPoint {
+    readonly pos: Pos | undefined
 }
 
 export interface Storage {

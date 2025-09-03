@@ -33,6 +33,7 @@ import {registerSaveBocDecompiledCommand} from "./commands/saveBocDecompiledComm
 import {registerSandboxCommands} from "./commands/sandboxCommands"
 import {SandboxTreeProvider} from "./providers/SandboxTreeProvider"
 import {SandboxFormProvider} from "./providers/SandboxFormProvider"
+import {SandboxCodeLensProvider} from "./providers/SandboxCodeLensProvider"
 import {ToolchainConfig} from "@server/settings/settings"
 import {configureDebugging} from "./debugging"
 
@@ -63,7 +64,13 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         ),
     )
 
+    const sandboxCodeLensProvider = new SandboxCodeLensProvider(sandboxTreeProvider)
+    context.subscriptions.push(
+        vscode.languages.registerCodeLensProvider({language: "tolk"}, sandboxCodeLensProvider),
+    )
+
     sandboxTreeProvider.setFormProvider(sandboxFormProvider)
+    sandboxTreeProvider.setCodeLensProvider(sandboxCodeLensProvider)
 
     context.subscriptions.push(
         vscode.commands.registerCommand(

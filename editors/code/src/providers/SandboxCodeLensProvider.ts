@@ -1,0 +1,161 @@
+//  SPDX-License-Identifier: MIT
+//  Copyright © 2025 TON Studio
+import * as vscode from "vscode"
+import {GetMethod, EntryPoint} from "@shared/abi"
+import {GetContractAbiParams, GetContractAbiResponse} from "@shared/shared-msgtypes"
+import {SandboxTreeProvider} from "./SandboxTreeProvider"
+import {Event} from "vscode"
+
+export class SandboxCodeLensProvider implements vscode.CodeLensProvider {
+    private readonly _onDidChangeCodeLenses: vscode.EventEmitter<void> =
+        new vscode.EventEmitter<void>()
+    public readonly onDidChangeCodeLenses: Event<void> = this._onDidChangeCodeLenses.event
+
+    public constructor(private readonly treeProvider: SandboxTreeProvider) {}
+
+    public refresh(): void {
+        this._onDidChangeCodeLenses.fire()
+    }
+
+    public async provideCodeLenses(
+        document: vscode.TextDocument,
+        _token: vscode.CancellationToken,
+    ): Promise<vscode.CodeLens[]> {
+        if (document.languageId !== "tolk") {
+            return []
+        }
+
+        try {
+            const abiResult: GetContractAbiResponse = await vscode.commands.executeCommand(
+                "tolk.getContractAbi",
+                {
+                    textDocument: {
+                        uri: document.uri.toString(),
+                    },
+                } satisfies GetContractAbiParams,
+            )
+
+            if (!abiResult.abi) {
+                return []
+            }
+
+            const codeLenses: vscode.CodeLens[] = []
+            const contractAbi = abiResult.abi
+
+            if (contractAbi.entryPoint?.pos) {
+                const entryPointLens = this.createEntryPointCodeLens(
+                    contractAbi.entryPoint,
+                    document,
+                )
+                if (entryPointLens) {
+                    codeLenses.push(...entryPointLens)
+                }
+            }
+
+            for (const getMethod of contractAbi.getMethods) {
+                if (getMethod.pos) {
+                    const methodLens = this.createGetMethodCodeLens(getMethod, document)
+                    if (methodLens) {
+                        codeLenses.push(methodLens)
+                    }
+                }
+            }
+
+            return codeLenses
+        } catch (error) {
+            console.error("Error providing CodeLenses:", error)
+            return []
+        }
+    }
+
+    private createEntryPointCodeLens(
+        entryPoint: EntryPoint,
+        document: vscode.TextDocument,
+    ): vscode.CodeLens[] | null {
+        if (!entryPoint.pos) {
+            return null
+        }
+
+        const position = new vscode.Position(entryPoint.pos.row, entryPoint.pos.column)
+        const range = new vscode.Range(position, position)
+
+        const codeLenses: vscode.CodeLens[] = []
+
+        const contractName = this.getContractNameFromDocument(document)
+        const deployedContract = this.findDeployedContract(contractName)
+
+        if (deployedContract) {
+            const statusLens = new vscode.CodeLens(range, {
+                title: `Deployed: ${this.formatAddress(deployedContract.address)}`,
+                command: "ton.sandbox.copyContractAddress",
+                arguments: [deployedContract.address],
+            })
+
+            const sendMessageLens = new vscode.CodeLens(range, {
+                title: "Send Message",
+                command: "ton.sandbox.openContractSendMessage",
+                arguments: [deployedContract.address],
+            })
+
+            codeLenses.push(statusLens, sendMessageLens)
+        } else {
+            const deployLens = new vscode.CodeLens(range, {
+                title: "Deploy contract",
+                command: "ton.sandbox.deployFromCodeLens",
+                arguments: [],
+            })
+
+            codeLenses.push(deployLens)
+        }
+
+        return codeLenses
+    }
+
+    private createGetMethodCodeLens(
+        getMethod: GetMethod,
+        document: vscode.TextDocument,
+    ): vscode.CodeLens | null {
+        if (!getMethod.pos) {
+            return null
+        }
+
+        const position = new vscode.Position(getMethod.pos.row, getMethod.pos.column)
+        const range = new vscode.Range(position, position)
+
+        const contractName = this.getContractNameFromDocument(document)
+        const deployedContract = this.findDeployedContract(contractName)
+
+        if (deployedContract) {
+            return new vscode.CodeLens(range, {
+                title: `Execute`,
+                command: "ton.sandbox.callGetMethodFromCodeLens",
+                arguments: [deployedContract.address, getMethod.name, getMethod.id],
+            })
+        }
+
+        return null
+    }
+
+    private getContractNameFromDocument(document: vscode.TextDocument): string {
+        const fileName = document.fileName
+        const baseName = fileName.split("/").pop() ?? "Unknown"
+        return baseName.replace(/\.(tolk|fc|func)$/, "")
+    }
+
+    private findDeployedContract(contractName: string):
+        | {
+              address: string
+              name: string
+          }
+        | undefined {
+        const deployedContracts = this.treeProvider.getDeployedContracts()
+        return deployedContracts.find(c => c.name === contractName)
+    }
+
+    private formatAddress(address: string): string {
+        if (address.length <= 12) {
+            return address
+        }
+        return `${address.slice(0, 6)}...${address.slice(Math.max(0, address.length - 6))}`
+    }
+}

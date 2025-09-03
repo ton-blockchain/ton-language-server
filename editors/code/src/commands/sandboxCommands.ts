@@ -71,6 +71,28 @@ export function registerSandboxCommands(
                 }
             },
         ),
+        vscode.commands.registerCommand("ton.sandbox.deployFromCodeLens", () => {
+            formProvider.openOperation("compile-deploy")
+        }),
+        vscode.commands.registerCommand(
+            "ton.sandbox.copyContractAddress",
+            async (address: string) => {
+                await vscode.env.clipboard.writeText(address)
+                void vscode.window.showInformationMessage(`Contract address copied: ${address}`)
+            },
+        ),
+        vscode.commands.registerCommand(
+            "ton.sandbox.openContractSendMessage",
+            (address: string) => {
+                formProvider.openOperation("send-message", address)
+            },
+        ),
+        vscode.commands.registerCommand(
+            "ton.sandbox.callGetMethodFromCodeLens",
+            async (address: string, methodName: string, methodId: number) => {
+                await callGetMethodDirectly(address, methodName, methodId)
+            },
+        ),
     )
 
     return disposables
@@ -579,6 +601,31 @@ async function handleCallGetMethodFromForm(
                 message: `Call failed: ${error instanceof Error ? error.message : "Unknown error"}`,
             },
             "get-method-result",
+        )
+    }
+}
+
+async function callGetMethodDirectly(
+    address: string,
+    methodName: string,
+    methodId: number,
+): Promise<void> {
+    try {
+        const result = await callGetMethod(address, methodId)
+
+        if (result.success) {
+            const message = result.result ?? "null"
+            const details = result.logs ? `Logs:\n${result.logs}` : ""
+
+            void vscode.window.showInformationMessage(message, {detail: details})
+        } else {
+            void vscode.window.showErrorMessage(
+                `❌ Call failed: ${result.error ?? "Unknown error"}`,
+            )
+        }
+    } catch (error) {
+        void vscode.window.showErrorMessage(
+            `❌ Call failed: ${error instanceof Error ? error.message : "Unknown error"}`,
         )
     }
 }
