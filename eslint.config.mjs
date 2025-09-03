@@ -120,6 +120,7 @@ export default tseslint.config(
             "unicorn/no-array-reduce": "off",
             "unicorn/prefer-string-raw": "off",
             "unicorn/no-useless-undefined": "off",
+            "unicorn/require-post-message-target-origin": "off",
         },
     },
 )

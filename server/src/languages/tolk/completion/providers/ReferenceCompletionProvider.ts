@@ -44,20 +44,24 @@ export class ReferenceCompletionProvider implements CompletionProvider<Completio
             this.ref.processResolveVariants(processor, state.withValue("completion", "true"))
         }
 
-        index.processElementsByKey(
-            IndexKey.Enums,
-            new (class implements ScopeProcessor {
-                public execute(node: Enum, state: ResolveState): boolean {
-                    for (const member of node.members()) {
-                        if (!processor.execute(member, state.withValue("need-prefix", "true"))) {
-                            return false
+        if (ctx.element.node.parent?.type !== "dot_access") {
+            index.processElementsByKey(
+                IndexKey.Enums,
+                new (class implements ScopeProcessor {
+                    public execute(node: Enum, state: ResolveState): boolean {
+                        for (const member of node.members()) {
+                            if (
+                                !processor.execute(member, state.withValue("need-prefix", "true"))
+                            ) {
+                                return false
+                            }
                         }
+                        return true
                     }
-                    return true
-                }
-            })(),
-            state,
-        )
+                })(),
+                state,
+            )
+        }
 
         // TODO: think about case:
         //   debug.pr<caret>

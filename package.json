@@ -227,6 +227,11 @@
                 "category": "Tolk"
             },
             {
+                "command": "tolk.getContractAbi",
+                "title": "Get Contract ABI",
+                "category": "Tolk"
+            },
+            {
                 "command": "tolk.executeHoverProvider",
                 "title": "Get Documentation At Position",
                 "category": "Tolk"
@@ -284,8 +289,92 @@
             {
                 "command": "ton.debug",
                 "title": "TON: Debug contract"
+            },
+            {
+                "command": "ton.sandbox.loadAbiForDeploy",
+                "title": "Load Contract ABI for Deploy",
+                "category": "TON"
+            },
+            {
+                "command": "ton.sandbox.compileAndDeploy",
+                "title": "Compile and Deploy",
+                "category": "TON",
+                "icon": "$(rocket)"
+            },
+            {
+                "command": "ton.sandbox.sendMessage",
+                "title": "Send Message",
+                "category": "TON",
+                "icon": "$(mail)"
+            },
+            {
+                "command": "ton.sandbox.callGetMethod",
+                "title": "Call Get Method",
+                "category": "TON",
+                "icon": "$(symbol-method)"
+            },
+            {
+                "command": "ton.sandbox.selectContract",
+                "title": "Select Contract",
+                "category": "TON"
+            },
+            {
+                "command": "ton.sandbox.refresh",
+                "title": "Refresh",
+                "category": "TON",
+                "icon": "$(refresh)"
+            },
+            {
+                "command": "ton.sandbox.clearContracts",
+                "title": "Clear All Contracts",
+                "category": "TON",
+                "icon": "$(trash)"
+            },
+            {
+                "command": "ton.sandbox.sendMessageFromForm",
+                "title": "Send Message from Form",
+                "category": "TON"
+            },
+            {
+                "command": "ton.sandbox.callGetMethodFromForm",
+                "title": "Call Get Method from Form",
+                "category": "TON"
+            },
+            {
+                "command": "ton.sandbox.openOperation",
+                "title": "Open Sandbox Operation",
+                "category": "TON"
+            },
+            {
+                "command": "ton.sandbox.openContractOperations",
+                "title": "Open Contract Operations",
+                "category": "TON"
             }
         ],
+        "views": {
+            "tonSandboxContainer": [
+                {
+                    "id": "tonSandbox",
+                    "name": "Contracts & Actions",
+                    "when": "true"
+                },
+                {
+                    "id": "tonSandboxForm",
+                    "type": "webview",
+                    "name": "Operations",
+                    "when": "true"
+                }
+            ]
+        },
+        "viewsContainers": {
+            "activitybar": [
+                {
+                    "id": "tonSandboxContainer",
+                    "title": "TON Sandbox",
+                    "icon": "$(rocket)"
+                }
+            ]
+        },
         "keybindings": [
             {
                 "command": "tolk.build",
@@ -304,6 +393,38 @@
                     "when": "resourceExtname == '.boc'",
                     "command": "ton.saveBocDecompiled",
                     "group": "navigation"
+                }
+            ],
+            "editor/context": [
+                {
+                    "when": "editorLangId == 'tolk'",
+                    "command": "ton.sandbox.deployContract",
+                    "group": "ton@1"
+                }
+            ],
+            "commandPalette": [
+                {
+                    "command": "ton.sandbox.deployContract",
+                    "when": "editorLangId == 'tolk'"
+                }
+            ],
+            "view/title": [
+                {
+                    "command": "ton.sandbox.refresh",
+                    "when": "view == tonSandbox",
+                    "group": "navigation"
+                },
+                {
+                    "command": "ton.sandbox.clearContracts",
+                    "when": "view == tonSandbox",
+                    "group": "navigation"
+                }
+            ],
+            "view/item/context": [
+                {
+                    "command": "ton.sandbox.selectContract",
+                    "when": "view == tonSandbox && viewItem == deployed-contract",
+                    "group": "inline"
                 }
             ]
         },
@@ -526,6 +647,21 @@
                         "description": "Sort imports on format"
                     }
                 }
+            },
+            {
+                "title": "Sandbox",
+                "properties": {
+                    "ton.sandbox.url": {
+                        "type": "string",
+                        "default": "http://localhost:3000",
+                        "description": "URL of the TON Sandbox API server"
+                    },
+                    "ton.sandbox.autoStart": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Automatically start sandbox server when opening workspace"
+                    }
+                }
             }
         ],
         "customEditors": [
@@ -562,6 +698,7 @@
     "dependencies": {
         "@ton/core": "0.60.1",
         "@ton/crypto": "^3.3.0",
+        "@ton/tolk-js": "^1.0.0",
         "glob": "^11.0.1",
         "jssha": "^3.3.1",
         "tolkfmt-test-dev": "0.0.20",

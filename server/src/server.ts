@@ -13,7 +13,10 @@ import {globalVFS} from "@server/vfs/global"
 import {existsVFS} from "@server/vfs/files-adapter"
 import type {ClientOptions} from "@shared/config-scheme"
 import {
+    ContractAbiRequest,
     DocumentationAtPositionRequest,
+    GetContractAbiParams,
+    GetContractAbiResponse,
     SetToolchainVersionNotification,
     SetToolchainVersionParams,
     TypeAtPositionParams,
@@ -121,6 +124,7 @@ import {FuncIndexingRoot} from "@server/languages/func/indexing-root"
 import {formatTolkFile} from "@server/languages/tolk/format/format"
 import {collectFuncCodeLenses} from "@server/languages/func/lens"
 import {collectFiftCodeLenses} from "@server/languages/fift/lens"
+import {contractAbi} from "@server/languages/tolk/lang/abi/compute"
 
 /**
  * Whenever LS is initialized.
@@ -1087,6 +1091,24 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
             }
 
             return {type: null, range: null}
+        },
+    )
+
+    connection.onRequest(
+        ContractAbiRequest,
+        async (params: GetContractAbiParams): Promise<GetContractAbiResponse> => {
+            const uri = params.textDocument.uri
+
+            if (isTolkFile(uri)) {
+                const file = await findTolkFile(uri)
+                return {
+                    abi: contractAbi(file),
+                }
+            }
+
+            return {
+                abi: undefined,
+            }
         },
     )
 

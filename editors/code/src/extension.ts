@@ -1,6 +1,7 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Studio
 import * as vscode from "vscode"
+import {FileSystemWatcher, Position, Range} from "vscode"
 import * as path from "node:path"
 import {Utils as vscode_uri} from "vscode-uri"
 import {
@@ -14,11 +15,13 @@ import {consoleError, createClientLog} from "./client-log"
 import {getClientConfiguration} from "./client-config"
 import {
     DocumentationAtPositionRequest,
+    GetContractAbiParams,
+    GetContractAbiResponse,
+    SetToolchainVersionNotification,
+    SetToolchainVersionParams,
     TypeAtPositionParams,
     TypeAtPositionRequest,
     TypeAtPositionResponse,
-    SetToolchainVersionNotification,
-    SetToolchainVersionParams,
 } from "@shared/shared-msgtypes"
 import type {ClientOptions} from "@shared/config-scheme"
 import {registerBuildTasks} from "./build-system"
@@ -27,7 +30,9 @@ import {BocEditorProvider} from "./providers/BocEditorProvider"
 import {BocFileSystemProvider} from "./providers/BocFileSystemProvider"
 import {BocDecompilerProvider} from "./providers/BocDecompilerProvider"
 import {registerSaveBocDecompiledCommand} from "./commands/saveBocDecompiledCommand"
-import {Range, Position, FileSystemWatcher} from "vscode"
+import {registerSandboxCommands} from "./commands/sandboxCommands"
+import {SandboxTreeProvider} from "./providers/SandboxTreeProvider"
+import {SandboxFormProvider} from "./providers/SandboxFormProvider"
 import {ToolchainConfig} from "@server/settings/settings"
 import {configureDebugging} from "./debugging"
 
@@ -41,6 +46,37 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     await registerBuildTasks(context)
     registerOpenBocCommand(context)
     registerSaveBocDecompiledCommand(context)
+
+    const sandboxTreeProvider = new SandboxTreeProvider()
+    context.subscriptions.push(
+        vscode.window.createTreeView("tonSandbox", {
+            treeDataProvider: sandboxTreeProvider,
+            showCollapseAll: true,
+        }),
+    )
+
+    const sandboxFormProvider = new SandboxFormProvider(context.extensionUri)
+    context.subscriptions.push(
+        vscode.window.registerWebviewViewProvider(
+            SandboxFormProvider.viewType,
+            sandboxFormProvider,
+        ),
+    )
+
+    sandboxTreeProvider.setFormProvider(sandboxFormProvider)
+
+    context.subscriptions.push(
+        vscode.commands.registerCommand(
+            "tolk.getContractAbi",
+            async (params: GetContractAbiParams) => {
+                return client?.sendRequest<GetContractAbiResponse>("tolk.getContractAbi", params)
+            },
+        ),
+    )
+
+    const sandboxCommands = registerSandboxCommands(sandboxTreeProvider, sandboxFormProvider)
+    context.subscriptions.push(...sandboxCommands)
+
     configureDebugging(context)
 
     const config = vscode.workspace.getConfiguration("ton")
