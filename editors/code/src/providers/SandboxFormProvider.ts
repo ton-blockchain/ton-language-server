@@ -7,7 +7,6 @@ export interface FormData {
     readonly sendContract?: string
     readonly getContract?: string
     readonly messageType?: "raw" | "structured"
-    readonly rawMessage?: string
     readonly selectedMessage?: string
     readonly messageFields?: Record<string, string>
     readonly value?: string
@@ -333,34 +332,6 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
             margin-right: 6px;
         }
 
-        .raw-message-details {
-            margin-bottom: 12px;
-            border: 1px solid var(--vscode-input-border);
-            border-radius: 3px;
-        }
-
-        .raw-message-details summary {
-            padding: 8px 12px;
-            cursor: pointer;
-            background-color: var(--vscode-input-background);
-            font-size: 12px;
-            font-weight: 500;
-            color: var(--vscode-descriptionForeground);
-        }
-
-        .raw-message-details summary:hover {
-            background-color: var(--vscode-list-hoverBackground);
-        }
-
-        .raw-message-details[open] summary {
-            border-bottom: 1px solid var(--vscode-input-border);
-        }
-
-        .raw-message-details .form-group {
-            margin: 12px;
-            margin-bottom: 0;
-        }
-
         .message-field {
             margin-bottom: 10px;
             padding: 8px;
@@ -398,21 +369,43 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
             padding: 12px;
             font-style: italic;
         }
+
+        .operation-content-display {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .no-operation {
+            padding: 20px;
+            text-align: center;
+            color: var(--vscode-descriptionForeground);
+        }
+
+        .no-operation p {
+            margin-bottom: 16px;
+            font-size: 13px;
+        }
+
+        .no-operation ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .no-operation li {
+            padding: 8px 0;
+            font-size: 12px;
+            text-align: left;
+        }
+
+        .no-operation strong {
+            color: var(--vscode-foreground);
+        }
     </style>
 </head>
 <body>
-    <div id="noContractsMessage" class="no-contracts">
-        No contracts deployed yet.<br>
-        Deploy a contract first to use operations.
-    </div>
-
-    <!-- Compile & Deploy -->
-    <div class="operation-section">
-        <button class="operation-header" data-operation="compile-deploy">
-            <span><span class="icon">🚀</span>Compile & Deploy</span>
-            <span class="chevron">▶</span>
-        </button>
-        <div class="operation-content" id="compile-deploy-content">
+    <div id="operationContent" class="operation-content-display">
+        <div id="compile-deploy-content" class="operation-content" style="display: none;">
             <div class="form-group">
                 <label>Deploy contract from active editor</label>
                 <p style="font-size: 11px; color: var(--vscode-descriptionForeground); margin-bottom: 8px;">
@@ -425,15 +418,9 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
             <button id="compileDeployBtn">Compile & Deploy from Editor</button>
             <div id="compile-deploy-result" class="result"></div>
         </div>
-    </div>
 
-    <!-- Send Message -->
-    <div class="operation-section">
-        <button class="operation-header" data-operation="send-message">
-            <span><span class="icon">📤</span>Send Message</span>
-            <span class="chevron">▶</span>
-        </button>
-        <div class="operation-content" id="send-message-content">
+        <!-- Send Message -->
+        <div id="send-message-content" class="operation-content" style="display: none;">
             <div class="form-group">
                 <label for="sendContractSelect">Target Contract:</label>
                 <select id="sendContractSelect">
@@ -452,14 +439,6 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
                 <div id="messageFieldsContainer"></div>
             </div>
 
-            <details class="raw-message-details">
-                <summary>Raw Message (Advanced)</summary>
-                <div class="form-group">
-                    <label for="rawMessage">Message (base64 Cell):</label>
-                    <textarea id="rawMessage" placeholder="te6ccgEBAQEAAgAAAA=="></textarea>
-                </div>
-            </details>
-
             <div class="form-group">
                 <label for="sendValue">Value (TON):</label>
                 <input type="text" id="sendValue" placeholder="1.0" value="1.0">
@@ -468,15 +447,9 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
             <button id="sendMessageBtn">Send Message</button>
             <div id="send-message-result" class="result"></div>
         </div>
-    </div>
 
-    <!-- Call Get Method -->
-    <div class="operation-section">
-        <button class="operation-header" data-operation="get-method">
-            <span><span class="icon">📞</span>Call Get Method</span>
-            <span class="chevron">▶</span>
-        </button>
-        <div class="operation-content" id="get-method-content">
+        <!-- Call Get Method -->
+        <div id="get-method-content" class="operation-content" style="display: none;">
             <div class="form-group">
                 <label for="getContractSelect">Target Contract:</label>
                 <select id="getContractSelect">
@@ -499,6 +472,16 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
             <button id="callGetMethodBtn">Call Get Method</button>
             <div id="get-method-result" class="result"></div>
         </div>
+
+        <!-- Default state when no operation is selected -->
+        <div id="no-operation-content" class="no-operation">
+            <p>Select an operation from the tree to get started:</p>
+            <ul>
+                <li>🚀 <strong>Compile & Deploy</strong> - Deploy contracts from editor</li>
+                <li>📤 <strong>Send Message</strong> - Send messages to deployed contracts</li>
+                <li>🔍 <strong>Call Get Method</strong> - Call get methods on contracts</li>
+            </ul>
+        </div>
     </div>
 
     <script>
@@ -507,27 +490,18 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
         let deployedContracts = [];
         let activeOperation = null;
 
-        const noContractsMessage = document.getElementById('noContractsMessage');
-        const operationHeaders = document.querySelectorAll('.operation-header');
+        const noOperationContent = document.getElementById('no-operation-content');
         const sendContractSelect = document.getElementById('sendContractSelect');
         const getContractSelect = document.getElementById('getContractSelect');
         const methodSelect = document.getElementById('methodSelect');
         const messageSelect = document.getElementById('messageSelect');
         const messageFieldsContainer = document.getElementById('messageFieldsContainer');
         const storageFieldsContainer = document.getElementById('storageFieldsContainer');
-        const rawMessage = document.getElementById('rawMessage');
         const sendValue = document.getElementById('sendValue');
         const methodId = document.getElementById('methodId');
         const compileDeployBtn = document.getElementById('compileDeployBtn');
         const sendMessageBtn = document.getElementById('sendMessageBtn');
         const callGetMethodBtn = document.getElementById('callGetMethodBtn');
-
-        operationHeaders.forEach(header => {
-            header.addEventListener('click', () => {
-                const operation = header.dataset.operation;
-                toggleOperation(operation);
-            });
-        });
 
         sendContractSelect.addEventListener('change', () => {
             updateMessagesList();
@@ -545,7 +519,6 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
             updateMessageFields();
             updateFormData();
         });
-        rawMessage.addEventListener('input', updateFormData);
         sendValue.addEventListener('input', updateFormData);
         methodId.addEventListener('input', updateFormData);
 
@@ -576,7 +549,7 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
                 return;
             }
 
-            if (!formData.selectedMessage && !formData.rawMessage) {
+            if (!formData.selectedMessage) {
                 showResult('send-message-result', {success: false, message: 'Please select a message or enter raw message'});
                 return;
             }
@@ -611,64 +584,54 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
             }
         });
 
-        function toggleOperation(operation) {
-            const content = document.getElementById(\`\${operation}-content\`);
-            const header = document.querySelector(\`[data-operation="\${operation}"]\`);
-            const chevron = header.querySelector('.chevron');
+        function showOperationMenu() {
+            document.getElementById('compile-deploy-content').style.display = 'none';
+            document.getElementById('send-message-content').style.display = 'none';
+            document.getElementById('get-method-content').style.display = 'none';
 
-            operationHeaders.forEach(h => {
-                if (h !== header) {
-                    h.classList.remove('active');
-                    const c = document.getElementById(\`\${h.dataset.operation}-content\`);
-                    c.classList.remove('expanded');
-                    h.querySelector('.chevron').classList.remove('expanded');
-                }
-            });
+            noOperationContent.style.display = 'block';
+            activeOperation = null;
+        }
 
-            if (content.classList.contains('expanded')) {
-                content.classList.remove('expanded');
-                header.classList.remove('active');
-                chevron.classList.remove('expanded');
-                activeOperation = null;
-            } else {
-                content.classList.add('expanded');
-                header.classList.add('active');
-                chevron.classList.add('expanded');
+        function showOperation(operation, contractAddress) {
+            noOperationContent.style.display = 'none';
+            document.getElementById('compile-deploy-content').style.display = 'none';
+            document.getElementById('send-message-content').style.display = 'none';
+            document.getElementById('get-method-content').style.display = 'none';
+
+            const operationContent = document.getElementById(\`\${operation}-content\`);
+            if (operationContent) {
+                operationContent.style.display = 'block';
                 activeOperation = operation;
 
                 if (operation === 'compile-deploy') {
                     vscode.postMessage({type: 'loadAbiForDeploy'});
                 }
+
+                if (contractAddress) {
+                    if (operation === 'send-message') {
+                        sendContractSelect.value = contractAddress;
+                        updateMessagesList();
+                    } else if (operation === 'get-method') {
+                        getContractSelect.value = contractAddress;
+                        updateGetMethodsList();
+                    }
+                } else if (deployedContracts.length > 0) {
+                    if (operation === 'send-message' && !sendContractSelect.value) {
+                        sendContractSelect.value = deployedContracts[0].address;
+                        updateMessagesList();
+                    } else if (operation === 'get-method' && !getContractSelect.value) {
+                        getContractSelect.value = deployedContracts[0].address;
+                        updateGetMethodsList();
+                    }
+                }
+
+                updateFormData();
             }
         }
 
         function openOperation(operation, contractAddress) {
-            if (activeOperation !== operation) {
-                toggleOperation(operation);
-            }
-
-            if (operation === 'compile-deploy') {
-                vscode.postMessage({type: 'loadAbiForDeploy'});
-            }
-
-            if (contractAddress) {
-                if (operation === 'send-message') {
-                    sendContractSelect.value = contractAddress;
-                    updateMessagesList();
-                } else if (operation === 'get-method') {
-                    getContractSelect.value = contractAddress;
-                    updateGetMethodsList();
-                }
-            } else if (deployedContracts.length > 0) {
-                if (operation === 'send-message' && !sendContractSelect.value) {
-                    sendContractSelect.value = deployedContracts[0].address;
-                    updateMessagesList();
-                } else if (operation === 'get-method' && !getContractSelect.value) {
-                    getContractSelect.value = deployedContracts[0].address;
-                    updateGetMethodsList();
-                }
-            }
-            updateFormData();
+            showOperation(operation, contractAddress);
         }
 
         function updateFormData() {
@@ -691,7 +654,6 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
             formData = {
                 sendContract: sendContractSelect.value || undefined,
                 getContract: getContractSelect.value || undefined,
-                rawMessage: rawMessage.value || undefined,
                 selectedMessage: messageSelect.value || undefined,
                 messageFields: Object.keys(messageFields).length > 0 ? messageFields : undefined,
                 value: sendValue.value || undefined,
@@ -847,11 +809,9 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
             deployedContracts = contracts;
 
             if (contracts.length === 0) {
-                noContractsMessage.style.display = 'block';
                 sendMessageBtn.disabled = true;
                 callGetMethodBtn.disabled = true;
             } else {
-                noContractsMessage.style.display = 'none';
                 sendMessageBtn.disabled = false;
                 callGetMethodBtn.disabled = false;
             }
@@ -912,6 +872,8 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
         }
 
         updateFormData();
+
+        showOperationMenu();
     </script>
 </body>
 </html>`

@@ -127,7 +127,7 @@ export class SandboxCodeLensProvider implements vscode.CodeLensProvider {
 
         if (deployedContract) {
             return new vscode.CodeLens(range, {
-                title: `Execute`,
+                title: `Execute get method`,
                 command: "ton.sandbox.callGetMethodFromCodeLens",
                 arguments: [deployedContract.address, getMethod.name, getMethod.id],
             })

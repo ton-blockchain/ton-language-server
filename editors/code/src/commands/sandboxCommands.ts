@@ -488,8 +488,6 @@ async function handleSendMessageFromForm(
             )
             return
         }
-    } else if (formData.rawMessage) {
-        message = formData.rawMessage
     } else {
         formProvider.showResult(
             {
