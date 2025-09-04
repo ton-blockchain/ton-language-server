@@ -32,11 +32,11 @@ export const GetMethod: React.FC<Props> = ({
     result,
 }) => {
     const contract = contracts.find(c => c.address === selectedContract)
-    const method = contract?.abi?.getMethods?.find(m => m.name === selectedMethod)
+    const method = contract?.abi?.getMethods.find(m => m.name === selectedMethod)
 
-    const handleMethodChange = (methodName: string) => {
+    const handleMethodChange = (methodName: string): void => {
         onMethodChange(methodName)
-        const selectedMethod = contract?.abi?.getMethods?.find(m => m.name === methodName)
+        const selectedMethod = contract?.abi?.getMethods.find(m => m.name === methodName)
         if (selectedMethod) {
             onMethodIdChange(selectedMethod.id.toString())
         } else {
@@ -44,14 +44,14 @@ export const GetMethod: React.FC<Props> = ({
         }
     }
 
-    const handleCallGetMethod = () => {
+    const handleCallGetMethod = (): void => {
         if (!selectedContract) {
             return
         }
         onCallGetMethod()
     }
 
-    const formatAddress = (address: string) => {
+    const formatAddress = (address: string): string => {
         if (address.length <= 12) return address
         return `${address.slice(0, 6)}...${address.slice(Math.max(0, address.length - 6))}`
     }
@@ -64,7 +64,7 @@ export const GetMethod: React.FC<Props> = ({
                 <label htmlFor="getContractSelect">Target Contract:</label>
                 <select
                     id="getContractSelect"
-                    value={selectedContract || ""}
+                    value={selectedContract ?? ""}
                     onChange={e => {
                         onContractChange(e.target.value)
                     }}
@@ -83,7 +83,7 @@ export const GetMethod: React.FC<Props> = ({
                 <label htmlFor="methodSelect">Get Method:</label>
                 <select
                     id="methodSelect"
-                    value={selectedMethod || ""}
+                    value={selectedMethod ?? ""}
                     onChange={e => {
                         handleMethodChange(e.target.value)
                     }}
@@ -91,7 +91,7 @@ export const GetMethod: React.FC<Props> = ({
                     className={styles.select}
                 >
                     <option value="">Select method...</option>
-                    {contract?.abi?.getMethods?.map(method => (
+                    {contract?.abi?.getMethods.map(method => (
                         <option key={method.name} value={method.name}>
                             {method.name} (ID: 0x{method.id.toString(16)})
                         </option>

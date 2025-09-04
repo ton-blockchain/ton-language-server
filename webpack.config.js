@@ -6,11 +6,12 @@ const path = require("path")
 const CopyPlugin = require("copy-webpack-plugin")
 const TsconfigPathsPlugin = require("tsconfig-paths-webpack-plugin")
 const webpack = require("webpack")
+const MiniCssExtractPlugin = require("mini-css-extract-plugin")
 
 const distDir = path.resolve(__dirname, "dist")
 
 /**@type {import("webpack").Configuration}*/
-const config = {
+const extensionConfig = {
     mode: "development",
 
     target: "node", // vscode extensions run in webworker context for VS Code web 📖 -> https://webpack.js.org/configuration/target/#target
@@ -93,10 +94,6 @@ const config = {
                     to: path.join(distDir, "icons", "[name][ext]"),
                 },
                 {
-                    from: "./editors/code/src/webview-ui/dist/assets/*",
-                    to: path.join(distDir, "webview-ui", "[name][ext]"),
-                },
-                {
                     from: "server/src/languages/fift/asm/asm.json",
                     to: distDir,
                 },
@@ -112,4 +109,78 @@ const config = {
         }),
     ],
 }
-module.exports = config
+
+/**@type {import("webpack").Configuration}*/
+const webviewConfig = {
+    mode: "development",
+    target: "web",
+    entry: "./editors/code/src/webview-ui/src/main.tsx",
+    output: {
+        path: path.join(distDir, "webview-ui"),
+        filename: "main.js",
+        clean: false,
+    },
+    devtool: "source-map",
+    resolve: {
+        extensions: [".ts", ".tsx", ".js", ".jsx"],
+        alias: {
+            "@shared": path.resolve(__dirname, "shared/src"),
+        },
+    },
+    module: {
+        rules: [
+            {
+                test: /\.tsx?$/,
+                exclude: /node_modules/,
+                use: [
+                    {
+                        loader: "ts-loader",
+                        options: {
+                            configFile: path.resolve(__dirname, "tsconfig.json"),
+                            compilerOptions: {
+                                jsx: "react-jsx",
+                                lib: ["ES2020", "DOM"],
+                                moduleResolution: "node",
+                                esModuleInterop: true,
+                                allowSyntheticDefaultImports: true,
+                                strict: false,
+                            },
+                        },
+                    },
+                ],
+            },
+            {
+                test: /\.module\.css$/,
+                use: [
+                    MiniCssExtractPlugin.loader,
+                    {
+                        loader: "css-loader",
+                        options: {
+                            modules: {
+                                localIdentName: "[name]__[local]___[hash:base64:5]",
+                                exportGlobals: true,
+                                namedExport: false,
+                            },
+                        },
+                    },
+                ],
+            },
+            {
+                test: /\.css$/,
+                exclude: /\.module\.css$/,
+                use: [MiniCssExtractPlugin.loader, "css-loader"],
+            },
+        ],
+    },
+    plugins: [
+        new MiniCssExtractPlugin({
+            filename: "main.css",
+        }),
+    ],
+    externals: {
+        // React and ReactDOM will be available globally in the webview
+        // but we need to bundle them for the webview context
+    },
+}
+
+module.exports = [extensionConfig, webviewConfig]

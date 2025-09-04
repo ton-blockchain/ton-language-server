@@ -17,13 +17,13 @@ export const CompileDeploy: React.FC<Props> = ({
 }) => {
     const [storageFields, setStorageFields] = React.useState<Record<string, string>>({})
 
-    const handleFieldChange = (fieldName: string, value: string) => {
+    const handleFieldChange = (fieldName: string, value: string): void => {
         const newFields = {...storageFields, [fieldName]: value}
         setStorageFields(newFields)
         onUpdateStorageFields(newFields)
     }
 
-    const handleCompileAndDeploy = () => {
+    const handleCompileAndDeploy = (): void => {
         if (storageAbi?.storage?.fields) {
             const emptyRequiredFields = storageAbi.storage.fields
                 .filter(field => !storageFields[field.name].trim())

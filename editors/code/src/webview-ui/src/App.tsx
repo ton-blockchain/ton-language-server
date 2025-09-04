@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from "react"
+import React, {JSX, useEffect, useState} from "react"
 import {CompileDeploy} from "./components/CompileDeploy"
 import {SendMessage} from "./components/SendMessage"
 import {GetMethod} from "./components/GetMethod"
@@ -10,7 +10,7 @@ interface Props {
     readonly vscode: VSCodeAPI
 }
 
-export default function App({vscode}: Props) {
+export default function App({vscode}: Props): JSX.Element {
     const [activeOperation, setActiveOperation] = useState<Operation>(null)
     const [contracts, setContracts] = useState<Contract[]>([])
     const [formData, setFormData] = useState<FormData>({})
@@ -18,24 +18,25 @@ export default function App({vscode}: Props) {
     const [storageAbi, setStorageAbi] = useState<ContractAbi | undefined>()
 
     useEffect(() => {
-        const handleMessage = (event: MessageEvent) => {
-            const message: VSCodeMessage = event.data
+        const handleMessage = (event: MessageEvent): void => {
+            const message: VSCodeMessage = event.data as VSCodeMessage
 
             switch (message.type) {
                 case "updateContracts": {
-                    setContracts(message.contracts ?? [])
+                    setContracts((message.contracts as Contract[] | undefined) ?? [])
                     break
                 }
                 case "showResult": {
-                    const resultId = message.resultId || "default"
+                    const resultId: string = (message.resultId as string | undefined) ?? "default"
                     setResults(prev => ({
                         ...prev,
-                        [resultId]: message.result,
+                        [resultId]: message.result as ResultData,
                     }))
                     // Auto-hide result after 10 seconds
                     setTimeout(() => {
                         setResults(prev => {
                             const newResults = {...prev}
+                            // eslint-disable-next-line @typescript-eslint/no-dynamic-delete
                             delete newResults[resultId]
                             return newResults
                         })
@@ -43,12 +44,18 @@ export default function App({vscode}: Props) {
                     break
                 }
                 case "openOperation": {
-                    setActiveOperation(message.operation)
+                    setActiveOperation(message.operation as Operation)
                     if (message.contractAddress) {
                         if (message.operation === "send-message") {
-                            setFormData(prev => ({...prev, sendContract: message.contractAddress}))
+                            setFormData(prev => ({
+                                ...prev,
+                                sendContract: message.contractAddress as string,
+                            }))
                         } else if (message.operation === "get-method") {
-                            setFormData(prev => ({...prev, getContract: message.contractAddress}))
+                            setFormData(prev => ({
+                                ...prev,
+                                getContract: message.contractAddress as string,
+                            }))
                         }
                     } else if (contracts.length > 0) {
                         if (message.operation === "send-message" && !formData.sendContract) {
@@ -60,11 +67,11 @@ export default function App({vscode}: Props) {
                     break
                 }
                 case "updateStorageFields": {
-                    setStorageAbi(message.abi)
+                    setStorageAbi(message.abi as ContractAbi)
                     break
                 }
                 case "updateFormData": {
-                    setFormData(prev => ({...prev, ...message.formData}))
+                    setFormData(prev => ({...prev, ...(message.formData as FormData)}))
                     break
                 }
             }
@@ -76,7 +83,7 @@ export default function App({vscode}: Props) {
         }
     }, [contracts, formData])
 
-    const updateFormData = (newData: Partial<FormData>) => {
+    const updateFormData = (newData: Partial<FormData>): void => {
         const updatedData = {...formData, ...newData}
         setFormData(updatedData)
         vscode.postMessage({
@@ -85,7 +92,7 @@ export default function App({vscode}: Props) {
         })
     }
 
-    const renderActiveOperation = () => {
+    const renderActiveOperation = (): JSX.Element => {
         if (!activeOperation) return <NoOperation />
 
         switch (activeOperation) {

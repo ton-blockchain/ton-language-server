@@ -36,14 +36,14 @@ export const SendMessage: React.FC<Props> = ({
     result,
 }) => {
     const contract = contracts.find(c => c.address === selectedContract)
-    const message = contract?.abi?.messages?.find(m => m.name === selectedMessage)
+    const message = contract?.abi?.messages.find(m => m.name === selectedMessage)
 
-    const handleFieldChange = (fieldName: string, fieldValue: string) => {
+    const handleFieldChange = (fieldName: string, fieldValue: string): void => {
         const newFields = {...messageFields, [fieldName]: fieldValue}
         onMessageFieldChange(newFields)
     }
 
-    const handleSendMessage = () => {
+    const handleSendMessage = (): void => {
         if (!selectedContract) {
             return
         }
@@ -53,7 +53,7 @@ export const SendMessage: React.FC<Props> = ({
         onSendMessage()
     }
 
-    const formatAddress = (address: string) => {
+    const formatAddress = (address: string): string => {
         if (address.length <= 12) return address
         return `${address.slice(0, 6)}...${address.slice(Math.max(0, address.length - 6))}`
     }
@@ -64,7 +64,7 @@ export const SendMessage: React.FC<Props> = ({
                 <label htmlFor="sendContractSelect">Target Contract:</label>
                 <select
                     id="sendContractSelect"
-                    value={selectedContract || ""}
+                    value={selectedContract ?? ""}
                     onChange={e => {
                         onContractChange(e.target.value)
                     }}
@@ -83,7 +83,7 @@ export const SendMessage: React.FC<Props> = ({
                 <label htmlFor="messageSelect">Message:</label>
                 <select
                     id="messageSelect"
-                    value={selectedMessage || ""}
+                    value={selectedMessage ?? ""}
                     onChange={e => {
                         onMessageChange(e.target.value)
                     }}
@@ -91,7 +91,7 @@ export const SendMessage: React.FC<Props> = ({
                     className={styles.select}
                 >
                     <option value="">Select message...</option>
-                    {contract?.abi?.messages?.map(msg => (
+                    {contract?.abi?.messages.map(msg => (
                         <option key={msg.name} value={msg.name}>
                             {msg.name} (opcode: 0x{msg.opcode.toString(16)})
                         </option>
