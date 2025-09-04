@@ -93,6 +93,10 @@ const config = {
                     to: path.join(distDir, "icons", "[name][ext]"),
                 },
                 {
+                    from: "./editors/code/src/webview-ui/dist/assets/*",
+                    to: path.join(distDir, "webview-ui", "[name][ext]"),
+                },
+                {
                     from: "server/src/languages/fift/asm/asm.json",
                     to: distDir,
                 },

@@ -1,0 +1,26 @@
+.noOperation {
+    padding: 20px;
+    text-align: center;
+    color: var(--vscode-descriptionForeground);
+}
+
+.noOperation p {
+    margin-bottom: 16px;
+    font-size: 13px;
+}
+
+.noOperation ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.noOperation li {
+    padding: 8px 0;
+    font-size: 12px;
+    text-align: left;
+}
+
+.noOperation strong {
+    color: var(--vscode-foreground);
+}

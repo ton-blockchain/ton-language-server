@@ -18,6 +18,6 @@
         }
     },
     "include": ["server/src/**/*", "editors/code/src/**/*"],
-    "exclude": ["node_modules", ".vscode-test"],
+    "exclude": ["node_modules", ".vscode-test", "editors/code/src/webview-ui/**"],
     "references": [{"path": "./editors"}, {"path": "./server"}]
 }
