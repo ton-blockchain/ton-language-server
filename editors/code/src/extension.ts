@@ -56,7 +56,10 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         }),
     )
 
-    const sandboxFormProvider = new SandboxFormProvider(context.extensionUri)
+    const sandboxFormProvider = new SandboxFormProvider(
+        context.extensionUri,
+        () => sandboxTreeProvider,
+    )
     context.subscriptions.push(
         vscode.window.registerWebviewViewProvider(
             SandboxFormProvider.viewType,

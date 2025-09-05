@@ -11,6 +11,8 @@ import {
     UpdateContractInfoMessage,
     Operation,
 } from "../webview-ui/src/types"
+import {sendMessage, callGetMethod, buildStructuredMessage} from "../commands/sandboxCommands"
+import {compileAndDeployFromEditor, loadContractAbiForDeploy, loadContractInfo} from "./methods"
 
 export class SandboxFormProvider implements vscode.WebviewViewProvider {
     public static readonly viewType: string = "tonSandboxForm"
@@ -18,7 +20,10 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
     private view?: vscode.WebviewView
     public deployedContracts: {address: string; name: string; abi?: ContractAbi}[] = []
 
-    public constructor(private readonly _extensionUri: vscode.Uri) {}
+    public constructor(
+        private readonly _extensionUri: vscode.Uri,
+        private readonly _treeProvider?: () => import("./SandboxTreeProvider").SandboxTreeProvider,
+    ) {}
 
     public resolveWebviewView(
         webviewView: vscode.WebviewView,
@@ -37,38 +42,23 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
         webviewView.webview.onDidReceiveMessage((command: VSCodeCommand) => {
             switch (command.type) {
                 case "sendMessage": {
-                    void vscode.commands.executeCommand("ton.sandbox.sendMessage", {
-                        contractAddress: command.contractAddress,
-                        selectedMessage: command.selectedMessage,
-                        messageFields: command.messageFields,
-                        value: command.value,
-                    })
+                    void this.handleSendMessage(command)
                     break
                 }
                 case "callGetMethod": {
-                    void vscode.commands.executeCommand("ton.sandbox.callGetMethod", {
-                        contractAddress: command.contractAddress,
-                        selectedMethod: command.selectedMethod,
-                        methodId: command.methodId,
-                    })
+                    void this.handleCallGetMethod(command)
                     break
                 }
                 case "loadAbiForDeploy": {
-                    void vscode.commands.executeCommand("ton.sandbox.loadAbiForDeploy")
+                    void this.handleLoadAbiForDeploy()
                     break
                 }
                 case "loadContractInfo": {
-                    void vscode.commands.executeCommand(
-                        "ton.sandbox.loadContractInfo",
-                        command.contractAddress,
-                    )
+                    void this.handleLoadContractInfo(command.contractAddress)
                     break
                 }
                 case "compileAndDeploy": {
-                    void vscode.commands.executeCommand(
-                        "ton.sandbox.compileAndDeploy",
-                        command.storageFields,
-                    )
+                    void this.handleCompileAndDeploy(command.storageFields)
                     break
                 }
             }
@@ -133,6 +123,162 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
             }
             void this.view.webview.postMessage(message)
         }
+    }
+
+    private async handleSendMessage(command: {
+        contractAddress: string
+        selectedMessage: string
+        messageFields: Record<string, string>
+        value: string
+    }): Promise<void> {
+        if (!command.contractAddress) {
+            this.showResult(
+                {
+                    success: false,
+                    message: "Please select a contract first",
+                },
+                "send-message-result",
+            )
+            return
+        }
+
+        if (!command.selectedMessage) {
+            this.showResult(
+                {
+                    success: false,
+                    message: "Please select a message first",
+                },
+                "send-message-result",
+            )
+            return
+        }
+
+        try {
+            const messageBody = buildStructuredMessage(
+                command.selectedMessage,
+                command.messageFields,
+                this,
+                command.contractAddress,
+            )
+
+            const result = await sendMessage(command.contractAddress, messageBody, command.value)
+
+            if (result.success) {
+                this.showResult(
+                    {
+                        success: true,
+                        message: `Message sent successfully to ${command.contractAddress}`,
+                    },
+                    "send-message-result",
+                )
+            } else {
+                this.showResult(
+                    {
+                        success: false,
+                        message: `Send failed: ${result.error ?? "Unknown error"}`,
+                    },
+                    "send-message-result",
+                )
+            }
+        } catch (error) {
+            this.showResult(
+                {
+                    success: false,
+                    message: `Send failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+                },
+                "send-message-result",
+            )
+        }
+    }
+
+    private async handleCallGetMethod(command: {
+        contractAddress: string
+        selectedMethod: string
+        methodId: string
+    }): Promise<void> {
+        if (!command.contractAddress) {
+            this.showResult(
+                {
+                    success: false,
+                    message: "Please select a contract first",
+                },
+                "get-method-result",
+            )
+            return
+        }
+
+        if (!command.methodId) {
+            this.showResult(
+                {
+                    success: false,
+                    message: "Please enter method ID",
+                },
+                "get-method-result",
+            )
+            return
+        }
+
+        const methodId = Number.parseInt(command.methodId, 10)
+        if (Number.isNaN(methodId)) {
+            this.showResult(
+                {
+                    success: false,
+                    message: "Method ID must be a valid number",
+                },
+                "get-method-result",
+            )
+            return
+        }
+
+        try {
+            const result = await callGetMethod(command.contractAddress, methodId)
+
+            if (result.success) {
+                const message = `Method called successfully!\nResult: ${result.result ?? "No result"}`
+
+                this.showResult(
+                    {
+                        success: true,
+                        message,
+                    },
+                    "get-method-result",
+                )
+            } else {
+                this.showResult(
+                    {
+                        success: false,
+                        message: `Call failed: ${result.error ?? "Unknown error"}`,
+                    },
+                    "get-method-result",
+                )
+            }
+        } catch (error) {
+            this.showResult(
+                {
+                    success: false,
+                    message: `Call failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+                },
+                "get-method-result",
+            )
+        }
+    }
+
+    private async handleLoadAbiForDeploy(): Promise<void> {
+        const abi = await loadContractAbiForDeploy()
+        if (abi) {
+            this.updateContractAbi(abi)
+        }
+    }
+
+    private async handleLoadContractInfo(contractAddress: string): Promise<void> {
+        const info = await loadContractInfo(contractAddress)
+        if (info.result) {
+            this.updateContractInfo(info.result)
+        }
+    }
+
+    private async handleCompileAndDeploy(storageFields: Record<string, string>): Promise<void> {
+        await compileAndDeployFromEditor(storageFields, this._treeProvider?.())
     }
 
     private getHtmlForWebview(webview: vscode.Webview): string {

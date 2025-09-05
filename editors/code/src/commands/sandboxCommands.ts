@@ -13,24 +13,6 @@ export function registerSandboxCommands(
     const disposables: vscode.Disposable[] = []
 
     disposables.push(
-        vscode.commands.registerCommand("ton.sandbox.loadAbiForDeploy", async () => {
-            await treeProvider.loadContractAbiForDeploy()
-        }),
-        vscode.commands.registerCommand("ton.sandbox.loadContractInfo", async (address: string) => {
-            await treeProvider.loadContractInfo(address)
-        }),
-        vscode.commands.registerCommand(
-            "ton.sandbox.compileAndDeploy",
-            async (storageFields?: Record<string, string>) => {
-                await treeProvider.compileAndDeployFromEditor(storageFields)
-            },
-        ),
-        vscode.commands.registerCommand("ton.sandbox.sendMessageDialog", async () => {
-            await showSendMessageDialog(treeProvider)
-        }),
-        vscode.commands.registerCommand("ton.sandbox.callGetMethodDialog", async () => {
-            await showCallGetMethodDialog(treeProvider)
-        }),
         vscode.commands.registerCommand("ton.sandbox.selectContract", async (address: string) => {
             await vscode.env.clipboard.writeText(address)
             void vscode.window.showInformationMessage(
@@ -44,27 +26,6 @@ export function registerSandboxCommands(
             treeProvider.clearContracts()
             void vscode.window.showInformationMessage("Deployed contracts cleared")
         }),
-        vscode.commands.registerCommand(
-            "ton.sandbox.sendMessage",
-            async (messageData: {
-                contractAddress: string
-                selectedMessage: string
-                messageFields: Record<string, string>
-                value: string
-            }) => {
-                await handleSendMessage(messageData, formProvider)
-            },
-        ),
-        vscode.commands.registerCommand(
-            "ton.sandbox.callGetMethod",
-            async (methodData: {
-                contractAddress: string
-                selectedMethod: string
-                methodId: string
-            }) => {
-                await handleCallGetMethod(methodData, formProvider)
-            },
-        ),
         vscode.commands.registerCommand("ton.sandbox.openOperation", (operation: string) => {
             formProvider.openOperation(operation)
         }),
@@ -101,114 +62,7 @@ export function registerSandboxCommands(
     return disposables
 }
 
-async function showSendMessageDialog(treeProvider: SandboxTreeProvider): Promise<void> {
-    const contracts = treeProvider.getDeployedContracts()
-
-    if (contracts.length === 0) {
-        void vscode.window.showWarningMessage("No contracts deployed. Deploy a contract first.")
-        return
-    }
-
-    const contractItems = contracts.map(c => ({
-        label: c.name,
-        description: c.address,
-        address: c.address,
-    }))
-
-    const selectedContract = await vscode.window.showQuickPick(contractItems, {
-        placeHolder: "Select contract to send message to",
-    })
-
-    if (!selectedContract) {
-        return
-    }
-
-    const message = await vscode.window.showInputBox({
-        prompt: "Enter message (base64 Cell)",
-        placeHolder: "te6ccgEBAQEAAgAAAA==",
-    })
-
-    if (!message) {
-        return
-    }
-
-    const value = await vscode.window.showInputBox({
-        prompt: "Enter value in TON (optional)",
-        placeHolder: "1.0",
-        value: "1.0",
-    })
-
-    try {
-        const result = await sendMessage(selectedContract.address, message, value)
-        if (result.success) {
-            void vscode.window.showInformationMessage("Message sent successfully!")
-        } else {
-            void vscode.window.showErrorMessage(`Send failed: ${result.error}`)
-        }
-    } catch (error) {
-        void vscode.window.showErrorMessage(
-            `Send failed: ${error instanceof Error ? error.message : "Unknown error"}`,
-        )
-    }
-}
-
-async function showCallGetMethodDialog(treeProvider: SandboxTreeProvider): Promise<void> {
-    const contracts = treeProvider.getDeployedContracts()
-
-    if (contracts.length === 0) {
-        void vscode.window.showWarningMessage("No contracts deployed. Deploy a contract first.")
-        return
-    }
-
-    const contractItems = contracts.map(c => ({
-        label: c.name,
-        description: c.address,
-        address: c.address,
-    }))
-
-    const selectedContract = await vscode.window.showQuickPick(contractItems, {
-        placeHolder: "Select contract to call method on",
-    })
-
-    if (!selectedContract) {
-        return
-    }
-
-    const methodIdStr = await vscode.window.showInputBox({
-        prompt: "Enter method ID",
-        placeHolder: "0",
-        value: "0",
-        validateInput: value => {
-            const num = Number.parseInt(value, 10)
-            if (Number.isNaN(num)) {
-                return "Method ID must be a number"
-            }
-            return null
-        },
-    })
-
-    if (!methodIdStr) {
-        return
-    }
-
-    const methodId = Number.parseInt(methodIdStr, 10)
-
-    try {
-        const result = await callGetMethod(selectedContract.address, methodId)
-        if (result.success) {
-            const message = `Method called successfully!\nResult: ${result.result}`
-            void vscode.window.showInformationMessage(message)
-        } else {
-            void vscode.window.showErrorMessage(`Call failed: ${result.error}`)
-        }
-    } catch (error) {
-        void vscode.window.showErrorMessage(
-            `Call failed: ${error instanceof Error ? error.message : "Unknown error"}`,
-        )
-    }
-}
-
-async function sendMessage(
+export async function sendMessage(
     address: string,
     message: string,
     value?: string,
@@ -232,7 +86,7 @@ async function sendMessage(
     return (await response.json()) as {success: boolean; error?: string}
 }
 
-async function callGetMethod(
+export async function callGetMethod(
     address: string,
     methodId: number,
 ): Promise<{
@@ -262,7 +116,7 @@ async function callGetMethod(
     }
 }
 
-function buildStructuredMessage(
+export function buildStructuredMessage(
     messageName: string,
     messageFields: Record<string, string>,
     formProvider: SandboxFormProvider,
@@ -454,156 +308,6 @@ function parseFieldTypeFromAbi(
     }
 
     return parseFieldType(fieldName, fieldValue)
-}
-
-async function handleSendMessage(
-    messageData: {
-        contractAddress: string
-        selectedMessage: string
-        messageFields: Record<string, string>
-        value: string
-    },
-    formProvider: SandboxFormProvider,
-): Promise<void> {
-    if (!messageData.contractAddress) {
-        formProvider.showResult(
-            {
-                success: false,
-                message: "Please select a contract first",
-            },
-            "send-message-result",
-        )
-        return
-    }
-
-    if (!messageData.selectedMessage) {
-        formProvider.showResult(
-            {
-                success: false,
-                message: "Please select a message first",
-            },
-            "send-message-result",
-        )
-        return
-    }
-
-    try {
-        const messageBody = buildStructuredMessage(
-            messageData.selectedMessage,
-            messageData.messageFields,
-            formProvider,
-            messageData.contractAddress,
-        )
-
-        const result = await sendMessage(
-            messageData.contractAddress,
-            messageBody,
-            messageData.value,
-        )
-
-        if (result.success) {
-            formProvider.showResult(
-                {
-                    success: true,
-                    message: `Message sent successfully to ${messageData.contractAddress}`,
-                },
-                "send-message-result",
-            )
-        } else {
-            formProvider.showResult(
-                {
-                    success: false,
-                    message: `Send failed: ${result.error ?? "Unknown error"}`,
-                },
-                "send-message-result",
-            )
-        }
-    } catch (error) {
-        formProvider.showResult(
-            {
-                success: false,
-                message: `Send failed: ${error instanceof Error ? error.message : "Unknown error"}`,
-            },
-            "send-message-result",
-        )
-    }
-}
-
-async function handleCallGetMethod(
-    methodData: {
-        contractAddress: string
-        selectedMethod: string
-        methodId: string
-    },
-    formProvider: SandboxFormProvider,
-): Promise<void> {
-    if (!methodData.contractAddress) {
-        formProvider.showResult(
-            {
-                success: false,
-                message: "Please select a contract first",
-            },
-            "get-method-result",
-        )
-        return
-    }
-
-    if (!methodData.methodId) {
-        formProvider.showResult(
-            {
-                success: false,
-                message: "Please enter method ID",
-            },
-            "get-method-result",
-        )
-        return
-    }
-
-    const methodId = Number.parseInt(methodData.methodId, 10)
-    if (Number.isNaN(methodId)) {
-        formProvider.showResult(
-            {
-                success: false,
-                message: "Method ID must be a valid number",
-            },
-            "get-method-result",
-        )
-        return
-    }
-
-    try {
-        const result = await callGetMethod(methodData.contractAddress, methodId)
-
-        if (result.success) {
-            const message = `Method called successfully!\nResult: ${result.result ?? "No result"}`
-            const details = ""
-
-            formProvider.showResult(
-                {
-                    success: true,
-                    message,
-                    details,
-                },
-                "get-method-result",
-            )
-        } else {
-            formProvider.showResult(
-                {
-                    success: false,
-                    message: `Call failed: ${result.error ?? "Unknown error"}`,
-                },
-                "get-method-result",
-            )
-        }
-    } catch (error) {
-        formProvider.showResult(
-            {
-                success: false,
-                message: `Call failed: ${error instanceof Error ? error.message : "Unknown error"}`,
-            },
-            "get-method-result",
-        )
-    }
 }
 
 async function callGetMethodDirectly(

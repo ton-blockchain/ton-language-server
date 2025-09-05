@@ -295,28 +295,6 @@
                 "title": "TON: Debug contract"
             },
             {
-                "command": "ton.sandbox.loadAbiForDeploy",
-                "title": "Load Contract ABI for Deploy",
-                "category": "TON"
-            },
-            {
-                "command": "ton.sandbox.loadContractInfo",
-                "title": "Load Contract Info",
-                "category": "TON"
-            },
-            {
-                "command": "ton.sandbox.compileAndDeploy",
-                "title": "Compile and Deploy",
-                "category": "TON",
-                "icon": "$(rocket)"
-            },
-            {
-                "command": "ton.sandbox.sendMessage",
-                "title": "Send Message",
-                "category": "TON",
-                "icon": "$(mail)"
-            },
-            {
                 "command": "ton.sandbox.callGetMethod",
                 "title": "Call Get Method",
                 "category": "TON",
@@ -714,7 +692,6 @@
     "dependencies": {
         "@ton/core": "0.60.1",
         "@ton/crypto": "^3.3.0",
-        "@ton/tolk-js": "^1.0.0",
         "buffer": "^6.0.3",
         "glob": "^11.0.1",
         "jssha": "^3.3.1",
