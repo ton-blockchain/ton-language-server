@@ -3,28 +3,11 @@
 import * as vscode from "vscode"
 import {ContractAbi} from "@shared/abi"
 
-export interface FormData {
-    readonly sendContract?: string
-    readonly getContract?: string
-    readonly infoContract?: string
-    readonly messageType?: "raw" | "structured"
-    readonly selectedMessage?: string
-    readonly messageFields?: Record<string, string>
-    readonly value?: string
-    readonly methodId?: string
-    readonly selectedMethod?: string
-    readonly storageFields?: Record<string, string>
-}
-
 export class SandboxFormProvider implements vscode.WebviewViewProvider {
     public static readonly viewType: string = "tonSandboxForm"
 
     private _view?: vscode.WebviewView
-    private _formData: FormData = {}
     public _deployedContracts: {address: string; name: string; abi?: ContractAbi}[] = []
-
-    private readonly _onDidChangeFormData: vscode.EventEmitter<FormData> =
-        new vscode.EventEmitter<FormData>()
 
     public constructor(private readonly _extensionUri: vscode.Uri) {}
 
@@ -42,25 +25,23 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
 
         webviewView.webview.html = this._getHtmlForWebview(webviewView.webview)
 
-        webviewView.webview.onDidReceiveMessage((data: {type: string; formData: FormData}) => {
+        webviewView.webview.onDidReceiveMessage((data: {type: string; [key: string]: unknown}) => {
             switch (data.type) {
-                case "formDataChanged": {
-                    this._formData = {...this._formData, ...data.formData}
-                    this._onDidChangeFormData.fire(this._formData)
-                    break
-                }
                 case "sendMessage": {
-                    void vscode.commands.executeCommand(
-                        "ton.sandbox.sendMessageFromForm",
-                        this._formData,
-                    )
+                    void vscode.commands.executeCommand("ton.sandbox.sendMessage", {
+                        contractAddress: data.contractAddress,
+                        selectedMessage: data.selectedMessage,
+                        messageFields: data.messageFields,
+                        value: data.value,
+                    })
                     break
                 }
                 case "callGetMethod": {
-                    void vscode.commands.executeCommand(
-                        "ton.sandbox.callGetMethodFromForm",
-                        this._formData,
-                    )
+                    void vscode.commands.executeCommand("ton.sandbox.callGetMethod", {
+                        contractAddress: data.contractAddress,
+                        selectedMethod: data.selectedMethod,
+                        methodId: data.methodId,
+                    })
                     break
                 }
                 case "loadAbiForDeploy": {
@@ -68,15 +49,17 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
                     break
                 }
                 case "loadContractInfo": {
-                    console.log("message loadContractInfo", this._formData)
                     void vscode.commands.executeCommand(
                         "ton.sandbox.loadContractInfo",
-                        this._formData.infoContract,
+                        data.contractAddress,
                     )
                     break
                 }
                 case "compileAndDeploy": {
-                    void vscode.commands.executeCommand("ton.sandbox.compileAndDeploy")
+                    void vscode.commands.executeCommand(
+                        "ton.sandbox.compileAndDeploy",
+                        data.storageFields,
+                    )
                     break
                 }
             }
@@ -89,20 +72,6 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
             void this._view.webview.postMessage({
                 type: "updateContracts",
                 contracts: this._deployedContracts,
-            })
-        }
-    }
-
-    public getFormData(): FormData {
-        return {...this._formData}
-    }
-
-    public updateFormData(data: Partial<FormData>): void {
-        this._formData = {...this._formData, ...data}
-        if (this._view) {
-            void this._view.webview.postMessage({
-                type: "updateFormData",
-                formData: this._formData,
             })
         }
     }

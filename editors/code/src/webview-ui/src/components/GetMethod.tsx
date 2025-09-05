@@ -1,4 +1,4 @@
-import React from "react"
+import React, {useState} from "react"
 import {ContractAbi} from "@shared/abi"
 import styles from "./GetMethod.module.css"
 
@@ -8,39 +8,38 @@ interface Contract {
     readonly abi?: ContractAbi
 }
 
+interface MethodData {
+    readonly selectedMethod: string
+    readonly methodId: string
+}
+
 interface Props {
     readonly contracts: Contract[]
     readonly selectedContract?: string
-    readonly selectedMethod?: string
-    readonly methodId?: string
     readonly onContractChange: (address: string) => void
-    readonly onMethodChange: (methodName: string) => void
-    readonly onMethodIdChange: (methodId: string) => void
-    readonly onCallGetMethod: () => void
+    readonly onCallGetMethod: (methodData: MethodData) => void
     readonly result?: {success: boolean; message: string; details?: string}
 }
 
 export const GetMethod: React.FC<Props> = ({
     contracts,
     selectedContract,
-    selectedMethod,
-    methodId = "0",
     onContractChange,
-    onMethodChange,
-    onMethodIdChange,
     onCallGetMethod,
     result,
 }) => {
+    const [selectedMethod, setSelectedMethod] = useState<string>("")
+    const [methodId, setMethodId] = useState<string>("0")
     const contract = contracts.find(c => c.address === selectedContract)
     const method = contract?.abi?.getMethods.find(m => m.name === selectedMethod)
 
     const handleMethodChange = (methodName: string): void => {
-        onMethodChange(methodName)
-        const selectedMethod = contract?.abi?.getMethods.find(m => m.name === methodName)
-        if (selectedMethod) {
-            onMethodIdChange(selectedMethod.id.toString())
+        setSelectedMethod(methodName)
+        const method = contract?.abi?.getMethods.find(m => m.name === methodName)
+        if (method) {
+            setMethodId(method.id.toString())
         } else {
-            onMethodIdChange("0")
+            setMethodId("0")
         }
     }
 
@@ -48,7 +47,10 @@ export const GetMethod: React.FC<Props> = ({
         if (!selectedContract) {
             return
         }
-        onCallGetMethod()
+        onCallGetMethod({
+            selectedMethod,
+            methodId,
+        })
     }
 
     const formatAddress = (address: string): string => {
@@ -83,7 +85,7 @@ export const GetMethod: React.FC<Props> = ({
                 <label htmlFor="methodSelect">Get Method:</label>
                 <select
                     id="methodSelect"
-                    value={selectedMethod ?? ""}
+                    value={selectedMethod}
                     onChange={e => {
                         handleMethodChange(e.target.value)
                     }}
@@ -106,7 +108,7 @@ export const GetMethod: React.FC<Props> = ({
                     id="methodId"
                     value={methodId}
                     onChange={e => {
-                        onMethodIdChange(e.target.value)
+                        setMethodId(e.target.value)
                     }}
                     placeholder="0"
                     readOnly={isMethodIdReadonly}

@@ -1,26 +1,19 @@
-import React from "react"
+import React, {useState} from "react"
 import {ContractAbi} from "@shared/abi"
 import styles from "./CompileDeploy.module.css"
 
 interface Props {
-    readonly onCompileAndDeploy: () => void
-    readonly onUpdateStorageFields: (fields: Record<string, string>) => void
+    readonly onCompileAndDeploy: (storageFields: Record<string, string>) => void
     readonly result?: {success: boolean; message: string; details?: string}
     readonly storageAbi?: ContractAbi
 }
 
-export const CompileDeploy: React.FC<Props> = ({
-    onCompileAndDeploy,
-    onUpdateStorageFields,
-    result,
-    storageAbi,
-}) => {
-    const [storageFields, setStorageFields] = React.useState<Record<string, string>>({})
+export const CompileDeploy: React.FC<Props> = ({onCompileAndDeploy, result, storageAbi}) => {
+    const [storageFields, setStorageFields] = useState<Record<string, string>>({})
 
     const handleFieldChange = (fieldName: string, value: string): void => {
         const newFields = {...storageFields, [fieldName]: value}
         setStorageFields(newFields)
-        onUpdateStorageFields(newFields)
     }
 
     const handleCompileAndDeploy = (): void => {
@@ -33,7 +26,7 @@ export const CompileDeploy: React.FC<Props> = ({
                 return
             }
         }
-        onCompileAndDeploy()
+        onCompileAndDeploy(storageFields)
     }
 
     return (

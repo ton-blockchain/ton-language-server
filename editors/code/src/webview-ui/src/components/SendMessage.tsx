@@ -1,4 +1,4 @@
-import React from "react"
+import React, {useState} from "react"
 import {ContractAbi} from "@shared/abi"
 import styles from "./SendMessage.module.css"
 
@@ -8,49 +8,47 @@ interface Contract {
     readonly abi?: ContractAbi
 }
 
+interface MessageData {
+    readonly selectedMessage: string
+    readonly messageFields: Record<string, string>
+    readonly value: string
+}
+
 interface Props {
     readonly contracts: Contract[]
     readonly selectedContract?: string
-    readonly selectedMessage?: string
-    readonly messageFields?: Record<string, string>
-    readonly value?: string
     readonly onContractChange: (address: string) => void
-    readonly onMessageChange: (messageName: string) => void
-    readonly onMessageFieldChange: (fields: Record<string, string>) => void
-    readonly onValueChange: (value: string) => void
-    readonly onSendMessage: () => void
+    readonly onSendMessage: (messageData: MessageData) => void
     readonly result?: {success: boolean; message: string; details?: string}
 }
 
 export const SendMessage: React.FC<Props> = ({
     contracts,
     selectedContract,
-    selectedMessage,
-    messageFields = {},
-    value = "1.0",
     onContractChange,
-    onMessageChange,
-    onMessageFieldChange,
-    onValueChange,
     onSendMessage,
     result,
 }) => {
+    const [selectedMessage, setSelectedMessage] = useState<string>("")
+    const [messageFields, setMessageFields] = useState<Record<string, string>>({})
+    const [value, setValue] = useState<string>("1.0")
     const contract = contracts.find(c => c.address === selectedContract)
     const message = contract?.abi?.messages.find(m => m.name === selectedMessage)
 
     const handleFieldChange = (fieldName: string, fieldValue: string): void => {
         const newFields = {...messageFields, [fieldName]: fieldValue}
-        onMessageFieldChange(newFields)
+        setMessageFields(newFields)
     }
 
     const handleSendMessage = (): void => {
-        if (!selectedContract) {
+        if (!selectedContract || !selectedMessage) {
             return
         }
-        if (!selectedMessage) {
-            return
-        }
-        onSendMessage()
+        onSendMessage({
+            selectedMessage,
+            messageFields,
+            value,
+        })
     }
 
     const formatAddress = (address: string): string => {
@@ -83,9 +81,10 @@ export const SendMessage: React.FC<Props> = ({
                 <label htmlFor="messageSelect">Message:</label>
                 <select
                     id="messageSelect"
-                    value={selectedMessage ?? ""}
+                    value={selectedMessage}
                     onChange={e => {
-                        onMessageChange(e.target.value)
+                        setSelectedMessage(e.target.value)
+                        setMessageFields({})
                     }}
                     disabled={!contract?.abi?.messages}
                     className={styles.select}
@@ -136,7 +135,7 @@ export const SendMessage: React.FC<Props> = ({
                     id="sendValue"
                     value={value}
                     onChange={e => {
-                        onValueChange(e.target.value)
+                        setValue(e.target.value)
                     }}
                     placeholder="1.0"
                     className={styles.input}

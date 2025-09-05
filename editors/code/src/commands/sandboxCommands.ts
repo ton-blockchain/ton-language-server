@@ -2,7 +2,7 @@
 //  Copyright © 2025 TON Studio
 import * as vscode from "vscode"
 import {SandboxTreeProvider} from "../providers/SandboxTreeProvider"
-import {SandboxFormProvider, FormData} from "../providers/SandboxFormProvider"
+import {SandboxFormProvider} from "../providers/SandboxFormProvider"
 import {beginCell, Cell} from "@ton/core"
 import {Message} from "@shared/abi"
 
@@ -19,14 +19,16 @@ export function registerSandboxCommands(
         vscode.commands.registerCommand("ton.sandbox.loadContractInfo", async (address: string) => {
             await treeProvider.loadContractInfo(address)
         }),
-        vscode.commands.registerCommand("ton.sandbox.compileAndDeploy", async () => {
-            const formData = formProvider.getFormData()
-            await treeProvider.compileAndDeployFromEditor(formData.storageFields)
-        }),
-        vscode.commands.registerCommand("ton.sandbox.sendMessage", async () => {
+        vscode.commands.registerCommand(
+            "ton.sandbox.compileAndDeploy",
+            async (storageFields?: Record<string, string>) => {
+                await treeProvider.compileAndDeployFromEditor(storageFields)
+            },
+        ),
+        vscode.commands.registerCommand("ton.sandbox.sendMessageDialog", async () => {
             await showSendMessageDialog(treeProvider)
         }),
-        vscode.commands.registerCommand("ton.sandbox.callGetMethod", async () => {
+        vscode.commands.registerCommand("ton.sandbox.callGetMethodDialog", async () => {
             await showCallGetMethodDialog(treeProvider)
         }),
         vscode.commands.registerCommand("ton.sandbox.selectContract", async (address: string) => {
@@ -43,15 +45,24 @@ export function registerSandboxCommands(
             void vscode.window.showInformationMessage("Deployed contracts cleared")
         }),
         vscode.commands.registerCommand(
-            "ton.sandbox.sendMessageFromForm",
-            async (formData: FormData) => {
-                await handleSendMessageFromForm(formData, formProvider)
+            "ton.sandbox.sendMessage",
+            async (messageData: {
+                contractAddress: string
+                selectedMessage: string
+                messageFields: Record<string, string>
+                value: string
+            }) => {
+                await handleSendMessage(messageData, formProvider)
             },
         ),
         vscode.commands.registerCommand(
-            "ton.sandbox.callGetMethodFromForm",
-            async (formData: FormData) => {
-                await handleCallGetMethodFromForm(formData, formProvider)
+            "ton.sandbox.callGetMethod",
+            async (methodData: {
+                contractAddress: string
+                selectedMethod: string
+                methodId: string
+            }) => {
+                await handleCallGetMethod(methodData, formProvider)
             },
         ),
         vscode.commands.registerCommand("ton.sandbox.openOperation", (operation: string) => {
@@ -445,11 +456,16 @@ function parseFieldTypeFromAbi(
     return parseFieldType(fieldName, fieldValue)
 }
 
-async function handleSendMessageFromForm(
-    formData: FormData,
+async function handleSendMessage(
+    messageData: {
+        contractAddress: string
+        selectedMessage: string
+        messageFields: Record<string, string>
+        value: string
+    },
     formProvider: SandboxFormProvider,
 ): Promise<void> {
-    if (!formData.sendContract) {
+    if (!messageData.contractAddress) {
         formProvider.showResult(
             {
                 success: false,
@@ -460,31 +476,11 @@ async function handleSendMessageFromForm(
         return
     }
 
-    let message: string
-
-    if (formData.selectedMessage && formData.messageFields) {
-        try {
-            message = buildStructuredMessage(
-                formData.selectedMessage,
-                formData.messageFields,
-                formProvider,
-                formData.sendContract,
-            )
-        } catch (error) {
-            formProvider.showResult(
-                {
-                    success: false,
-                    message: `Failed to build message: ${error instanceof Error ? error.message : "Unknown error"}`,
-                },
-                "send-message-result",
-            )
-            return
-        }
-    } else {
+    if (!messageData.selectedMessage) {
         formProvider.showResult(
             {
                 success: false,
-                message: "Please select a message or enter raw message",
+                message: "Please select a message first",
             },
             "send-message-result",
         )
@@ -492,13 +488,24 @@ async function handleSendMessageFromForm(
     }
 
     try {
-        const result = await sendMessage(formData.sendContract, message, formData.value)
+        const messageBody = buildStructuredMessage(
+            messageData.selectedMessage,
+            messageData.messageFields,
+            formProvider,
+            messageData.contractAddress,
+        )
+
+        const result = await sendMessage(
+            messageData.contractAddress,
+            messageBody,
+            messageData.value,
+        )
 
         if (result.success) {
             formProvider.showResult(
                 {
                     success: true,
-                    message: "Message sent successfully!",
+                    message: `Message sent successfully to ${messageData.contractAddress}`,
                 },
                 "send-message-result",
             )
@@ -522,11 +529,15 @@ async function handleSendMessageFromForm(
     }
 }
 
-async function handleCallGetMethodFromForm(
-    formData: FormData,
+async function handleCallGetMethod(
+    methodData: {
+        contractAddress: string
+        selectedMethod: string
+        methodId: string
+    },
     formProvider: SandboxFormProvider,
 ): Promise<void> {
-    if (!formData.getContract) {
+    if (!methodData.contractAddress) {
         formProvider.showResult(
             {
                 success: false,
@@ -537,7 +548,7 @@ async function handleCallGetMethodFromForm(
         return
     }
 
-    if (!formData.methodId) {
+    if (!methodData.methodId) {
         formProvider.showResult(
             {
                 success: false,
@@ -548,7 +559,7 @@ async function handleCallGetMethodFromForm(
         return
     }
 
-    const methodId = Number.parseInt(formData.methodId, 10)
+    const methodId = Number.parseInt(methodData.methodId, 10)
     if (Number.isNaN(methodId)) {
         formProvider.showResult(
             {
@@ -561,7 +572,7 @@ async function handleCallGetMethodFromForm(
     }
 
     try {
-        const result = await callGetMethod(formData.getContract, methodId)
+        const result = await callGetMethod(methodData.contractAddress, methodId)
 
         if (result.success) {
             const message = `Method called successfully!\nResult: ${result.result ?? "No result"}`

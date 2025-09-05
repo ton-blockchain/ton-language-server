@@ -6,19 +6,6 @@ export interface Contract {
     readonly abi?: ContractAbi
 }
 
-export interface FormData {
-    readonly sendContract?: string
-    readonly getContract?: string
-    readonly infoContract?: string
-    readonly messageType?: "raw" | "structured"
-    readonly selectedMessage?: string
-    readonly messageFields?: Record<string, string>
-    readonly value?: string
-    readonly methodId?: string
-    readonly selectedMethod?: string
-    readonly storageFields?: Record<string, string>
-}
-
 export interface ResultData {
     readonly success: boolean
     readonly message: string
