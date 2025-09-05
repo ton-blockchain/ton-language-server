@@ -6,6 +6,7 @@ import {ContractAbi} from "@shared/abi"
 export interface FormData {
     readonly sendContract?: string
     readonly getContract?: string
+    readonly infoContract?: string
     readonly messageType?: "raw" | "structured"
     readonly selectedMessage?: string
     readonly messageFields?: Record<string, string>
@@ -64,6 +65,14 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
                 }
                 case "loadAbiForDeploy": {
                     void vscode.commands.executeCommand("ton.sandbox.loadAbiForDeploy")
+                    break
+                }
+                case "loadContractInfo": {
+                    console.log("message loadContractInfo", this._formData)
+                    void vscode.commands.executeCommand(
+                        "ton.sandbox.loadContractInfo",
+                        this._formData.infoContract,
+                    )
                     break
                 }
                 case "compileAndDeploy": {
@@ -130,6 +139,15 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
             void this._view.webview.postMessage({
                 type: "updateStorageFields",
                 abi,
+            })
+        }
+    }
+
+    public updateContractInfo(info: {account: string}): void {
+        if (this._view) {
+            void this._view.webview.postMessage({
+                type: "updateContractInfo",
+                info,
             })
         }
     }

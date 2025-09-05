@@ -16,6 +16,9 @@ export function registerSandboxCommands(
         vscode.commands.registerCommand("ton.sandbox.loadAbiForDeploy", async () => {
             await treeProvider.loadContractAbiForDeploy()
         }),
+        vscode.commands.registerCommand("ton.sandbox.loadContractInfo", async (address: string) => {
+            await treeProvider.loadContractInfo(address)
+        }),
         vscode.commands.registerCommand("ton.sandbox.compileAndDeploy", async () => {
             const formData = formProvider.getFormData()
             await treeProvider.compileAndDeployFromEditor(formData.storageFields)
@@ -55,20 +58,9 @@ export function registerSandboxCommands(
             formProvider.openOperation(operation)
         }),
         vscode.commands.registerCommand(
-            "ton.sandbox.openContractOperations",
-            async (contractAddress: string) => {
-                const operations = [
-                    {label: "📤 Send Message", operation: "send-message"},
-                    {label: "📞 Call Get Method", operation: "get-method"},
-                ]
-
-                const selected = await vscode.window.showQuickPick(operations, {
-                    placeHolder: `Select operation for contract ${contractAddress.slice(0, 10)}...`,
-                })
-
-                if (selected) {
-                    formProvider.openOperation(selected.operation, contractAddress)
-                }
+            "ton.sandbox.openContractInfo",
+            (contractAddress: string) => {
+                formProvider.openOperation("contract-info", contractAddress)
             },
         ),
         vscode.commands.registerCommand("ton.sandbox.deployFromCodeLens", () => {

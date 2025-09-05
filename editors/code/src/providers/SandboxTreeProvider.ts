@@ -134,8 +134,8 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
             contextValue: "deployed-contract",
             collapsibleState: vscode.TreeItemCollapsibleState.None,
             command: {
-                command: "ton.sandbox.openContractOperations",
-                title: "Open Contract Operations",
+                command: "ton.sandbox.openContractInfo",
+                title: "Open Contract Information",
                 arguments: [contract.address],
             },
         }))
@@ -309,6 +309,47 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
 
         if (this.formProvider && contractAbi) {
             this.formProvider.updateStorageFields(contractAbi)
+        }
+    }
+
+    public async loadContractInfo(address: string): Promise<void> {
+        const info = await this.loadContractInfoImpl(address)
+        if (info.result) {
+            this.formProvider?.updateContractInfo(info.result)
+        }
+    }
+
+    public async loadContractInfoImpl(address: string): Promise<{
+        success: boolean
+        result?: {account: string}
+        error?: string
+    }> {
+        try {
+            const config = vscode.workspace.getConfiguration("ton")
+            const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
+
+            const response = await fetch(`${sandboxUrl}/info`, {
+                method: "POST",
+                headers: {"Content-Type": "application/json"},
+                body: JSON.stringify({
+                    address,
+                }),
+            })
+
+            if (!response.ok) {
+                throw new Error(`API call failed: ${response.status} ${response.statusText}`)
+            }
+
+            return (await response.json()) as {
+                success: boolean
+                result?: {account: string}
+                error?: string
+            }
+        } catch (error) {
+            return {
+                success: false,
+                error: error instanceof Error ? error.message : "Unknown error",
+            }
         }
     }
 

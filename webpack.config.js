@@ -37,8 +37,10 @@ const extensionConfig = {
         alias: {
             // provides alternate implementation for node module and source files
         },
-        plugins: [new TsconfigPathsPlugin()],
-        fallback: {},
+        plugins: [new TsconfigPathsPlugin.TsconfigPathsPlugin()],
+        fallback: {
+            buffer: require.resolve("buffer"),
+        },
     },
     module: {
         rules: [
@@ -54,6 +56,9 @@ const extensionConfig = {
         ],
     },
     plugins: [
+        new webpack.ProvidePlugin({
+            Buffer: ["buffer", "Buffer"],
+        }),
         new webpack.BannerPlugin({
             banner: "#!/usr/bin/env node",
             raw: true,
@@ -126,6 +131,9 @@ const webviewConfig = {
         alias: {
             "@shared": path.resolve(__dirname, "shared/src"),
         },
+        fallback: {
+            buffer: require.resolve("buffer"),
+        },
     },
     module: {
         rules: [
@@ -173,6 +181,9 @@ const webviewConfig = {
         ],
     },
     plugins: [
+        new webpack.ProvidePlugin({
+            Buffer: ["buffer", "Buffer"],
+        }),
         new MiniCssExtractPlugin({
             filename: "main.css",
         }),

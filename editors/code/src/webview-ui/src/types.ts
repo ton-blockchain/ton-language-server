@@ -9,6 +9,7 @@ export interface Contract {
 export interface FormData {
     readonly sendContract?: string
     readonly getContract?: string
+    readonly infoContract?: string
     readonly messageType?: "raw" | "structured"
     readonly selectedMessage?: string
     readonly messageFields?: Record<string, string>
@@ -24,7 +25,7 @@ export interface ResultData {
     readonly details?: string
 }
 
-export type Operation = "compile-deploy" | "send-message" | "get-method" | null
+export type Operation = "compile-deploy" | "send-message" | "get-method" | "contract-info" | null
 
 export interface VSCodeMessage {
     readonly type: string

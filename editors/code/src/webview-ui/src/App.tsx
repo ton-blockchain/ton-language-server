@@ -5,6 +5,7 @@ import {GetMethod} from "./components/GetMethod"
 import {NoOperation} from "./components/NoOperation"
 import {Contract, FormData, ResultData, Operation, VSCodeAPI, VSCodeMessage} from "./types"
 import {ContractAbi} from "@shared/abi"
+import {ContractInfo} from "./components/ContractInfo"
 
 interface Props {
     readonly vscode: VSCodeAPI
@@ -16,6 +17,7 @@ export default function App({vscode}: Props): JSX.Element {
     const [formData, setFormData] = useState<FormData>({})
     const [results, setResults] = useState<Record<string, ResultData>>({})
     const [storageAbi, setStorageAbi] = useState<ContractAbi | undefined>()
+    const [contractInfo, setContractInfo] = useState<{account: string} | undefined>()
 
     useEffect(() => {
         const handleMessage = (event: MessageEvent): void => {
@@ -46,16 +48,28 @@ export default function App({vscode}: Props): JSX.Element {
                 case "openOperation": {
                     setActiveOperation(message.operation as Operation)
                     if (message.contractAddress) {
-                        if (message.operation === "send-message") {
-                            setFormData(prev => ({
-                                ...prev,
-                                sendContract: message.contractAddress as string,
-                            }))
-                        } else if (message.operation === "get-method") {
-                            setFormData(prev => ({
-                                ...prev,
-                                getContract: message.contractAddress as string,
-                            }))
+                        switch (message.operation) {
+                            case "send-message": {
+                                setFormData(prev => ({
+                                    ...prev,
+                                    sendContract: message.contractAddress as string,
+                                }))
+                                break
+                            }
+                            case "get-method": {
+                                setFormData(prev => ({
+                                    ...prev,
+                                    getContract: message.contractAddress as string,
+                                }))
+                                break
+                            }
+                            case "contract-info": {
+                                setFormData(prev => ({
+                                    ...prev,
+                                    infoContract: message.contractAddress as string,
+                                }))
+                                break
+                            }
                         }
                     } else if (contracts.length > 0) {
                         if (message.operation === "send-message" && !formData.sendContract) {
@@ -68,6 +82,10 @@ export default function App({vscode}: Props): JSX.Element {
                 }
                 case "updateStorageFields": {
                     setStorageAbi(message.abi as ContractAbi)
+                    break
+                }
+                case "updateContractInfo": {
+                    setContractInfo(message.info as {account: string})
                     break
                 }
                 case "updateFormData": {
@@ -96,6 +114,9 @@ export default function App({vscode}: Props): JSX.Element {
         if (!activeOperation) return <NoOperation />
 
         switch (activeOperation) {
+            case "contract-info": {
+                return <ContractInfo info={contractInfo} />
+            }
             case "compile-deploy": {
                 return (
                     <CompileDeploy
@@ -170,6 +191,9 @@ export default function App({vscode}: Props): JSX.Element {
     useEffect(() => {
         if (activeOperation === "compile-deploy") {
             vscode.postMessage({type: "loadAbiForDeploy"})
+        }
+        if (activeOperation === "contract-info") {
+            vscode.postMessage({type: "loadContractInfo"})
         }
     }, [activeOperation, vscode])
 

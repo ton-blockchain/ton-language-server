@@ -300,6 +300,11 @@
                 "category": "TON"
             },
             {
+                "command": "ton.sandbox.loadContractInfo",
+                "title": "Load Contract Info",
+                "category": "TON"
+            },
+            {
                 "command": "ton.sandbox.compileAndDeploy",
                 "title": "Compile and Deploy",
                 "category": "TON",
@@ -350,8 +355,8 @@
                 "category": "TON"
             },
             {
-                "command": "ton.sandbox.openContractOperations",
-                "title": "Open Contract Operations",
+                "command": "ton.sandbox.openContractInfo",
+                "title": "Open Contract Information",
                 "category": "TON"
             },
             {
@@ -710,6 +715,7 @@
         "@ton/core": "0.60.1",
         "@ton/crypto": "^3.3.0",
         "@ton/tolk-js": "^1.0.0",
+        "buffer": "^6.0.3",
         "glob": "^11.0.1",
         "jssha": "^3.3.1",
         "react": "^18.3.1",
