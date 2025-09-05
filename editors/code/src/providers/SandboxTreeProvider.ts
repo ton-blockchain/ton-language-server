@@ -308,7 +308,7 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
         const contractAbi = abiResult.abi
 
         if (this.formProvider && contractAbi) {
-            this.formProvider.updateStorageFields(contractAbi)
+            this.formProvider.updateContractAbi(contractAbi)
         }
     }
 

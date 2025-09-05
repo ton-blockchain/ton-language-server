@@ -5,10 +5,10 @@ import styles from "./CompileDeploy.module.css"
 interface Props {
     readonly onCompileAndDeploy: (storageFields: Record<string, string>) => void
     readonly result?: {success: boolean; message: string; details?: string}
-    readonly storageAbi?: ContractAbi
+    readonly contractAbi?: ContractAbi
 }
 
-export const CompileDeploy: React.FC<Props> = ({onCompileAndDeploy, result, storageAbi}) => {
+export const CompileDeploy: React.FC<Props> = ({onCompileAndDeploy, result, contractAbi}) => {
     const [storageFields, setStorageFields] = useState<Record<string, string>>({})
 
     const handleFieldChange = (fieldName: string, value: string): void => {
@@ -17,8 +17,8 @@ export const CompileDeploy: React.FC<Props> = ({onCompileAndDeploy, result, stor
     }
 
     const handleCompileAndDeploy = (): void => {
-        if (storageAbi?.storage?.fields) {
-            const emptyRequiredFields = storageAbi.storage.fields
+        if (contractAbi?.storage?.fields) {
+            const emptyRequiredFields = contractAbi.storage.fields
                 .filter(field => !storageFields[field.name].trim())
                 .map(field => field.name)
 
@@ -38,12 +38,12 @@ export const CompileDeploy: React.FC<Props> = ({onCompileAndDeploy, result, stor
                 </p>
             </div>
 
-            {storageAbi?.storage?.fields && storageAbi.storage.fields.length > 0 && (
+            {contractAbi?.storage?.fields && contractAbi.storage.fields.length > 0 && (
                 <div className={styles.storageFields}>
                     <div className={styles.formGroup}>
                         <label>Storage Fields:</label>
                     </div>
-                    {storageAbi.storage.fields.map(field => (
+                    {contractAbi.storage.fields.map(field => (
                         <div key={field.name} className={styles.messageField}>
                             <div className={styles.messageFieldHeader}>
                                 <span className={styles.messageFieldName}>{field.name}</span>

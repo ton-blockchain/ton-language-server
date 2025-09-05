@@ -32,8 +32,8 @@ export interface OpenOperationMessage {
     readonly contractAddress?: string
 }
 
-export interface UpdateStorageFieldsMessage {
-    readonly type: "updateStorageFields"
+export interface UpdateContractAbiMessage {
+    readonly type: "updateContractAbi"
     readonly abi: ContractAbi
 }
 
@@ -76,7 +76,7 @@ export type VSCodeMessage =
     | UpdateContractsMessage
     | ShowResultMessage
     | OpenOperationMessage
-    | UpdateStorageFieldsMessage
+    | UpdateContractAbiMessage
     | UpdateContractInfoMessage
 
 export type VSCodeCommand =

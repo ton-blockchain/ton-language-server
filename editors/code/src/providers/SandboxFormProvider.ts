@@ -7,7 +7,7 @@ import {
     UpdateContractsMessage,
     ShowResultMessage,
     OpenOperationMessage,
-    UpdateStorageFieldsMessage,
+    UpdateContractAbiMessage,
     UpdateContractInfoMessage,
     Operation,
 } from "../webview-ui/src/types"
@@ -115,10 +115,10 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
         }
     }
 
-    public updateStorageFields(abi: ContractAbi): void {
+    public updateContractAbi(abi: ContractAbi): void {
         if (this._view) {
-            const message: UpdateStorageFieldsMessage = {
-                type: "updateStorageFields",
+            const message: UpdateContractAbiMessage = {
+                type: "updateContractAbi",
                 abi,
             }
             void this._view.webview.postMessage(message)

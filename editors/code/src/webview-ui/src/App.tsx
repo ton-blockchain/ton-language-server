@@ -15,7 +15,7 @@ export default function App({vscode}: Props): JSX.Element {
     const [activeOperation, setActiveOperation] = useState<Operation>(null)
     const [contracts, setContracts] = useState<Contract[]>([])
     const [results, setResults] = useState<Record<string, ResultData>>({})
-    const [storageAbi, setStorageAbi] = useState<ContractAbi | undefined>()
+    const [contractAbi, setContractAbi] = useState<ContractAbi | undefined>()
     const [contractInfo, setContractInfo] = useState<{account: string} | undefined>()
 
     const [selectedSendContract, setSelectedSendContract] = useState<string>("")
@@ -70,8 +70,8 @@ export default function App({vscode}: Props): JSX.Element {
                     }
                     break
                 }
-                case "updateStorageFields": {
-                    setStorageAbi(message.abi)
+                case "updateContractAbi": {
+                    setContractAbi(message.abi)
                     break
                 }
                 case "updateContractInfo": {
@@ -117,7 +117,7 @@ export default function App({vscode}: Props): JSX.Element {
                             })
                         }}
                         result={results["compile-deploy-result"]}
-                        storageAbi={storageAbi}
+                        contractAbi={contractAbi}
                     />
                 )
             }
