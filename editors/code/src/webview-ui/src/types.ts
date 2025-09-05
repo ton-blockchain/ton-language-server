@@ -14,14 +14,80 @@ export interface ResultData {
 
 export type Operation = "compile-deploy" | "send-message" | "get-method" | "contract-info" | null
 
-export interface VSCodeMessage {
-    readonly type: string
-
-    [key: string]: unknown
+// Messages from Extension to Webview
+export interface UpdateContractsMessage {
+    readonly type: "updateContracts"
+    readonly contracts: Contract[]
 }
 
+export interface ShowResultMessage {
+    readonly type: "showResult"
+    readonly result: ResultData
+    readonly resultId?: string
+}
+
+export interface OpenOperationMessage {
+    readonly type: "openOperation"
+    readonly operation: Operation
+    readonly contractAddress?: string
+}
+
+export interface UpdateStorageFieldsMessage {
+    readonly type: "updateStorageFields"
+    readonly abi: ContractAbi
+}
+
+export interface UpdateContractInfoMessage {
+    readonly type: "updateContractInfo"
+    readonly info: {account: string}
+}
+
+// Messages from Webview to Extension
+export interface SendMessageCommand {
+    readonly type: "sendMessage"
+    readonly contractAddress: string
+    readonly selectedMessage: string
+    readonly messageFields: Record<string, string>
+    readonly value: string
+}
+
+export interface CallGetMethodCommand {
+    readonly type: "callGetMethod"
+    readonly contractAddress: string
+    readonly selectedMethod: string
+    readonly methodId: string
+}
+
+export interface LoadAbiForDeployCommand {
+    readonly type: "loadAbiForDeploy"
+}
+
+export interface LoadContractInfoCommand {
+    readonly type: "loadContractInfo"
+    readonly contractAddress: string
+}
+
+export interface CompileAndDeployCommand {
+    readonly type: "compileAndDeploy"
+    readonly storageFields: Record<string, string>
+}
+
+export type VSCodeMessage =
+    | UpdateContractsMessage
+    | ShowResultMessage
+    | OpenOperationMessage
+    | UpdateStorageFieldsMessage
+    | UpdateContractInfoMessage
+
+export type VSCodeCommand =
+    | SendMessageCommand
+    | CallGetMethodCommand
+    | LoadAbiForDeployCommand
+    | LoadContractInfoCommand
+    | CompileAndDeployCommand
+
 export interface VSCodeAPI {
-    readonly postMessage: (message: VSCodeMessage) => void
+    readonly postMessage: (command: VSCodeCommand) => void
     readonly getState: () => unknown
     readonly setState: (state: unknown) => void
 }

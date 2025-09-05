@@ -2,6 +2,15 @@
 //  Copyright © 2025 TON Studio
 import * as vscode from "vscode"
 import {ContractAbi} from "@shared/abi"
+import {
+    VSCodeCommand,
+    UpdateContractsMessage,
+    ShowResultMessage,
+    OpenOperationMessage,
+    UpdateStorageFieldsMessage,
+    UpdateContractInfoMessage,
+    Operation,
+} from "../webview-ui/src/types"
 
 export class SandboxFormProvider implements vscode.WebviewViewProvider {
     public static readonly viewType: string = "tonSandboxForm"
@@ -25,22 +34,22 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
 
         webviewView.webview.html = this._getHtmlForWebview(webviewView.webview)
 
-        webviewView.webview.onDidReceiveMessage((data: {type: string; [key: string]: unknown}) => {
-            switch (data.type) {
+        webviewView.webview.onDidReceiveMessage((command: VSCodeCommand) => {
+            switch (command.type) {
                 case "sendMessage": {
                     void vscode.commands.executeCommand("ton.sandbox.sendMessage", {
-                        contractAddress: data.contractAddress,
-                        selectedMessage: data.selectedMessage,
-                        messageFields: data.messageFields,
-                        value: data.value,
+                        contractAddress: command.contractAddress,
+                        selectedMessage: command.selectedMessage,
+                        messageFields: command.messageFields,
+                        value: command.value,
                     })
                     break
                 }
                 case "callGetMethod": {
                     void vscode.commands.executeCommand("ton.sandbox.callGetMethod", {
-                        contractAddress: data.contractAddress,
-                        selectedMethod: data.selectedMethod,
-                        methodId: data.methodId,
+                        contractAddress: command.contractAddress,
+                        selectedMethod: command.selectedMethod,
+                        methodId: command.methodId,
                     })
                     break
                 }
@@ -51,14 +60,14 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
                 case "loadContractInfo": {
                     void vscode.commands.executeCommand(
                         "ton.sandbox.loadContractInfo",
-                        data.contractAddress,
+                        command.contractAddress,
                     )
                     break
                 }
                 case "compileAndDeploy": {
                     void vscode.commands.executeCommand(
                         "ton.sandbox.compileAndDeploy",
-                        data.storageFields,
+                        command.storageFields,
                     )
                     break
                 }
@@ -69,10 +78,11 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
     public updateContracts(contracts: {address: string; name: string; abi?: ContractAbi}[]): void {
         this._deployedContracts = contracts
         if (this._view) {
-            void this._view.webview.postMessage({
+            const message: UpdateContractsMessage = {
                 type: "updateContracts",
                 contracts: this._deployedContracts,
-            })
+            }
+            void this._view.webview.postMessage(message)
         }
     }
 
@@ -85,39 +95,43 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
         resultId?: string,
     ): void {
         if (this._view) {
-            void this._view.webview.postMessage({
+            const message: ShowResultMessage = {
                 type: "showResult",
                 result,
                 resultId,
-            })
+            }
+            void this._view.webview.postMessage(message)
         }
     }
 
     public openOperation(operation: string, contractAddress?: string): void {
         if (this._view) {
-            void this._view.webview.postMessage({
+            const message: OpenOperationMessage = {
                 type: "openOperation",
-                operation,
+                operation: operation as Operation,
                 contractAddress,
-            })
+            }
+            void this._view.webview.postMessage(message)
         }
     }
 
     public updateStorageFields(abi: ContractAbi): void {
         if (this._view) {
-            void this._view.webview.postMessage({
+            const message: UpdateStorageFieldsMessage = {
                 type: "updateStorageFields",
                 abi,
-            })
+            }
+            void this._view.webview.postMessage(message)
         }
     }
 
     public updateContractInfo(info: {account: string}): void {
         if (this._view) {
-            void this._view.webview.postMessage({
+            const message: UpdateContractInfoMessage = {
                 type: "updateContractInfo",
                 info,
-            })
+            }
+            void this._view.webview.postMessage(message)
         }
     }
 

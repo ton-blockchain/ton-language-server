@@ -23,36 +23,41 @@ export default function App({vscode}: Props): JSX.Element {
     const [selectedInfoContract, setSelectedInfoContract] = useState<string>("")
 
     useEffect(() => {
-        const handleMessage = (event: MessageEvent): void => {
-            const message: VSCodeMessage = event.data as VSCodeMessage
+        const handleMessage = (event: MessageEvent<VSCodeMessage>): void => {
+            const message: VSCodeMessage = event.data
 
             switch (message.type) {
                 case "updateContracts": {
-                    setContracts((message.contracts as Contract[] | undefined) ?? [])
+                    setContracts(message.contracts)
                     break
                 }
                 case "showResult": {
-                    const resultId: string = (message.resultId as string | undefined) ?? "default"
+                    const resultId = message.resultId ?? "default"
                     setResults(prev => ({
                         ...prev,
-                        [resultId]: message.result as ResultData,
+                        [resultId]: message.result,
                     }))
                     break
                 }
                 case "openOperation": {
-                    setActiveOperation(message.operation as Operation)
+                    setActiveOperation(message.operation)
                     if (message.contractAddress) {
                         switch (message.operation) {
                             case "send-message": {
-                                setSelectedSendContract(message.contractAddress as string)
+                                setSelectedSendContract(message.contractAddress)
                                 break
                             }
                             case "get-method": {
-                                setSelectedGetContract(message.contractAddress as string)
+                                setSelectedGetContract(message.contractAddress)
                                 break
                             }
                             case "contract-info": {
-                                setSelectedInfoContract(message.contractAddress as string)
+                                setSelectedInfoContract(message.contractAddress)
+                                break
+                            }
+                            case "compile-deploy":
+                            case null: {
+                                // No contract address needed for these operations
                                 break
                             }
                         }
@@ -66,11 +71,11 @@ export default function App({vscode}: Props): JSX.Element {
                     break
                 }
                 case "updateStorageFields": {
-                    setStorageAbi(message.abi as ContractAbi)
+                    setStorageAbi(message.abi)
                     break
                 }
                 case "updateContractInfo": {
-                    setContractInfo(message.info as {account: string})
+                    setContractInfo(message.info)
                     break
                 }
             }
@@ -126,7 +131,9 @@ export default function App({vscode}: Props): JSX.Element {
                             vscode.postMessage({
                                 type: "sendMessage",
                                 contractAddress: selectedSendContract,
-                                ...messageData,
+                                selectedMessage: messageData.selectedMessage,
+                                messageFields: messageData.messageFields,
+                                value: messageData.value,
                             })
                         }}
                         result={results["send-message-result"]}
@@ -143,7 +150,8 @@ export default function App({vscode}: Props): JSX.Element {
                             vscode.postMessage({
                                 type: "callGetMethod",
                                 contractAddress: selectedGetContract,
-                                ...methodData,
+                                selectedMethod: methodData.selectedMethod,
+                                methodId: methodData.methodId,
                             })
                         }}
                         result={results["get-method-result"]}
