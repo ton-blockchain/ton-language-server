@@ -3,14 +3,7 @@
 import {Cell} from "@ton/core"
 import vscode from "vscode"
 import {ToolchainConfig} from "@server/settings/settings"
-import {exec} from "node:child_process"
-import {promisify} from "node:util"
-import * as fs from "node:fs"
-import * as path from "node:path"
-import * as os from "node:os"
 import {Toolchain} from "@server/languages/tolk/toolchain/toolchain"
-
-const execAsync = promisify(exec)
 
 export interface CompilationResult {
     readonly success: boolean
@@ -81,20 +74,50 @@ export class TolkCompilerProvider {
     }
 
     private async compileWithBinary(code: string, toolchainPath: string): Promise<Cell> {
-        const tempDir = await fs.promises.mkdtemp(path.join(os.tmpdir(), "tolk-compile-"))
-        const contractFile = path.join(tempDir, "main.tolk")
-        const outputFile = path.join(tempDir, "out.json")
+        const tempFolderUri = vscode.Uri.joinPath(
+            vscode.workspace.workspaceFolders?.[0]?.uri ?? vscode.Uri.file(process.cwd()),
+            ".tolk-temp-" + Date.now(),
+        )
+        const contractFileUri = vscode.Uri.joinPath(tempFolderUri, "main.tolk")
+        const outputFileUri = vscode.Uri.joinPath(tempFolderUri, "out.json")
 
         try {
-            await fs.promises.writeFile(contractFile, code, "utf8")
+            await vscode.workspace.fs.createDirectory(tempFolderUri)
 
-            const tolkBinary = path.join(toolchainPath)
-            const command = `"${tolkBinary}" "${contractFile}" --output-json "${outputFile}"`
-            const {stdout, stderr} = await execAsync(command)
-            console.log("stdout:", stdout)
-            console.log("stderr:", stderr)
+            const codeBuffer = Buffer.from(code, "utf8")
+            await vscode.workspace.fs.writeFile(contractFileUri, codeBuffer)
 
-            const outputJson = await fs.promises.readFile(outputFile, "utf8")
+            const taskDefinition: vscode.TaskDefinition = {
+                type: "shell",
+            }
+
+            const task = new vscode.Task(
+                taskDefinition,
+                vscode.TaskScope.Workspace,
+                "Tolk Compile",
+                "tolk",
+                new vscode.ShellExecution(
+                    `"${toolchainPath}" "${contractFileUri.fsPath}" --output-json "${outputFileUri.fsPath}"`,
+                ),
+            )
+
+            await new Promise<void>((resolve, reject) => {
+                const disposable = vscode.tasks.onDidEndTask(e => {
+                    if (e.execution.task === task) {
+                        disposable.dispose()
+                        if (e.execution.task.execution) {
+                            resolve()
+                        } else {
+                            reject(new TypeError("Task execution failed"))
+                        }
+                    }
+                })
+
+                void vscode.tasks.executeTask(task)
+            })
+
+            const outputBuffer = await vscode.workspace.fs.readFile(outputFileUri)
+            const outputJson = Buffer.from(outputBuffer).toString("utf8")
             const result = JSON.parse(outputJson) as TolkCompilerOutput
 
             return Cell.fromBase64(result.codeBoc64)
@@ -105,7 +128,7 @@ export class TolkCompilerProvider {
             throw new TypeError("Unknown compilation error")
         } finally {
             try {
-                await fs.promises.rm(tempDir, {recursive: true})
+                await vscode.workspace.fs.delete(tempFolderUri, {recursive: true})
             } catch {}
         }
     }
