@@ -15,8 +15,8 @@ import {
 export class SandboxFormProvider implements vscode.WebviewViewProvider {
     public static readonly viewType: string = "tonSandboxForm"
 
-    private _view?: vscode.WebviewView
-    public _deployedContracts: {address: string; name: string; abi?: ContractAbi}[] = []
+    private view?: vscode.WebviewView
+    public deployedContracts: {address: string; name: string; abi?: ContractAbi}[] = []
 
     public constructor(private readonly _extensionUri: vscode.Uri) {}
 
@@ -25,14 +25,14 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
         _context: vscode.WebviewViewResolveContext,
         _token: vscode.CancellationToken,
     ): void {
-        this._view = webviewView
+        this.view = webviewView
 
         webviewView.webview.options = {
             enableScripts: true,
             localResourceRoots: [this._extensionUri],
         }
 
-        webviewView.webview.html = this._getHtmlForWebview(webviewView.webview)
+        webviewView.webview.html = this.getHtmlForWebview(webviewView.webview)
 
         webviewView.webview.onDidReceiveMessage((command: VSCodeCommand) => {
             switch (command.type) {
@@ -76,13 +76,13 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
     }
 
     public updateContracts(contracts: {address: string; name: string; abi?: ContractAbi}[]): void {
-        this._deployedContracts = contracts
-        if (this._view) {
+        this.deployedContracts = contracts
+        if (this.view) {
             const message: UpdateContractsMessage = {
                 type: "updateContracts",
-                contracts: this._deployedContracts,
+                contracts: this.deployedContracts,
             }
-            void this._view.webview.postMessage(message)
+            void this.view.webview.postMessage(message)
         }
     }
 
@@ -94,48 +94,48 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
         },
         resultId?: string,
     ): void {
-        if (this._view) {
+        if (this.view) {
             const message: ShowResultMessage = {
                 type: "showResult",
                 result,
                 resultId,
             }
-            void this._view.webview.postMessage(message)
+            void this.view.webview.postMessage(message)
         }
     }
 
     public openOperation(operation: string, contractAddress?: string): void {
-        if (this._view) {
+        if (this.view) {
             const message: OpenOperationMessage = {
                 type: "openOperation",
                 operation: operation as Operation,
                 contractAddress,
             }
-            void this._view.webview.postMessage(message)
+            void this.view.webview.postMessage(message)
         }
     }
 
     public updateContractAbi(abi: ContractAbi): void {
-        if (this._view) {
+        if (this.view) {
             const message: UpdateContractAbiMessage = {
                 type: "updateContractAbi",
                 abi,
             }
-            void this._view.webview.postMessage(message)
+            void this.view.webview.postMessage(message)
         }
     }
 
     public updateContractInfo(info: {account: string}): void {
-        if (this._view) {
+        if (this.view) {
             const message: UpdateContractInfoMessage = {
                 type: "updateContractInfo",
                 info,
             }
-            void this._view.webview.postMessage(message)
+            void this.view.webview.postMessage(message)
         }
     }
 
-    private _getHtmlForWebview(webview: vscode.Webview): string {
+    private getHtmlForWebview(webview: vscode.Webview): string {
         const scriptUri = webview.asWebviewUri(
             vscode.Uri.joinPath(this._extensionUri, "dist", "webview-ui", "main.js"),
         )

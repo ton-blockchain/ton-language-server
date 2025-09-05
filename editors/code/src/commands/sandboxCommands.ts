@@ -345,7 +345,7 @@ function getMessageAbiFromFormProvider(
     contractAddress: string,
     messageName: string,
 ): Message | null {
-    const contracts = formProvider._deployedContracts
+    const contracts = formProvider.deployedContracts
 
     const contract = contracts.find(c => c.address === contractAddress)
     if (!contract || !contract.abi || contract.abi.messages.length === 0) {
