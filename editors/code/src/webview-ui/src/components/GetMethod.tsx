@@ -1,5 +1,6 @@
 import React, {useState} from "react"
 import {ContractAbi} from "@shared/abi"
+import {Button, Input, Select} from "./ui"
 import styles from "./GetMethod.module.css"
 
 interface Contract {
@@ -63,14 +64,13 @@ export const GetMethod: React.FC<Props> = ({
     return (
         <div className={styles.container}>
             <div className={styles.formGroup}>
-                <label htmlFor="getContractSelect">Target Contract:</label>
-                <select
+                <Select
+                    label="Target Contract:"
                     id="getContractSelect"
                     value={selectedContract ?? ""}
                     onChange={e => {
                         onContractChange(e.target.value)
                     }}
-                    className={styles.select}
                 >
                     <option value="">Select contract...</option>
                     {contracts.map(contract => (
@@ -78,19 +78,18 @@ export const GetMethod: React.FC<Props> = ({
                             {contract.name} ({formatAddress(contract.address)})
                         </option>
                     ))}
-                </select>
+                </Select>
             </div>
 
             <div className={styles.formGroup}>
-                <label htmlFor="methodSelect">Get Method:</label>
-                <select
+                <Select
+                    label="Get Method:"
                     id="methodSelect"
                     value={selectedMethod}
                     onChange={e => {
                         handleMethodChange(e.target.value)
                     }}
                     disabled={!contract?.abi?.getMethods}
-                    className={styles.select}
                 >
                     <option value="">Select method...</option>
                     {contract?.abi?.getMethods.map(method => (
@@ -98,12 +97,12 @@ export const GetMethod: React.FC<Props> = ({
                             {method.name} (ID: 0x{method.id.toString(16)})
                         </option>
                     ))}
-                </select>
+                </Select>
             </div>
 
             <div className={styles.formGroup}>
-                <label htmlFor="methodId">Method ID:</label>
-                <input
+                <Input
+                    label="Method ID:"
                     type="number"
                     id="methodId"
                     value={methodId}
@@ -112,17 +111,13 @@ export const GetMethod: React.FC<Props> = ({
                     }}
                     placeholder="0"
                     readOnly={isMethodIdReadonly}
-                    className={`${styles.input} ${isMethodIdReadonly ? styles.readonly : ""}`}
+                    className={isMethodIdReadonly ? styles.readonly : ""}
                 />
             </div>
 
-            <button
-                onClick={handleCallGetMethod}
-                disabled={contracts.length === 0}
-                className={styles.button}
-            >
+            <Button onClick={handleCallGetMethod} disabled={contracts.length === 0}>
                 Call Get Method
-            </button>
+            </Button>
 
             {result && (
                 <div

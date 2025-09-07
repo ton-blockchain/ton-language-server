@@ -1,5 +1,6 @@
 import React, {useState} from "react"
 import {ContractAbi} from "@shared/abi"
+import {Button, Input, Select} from "./ui"
 import styles from "./SendMessage.module.css"
 
 interface Contract {
@@ -59,14 +60,13 @@ export const SendMessage: React.FC<Props> = ({
     return (
         <div className={styles.container}>
             <div className={styles.formGroup}>
-                <label htmlFor="sendContractSelect">Target Contract:</label>
-                <select
+                <Select
+                    label="Target Contract:"
                     id="sendContractSelect"
                     value={selectedContract ?? ""}
                     onChange={e => {
                         onContractChange(e.target.value)
                     }}
-                    className={styles.select}
                 >
                     <option value="">Select contract...</option>
                     {contracts.map(contract => (
@@ -74,12 +74,12 @@ export const SendMessage: React.FC<Props> = ({
                             {contract.name} ({formatAddress(contract.address)})
                         </option>
                     ))}
-                </select>
+                </Select>
             </div>
 
             <div className={styles.formGroup}>
-                <label htmlFor="messageSelect">Message:</label>
-                <select
+                <Select
+                    label="Message:"
                     id="messageSelect"
                     value={selectedMessage}
                     onChange={e => {
@@ -87,7 +87,6 @@ export const SendMessage: React.FC<Props> = ({
                         setMessageFields({})
                     }}
                     disabled={!contract?.abi?.messages}
-                    className={styles.select}
                 >
                     <option value="">Select message...</option>
                     {contract?.abi?.messages.map(msg => (
@@ -95,7 +94,7 @@ export const SendMessage: React.FC<Props> = ({
                             {msg.name} (opcode: 0x{msg.opcode.toString(16)})
                         </option>
                     ))}
-                </select>
+                </Select>
             </div>
 
             {message?.fields && message.fields.length > 0 ? (
@@ -129,8 +128,8 @@ export const SendMessage: React.FC<Props> = ({
             )}
 
             <div className={styles.formGroup}>
-                <label htmlFor="sendValue">Value (TON):</label>
-                <input
+                <Input
+                    label="Value (TON):"
                     type="text"
                     id="sendValue"
                     value={value}
@@ -138,17 +137,12 @@ export const SendMessage: React.FC<Props> = ({
                         setValue(e.target.value)
                     }}
                     placeholder="1.0"
-                    className={styles.input}
                 />
             </div>
 
-            <button
-                onClick={handleSendMessage}
-                disabled={contracts.length === 0}
-                className={styles.button}
-            >
+            <Button onClick={handleSendMessage} disabled={contracts.length === 0}>
                 Send Message
-            </button>
+            </Button>
 
             {result && (
                 <div

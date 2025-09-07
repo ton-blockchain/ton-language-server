@@ -1,5 +1,6 @@
 import React, {useState} from "react"
 import {ContractAbi} from "@shared/abi"
+import {Button, Input, Label, FieldInput} from "./ui"
 import styles from "./CompileDeploy.module.css"
 
 interface Props {
@@ -33,40 +34,31 @@ export const CompileDeploy: React.FC<Props> = ({onCompileAndDeploy, result, cont
     return (
         <div className={styles.container}>
             <div className={styles.formGroup}>
-                <label>Deploy contract from active editor</label>
-                <p className={styles.description}>
-                    Opens the active Tolk file, compiles it, and deploys to sandbox
-                </p>
+                <Label>Deploy contract from active editor</Label>
             </div>
 
             {contractAbi?.storage?.fields && contractAbi.storage.fields.length > 0 && (
                 <div className={styles.storageFields}>
                     <div className={styles.formGroup}>
-                        <label>Storage Fields:</label>
+                        <Label>Storage Fields:</Label>
                     </div>
                     {contractAbi.storage.fields.map(field => (
-                        <div key={field.name} className={styles.messageField}>
-                            <div className={styles.messageFieldHeader}>
-                                <span className={styles.messageFieldName}>{field.name}</span>
-                                <span className={styles.messageFieldType}>{field.type}</span>
-                            </div>
-                            <input
-                                type="text"
-                                value={storageFields[field.name] || ""}
-                                onChange={e => {
-                                    handleFieldChange(field.name, e.target.value)
-                                }}
-                                placeholder={`Enter ${field.name} (${field.type})`}
-                                className={styles.messageFieldInput}
-                            />
-                        </div>
+                        <FieldInput
+                            key={field.name}
+                            name={field.name}
+                            type={field.type}
+                            value={storageFields[field.name] || ""}
+                            onChange={value => {
+                                handleFieldChange(field.name, value)
+                            }}
+                        />
                     ))}
                 </div>
             )}
 
             <div className={styles.formGroup}>
-                <label htmlFor="deployValue">Value (TON):</label>
-                <input
+                <Input
+                    label="Value (TON):"
                     type="text"
                     id="deployValue"
                     value={value}
@@ -74,13 +66,10 @@ export const CompileDeploy: React.FC<Props> = ({onCompileAndDeploy, result, cont
                         setValue(e.target.value)
                     }}
                     placeholder="1.0"
-                    className={styles.input}
                 />
             </div>
 
-            <button onClick={handleCompileAndDeploy} className={styles.button}>
-                Compile & Deploy from Editor
-            </button>
+            <Button onClick={handleCompileAndDeploy}>Compile & Deploy from Editor</Button>
 
             {result && (
                 <div

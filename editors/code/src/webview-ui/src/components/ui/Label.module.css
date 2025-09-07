@@ -1,0 +1,19 @@
+.label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    margin-bottom: 4px;
+    color: var(--vscode-input-foreground);
+}
+
+.default {
+    font-weight: 500;
+}
+
+.description {
+    font-size: 11px;
+    color: var(--vscode-descriptionForeground);
+    margin-bottom: 8px;
+    margin-top: 0;
+    font-weight: normal;
+}
