@@ -4,7 +4,11 @@ import {Button, Input, Label, FieldInput} from "./ui"
 import styles from "./CompileDeploy.module.css"
 
 interface Props {
-    readonly onCompileAndDeploy: (storageFields: Record<string, string>, value?: string) => void
+    readonly onCompileAndDeploy: (
+        name: string,
+        storageFields: Record<string, string>,
+        value?: string,
+    ) => void
     readonly result?: {success: boolean; message: string; details?: string}
     readonly contractAbi?: ContractAbi
 }
@@ -12,6 +16,7 @@ interface Props {
 export const CompileDeploy: React.FC<Props> = ({onCompileAndDeploy, result, contractAbi}) => {
     const [storageFields, setStorageFields] = useState<Record<string, string>>({})
     const [value, setValue] = useState<string>("1.0")
+    const contractName = contractAbi?.name ?? "UnknownContract"
 
     const handleFieldChange = (fieldName: string, value: string): void => {
         const newFields = {...storageFields, [fieldName]: value}
@@ -28,13 +33,15 @@ export const CompileDeploy: React.FC<Props> = ({onCompileAndDeploy, result, cont
                 return
             }
         }
-        onCompileAndDeploy(storageFields, value)
+        onCompileAndDeploy(contractName, storageFields, value)
     }
 
     return (
         <div className={styles.container}>
             <div className={styles.formGroup}>
-                <Label>Deploy contract from active editor</Label>
+                <Label>
+                    Deploy contract <code>{contractName}</code> from active editor
+                </Label>
             </div>
 
             {contractAbi?.storage?.fields && contractAbi.storage.fields.length > 0 && (

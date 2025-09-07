@@ -24,3 +24,7 @@
     color: var(--vscode-descriptionForeground);
     font-family: var(--vscode-editor-font-family);
 }
+
+.fullWidth {
+    width: calc(100% - 18px);
+}

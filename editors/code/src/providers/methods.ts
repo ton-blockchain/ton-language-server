@@ -64,6 +64,7 @@ export async function loadContractInfo(address: string): Promise<{
 }
 
 export async function compileAndDeployFromEditor(
+    name: string,
     storageFields: Record<string, string>,
     treeProvider: SandboxTreeProvider | undefined,
     value?: string,
@@ -116,11 +117,14 @@ export async function compileAndDeployFromEditor(
             }
         }
 
-        const deployResult = await deployContract({
-            code: result.code,
-            data: initialData ?? "",
+        const deployResult = await deployContract(
+            {
+                code: result.code,
+                data: initialData ?? "",
+            },
+            name,
             value,
-        })
+        )
         if (deployResult.success && deployResult.address) {
             const contractName = getContractNameFromDocument(editor.document)
             const isRedeploy = treeProvider?.isContractDeployed(deployResult.address) ?? false
@@ -148,7 +152,14 @@ function getContractNameFromDocument(document: vscode.TextDocument): string {
     return baseName.replace(/\.(tolk|fc|func)$/, "")
 }
 
-async function deployContract(stateInit: {code: string; data: string; value?: string}): Promise<{
+async function deployContract(
+    stateInit: {
+        code: string
+        data: string
+    },
+    name: string,
+    value?: string,
+): Promise<{
     success: boolean
     address?: string
     error?: string
@@ -162,7 +173,8 @@ async function deployContract(stateInit: {code: string; data: string; value?: st
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({
                 stateInit,
-                value: stateInit.value,
+                value,
+                name,
             }),
         })
 

@@ -1,4 +1,4 @@
-import React, {JSX, useEffect, useState} from "react"
+import React, {JSX, useEffect, useState, useCallback} from "react"
 import {CompileDeploy} from "./components/CompileDeploy"
 import {SendMessage} from "./components/SendMessage"
 import {GetMethod} from "./components/GetMethod"
@@ -22,78 +22,78 @@ export default function App({vscode}: Props): JSX.Element {
     const [selectedGetContract, setSelectedGetContract] = useState<string>("")
     const [selectedInfoContract, setSelectedInfoContract] = useState<string>("")
 
-    useEffect(() => {
-        const handleMessage = (event: MessageEvent<VSCodeMessage>): void => {
-            const message: VSCodeMessage = event.data
+    const handleMessage = useCallback((event: MessageEvent<VSCodeMessage>): void => {
+        const message: VSCodeMessage = event.data
 
-            switch (message.type) {
-                case "updateContracts": {
-                    setContracts(message.contracts)
-                    break
-                }
-                case "showResult": {
-                    const resultId = message.resultId ?? "default"
-                    setResults(prev => ({
-                        ...prev,
-                        [resultId]: message.result,
-                    }))
-                    break
-                }
-                case "openOperation": {
-                    setActiveOperation(message.operation)
-                    if (message.contractAddress) {
-                        switch (message.operation) {
-                            case "send-message": {
-                                setSelectedSendContract(message.contractAddress)
-                                break
-                            }
-                            case "get-method": {
-                                setSelectedGetContract(message.contractAddress)
-                                break
-                            }
-                            case "contract-info": {
-                                setSelectedInfoContract(message.contractAddress)
-                                break
-                            }
-                            case "compile-deploy":
-                            case null: {
-                                // No contract address needed for these operations
-                                break
-                            }
+        switch (message.type) {
+            case "updateContracts": {
+                setContracts(message.contracts)
+                break
+            }
+            case "showResult": {
+                const resultId = message.resultId ?? "default"
+                setResults(prev => ({
+                    ...prev,
+                    [resultId]: message.result,
+                }))
+                break
+            }
+            case "openOperation": {
+                setActiveOperation(message.operation)
+                if (message.contractAddress) {
+                    switch (message.operation) {
+                        case "send-message": {
+                            setSelectedSendContract(message.contractAddress)
+                            break
                         }
-                    } else if (contracts.length > 0) {
-                        if (message.operation === "send-message" && !selectedSendContract) {
-                            setSelectedSendContract(contracts[0].address)
-                        } else if (message.operation === "get-method" && !selectedGetContract) {
-                            setSelectedGetContract(contracts[0].address)
+                        case "get-method": {
+                            setSelectedGetContract(message.contractAddress)
+                            break
+                        }
+                        case "contract-info": {
+                            setSelectedInfoContract(message.contractAddress)
+                            break
+                        }
+                        case "compile-deploy":
+                        case null: {
+                            // No contract address needed for these operations
+                            break
                         }
                     }
-                    break
                 }
-                case "updateContractAbi": {
-                    setContractAbi(message.abi)
-                    break
+                break
+            }
+            case "updateContractAbi": {
+                setContractAbi(message.abi)
+                break
+            }
+            case "updateContractInfo": {
+                setContractInfo(message.info)
+                break
+            }
+            case "updateActiveEditor": {
+                if (message.document && message.document.languageId === "tolk") {
+                    vscode.postMessage({
+                        type: "loadAbiForDeploy",
+                    })
                 }
-                case "updateContractInfo": {
-                    setContractInfo(message.info)
-                    break
-                }
-                case "updateActiveEditor": {
-                    if (message.document && message.document.languageId === "tolk") {
-                        vscode.postMessage({
-                            type: "loadAbiForDeploy",
-                        })
-                    }
-                    break
-                }
+                break
             }
         }
+    }, [])
 
+    useEffect(() => {
+        vscode.postMessage({
+            type: "webviewReady",
+        })
+    }, [])
+
+    useEffect(() => {
         window.addEventListener("message", handleMessage)
         return () => {
             window.removeEventListener("message", handleMessage)
         }
-    }, [contracts, selectedSendContract, selectedGetContract, selectedInfoContract])
+    }, [handleMessage])
 
     const renderActiveOperation = (): JSX.Element => {
         if (!activeOperation) return <NoOperation />
@@ -118,9 +118,10 @@ export default function App({vscode}: Props): JSX.Element {
             case "compile-deploy": {
                 return (
                     <CompileDeploy
-                        onCompileAndDeploy={(storageFields, value) => {
+                        onCompileAndDeploy={(name, storageFields, value) => {
                             vscode.postMessage({
                                 type: "compileAndDeploy",
+                                name: contractAbi?.name ?? "UnknownContract",
                                 storageFields,
                                 value,
                             })

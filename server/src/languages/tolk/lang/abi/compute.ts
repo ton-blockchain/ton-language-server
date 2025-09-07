@@ -65,9 +65,16 @@ export function contractAbi(file: TolkFile): ContractAbi | undefined {
     })
 
     return {
+        name: getContractNameFromDocument(file),
         entryPoint,
         storage,
         getMethods,
         messages,
     }
+}
+
+function getContractNameFromDocument(document: TolkFile): string {
+    const fileName = document.name
+    const baseName = fileName.split("/").pop() ?? "Unknown"
+    return baseName.replace(/\.(tolk|fc|func)$/, "")
 }

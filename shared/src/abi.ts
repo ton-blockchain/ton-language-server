@@ -1,4 +1,5 @@
 export interface ContractAbi {
+    readonly name: string
     readonly storage: Storage | undefined
     readonly messages: readonly Message[]
     readonly getMethods: readonly GetMethod[]

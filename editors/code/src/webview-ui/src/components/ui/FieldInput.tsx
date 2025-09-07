@@ -35,6 +35,7 @@ export const FieldInput: React.FC<FieldInputProps> = ({
                 }}
                 placeholder={placeholder ?? `Enter ${name} (${type})`}
                 disabled={disabled}
+                className={styles.fullWidth}
             />
         </div>
     )

@@ -59,7 +59,13 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
                     break
                 }
                 case "compileAndDeploy": {
-                    void this.handleCompileAndDeploy(command.storageFields)
+                    void this.handleCompileAndDeploy(command.name, command.storageFields)
+                    break
+                }
+                case "webviewReady": {
+                    if (this.deployedContracts.length > 0) {
+                        this.updateContracts(this.deployedContracts)
+                    }
                     break
                 }
             }
@@ -68,7 +74,7 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
 
     public updateContracts(contracts: {address: string; name: string; abi?: ContractAbi}[]): void {
         this.deployedContracts = contracts
-        if (this.view) {
+        if (this.view && contracts.length > 0) {
             const message: UpdateContractsMessage = {
                 type: "updateContracts",
                 contracts: this.deployedContracts,
@@ -291,10 +297,11 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
     }
 
     private async handleCompileAndDeploy(
+        name: string,
         storageFields: Record<string, string>,
         value?: string,
     ): Promise<void> {
-        await compileAndDeployFromEditor(storageFields, this._treeProvider?.(), value)
+        await compileAndDeployFromEditor(name, storageFields, this._treeProvider?.(), value)
     }
 
     private getHtmlForWebview(webview: vscode.Webview): string {

@@ -80,6 +80,11 @@ export interface CompileAndDeployCommand {
     readonly type: "compileAndDeploy"
     readonly storageFields: Record<string, string>
     readonly value?: string
+    readonly name: string
+}
+
+export interface WebviewReadyCommand {
+    readonly type: "webviewReady"
 }
 
 export type VSCodeMessage =
@@ -96,6 +101,7 @@ export type VSCodeCommand =
     | LoadAbiForDeployCommand
     | LoadContractInfoCommand
     | CompileAndDeployCommand
+    | WebviewReadyCommand
 
 export interface VSCodeAPI {
     readonly postMessage: (command: VSCodeCommand) => void
