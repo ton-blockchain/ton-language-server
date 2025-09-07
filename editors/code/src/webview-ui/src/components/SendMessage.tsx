@@ -20,7 +20,15 @@ interface Props {
     readonly selectedContract?: string
     readonly onContractChange: (address: string) => void
     readonly onSendMessage: (messageData: MessageData) => void
+    readonly handleShowTransactionDetails: (tx: LastTransaction) => void
     readonly result?: {success: boolean; message: string; details?: string}
+}
+
+interface LastTransaction {
+    readonly contractAddress: string
+    readonly methodName: string
+    readonly transactionId?: string
+    readonly timestamp: string
 }
 
 export const SendMessage: React.FC<Props> = ({
@@ -28,11 +36,14 @@ export const SendMessage: React.FC<Props> = ({
     selectedContract,
     onContractChange,
     onSendMessage,
+    handleShowTransactionDetails,
     result,
 }) => {
     const [selectedMessage, setSelectedMessage] = useState<string>("")
     const [messageFields, setMessageFields] = useState<Record<string, string>>({})
     const [value, setValue] = useState<string>("1.0")
+    const [lastTransaction, setLastTransaction] = useState<LastTransaction | null>(null)
+
     const contract = contracts.find(c => c.address === selectedContract)
     const message = contract?.abi?.messages.find(m => m.name === selectedMessage)
 
@@ -45,6 +56,13 @@ export const SendMessage: React.FC<Props> = ({
         if (!selectedContract || !selectedMessage) {
             return
         }
+
+        setLastTransaction({
+            contractAddress: selectedContract,
+            methodName: selectedMessage,
+            timestamp: new Date().toISOString(),
+        })
+
         onSendMessage({
             selectedMessage,
             messageFields,
@@ -145,11 +163,25 @@ export const SendMessage: React.FC<Props> = ({
             </Button>
 
             {result && (
-                <div
-                    className={`${styles.result} ${result.success ? styles.success : styles.error}`}
-                >
-                    {result.message}
-                    {result.details && `\n\n${result.details}`}
+                <div className={styles.resultContainer}>
+                    <div
+                        className={`${styles.result} ${result.success ? styles.success : styles.error}`}
+                    >
+                        {result.message}
+                        {result.details && `\n\n${result.details}`}
+                    </div>
+                    {result.success && lastTransaction && (
+                        <Button
+                            variant="secondary"
+                            size="small"
+                            onClick={() => {
+                                handleShowTransactionDetails(lastTransaction)
+                            }}
+                            className={styles.transactionDetailsButton}
+                        >
+                            Show Transaction Details
+                        </Button>
+                    )}
                 </div>
             )}
         </div>

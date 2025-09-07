@@ -87,6 +87,14 @@ export interface WebviewReadyCommand {
     readonly type: "webviewReady"
 }
 
+export interface ShowTransactionDetailsCommand {
+    readonly type: "showTransactionDetails"
+    readonly contractAddress: string
+    readonly methodName: string
+    readonly transactionId?: string
+    readonly timestamp?: string
+}
+
 export type VSCodeMessage =
     | UpdateContractsMessage
     | ShowResultMessage
@@ -102,6 +110,7 @@ export type VSCodeCommand =
     | LoadContractInfoCommand
     | CompileAndDeployCommand
     | WebviewReadyCommand
+    | ShowTransactionDetailsCommand
 
 export interface VSCodeAPI {
     readonly postMessage: (command: VSCodeCommand) => void

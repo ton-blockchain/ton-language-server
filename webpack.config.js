@@ -119,10 +119,13 @@ const extensionConfig = {
 const webviewConfig = {
     mode: "development",
     target: "web",
-    entry: "./editors/code/src/webview-ui/src/main.tsx",
+    entry: {
+        main: "./editors/code/src/webview-ui/src/main.tsx",
+        "transaction-details": "./editors/code/src/webview-ui/src/transaction-details.tsx",
+    },
     output: {
         path: path.join(distDir, "webview-ui"),
-        filename: "main.js",
+        filename: "[name].js",
         clean: false,
     },
     devtool: "source-map",
@@ -185,7 +188,7 @@ const webviewConfig = {
             Buffer: ["buffer", "Buffer"],
         }),
         new MiniCssExtractPlugin({
-            filename: "main.css",
+            filename: "[name].css",
         }),
     ],
     externals: {

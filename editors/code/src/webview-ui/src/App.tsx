@@ -118,7 +118,7 @@ export default function App({vscode}: Props): JSX.Element {
             case "compile-deploy": {
                 return (
                     <CompileDeploy
-                        onCompileAndDeploy={(name, storageFields, value) => {
+                        onCompileAndDeploy={(storageFields, value) => {
                             vscode.postMessage({
                                 type: "compileAndDeploy",
                                 name: contractAbi?.name ?? "UnknownContract",
@@ -144,6 +144,15 @@ export default function App({vscode}: Props): JSX.Element {
                                 selectedMessage: messageData.selectedMessage,
                                 messageFields: messageData.messageFields,
                                 value: messageData.value,
+                            })
+                        }}
+                        handleShowTransactionDetails={tx => {
+                            vscode.postMessage({
+                                type: "showTransactionDetails",
+                                contractAddress: tx.contractAddress,
+                                methodName: tx.methodName,
+                                transactionId: tx.transactionId,
+                                timestamp: tx.timestamp,
                             })
                         }}
                         result={results["send-message-result"]}

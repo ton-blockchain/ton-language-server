@@ -4,11 +4,7 @@ import {Button, Input, Label, FieldInput} from "./ui"
 import styles from "./CompileDeploy.module.css"
 
 interface Props {
-    readonly onCompileAndDeploy: (
-        name: string,
-        storageFields: Record<string, string>,
-        value?: string,
-    ) => void
+    readonly onCompileAndDeploy: (storageFields: Record<string, string>, value?: string) => void
     readonly result?: {success: boolean; message: string; details?: string}
     readonly contractAbi?: ContractAbi
 }
@@ -33,7 +29,7 @@ export const CompileDeploy: React.FC<Props> = ({onCompileAndDeploy, result, cont
                 return
             }
         }
-        onCompileAndDeploy(contractName, storageFields, value)
+        onCompileAndDeploy(storageFields, value)
     }
 
     return (

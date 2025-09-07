@@ -68,6 +68,15 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
                     }
                     break
                 }
+                case "showTransactionDetails": {
+                    void vscode.commands.executeCommand("ton.transaction.showDetails", {
+                        contractAddress: command.contractAddress,
+                        methodName: command.methodName,
+                        transactionId: command.transactionId,
+                        timestamp: command.timestamp ?? new Date().toISOString(),
+                    })
+                    break
+                }
             }
         })
     }

@@ -33,6 +33,10 @@ import {registerSaveBocDecompiledCommand} from "./commands/saveBocDecompiledComm
 import {registerSandboxCommands} from "./commands/sandboxCommands"
 import {SandboxTreeProvider} from "./providers/SandboxTreeProvider"
 import {SandboxFormProvider} from "./providers/SandboxFormProvider"
+import {
+    TransactionDetailsProvider,
+    TransactionDetails,
+} from "./providers/TransactionDetailsProvider"
 import {SandboxCodeLensProvider} from "./providers/SandboxCodeLensProvider"
 import {ToolchainConfig} from "@server/settings/settings"
 import {configureDebugging} from "./debugging"
@@ -66,6 +70,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
             sandboxFormProvider,
         ),
     )
+
+    const transactionDetailsProvider = new TransactionDetailsProvider(context.extensionUri)
+    setTransactionDetailsProvider(transactionDetailsProvider)
 
     const sandboxCodeLensProvider = new SandboxCodeLensProvider(sandboxTreeProvider)
     context.subscriptions.push(
@@ -193,6 +200,7 @@ async function startServer(context: vscode.ExtensionContext): Promise<vscode.Dis
     await client.start()
 
     registerCommands(disposables)
+    registerTransactionDetailsCommand(disposables)
 
     const langStatusBar = vscode.window.createStatusBarItem(
         "Tolk",
@@ -816,4 +824,45 @@ async function checkConflictingExtensions(): Promise<void> {
             `@id:${installedConflicting[0].id}`,
         )
     }
+}
+
+// Global variable to store transaction details provider
+let globalTransactionDetailsProvider: TransactionDetailsProvider | undefined
+
+export function setTransactionDetailsProvider(provider: TransactionDetailsProvider): void {
+    globalTransactionDetailsProvider = provider
+}
+
+function registerTransactionDetailsCommand(disposables: vscode.Disposable[]): void {
+    disposables.push(
+        vscode.commands.registerCommand(
+            "ton.transaction.showDetails",
+            (args?: {
+                contractAddress: string
+                methodName: string
+                transactionId?: string
+                timestamp?: string
+            }) => {
+                console.log("ton.transaction.showDetails command called with args:", args)
+                if (!args || !globalTransactionDetailsProvider) {
+                    console.log("Missing args or provider:", {
+                        args: !!args,
+                        provider: !!globalTransactionDetailsProvider,
+                    })
+                    return
+                }
+
+                const transaction: TransactionDetails = {
+                    contractAddress: args.contractAddress,
+                    methodName: args.methodName,
+                    transactionId: args.transactionId,
+                    timestamp: args.timestamp ?? new Date().toISOString(),
+                    status: "success", // For now always success
+                }
+
+                console.log("Calling showTransactionDetails with transaction:", transaction)
+                globalTransactionDetailsProvider.showTransactionDetails(transaction)
+            },
+        ),
+    )
 }

@@ -14,7 +14,7 @@ export function registerSaveBocDecompiledCommand(
             } catch (error: unknown) {
                 console.error("Error in saveBocDecompiledCommand:", error)
                 // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-                vscode.window.showErrorMessage(`Failed to save decompiled BщC: ${error}`)
+                vscode.window.showErrorMessage(`Failed to save decompiled BoC: ${error}`)
             }
         },
     )
