@@ -3,13 +3,14 @@ import {ContractAbi} from "@shared/abi"
 import styles from "./CompileDeploy.module.css"
 
 interface Props {
-    readonly onCompileAndDeploy: (storageFields: Record<string, string>) => void
+    readonly onCompileAndDeploy: (storageFields: Record<string, string>, value?: string) => void
     readonly result?: {success: boolean; message: string; details?: string}
     readonly contractAbi?: ContractAbi
 }
 
 export const CompileDeploy: React.FC<Props> = ({onCompileAndDeploy, result, contractAbi}) => {
     const [storageFields, setStorageFields] = useState<Record<string, string>>({})
+    const [value, setValue] = useState<string>("1.0")
 
     const handleFieldChange = (fieldName: string, value: string): void => {
         const newFields = {...storageFields, [fieldName]: value}
@@ -26,7 +27,7 @@ export const CompileDeploy: React.FC<Props> = ({onCompileAndDeploy, result, cont
                 return
             }
         }
-        onCompileAndDeploy(storageFields)
+        onCompileAndDeploy(storageFields, value)
     }
 
     return (
@@ -62,6 +63,20 @@ export const CompileDeploy: React.FC<Props> = ({onCompileAndDeploy, result, cont
                     ))}
                 </div>
             )}
+
+            <div className={styles.formGroup}>
+                <label htmlFor="deployValue">Value (TON):</label>
+                <input
+                    type="text"
+                    id="deployValue"
+                    value={value}
+                    onChange={e => {
+                        setValue(e.target.value)
+                    }}
+                    placeholder="1.0"
+                    className={styles.input}
+                />
+            </div>
 
             <button onClick={handleCompileAndDeploy} className={styles.button}>
                 Compile & Deploy from Editor

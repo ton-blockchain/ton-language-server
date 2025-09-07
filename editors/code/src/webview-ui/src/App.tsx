@@ -78,6 +78,14 @@ export default function App({vscode}: Props): JSX.Element {
                     setContractInfo(message.info)
                     break
                 }
+                case "updateActiveEditor": {
+                    if (message.document && message.document.languageId === "tolk") {
+                        vscode.postMessage({
+                            type: "loadAbiForDeploy",
+                        })
+                    }
+                    break
+                }
             }
         }
 
@@ -110,10 +118,11 @@ export default function App({vscode}: Props): JSX.Element {
             case "compile-deploy": {
                 return (
                     <CompileDeploy
-                        onCompileAndDeploy={storageFields => {
+                        onCompileAndDeploy={(storageFields, value) => {
                             vscode.postMessage({
                                 type: "compileAndDeploy",
                                 storageFields,
+                                value,
                             })
                         }}
                         result={results["compile-deploy-result"]}

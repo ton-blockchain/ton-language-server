@@ -69,6 +69,28 @@
     border-color: var(--vscode-focusBorder);
 }
 
+.input {
+    width: 100%;
+    padding: 6px 8px;
+    background-color: var(--vscode-input-background);
+    color: var(--vscode-input-foreground);
+    border: 1px solid var(--vscode-input-border);
+    border-radius: 2px;
+    font-family: inherit;
+    font-size: 12px;
+}
+
+.input:focus {
+    outline: none;
+    border-color: var(--vscode-focusBorder);
+}
+
+.input:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    background-color: var(--vscode-input-background);
+}
+
 .button {
     width: 100%;
     background-color: var(--vscode-button-background);

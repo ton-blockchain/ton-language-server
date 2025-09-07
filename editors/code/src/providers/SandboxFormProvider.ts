@@ -9,6 +9,7 @@ import {
     OpenOperationMessage,
     UpdateContractAbiMessage,
     UpdateContractInfoMessage,
+    UpdateActiveEditorMessage,
     Operation,
 } from "../webview-ui/src/types"
 import {sendMessage, callGetMethod, buildStructuredMessage} from "../commands/sandboxCommands"
@@ -120,6 +121,18 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
             const message: UpdateContractInfoMessage = {
                 type: "updateContractInfo",
                 info,
+            }
+            void this.view.webview.postMessage(message)
+        }
+    }
+
+    public updateActiveEditor(
+        document: {uri: string; languageId: string; content: string} | null,
+    ): void {
+        if (this.view) {
+            const message: UpdateActiveEditorMessage = {
+                type: "updateActiveEditor",
+                document,
             }
             void this.view.webview.postMessage(message)
         }
@@ -277,8 +290,11 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
         }
     }
 
-    private async handleCompileAndDeploy(storageFields: Record<string, string>): Promise<void> {
-        await compileAndDeployFromEditor(storageFields, this._treeProvider?.())
+    private async handleCompileAndDeploy(
+        storageFields: Record<string, string>,
+        value?: string,
+    ): Promise<void> {
+        await compileAndDeployFromEditor(storageFields, this._treeProvider?.(), value)
     }
 
     private getHtmlForWebview(webview: vscode.Webview): string {

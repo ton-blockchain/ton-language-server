@@ -76,16 +76,31 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     sandboxTreeProvider.setCodeLensProvider(sandboxCodeLensProvider)
 
     context.subscriptions.push(
+        vscode.window.onDidChangeActiveTextEditor(editor => {
+            if (editor) {
+                const document = {
+                    uri: editor.document.uri.toString(),
+                    languageId: editor.document.languageId,
+                    content: editor.document.getText(),
+                }
+                sandboxFormProvider.updateActiveEditor(document)
+            } else {
+                sandboxFormProvider.updateActiveEditor(null)
+            }
+        }),
+    )
+
+    const sandboxCommands = registerSandboxCommands(sandboxTreeProvider, sandboxFormProvider)
+
+    context.subscriptions.push(
         vscode.commands.registerCommand(
             "tolk.getContractAbi",
             async (params: GetContractAbiParams) => {
                 return client?.sendRequest<GetContractAbiResponse>("tolk.getContractAbi", params)
             },
         ),
+        ...sandboxCommands,
     )
-
-    const sandboxCommands = registerSandboxCommands(sandboxTreeProvider, sandboxFormProvider)
-    context.subscriptions.push(...sandboxCommands)
 
     configureDebugging(context)
 

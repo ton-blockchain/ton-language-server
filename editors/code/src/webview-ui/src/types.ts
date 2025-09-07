@@ -42,6 +42,15 @@ export interface UpdateContractInfoMessage {
     readonly info: {account: string}
 }
 
+export interface UpdateActiveEditorMessage {
+    readonly type: "updateActiveEditor"
+    readonly document: {
+        readonly uri: string
+        readonly languageId: string
+        readonly content: string
+    } | null
+}
+
 // Messages from Webview to Extension
 export interface SendMessageCommand {
     readonly type: "sendMessage"
@@ -70,6 +79,7 @@ export interface LoadContractInfoCommand {
 export interface CompileAndDeployCommand {
     readonly type: "compileAndDeploy"
     readonly storageFields: Record<string, string>
+    readonly value?: string
 }
 
 export type VSCodeMessage =
@@ -78,6 +88,7 @@ export type VSCodeMessage =
     | OpenOperationMessage
     | UpdateContractAbiMessage
     | UpdateContractInfoMessage
+    | UpdateActiveEditorMessage
 
 export type VSCodeCommand =
     | SendMessageCommand

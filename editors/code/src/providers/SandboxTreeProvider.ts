@@ -240,14 +240,31 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
         this.codeLensProvider?.refresh()
     }
 
+    public isContractDeployed(address: string): boolean {
+        return this.deployedContracts.some(c => c.address === address)
+    }
+
     public addDeployedContract(address: string, name?: string, abi?: ContractAbi): void {
-        const contractName = name ?? `Contract ${this.deployedContracts.length + 1}`
-        this.deployedContracts.push({
-            address,
-            name: contractName,
-            deployTime: new Date(),
-            abi,
-        })
+        const existingIndex = this.deployedContracts.findIndex(c => c.address === address)
+
+        if (existingIndex === -1) {
+            const contractName = name ?? `Contract ${this.deployedContracts.length + 1}`
+            this.deployedContracts.push({
+                address,
+                name: contractName,
+                deployTime: new Date(),
+                abi,
+            })
+        } else {
+            const existingContract = this.deployedContracts[existingIndex]
+            this.deployedContracts[existingIndex] = {
+                ...existingContract,
+                name: name ?? existingContract.name,
+                deployTime: new Date(),
+                abi: abi ?? existingContract.abi,
+            }
+        }
+
         this.refresh()
         this.updateFormContracts()
         this.codeLensProvider?.refresh()

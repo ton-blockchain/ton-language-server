@@ -66,6 +66,7 @@ export async function loadContractInfo(address: string): Promise<{
 export async function compileAndDeployFromEditor(
     storageFields: Record<string, string>,
     treeProvider: SandboxTreeProvider | undefined,
+    value?: string,
 ): Promise<void> {
     const editor = vscode.window.activeTextEditor
     if (!editor) {
@@ -118,13 +119,19 @@ export async function compileAndDeployFromEditor(
         const deployResult = await deployContract({
             code: result.code,
             data: initialData ?? "",
+            value,
         })
         if (deployResult.success && deployResult.address) {
             const contractName = getContractNameFromDocument(editor.document)
+            const isRedeploy = treeProvider?.isContractDeployed(deployResult.address) ?? false
+
             treeProvider?.addDeployedContract(deployResult.address, contractName, contractAbi)
-            void vscode.window.showInformationMessage(
-                `Contract deployed successfully! Address: ${formatAddress(deployResult.address)}`,
-            )
+
+            const message = isRedeploy
+                ? `Contract redeployed successfully! Address: ${formatAddress(deployResult.address)}`
+                : `Contract deployed successfully! Address: ${formatAddress(deployResult.address)}`
+
+            void vscode.window.showInformationMessage(message)
         } else {
             void vscode.window.showErrorMessage(`Deploy failed: ${deployResult.error}`)
         }
@@ -141,7 +148,7 @@ function getContractNameFromDocument(document: vscode.TextDocument): string {
     return baseName.replace(/\.(tolk|fc|func)$/, "")
 }
 
-async function deployContract(stateInit: {code: string; data: string}): Promise<{
+async function deployContract(stateInit: {code: string; data: string; value?: string}): Promise<{
     success: boolean
     address?: string
     error?: string
@@ -155,6 +162,7 @@ async function deployContract(stateInit: {code: string; data: string}): Promise<
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({
                 stateInit,
+                value: stateInit.value,
             }),
         })
 
