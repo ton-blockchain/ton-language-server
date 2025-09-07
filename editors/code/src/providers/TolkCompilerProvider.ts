@@ -101,6 +101,16 @@ export class TolkCompilerProvider {
                 ),
             )
 
+            task.presentationOptions = {
+                reveal: vscode.TaskRevealKind.Silent,
+                panel: vscode.TaskPanelKind.Dedicated,
+                showReuseMessage: false,
+                clear: true,
+                echo: false,
+                focus: false,
+                close: true,
+            }
+
             await new Promise<void>((resolve, reject) => {
                 const disposable = vscode.tasks.onDidEndTask(e => {
                     if (e.execution.task === task) {

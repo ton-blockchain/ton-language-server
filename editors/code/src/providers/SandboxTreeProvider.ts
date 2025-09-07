@@ -236,6 +236,8 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
         } catch {
             this.sandboxStatus = "disconnected"
         }
+
+        this.codeLensProvider?.refresh()
     }
 
     public addDeployedContract(address: string, name?: string, abi?: ContractAbi): void {

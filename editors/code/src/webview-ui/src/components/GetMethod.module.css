@@ -74,6 +74,10 @@
     border-radius: 3px;
     font-size: 11px;
     white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+    word-break: break-all;
+    max-width: 100%;
     font-family: var(--vscode-editor-font-family);
 }
 
