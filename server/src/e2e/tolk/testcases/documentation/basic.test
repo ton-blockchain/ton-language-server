@@ -183,7 +183,7 @@ struct <caret>CreateMessageOptions<TBody = never> {
     /// whether a message will bounce back on error
     bounce: bool;
     /// message value: attached tons (or tons + extra currencies)
-    value: coins | (coins, ExtraCurrenciesDict);
+    value: coins | (coins, ExtraCurrenciesMap);
     /// destination is either a provided address, or is auto-calculated by stateInit
     dest: | address             // either just send a message to some address
           | builder             // ... or a manually constructed builder with a valid address
@@ -196,7 +196,7 @@ struct <caret>CreateMessageOptions<TBody = never> {
 ```tolk
 struct CreateMessageOptions<TBody = never> {
     bounce: bool
-    value: coins | (coins, ExtraCurrenciesDict)
+    value: coins | (coins, ExtraCurrenciesMap)
     dest: | address             // either just send a message to some address
           | builder             // ... or a manually constructed builder with a valid address
           | (int8, uint256)     // ... or to workchain + hash (also known as accountID)
