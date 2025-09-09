@@ -13,7 +13,7 @@ import {
 import {constantValueHint} from "@server/languages/tolk/inlays/constant-value-hints"
 import {getMethodId} from "@server/languages/tolk/inlays/get-method-id"
 import {FunctionBase} from "@server/languages/tolk/psi/Decls"
-import {Expression} from "@server/languages/tolk/psi/TolkNode"
+import {typeOf} from "@server/languages/tolk/type-inference"
 
 export function collectTolkInlays(
     file: TolkFile,
@@ -45,7 +45,7 @@ export function collectTolkInlays(
         if (type === "catch_clause" && hints.types) {
             const catchVar1 = n.childForFieldName("catch_var1")
             if (catchVar1) {
-                const type = new Expression(catchVar1, file).type()
+                const type = typeOf(catchVar1, file)
                 catchVariableTypeHint(catchVar1, type, file, result)
             }
             return true

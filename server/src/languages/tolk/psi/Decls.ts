@@ -6,11 +6,16 @@ import {crc16} from "@server/utils/crc16"
 import {parentOfType} from "@server/psi/utils"
 import {RecursiveVisitor} from "@server/visitor/visitor"
 import {Reference} from "@server/languages/tolk/psi/Reference"
-import {EnumTy} from "@server/languages/tolk/types/ty"
+import {EnumTy, Ty} from "@server/languages/tolk/types/ty"
+import {typeOf} from "@server/languages/tolk/type-inference"
 
 export class GlobalVariable extends NamedNode {
     public override kindName(): string {
         return "global"
+    }
+
+    public declaredType(): Ty | null {
+        return typeOf(this.node, this.file)
     }
 
     public typeNode(): Expression | null {
@@ -23,6 +28,10 @@ export class GlobalVariable extends NamedNode {
 export class Constant extends NamedNode {
     public override kindName(): string {
         return "constant"
+    }
+
+    public declaredType(): Ty | null {
+        return typeOf(this.node, this.file)
     }
 
     public value(): Expression | null {
@@ -307,6 +316,10 @@ export class GetMethod extends FunctionBase {
 export class Parameter extends NamedNode {
     public override kindName(): string {
         return "parameter"
+    }
+
+    public declaredType(): Ty | null {
+        return typeOf(this.node, this.file)
     }
 
     public isMutable(): boolean {

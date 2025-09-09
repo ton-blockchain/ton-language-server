@@ -35,6 +35,7 @@ import {StorageCompletionProvider} from "@server/languages/tolk/completion/provi
 import {FieldInitCompletionProvider} from "@server/languages/tolk/completion/providers/FieldInitCompletionProvider"
 import {FunctionNameCompletionProvider} from "@server/languages/tolk/completion/providers/FunctionNameCompletionProvider"
 import {StructFieldModifiersCompletionProvider} from "@server/languages/tolk/completion/providers/StructFieldModifiersCompletionProvider"
+import {EnumCompletionProvider} from "@server/languages/tolk/completion/providers/EnumCompletionProvider"
 
 export async function provideTolkCompletion(
     file: TolkFile,
@@ -118,6 +119,7 @@ export async function provideTolkCompletion(
         new FieldInitCompletionProvider(),
         new FunctionNameCompletionProvider(),
         new StructFieldModifiersCompletionProvider(),
+        new EnumCompletionProvider(),
     ]
 
     for (const provider of providers) {

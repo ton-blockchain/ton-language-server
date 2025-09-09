@@ -57,7 +57,7 @@ export class TypeCompatibilityInspection implements Inspection {
 
             if (!nameNode) continue
 
-            // Check if value is provided and has type
+            // Check if a value is provided and has a type
             if (valueNode) {
                 const valueType = typeOf(valueNode, file)
                 const fieldType = typeOf(nameNode, file)

@@ -4,9 +4,9 @@ import type {Node as SyntaxNode} from "web-tree-sitter"
 import {TolkFile} from "./TolkFile"
 import {BaseNode} from "@server/psi/BaseNode"
 import {TensorTy, TupleTy, Ty} from "@server/languages/tolk/types/ty"
-import {TypeInferer} from "@server/languages/tolk/TypeInferer"
 import {parentOfType} from "@server/psi/utils"
 import {extractCommentsDoc} from "@server/psi/comments"
+import {typeOf} from "@server/languages/tolk/type-inference"
 
 export class TolkNode extends BaseNode {
     public node: SyntaxNode
@@ -19,11 +19,7 @@ export class TolkNode extends BaseNode {
     }
 }
 
-export class Expression extends TolkNode {
-    public type(): Ty | null {
-        return TypeInferer.inferType(this)
-    }
-}
+export class Expression extends TolkNode {}
 
 export class CallLike extends Expression {
     public callee(): SyntaxNode | null {
@@ -256,12 +252,12 @@ export class VarDeclaration extends NamedNode {
     public type(): Ty | null {
         const hint = this.typeHint()
         if (hint !== null) {
-            return hint.type()
+            return typeOf(hint.node, hint.file)
         }
 
         const value = this.value()
         if (value !== null) {
-            return value.type()
+            return typeOf(value.node, value.file)
         }
 
         return null

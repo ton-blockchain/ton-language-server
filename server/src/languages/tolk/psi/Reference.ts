@@ -34,7 +34,6 @@ import {
     NullTy,
     EnumTy,
 } from "@server/languages/tolk/types/ty"
-import {TypeInferer} from "@server/languages/tolk/TypeInferer"
 import {parentOfType} from "@server/psi/utils"
 import {inferenceOf, typeOf} from "@server/languages/tolk/type-inference"
 
@@ -434,7 +433,7 @@ export class Reference {
                     }
 
                     if (receiver?.type === "type_instantiatedTs") {
-                        const receiverType = TypeInferer.inferType(new Expression(receiver, file))
+                        const receiverType = typeOf(receiver, file)
                         if (
                             receiverType instanceof InstantiationTy &&
                             expected instanceof InstantiationTy
