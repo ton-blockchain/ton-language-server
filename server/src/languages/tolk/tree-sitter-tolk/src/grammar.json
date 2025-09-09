@@ -525,6 +525,22 @@
             "members": [
                 {
                     "type": "FIELD",
+                    "name": "modifiers",
+                    "content": {
+                        "type": "CHOICE",
+                        "members": [
+                            {
+                                "type": "SYMBOL",
+                                "name": "struct_field_modifiers"
+                            },
+                            {
+                                "type": "BLANK"
+                            }
+                        ]
+                    }
+                },
+                {
+                    "type": "FIELD",
                     "name": "name",
                     "content": {
                         "type": "SYMBOL",
@@ -569,6 +585,22 @@
                     ]
                 }
             ]
+        },
+        "struct_field_modifiers": {
+            "type": "REPEAT1",
+            "content": {
+                "type": "CHOICE",
+                "members": [
+                    {
+                        "type": "STRING",
+                        "value": "readonly"
+                    },
+                    {
+                        "type": "STRING",
+                        "value": "private"
+                    }
+                ]
+            }
         },
         "enum_declaration": {
             "type": "SEQ",

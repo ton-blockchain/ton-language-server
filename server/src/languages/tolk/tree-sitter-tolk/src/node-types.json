@@ -5053,6 +5053,16 @@
                     }
                 ]
             },
+            "modifiers": {
+                "multiple": false,
+                "required": false,
+                "types": [
+                    {
+                        "type": "struct_field_modifiers",
+                        "named": true
+                    }
+                ]
+            },
             "name": {
                 "multiple": false,
                 "required": true,
@@ -5106,6 +5116,11 @@
                 ]
             }
         }
+    },
+    {
+        "type": "struct_field_modifiers",
+        "named": true,
+        "fields": {}
     },
     {
         "type": "tensor_expression",
@@ -6763,6 +6778,14 @@
     {
         "type": "numeric_index",
         "named": true
+    },
+    {
+        "type": "private",
+        "named": false
+    },
+    {
+        "type": "readonly",
+        "named": false
     },
     {
         "type": "redef",

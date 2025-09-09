@@ -471,6 +471,20 @@ export class Field extends NamedNode {
         return new Struct(ownerNode, this.file)
     }
 
+    public modifiers(): string[] {
+        const modifiers = this.node.childForFieldName("modifiers")
+        if (!modifiers) return []
+        return modifiers.children
+            .map(it => it?.text ?? "")
+            .filter(it => it === "readonly" || it === "private")
+    }
+
+    public modifiersPresentation(): string {
+        const modifiers = this.modifiers().join(" ")
+        if (modifiers === "") return ""
+        return modifiers + " "
+    }
+
     public defaultValuePresentation(): string {
         const defaultValueNode = this.node.childForFieldName("default")
         if (!defaultValueNode) return ""
