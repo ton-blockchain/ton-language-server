@@ -194,6 +194,7 @@ export class CompletionContext {
             !this.catchVariable &&
             !this.isFunctionName &&
             !this.isMethodName &&
+            !this.expectFieldModifier &&
             !this.isAnnotationName
         )
     }
