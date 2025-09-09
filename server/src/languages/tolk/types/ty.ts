@@ -59,6 +59,8 @@ export abstract class NamedTy<Anchor extends NamedNode> implements Ty {
     public equals(other: Ty): boolean {
         if (this === other) return true
         if (other instanceof NamedTy) return this._name === other.name()
+        const otherUnwrapped = other.unwrapAlias()
+        if (otherUnwrapped instanceof NamedTy) return this._name === otherUnwrapped.name()
         return false
     }
 
@@ -100,7 +102,8 @@ export abstract class NonNamedTy implements Ty {
     }
 
     public equals(other: Ty): boolean {
-        return this === other
+        const otherUnwrapped = other.unwrapAlias()
+        return this === otherUnwrapped
     }
 
     public canRhsBeAssigned(other: Ty): boolean {
@@ -351,8 +354,7 @@ export class UnionTy extends NonNamedTy {
     }
 
     public contains(other: Ty): boolean {
-        const baseType = other.baseType()
-        return this.elements.some(it => it.baseType().equals(baseType))
+        return this.elements.some(it => it.equals(other))
     }
 
     public containsAll(other: UnionTy): boolean {
@@ -886,7 +888,7 @@ export function subtractTypes(left: Ty | null, right: Ty): Ty {
         }
     } else if (left.contains(right)) {
         for (const leftVariant of left.elements) {
-            if (!leftVariant.baseType().equals(right.baseType())) {
+            if (!leftVariant.equals(right)) {
                 restVariants.push(leftVariant)
             }
         }

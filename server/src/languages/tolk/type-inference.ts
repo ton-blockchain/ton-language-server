@@ -76,11 +76,24 @@ export class GenericSubstitutions {
     }
 
     public static deduceTo(mapping: Map<string, Ty>, paramTy: Ty, argTy: Ty): void {
-        if (paramTy instanceof InstantiationTy && argTy instanceof InstantiationTy) {
-            for (let i = 0; i < Math.min(paramTy.types.length, argTy.types.length); i++) {
-                this.deduceTo(mapping, paramTy.types[i], argTy.types[i])
+        if (paramTy instanceof InstantiationTy) {
+            const unwrappedArgType = argTy.unwrapAlias()
+            if (unwrappedArgType instanceof InstantiationTy) {
+                for (
+                    let i = 0;
+                    i < Math.min(paramTy.types.length, unwrappedArgType.types.length);
+                    i++
+                ) {
+                    this.deduceTo(mapping, paramTy.types[i], unwrappedArgType.types[i])
+                }
             }
-            return
+
+            if (argTy instanceof InstantiationTy) {
+                for (let i = 0; i < Math.min(paramTy.types.length, argTy.types.length); i++) {
+                    this.deduceTo(mapping, paramTy.types[i], argTy.types[i])
+                }
+                return
+            }
         }
 
         if (paramTy instanceof FuncTy && argTy instanceof FuncTy) {
