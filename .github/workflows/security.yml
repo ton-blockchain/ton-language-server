@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  linter:
+  security:
     runs-on: ubuntu-latest
     steps:
       - name: Fetch Sources
@@ -24,9 +24,8 @@ jobs:
       - name: Install dependencies
         run: yarn install --immutable --check-cache --check-resolutions
 
-      - name: Check all packages for vulnerabilities
-        continue-on-error: true
-        run: yarn npm audit --all --recursive --severity high
-
       - name: Check project packages for deprecated
         run: yarn npm audit --all --severity moderate
+
+      - name: Check all packages for vulnerabilities
+        run: yarn npm audit --all --recursive --severity high
