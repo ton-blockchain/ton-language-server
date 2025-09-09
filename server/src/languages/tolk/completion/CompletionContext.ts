@@ -73,6 +73,17 @@ export class CompletionContext {
                 this.expectFieldModifier = true
             }
         }
+        if (
+            element.node.type === "identifier" &&
+            element.node.parent?.type === "ERROR" &&
+            element.node.parent.parent?.type === "struct_body"
+        ) {
+            // struct ResetCounter {
+            //     queryId: uint64
+            //     <caret>
+            // }
+            this.expectFieldModifier = true
+        }
 
         if (parent.type === "catch_clause" && element.node.type === "identifier") {
             this.catchVariable = true

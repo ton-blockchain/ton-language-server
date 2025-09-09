@@ -15,9 +15,10 @@ export class StructFieldModifiersCompletionProvider
 
     public addCompletion(ctx: CompletionContext, result: CompletionResult): void {
         const fieldDeclaration = ctx.element.node.parent
-        if (!fieldDeclaration) return
 
-        const modifiers = new Field(fieldDeclaration, ctx.element.file).modifiers()
+        const modifiers = fieldDeclaration
+            ? new Field(fieldDeclaration, ctx.element.file).modifiers()
+            : []
 
         if (!modifiers.includes("readonly")) {
             result.add({
