@@ -13,6 +13,7 @@ interface MessageData {
     readonly selectedMessage: string
     readonly messageFields: Record<string, string>
     readonly value: string
+    readonly autoDebug?: boolean
 }
 
 interface Props {
@@ -43,6 +44,7 @@ export const SendMessage: React.FC<Props> = ({
     const [messageFields, setMessageFields] = useState<Record<string, string>>({})
     const [value, setValue] = useState<string>("1.0")
     const [lastTransaction, setLastTransaction] = useState<LastTransaction | null>(null)
+    const [autoDebug, setAutoDebug] = useState<boolean>(false)
 
     const contract = contracts.find(c => c.address === selectedContract)
     const message = contract?.abi?.messages.find(m => m.name === selectedMessage)
@@ -67,6 +69,7 @@ export const SendMessage: React.FC<Props> = ({
             selectedMessage,
             messageFields,
             value,
+            autoDebug,
         })
     }
 
@@ -156,6 +159,22 @@ export const SendMessage: React.FC<Props> = ({
                     }}
                     placeholder="1.0"
                 />
+            </div>
+
+            <div className={styles.formGroup}>
+                <label className={styles.checkboxLabel}>
+                    <input
+                        type="checkbox"
+                        checked={autoDebug}
+                        onChange={e => {
+                            setAutoDebug(e.target.checked)
+                        }}
+                        className={styles.checkbox}
+                        id="autoDebugCheckbox"
+                    />
+                    <span className={styles.checkboxMark}></span>
+                    <span className={styles.checkboxText}>Launch Assembly Debugger after send</span>
+                </label>
             </div>
 
             <Button onClick={handleSendMessage} disabled={contracts.length === 0}>

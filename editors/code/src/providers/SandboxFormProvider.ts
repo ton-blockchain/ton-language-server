@@ -14,12 +14,18 @@ import {
 } from "../webview-ui/src/types"
 import {sendMessage, callGetMethod, buildStructuredMessage} from "../commands/sandboxCommands"
 import {compileAndDeployFromEditor, loadContractAbiForDeploy, loadContractInfo} from "./methods"
+import {Cell} from "@ton/core"
+import {decompileCell} from "ton-assembly/dist/runtime"
+import {print} from "ton-assembly/dist/text"
 
 export class SandboxFormProvider implements vscode.WebviewViewProvider {
     public static readonly viewType: string = "tonSandboxForm"
 
     private view?: vscode.WebviewView
     public deployedContracts: {address: string; name: string; abi?: ContractAbi}[] = []
+
+    private sequentialDebugQueue: {vmLogs: string; code: string; contractName?: string}[] = []
+    private isSequentialDebugRunning: boolean = false
 
     public constructor(
         private readonly _extensionUri: vscode.Uri,
@@ -158,7 +164,10 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
         selectedMessage: string
         messageFields: Record<string, string>
         value: string
+        autoDebug?: boolean
     }): Promise<void> {
+        this.sequentialDebugQueue = []
+        this.isSequentialDebugRunning = false
         if (!command.contractAddress) {
             this.showResult(
                 {
@@ -199,6 +208,25 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
                     },
                     "send-message-result",
                 )
+
+                if (command.autoDebug && result.txs && result.txs.length > 0) {
+                    const validTransactions = result.txs
+                        .filter(tx => tx.vmLogs && tx.code)
+                        .map((tx, index) => {
+                            const contract = this.deployedContracts.find(c => c.address === tx.addr)
+                            const contractName = contract?.name ?? "UnknownContract"
+
+                            return {
+                                vmLogs: tx.vmLogs ?? "",
+                                code: tx.code ?? "",
+                                contractName: `${contractName}_TX_${index + 1}`,
+                            }
+                        })
+
+                    if (validTransactions.length > 0) {
+                        this.startSequentialDebugging(validTransactions)
+                    }
+                }
             } else {
                 this.showResult(
                     {
@@ -311,6 +339,150 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
         value?: string,
     ): Promise<void> {
         await compileAndDeployFromEditor(name, storageFields, this._treeProvider?.(), value)
+    }
+
+    private startSequentialDebugging(
+        transactions: {vmLogs: string; code: string; contractName?: string}[],
+    ): void {
+        if (this.isSequentialDebugRunning) {
+            console.warn("Sequential debugging already running")
+            return
+        }
+
+        this.sequentialDebugQueue = [...transactions]
+        this.isSequentialDebugRunning = true
+
+        console.log(
+            `Starting sequential debugging for ${this.sequentialDebugQueue.length} transactions`,
+        )
+        void vscode.window.showInformationMessage(
+            `Starting debug sequence for ${transactions.length} transactions`,
+        )
+
+        void this.processNextDebugSession()
+    }
+
+    private async processNextDebugSession(): Promise<void> {
+        if (this.sequentialDebugQueue.length === 0) {
+            console.log("Sequential debugging completed")
+            this.isSequentialDebugRunning = false
+            void vscode.window.showInformationMessage("Sequential debugging completed")
+            return
+        }
+
+        const transaction = this.sequentialDebugQueue.shift()
+        if (!transaction) {
+            return
+        }
+
+        const remainingCount = this.sequentialDebugQueue.length
+        const sessionNumber = remainingCount + 1
+
+        console.log(
+            `Starting debug session ${sessionNumber} for transaction (${remainingCount} remaining)`,
+        )
+
+        try {
+            const workspaceFolder = vscode.workspace.workspaceFolders?.[0]
+            if (!workspaceFolder) {
+                throw new Error("No workspace folder found")
+            }
+
+            const debugDirUri = vscode.Uri.joinPath(workspaceFolder.uri, ".debug")
+            await vscode.workspace.fs.createDirectory(debugDirUri)
+
+            const cell = Cell.fromHex(transaction.code)
+            const instructions = decompileCell(cell)
+            const assemblyCode = print(instructions)
+
+            const contractName = transaction.contractName ?? `TX_${sessionNumber}`
+            const fileName = `${contractName}.tasm`
+            const fileUri = vscode.Uri.joinPath(debugDirUri, fileName)
+
+            const assemblyCodeBuffer = Buffer.from(assemblyCode, "utf8")
+            await vscode.workspace.fs.writeFile(fileUri, assemblyCodeBuffer)
+
+            const doc = await vscode.workspace.openTextDocument(fileUri)
+            await vscode.window.showTextDocument(doc, {
+                preview: false,
+                preserveFocus: false,
+            })
+
+            const success = await vscode.debug.startDebugging(undefined, {
+                type: "assembly",
+                name: `Assembly Debug TX (${sessionNumber})`,
+                request: "launch",
+                code: transaction.code,
+                vmLogs: transaction.vmLogs,
+                program: fileUri.fsPath,
+                stopOnEntry: true,
+            })
+
+            if (!success) {
+                console.error(`Failed to start debug session ${sessionNumber}`)
+
+                try {
+                    await vscode.workspace.fs.delete(fileUri, {useTrash: false})
+                    try {
+                        await vscode.commands.executeCommand("workbench.action.closeActiveEditor")
+                    } catch (closeError) {
+                        console.warn(`Failed to close tab for ${fileUri.fsPath}:`, closeError)
+                    }
+                } catch (cleanupError) {
+                    console.warn(`Failed to clean up temp file after failed start:`, cleanupError)
+                }
+
+                void vscode.window.showWarningMessage(
+                    `Failed to start debug session ${sessionNumber}, continuing with next...`,
+                )
+                void this.processNextDebugSession()
+                return
+            }
+
+            console.log(`Debug session ${sessionNumber} started successfully`)
+
+            const disposable = vscode.debug.onDidTerminateDebugSession(session => {
+                if (session.name === `Assembly Debug TX (${sessionNumber})`) {
+                    console.log(`Debug session ${sessionNumber} completed: ${session.name}`)
+                    disposable.dispose()
+
+                    vscode.workspace.fs.delete(fileUri, {useTrash: false}).then(
+                        async () => {
+                            console.log(`Cleaned up debug file: ${fileUri.fsPath}`)
+                            try {
+                                await vscode.commands.executeCommand(
+                                    "workbench.action.closeActiveEditor",
+                                )
+                            } catch (closeError) {
+                                console.warn(
+                                    `Failed to close tab for ${fileUri.fsPath}:`,
+                                    closeError,
+                                )
+                            }
+                        },
+                        (error: unknown) => {
+                            console.warn(`Failed to clean up temp file ${fileUri.fsPath}:`, error)
+                        },
+                    )
+
+                    if (remainingCount > 0) {
+                        void vscode.window.showInformationMessage(
+                            `Debug session ${sessionNumber} completed. Starting next session...`,
+                        )
+                    }
+
+                    setTimeout(() => {
+                        void this.processNextDebugSession()
+                    }, 500)
+                }
+            })
+        } catch (error) {
+            console.error(`Error starting debug session ${sessionNumber}:`, error)
+            void vscode.window.showErrorMessage(
+                `Error in debug session ${sessionNumber}: ${error instanceof Error ? error.message : String(error)}`,
+            )
+            void this.processNextDebugSession()
+        }
     }
 
     private getHtmlForWebview(webview: vscode.Webview): string {

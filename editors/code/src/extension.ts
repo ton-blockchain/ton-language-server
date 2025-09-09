@@ -843,7 +843,6 @@ function registerTransactionDetailsCommand(disposables: vscode.Disposable[]): vo
                 transactionId?: string
                 timestamp?: string
             }) => {
-                console.log("ton.transaction.showDetails command called with args:", args)
                 if (!args || !globalTransactionDetailsProvider) {
                     console.log("Missing args or provider:", {
                         args: !!args,
@@ -860,7 +859,6 @@ function registerTransactionDetailsCommand(disposables: vscode.Disposable[]): vo
                     status: "success", // For now always success
                 }
 
-                console.log("Calling showTransactionDetails with transaction:", transaction)
                 globalTransactionDetailsProvider.showTransactionDetails(transaction)
             },
         ),

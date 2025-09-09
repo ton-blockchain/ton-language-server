@@ -62,14 +62,23 @@ export function registerSandboxCommands(
     return disposables
 }
 
+interface SendMessageResponse {
+    readonly success: boolean
+    readonly error?: string
+    readonly vmLogs?: string
+    readonly code?: string
+    readonly txs?: readonly {
+        readonly addr?: string
+        readonly vmLogs?: string
+        readonly code?: string
+    }[]
+}
+
 export async function sendMessage(
     address: string,
     message: string,
     value?: string,
-): Promise<{
-    success: boolean
-    error?: string
-}> {
+): Promise<SendMessageResponse> {
     const config = vscode.workspace.getConfiguration("ton")
     const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
 
@@ -83,7 +92,7 @@ export async function sendMessage(
         throw new Error(`API call failed: ${response.status} ${response.statusText}`)
     }
 
-    return (await response.json()) as {success: boolean; error?: string}
+    return (await response.json()) as SendMessageResponse
 }
 
 export async function callGetMethod(

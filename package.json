@@ -36,7 +36,7 @@
     "license": "MIT",
     "scripts": {
         "test": "yarn jest",
-        "build": "webpack && node ./.scripts/set-executable.js ./dist/server.js",
+        "build": "webpack && node ./.scripts/set-executable.js ./dist/server.js && node ./.scripts/set-executable.js ./dist/debugging/adapter/server.js",
         "package": "npx vsce package --no-yarn --readme-path editors/code/README.md",
         "lint": "eslint --cache .",
         "fmt": "prettier --write -l --cache .",
@@ -204,11 +204,18 @@
             {
                 "type": "tvm",
                 "label": "TVM Debug"
+            },
+            {
+                "type": "assembly",
+                "label": "Assembly Debug"
             }
         ],
         "breakpoints": [
             {
                 "language": "func"
+            },
+            {
+                "language": "tasm"
             }
         ],
         "commands": [
@@ -692,6 +699,8 @@
     "dependencies": {
         "@ton/core": "0.60.1",
         "@ton/crypto": "^3.3.0",
+        "@vscode/debugadapter": "^1.68.0",
+        "@vscode/debugprotocol": "^1.68.0",
         "buffer": "^6.0.3",
         "glob": "^11.0.1",
         "jssha": "^3.3.1",
@@ -699,6 +708,7 @@
         "react-dom": "^18.3.1",
         "tolkfmt-test-dev": "0.0.20",
         "ton-assembly": "0.2.0",
+        "vscode-debugadapter": "^1.51.0",
         "vscode-languageclient": "^8.0.2",
         "vscode-languageserver": "^8.0.2",
         "vscode-languageserver-textdocument": "^1.0.7",

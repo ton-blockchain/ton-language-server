@@ -144,6 +144,7 @@ export default function App({vscode}: Props): JSX.Element {
                                 selectedMessage: messageData.selectedMessage,
                                 messageFields: messageData.messageFields,
                                 value: messageData.value,
+                                autoDebug: messageData.autoDebug,
                             })
                         }}
                         handleShowTransactionDetails={tx => {

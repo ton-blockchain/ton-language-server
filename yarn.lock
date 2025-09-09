@@ -1727,6 +1727,22 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@vscode/debugadapter@npm:^1.68.0":
+  version: 1.68.0
+  resolution: "@vscode/debugadapter@npm:1.68.0"
+  dependencies:
+    "@vscode/debugprotocol": "npm:1.68.0"
+  checksum: 10c0/68aaaf283eaabff42c89055221f9602c1e2560027b474a8b109c89129e5d37145b98c0d496b37f1058dc6fdbcdc02e28e2191bf82bfb10832199106ca9d5dfaf
+  languageName: node
+  linkType: hard
+
+"@vscode/debugprotocol@npm:1.68.0, @vscode/debugprotocol@npm:^1.68.0":
+  version: 1.68.0
+  resolution: "@vscode/debugprotocol@npm:1.68.0"
+  checksum: 10c0/e4b21bad518f7db66f7bd5c07b8303af36dbee920c9250d0f5d3910fb181ee1f7e83c536004b3258041d54d18c86fc361de3c2225958a458dbf5ece99c317870
+  languageName: node
+  linkType: hard
+
 "@vscode/test-cli@npm:^0.0.10":
   version: 0.0.10
   resolution: "@vscode/test-cli@npm:0.0.10"
@@ -5966,6 +5982,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"mkdirp@npm:^1.0.4":
+  version: 1.0.4
+  resolution: "mkdirp@npm:1.0.4"
+  bin:
+    mkdirp: bin/cmd.js
+  checksum: 10c0/46ea0f3ffa8bc6a5bc0c7081ffc3907777f0ed6516888d40a518c5111f8366d97d2678911ad1a6882bf592fa9de6c784fea32e1687bb94e1f4944170af48a5cf
+  languageName: node
+  linkType: hard
+
 "mkdirp@npm:^3.0.1":
   version: 3.0.1
   resolution: "mkdirp@npm:3.0.1"
@@ -8229,6 +8254,23 @@ __metadata:
   languageName: node
   linkType: hard
 
+"vscode-debugadapter@npm:^1.51.0":
+  version: 1.51.0
+  resolution: "vscode-debugadapter@npm:1.51.0"
+  dependencies:
+    mkdirp: "npm:^1.0.4"
+    vscode-debugprotocol: "npm:1.51.0"
+  checksum: 10c0/4db0e05fd72d140702c013ab7a7e1dcf7d031e0a1de45644ea936c36631e3b6422b43e47cca18176ca83fe87d608c4039026f2b7e8367db883e281f6cd2ffefb
+  languageName: node
+  linkType: hard
+
+"vscode-debugprotocol@npm:1.51.0":
+  version: 1.51.0
+  resolution: "vscode-debugprotocol@npm:1.51.0"
+  checksum: 10c0/ea51a575aabbbfa9d66bfca48e001435576ed1ec909f17a941aeee3ba7792dae1b27222eadd12a8504aaeab9811f462fcceaf9ae6df02b7e4d5ad9c7da54692e
+  languageName: node
+  linkType: hard
+
 "vscode-jsonrpc@npm:8.1.0":
   version: 8.1.0
   resolution: "vscode-jsonrpc@npm:8.1.0"
@@ -8294,6 +8336,8 @@ __metadata:
     "@types/react": "npm:^18.3.3"
     "@types/react-dom": "npm:^18.3.0"
     "@types/vscode": "npm:^1.63.0"
+    "@vscode/debugadapter": "npm:^1.68.0"
+    "@vscode/debugprotocol": "npm:^1.68.0"
     "@vscode/test-cli": "npm:^0.0.10"
     "@vscode/test-electron": "npm:^2.4.1"
     "@vscode/vsce": "npm:^3.6.0"
@@ -8325,6 +8369,7 @@ __metadata:
     tsconfig-paths-webpack-plugin: "npm:^4.2.0"
     typescript: "npm:^5.7.0"
     typescript-eslint: "npm:^8.22.0"
+    vscode-debugadapter: "npm:^1.51.0"
     vscode-languageclient: "npm:^8.0.2"
     vscode-languageserver: "npm:^8.0.2"
     vscode-languageserver-textdocument: "npm:^1.0.7"

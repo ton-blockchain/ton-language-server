@@ -58,6 +58,7 @@ export interface SendMessageCommand {
     readonly selectedMessage: string
     readonly messageFields: Record<string, string>
     readonly value: string
+    readonly autoDebug?: boolean
 }
 
 export interface CallGetMethodCommand {
