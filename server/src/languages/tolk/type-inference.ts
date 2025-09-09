@@ -353,8 +353,8 @@ class InferenceContext {
         this.expressionTypes.set(node.id, ty)
     }
 
-    public setVarType(node: SyntaxNode, ty: Ty | null): void {
-        if (!ty) return
+    public setVarType(node: SyntaxNode | null, ty: Ty | null): void {
+        if (!node || !ty) return
         this.varTypes.set(node.id, ty)
     }
 
@@ -1829,7 +1829,24 @@ class InferenceWalker {
             return nextFlow
         }
 
-        if (resolved instanceof TypeAlias || resolved instanceof Struct) {
+        if (resolved instanceof TypeAlias) {
+            const underlyingType = resolved.underlyingType()
+            if (underlyingType?.text === "builtin") {
+                const name = resolved.name()
+                const type = InferenceWalker.asPrimitiveType(node.text)
+                if (type) {
+                    this.ctx.setType(node, type)
+                    return nextFlow
+                }
+                this.ctx.setType(node, new BuiltinTy(name, resolved))
+                return nextFlow
+            }
+
+            this.ctx.setType(node, InferenceWalker.namedNodeType(resolved))
+            return nextFlow
+        }
+
+        if (resolved instanceof Struct) {
             this.ctx.setType(node, InferenceWalker.namedNodeType(resolved))
             return nextFlow
         }
@@ -1894,6 +1911,7 @@ class InferenceWalker {
                 ? InferenceWalker.convertType(typeNode, this.ctx.file)
                 : UnknownTy.UNKNOWN
             this.ctx.setVarType(node, type)
+            this.ctx.setVarType(node.childForFieldName("name"), type)
             nextFlow.setSymbol(new NamedNode(node, this.ctx.file), type ?? UnknownTy.UNKNOWN)
         }
 
@@ -2174,6 +2192,10 @@ class InferenceWalker {
             return baseTy
         }
 
+        if (node instanceof Enum) {
+            return node.declaredType()
+        }
+
         if (node instanceof TypeParameter) {
             const defaultTypeNode = node.defaultType()
             if (defaultTypeNode) {
@@ -2210,6 +2232,7 @@ class InferenceWalker {
                 : rightType
 
             this.ctx.setVarType(lhs, declaredType ?? rightType)
+            this.ctx.setVarType(lhs.childForFieldName("name"), declaredType ?? rightType)
             outFlow.setSink(new SinkExpression(new NamedNode(lhs, this.ctx.file)), smartcastedTy)
         }
 

@@ -9,8 +9,6 @@ import type {CompletionResult} from "@server/completion/WeightedCompletionItem"
 import {ResolveState} from "@server/psi/ResolveState"
 import {FieldsOwnerTy} from "@server/languages/tolk/types/ty"
 import {typeOf} from "@server/languages/tolk/type-inference"
-import {index, IndexKey} from "@server/languages/tolk/indexes"
-import {Enum} from "@server/languages/tolk/psi/Decls"
 
 enum CompletionKind {
     ONLY_FIELDS = "ONLY_FIELDS",
@@ -43,25 +41,6 @@ export class ReferenceCompletionProvider implements CompletionProvider<Completio
         // process usual autocompletion for only non-instance expressions
         if (kind === CompletionKind.ALL) {
             this.ref.processResolveVariants(processor, state.withValue("completion", "true"))
-        }
-
-        if (ctx.element.node.parent?.type !== "dot_access" && ctx.expression()) {
-            index.processElementsByKey(
-                IndexKey.Enums,
-                new (class implements ScopeProcessor {
-                    public execute(node: Enum, state: ResolveState): boolean {
-                        for (const member of node.members()) {
-                            if (
-                                !processor.execute(member, state.withValue("need-prefix", "true"))
-                            ) {
-                                return false
-                            }
-                        }
-                        return true
-                    }
-                })(),
-                state,
-            )
         }
 
         // TODO: think about case:
