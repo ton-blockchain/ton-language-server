@@ -47,6 +47,7 @@ export class TolkDebugAdapter extends LoggingDebugSession {
         response.body.supportsConfigurationDoneRequest = true
         response.body.supportsStepBack = true
         response.body.supportsRestartRequest = true
+        response.body.supportsStepInTargetsRequest = true
 
         response.body.supportsInstructionBreakpoints = true
         response.body.supportsConditionalBreakpoints = false
@@ -98,7 +99,8 @@ export class TolkDebugAdapter extends LoggingDebugSession {
 
             this.buildLineToStepsMap()
 
-            this.currentStep = 0
+            // Find first Tolk step or fallback to step 0
+            this.currentStep = this.findFirstTolkStep()
             this.sendResponse(response)
 
             if (args.stopOnEntry === false) {
@@ -285,19 +287,47 @@ export class TolkDebugAdapter extends LoggingDebugSession {
         response: DebugProtocol.NextResponse,
         args: DebugProtocol.NextArguments,
     ): void {
-        if (this.traceInfo) {
-            this.currentStep++
-            this.clearVariableHandles()
-            if (this.currentStep < this.traceInfo.steps.length) {
-                this.sendResponse(response)
-                this.sendEvent(new StoppedEvent("step", TolkDebugAdapter.THREAD_ID))
-            } else {
-                this.currentStep = this.traceInfo.steps.length - 1
-                this.sendResponse(response)
-                this.sendEvent(new TerminatedEvent())
-            }
-        } else {
+        if (this.traceInfo === undefined) {
             this.sendErrorResponse(response, 1003, "No trace info loaded.")
+            return
+        }
+
+        const nextStep = this.findNextTolkStep(false) // false = step over (don't enter functions)
+
+        if (nextStep >= 0) {
+            this.currentStep = nextStep
+            this.clearVariableHandles()
+            this.sendResponse(response)
+            this.sendEvent(new StoppedEvent("step", TolkDebugAdapter.THREAD_ID))
+        } else {
+            // No more Tolk steps found, terminate
+            this.currentStep = this.traceInfo.steps.length - 1
+            this.sendResponse(response)
+            this.sendEvent(new TerminatedEvent())
+        }
+    }
+
+    protected override stepInRequest(
+        response: DebugProtocol.StepInResponse,
+        args: DebugProtocol.StepInArguments,
+    ): void {
+        if (!this.traceInfo) {
+            this.sendErrorResponse(response, 1003, "No trace info loaded.")
+            return
+        }
+
+        const nextStep = this.findNextTolkStep(true) // true = step into (can enter functions)
+
+        if (nextStep >= 0) {
+            this.currentStep = nextStep
+            this.clearVariableHandles()
+            this.sendResponse(response)
+            this.sendEvent(new StoppedEvent("step", TolkDebugAdapter.THREAD_ID))
+        } else {
+            // No more Tolk steps found, terminate
+            this.currentStep = this.traceInfo.steps.length - 1
+            this.sendResponse(response)
+            this.sendEvent(new TerminatedEvent())
         }
     }
 
@@ -307,15 +337,18 @@ export class TolkDebugAdapter extends LoggingDebugSession {
         request?: DebugProtocol.Request,
     ): void {
         if (this.traceInfo) {
-            this.currentStep--
-            this.clearVariableHandles()
-            if (this.currentStep >= 0) {
+            // Find previous Tolk step
+            const prevStep = this.findPreviousTolkStep()
+
+            if (prevStep >= 0) {
+                this.currentStep = prevStep
+                this.clearVariableHandles()
                 this.sendResponse(response)
                 this.sendEvent(new StoppedEvent("step", TolkDebugAdapter.THREAD_ID))
             } else {
                 this.currentStep = 0
                 this.sendResponse(response)
-                this.sendEvent(new TerminatedEvent())
+                this.sendEvent(new StoppedEvent("step", TolkDebugAdapter.THREAD_ID))
             }
         } else {
             this.sendErrorResponse(response, 1003, "No trace info loaded.")
@@ -513,6 +546,123 @@ export class TolkDebugAdapter extends LoggingDebugSession {
         this.log(
             `Set ${actualBreakpoints.length} breakpoints for ${normClientPath}. Verified: ${actualBreakpoints.filter(bp => bp.verified).length}`,
         )
+    }
+
+    private findFirstTolkStep(): number {
+        if (!this.traceInfo) return 0
+
+        // Look for first step with funcLoc (Tolk location)
+        for (let i = 0; i < this.traceInfo.steps.length; i++) {
+            const step = this.traceInfo.steps[i]
+            if (step.funcLoc) {
+                this.log(
+                    `Found first Tolk step at index ${i}: ${step.funcLoc.file}:${step.funcLoc.line} in ${step.funcLoc.func}`,
+                )
+                return i
+            }
+        }
+
+        this.log("No Tolk steps found, starting at step 0")
+        return 0
+    }
+
+    private findNextTolkStep(stepInto: boolean): number {
+        if (!this.traceInfo) return -1
+
+        const currentStep = this.traceInfo.steps[this.currentStep]
+        const currentFuncLoc = currentStep.funcLoc
+
+        // If no Tolk mapping available, fall back to simple increment
+        if (!currentFuncLoc) {
+            return this.currentStep + 1 < this.traceInfo.steps.length ? this.currentStep + 1 : -1
+        }
+
+        const currentFunction = currentFuncLoc.func
+        const currentFile = currentFuncLoc.file
+        const currentLine = currentFuncLoc.line
+
+        // Look for next step with Tolk location
+        for (let i = this.currentStep + 1; i < this.traceInfo.steps.length; i++) {
+            const step = this.traceInfo.steps[i]
+
+            if (step.funcLoc) {
+                const stepFunction = step.funcLoc.func
+                const stepFile = step.funcLoc.file
+                const stepLine = step.funcLoc.line
+
+                // For step over: only stop if we're in the same function or returned to it
+                if (stepInto) {
+                    // For step into: stop at any line change, regardless of function
+                    if (stepLine !== currentLine || stepFile !== currentFile) {
+                        return i
+                    }
+                } else {
+                    if (stepFunction === currentFunction && stepFile === currentFile) {
+                        // Same function - stop if line changed
+                        if (stepLine !== currentLine) {
+                            return i
+                        }
+                    } else {
+                        // Different function - this might be a call, skip until we return
+                        // Look ahead to see if we return to the original function
+                        const returnStep = this.findReturnToFunction(
+                            i,
+                            currentFunction,
+                            currentFile,
+                        )
+                        if (returnStep >= 0) {
+                            return returnStep
+                        }
+                    }
+                }
+            }
+        }
+
+        return -1
+    }
+
+    private findReturnToFunction(
+        startIndex: number,
+        targetFunction: string,
+        targetFile: string,
+    ): number {
+        if (!this.traceInfo) return -1
+
+        for (let i = startIndex; i < this.traceInfo.steps.length; i++) {
+            const step = this.traceInfo.steps[i]
+            if (
+                step.funcLoc &&
+                step.funcLoc.func === targetFunction &&
+                step.funcLoc.file === targetFile
+            ) {
+                return i
+            }
+        }
+
+        return -1
+    }
+
+    /**
+     * Find previous Tolk step
+     */
+    private findPreviousTolkStep(): number {
+        if (!this.traceInfo) return -1
+
+        // Look backwards for previous step with Tolk location and different line
+        const currentStep = this.traceInfo.steps[this.currentStep]
+        const currentLine = currentStep.funcLoc?.line
+
+        for (let i = this.currentStep - 1; i >= 0; i--) {
+            const step = this.traceInfo.steps[i]
+            if (step.funcLoc) {
+                // Stop at different line
+                if (!currentLine || step.funcLoc.line !== currentLine) {
+                    return i
+                }
+            }
+        }
+
+        return -1
     }
 
     private continue(): void {

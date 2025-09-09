@@ -227,10 +227,6 @@
         ],
         "commands": [
             {
-                "command": "helloWebview.show",
-                "title": "Hello Webview: Show"
-            },
-            {
                 "command": "tolk.build",
                 "title": "Build Project",
                 "category": "Tolk",
