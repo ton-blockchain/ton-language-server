@@ -71,6 +71,8 @@ interface SendMessageResponse {
         readonly addr?: string
         readonly vmLogs?: string
         readonly code?: string
+        readonly mapping?: object
+        readonly mappingInfo?: object
     }[]
 }
 

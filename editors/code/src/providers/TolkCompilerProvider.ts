@@ -1,15 +1,36 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Studio
-import {Cell} from "@ton/core"
 import vscode from "vscode"
 import {ToolchainConfig} from "@server/settings/settings"
 import {Toolchain} from "@server/languages/tolk/toolchain/toolchain"
+import {Cell, runtime as i, trace, text} from "ton-assembly"
 
 export interface CompilationResult {
     readonly success: boolean
     readonly code?: string
     readonly error?: string
     readonly output?: string
+    readonly mapping?: TolkMapping
+    readonly mappingInfo?: trace.MappingInfo
+}
+
+export interface TolkSourceLoc {
+    readonly file: string
+    readonly line: number
+    readonly pos: number
+    readonly vars: undefined | string[]
+    readonly func: string
+    readonly first_stmt: undefined | boolean
+    readonly ret: undefined | boolean
+}
+
+export interface TolkGlobalVar {
+    readonly name: string
+}
+
+export interface TolkMapping {
+    readonly globals: readonly TolkGlobalVar[]
+    readonly locations: readonly TolkSourceLoc[]
 }
 
 interface TolkCompilerOutput {
@@ -18,6 +39,7 @@ interface TolkCompilerOutput {
     readonly fiftCode: string
     readonly codeBoc64: string
     readonly codeHashHex: string
+    readonly debugInfo?: TolkMapping
     readonly sourcesSnapshot: {
         readonly filename: string
         readonly contents: string
@@ -59,11 +81,16 @@ export class TolkCompilerProvider {
                 : Toolchain.fromPath(activeToolchain.path)
 
         try {
-            const cell = await this.compileWithBinary(contractCode, toolchain.compilerPath)
+            const [cell, mapping, mappingInfo] = await this.compileWithBinary(
+                contractCode,
+                toolchain.compilerPath,
+            )
             return {
                 success: true,
                 output: "",
                 code: cell.toBoc().toString("base64"),
+                mapping,
+                mappingInfo,
             }
         } catch (error) {
             return {
@@ -73,7 +100,10 @@ export class TolkCompilerProvider {
         }
     }
 
-    private async compileWithBinary(code: string, toolchainPath: string): Promise<Cell> {
+    private async compileWithBinary(
+        code: string,
+        toolchainPath: string,
+    ): Promise<[Cell, TolkMapping, trace.MappingInfo]> {
         const tempFolderUri = vscode.Uri.joinPath(
             vscode.workspace.workspaceFolders?.[0]?.uri ?? vscode.Uri.file(process.cwd()),
             ".tolk-temp-" + Date.now(),
@@ -97,7 +127,7 @@ export class TolkCompilerProvider {
                 "Tolk Compile",
                 "tolk",
                 new vscode.ShellExecution(
-                    `"${toolchainPath}" "${contractFileUri.fsPath}" --output-json "${outputFileUri.fsPath}"`,
+                    `"${toolchainPath}" "${contractFileUri.fsPath}" --debug true --output-json "${outputFileUri.fsPath}"`,
                 ),
             )
 
@@ -130,7 +160,14 @@ export class TolkCompilerProvider {
             const outputJson = Buffer.from(outputBuffer).toString("utf8")
             const result = JSON.parse(outputJson) as TolkCompilerOutput
 
-            return Cell.fromBase64(result.codeBoc64)
+            const codeCell = Cell.fromBase64(result.codeBoc64)
+
+            const initialInstructions = i.decompileCell(codeCell)
+            const [cell, mapping] = recompileCell(codeCell)
+
+            const mappingInfo = trace.createMappingInfo(mapping)
+
+            return [cell, result.debugInfo ?? {globals: [], locations: []}, mappingInfo]
         } catch (error) {
             if (error instanceof Error) {
                 throw new TypeError(`Compilation failed: ${error.message}`)
@@ -138,8 +175,20 @@ export class TolkCompilerProvider {
             throw new TypeError("Unknown compilation error")
         } finally {
             try {
-                await vscode.workspace.fs.delete(tempFolderUri, {recursive: true})
+                // await vscode.workspace.fs.delete(tempFolderUri, {recursive: true})
             } catch {}
         }
     }
+}
+
+const recompileCell = (cell: Cell): [Cell, i.Mapping] => {
+    const instructionsWithoutPositions = i.decompileCell(cell)
+    const assemblyForPositions = text.print(instructionsWithoutPositions)
+
+    const parseResult = text.parse("out.tasm", assemblyForPositions)
+    if (parseResult.$ === "ParseFailure") {
+        throw new Error("Cannot parse resulting text Assembly")
+    }
+
+    return i.compileCellWithMapping(parseResult.instructions)
 }

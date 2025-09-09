@@ -1,7 +1,13 @@
 import {Cell} from "@ton/core"
 import {compileCellWithMapping, decompileCell} from "ton-assembly/dist/runtime"
 import {text} from "ton-assembly"
-import {createMappingInfo, createTraceInfoPerTransaction, TraceInfo} from "ton-assembly/dist/trace"
+import {
+    createMappingInfo,
+    createTraceInfoPerTransaction,
+    TraceInfo,
+    MappingInfo,
+} from "ton-assembly/dist/trace"
+import {TolkMapping} from "../../providers/TolkCompilerProvider"
 
 function extractCodeAndTrace(codeCell: Cell | undefined, vmLogs: string): TraceInfo {
     if (!codeCell) {
@@ -27,8 +33,16 @@ function extractCodeAndTrace(codeCell: Cell | undefined, vmLogs: string): TraceI
     }
 }
 
-export function createTraceInfoFromVmLogs(vmLogs: string, codeHex: string): TraceInfo {
+export function createTraceInfoFromVmLogs(
+    vmLogs: string,
+    codeHex: string,
+    tolkMapping?: TolkMapping,
+    tolkMappingInfo?: MappingInfo,
+): TraceInfo {
     try {
+        if (tolkMapping && tolkMappingInfo) {
+            return createTraceInfoPerTransaction(vmLogs, tolkMappingInfo, tolkMapping)[0]
+        }
         return extractCodeAndTrace(Cell.fromHex(codeHex), vmLogs)
     } catch (error) {
         console.error("Error creating trace info:", error)

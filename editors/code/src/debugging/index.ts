@@ -57,7 +57,15 @@ async function cleanupTempFiles(sessionId: string): Promise<void> {
 }
 
 export function configureDebugging(context: vscode.ExtensionContext): void {
+    const extensionPath = vscode.extensions.getExtension("ton-core.vscode-ton")?.extensionPath
+    if (!extensionPath) {
+        throw new Error("Could not find TON extension path")
+    }
+
+    const serverPath = path.join(extensionPath, "dist", "debugging", "adapter", "server.js")
+
     context.subscriptions.push(
+        // Assembly debug configuration
         vscode.debug.registerDebugConfigurationProvider("assembly", {
             provideDebugConfigurations() {
                 return [
@@ -74,23 +82,31 @@ export function configureDebugging(context: vscode.ExtensionContext): void {
         }),
         vscode.debug.registerDebugAdapterDescriptorFactory("assembly", {
             createDebugAdapterDescriptor(_s: DebugSession, _e: DebugAdapterExecutable | undefined) {
-                console.log("start debugging: createDebugAdapterDescriptor")
+                console.log("start debugging: createDebugAdapterDescriptor (assembly)")
+                return new vscode.DebugAdapterExecutable("node", [serverPath], {
+                    cwd: path.dirname(serverPath),
+                })
+            },
+        }),
 
-                const extensionPath =
-                    vscode.extensions.getExtension("ton-core.vscode-ton")?.extensionPath
-                if (!extensionPath) {
-                    throw new Error("Could not find TON extension path")
-                }
-
-                const serverPath = path.join(
-                    extensionPath,
-                    "dist",
-                    "debugging",
-                    "adapter",
-                    "server.js",
-                )
-                console.log("serverPath", serverPath)
-
+        // Tolk debug configuration
+        vscode.debug.registerDebugConfigurationProvider("tolk", {
+            provideDebugConfigurations() {
+                return [
+                    {
+                        type: "tolk",
+                        name: "Debug Tolk",
+                        request: "launch",
+                        code: "${command:ton.getAssemblyCode}",
+                        vmLogs: "${command:ton.getVmLogs}",
+                        stopOnEntry: true,
+                    },
+                ]
+            },
+        }),
+        vscode.debug.registerDebugAdapterDescriptorFactory("tolk", {
+            createDebugAdapterDescriptor(_s: DebugSession, _e: DebugAdapterExecutable | undefined) {
+                console.log("start debugging: createDebugAdapterDescriptor (tolk)")
                 return new vscode.DebugAdapterExecutable("node", [serverPath], {
                     cwd: path.dirname(serverPath),
                 })

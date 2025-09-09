@@ -124,6 +124,8 @@ export async function compileAndDeployFromEditor(
             },
             name,
             value,
+            result.mapping,
+            result.mappingInfo,
         )
         if (deployResult.success && deployResult.address) {
             const contractName = getContractNameFromDocument(editor.document)
@@ -159,6 +161,8 @@ async function deployContract(
     },
     name: string,
     value?: string,
+    mapping?: object,
+    mappingInfo?: object,
 ): Promise<{
     success: boolean
     address?: string
@@ -175,6 +179,8 @@ async function deployContract(
                 stateInit,
                 value,
                 name,
+                mapping,
+                mappingInfo,
             }),
         })
 

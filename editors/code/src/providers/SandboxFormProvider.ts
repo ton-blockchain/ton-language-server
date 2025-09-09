@@ -17,6 +17,16 @@ import {compileAndDeployFromEditor, loadContractAbiForDeploy, loadContractInfo} 
 import {Cell} from "@ton/core"
 import {decompileCell} from "ton-assembly/dist/runtime"
 import {print} from "ton-assembly/dist/text"
+import {TolkMapping} from "./TolkCompilerProvider"
+import {TraceInfo} from "ton-assembly/dist/trace"
+
+interface TransactionInfo {
+    readonly vmLogs: string
+    readonly code: string
+    readonly contractName?: string
+    readonly mapping: TolkMapping
+    readonly mappingInfo: TraceInfo
+}
 
 export class SandboxFormProvider implements vscode.WebviewViewProvider {
     public static readonly viewType: string = "tonSandboxForm"
@@ -24,7 +34,7 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
     private view?: vscode.WebviewView
     public deployedContracts: {address: string; name: string; abi?: ContractAbi}[] = []
 
-    private sequentialDebugQueue: {vmLogs: string; code: string; contractName?: string}[] = []
+    private sequentialDebugQueue: TransactionInfo[] = []
     private isSequentialDebugRunning: boolean = false
 
     public constructor(
@@ -220,6 +230,8 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
                                 vmLogs: tx.vmLogs ?? "",
                                 code: tx.code ?? "",
                                 contractName: `${contractName}_TX_${index + 1}`,
+                                mapping: (tx.mapping ?? {}) as TolkMapping,
+                                mappingInfo: (tx.mappingInfo ?? {}) as TraceInfo,
                             }
                         })
 
@@ -341,9 +353,7 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
         await compileAndDeployFromEditor(name, storageFields, this._treeProvider?.(), value)
     }
 
-    private startSequentialDebugging(
-        transactions: {vmLogs: string; code: string; contractName?: string}[],
-    ): void {
+    private startSequentialDebugging(transactions: TransactionInfo[]): void {
         if (this.isSequentialDebugRunning) {
             console.warn("Sequential debugging already running")
             return
@@ -351,6 +361,10 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
 
         this.sequentialDebugQueue = [...transactions]
         this.isSequentialDebugRunning = true
+
+        console.log(
+            `start debugging with mapping: ${JSON.stringify(transactions[0].mapping, null, 2)} and info: ${JSON.stringify(transactions[0].mappingInfo, null, 2)}`,
+        )
 
         console.log(
             `Starting sequential debugging for ${this.sequentialDebugQueue.length} transactions`,
@@ -409,12 +423,14 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
             })
 
             const success = await vscode.debug.startDebugging(undefined, {
-                type: "assembly",
-                name: `Assembly Debug TX (${sessionNumber})`,
+                type: "tolk",
+                name: `Tolk Debug TX (${sessionNumber})`,
                 request: "launch",
                 code: transaction.code,
                 vmLogs: transaction.vmLogs,
                 program: fileUri.fsPath,
+                mapping: transaction.mapping,
+                mappingInfo: transaction.mappingInfo,
                 stopOnEntry: true,
             })
 
@@ -442,7 +458,7 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
             console.log(`Debug session ${sessionNumber} started successfully`)
 
             const disposable = vscode.debug.onDidTerminateDebugSession(session => {
-                if (session.name === `Assembly Debug TX (${sessionNumber})`) {
+                if (session.name === `Tolk Debug TX (${sessionNumber})`) {
                     console.log(`Debug session ${sessionNumber} completed: ${session.name}`)
                     disposable.dispose()
 

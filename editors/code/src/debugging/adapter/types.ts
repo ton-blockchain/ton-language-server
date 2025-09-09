@@ -1,4 +1,6 @@
 import {DebugProtocol} from "@vscode/debugprotocol"
+import {TolkMapping} from "../../providers/TolkCompilerProvider"
+import {MappingInfo} from "ton-assembly/dist/trace"
 
 /**
  * Interface for launch configuration arguments.
@@ -11,6 +13,10 @@ export interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArgum
     readonly vmLogs: string
     /** Path to the assembly file to debug */
     readonly program?: string
+    /** Tolk source mapping for debugging original source */
+    readonly mapping?: TolkMapping
+    /** Mapping info for trace creation */
+    readonly mappingInfo?: MappingInfo
     /** Enable logging of the Debug Adapter Protocol. */
     readonly trace?: boolean
     /** Automatically stop target after launch. If not specified, target does not stop. */

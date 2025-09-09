@@ -1,4 +1,4 @@
 import {DebugSession} from "@vscode/debugadapter"
-import {AssemblyDebugAdapter} from "./AssemblyDebugAdapter"
+import {TolkDebugAdapter} from "./TolkDebugAdapter"
 
-DebugSession.run(AssemblyDebugAdapter)
+DebugSession.run(TolkDebugAdapter)

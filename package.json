@@ -208,6 +208,10 @@
             {
                 "type": "assembly",
                 "label": "Assembly Debug"
+            },
+            {
+                "type": "tolk",
+                "label": "Tolk Debug"
             }
         ],
         "breakpoints": [
@@ -216,6 +220,9 @@
             },
             {
                 "language": "tasm"
+            },
+            {
+                "language": "tolk"
             }
         ],
         "commands": [
