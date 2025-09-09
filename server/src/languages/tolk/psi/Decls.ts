@@ -6,11 +6,16 @@ import {crc16} from "@server/utils/crc16"
 import {parentOfType} from "@server/psi/utils"
 import {RecursiveVisitor} from "@server/visitor/visitor"
 import {Reference} from "@server/languages/tolk/psi/Reference"
-import {EnumTy} from "@server/languages/tolk/types/ty"
+import {EnumTy, Ty} from "@server/languages/tolk/types/ty"
+import {typeOf} from "@server/languages/tolk/type-inference"
 
 export class GlobalVariable extends NamedNode {
     public override kindName(): string {
         return "global"
+    }
+
+    public declaredType(): Ty | null {
+        return typeOf(this.node, this.file)
     }
 
     public typeNode(): Expression | null {
@@ -23,6 +28,10 @@ export class GlobalVariable extends NamedNode {
 export class Constant extends NamedNode {
     public override kindName(): string {
         return "constant"
+    }
+
+    public declaredType(): Ty | null {
+        return typeOf(this.node, this.file)
     }
 
     public value(): Expression | null {
@@ -309,6 +318,10 @@ export class Parameter extends NamedNode {
         return "parameter"
     }
 
+    public declaredType(): Ty | null {
+        return typeOf(this.node, this.file)
+    }
+
     public isMutable(): boolean {
         return this.node.firstChild?.text === "mutate"
     }
@@ -469,6 +482,20 @@ export class Field extends NamedNode {
         const ownerNode = this.parentOfType("struct_declaration")
         if (!ownerNode) return null
         return new Struct(ownerNode, this.file)
+    }
+
+    public modifiers(): string[] {
+        const modifiers = this.node.childForFieldName("modifiers")
+        if (!modifiers) return []
+        return modifiers.children
+            .map(it => it?.text ?? "")
+            .filter(it => it === "readonly" || it === "private")
+    }
+
+    public modifiersPresentation(): string {
+        const modifiers = this.modifiers().join(" ")
+        if (modifiers === "") return ""
+        return modifiers + " "
     }
 
     public defaultValuePresentation(): string {

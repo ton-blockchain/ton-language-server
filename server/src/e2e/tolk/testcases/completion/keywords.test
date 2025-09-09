@@ -57,9 +57,11 @@ fun foo() {
 2  createEmptyCell(): cell
 2  createEmptyDict(): dict
 2  createEmptyList(): tuple
+2  createEmptyMap<K, V>(): map<K, V>
 2  createEmptySlice(): slice
 2  createEmptyTuple(): tuple
 2  createExternalLogMessage<TBody>(options: CreateExternalLogMessageOptions<TBody>): OutMessage
+2  createMapFromLowLevelDict<K, V>(d: dict): map<K, V>
 2  createMessage<TBody>(options: CreateMessageOptions<TBody>): OutMessage
 2  divMod(x: int, y: int): (int, int)
 2  foo()
@@ -121,6 +123,8 @@ fun foo() {
 21 ExtOutLogBucket {}
 21 InMessage {}
 21 InMessageBounced {}
+21 MapEntry {}
+21 MapLookupResult {}
 21 OutMessage {}
 21 PackOptions {}
 21 StateInit {}
@@ -129,8 +133,9 @@ fun foo() {
 21 blockchain
 21 contract
 21 debug
+21 map
 21 random
-24 ExtraCurrenciesDict
+24 ExtraCurrenciesMap
 24 RemainingBitsAndRefs
 24 address
 24 bits256
@@ -243,9 +248,11 @@ fun foo() {
 2  createEmptyCell(): cell
 2  createEmptyDict(): dict
 2  createEmptyList(): tuple
+2  createEmptyMap<K, V>(): map<K, V>
 2  createEmptySlice(): slice
 2  createEmptyTuple(): tuple
 2  createExternalLogMessage<TBody>(options: CreateExternalLogMessageOptions<TBody>): OutMessage
+2  createMapFromLowLevelDict<K, V>(d: dict): map<K, V>
 2  createMessage<TBody>(options: CreateMessageOptions<TBody>): OutMessage
 2  divMod(x: int, y: int): (int, int)
 2  foo()
@@ -307,6 +314,8 @@ fun foo() {
 21 ExtOutLogBucket {}
 21 InMessage {}
 21 InMessageBounced {}
+21 MapEntry {}
+21 MapLookupResult {}
 21 OutMessage {}
 21 PackOptions {}
 21 StateInit {}
@@ -315,8 +324,9 @@ fun foo() {
 21 blockchain
 21 contract
 21 debug
+21 map
 21 random
-24 ExtraCurrenciesDict
+24 ExtraCurrenciesMap
 24 RemainingBitsAndRefs
 24 address
 24 bits256
@@ -418,9 +428,11 @@ fun foo() {
 2  createEmptyCell(): cell
 2  createEmptyDict(): dict
 2  createEmptyList(): tuple
+2  createEmptyMap<K, V>(): map<K, V>
 2  createEmptySlice(): slice
 2  createEmptyTuple(): tuple
 2  createExternalLogMessage<TBody>(options: CreateExternalLogMessageOptions<TBody>): OutMessage
+2  createMapFromLowLevelDict<K, V>(d: dict): map<K, V>
 2  createMessage<TBody>(options: CreateMessageOptions<TBody>): OutMessage
 2  divMod(x: int, y: int): (int, int)
 2  foo()
@@ -482,6 +494,8 @@ fun foo() {
 21 ExtOutLogBucket {}
 21 InMessage {}
 21 InMessageBounced {}
+21 MapEntry {}
+21 MapLookupResult {}
 21 OutMessage {}
 21 PackOptions {}
 21 StateInit {}
@@ -490,8 +504,9 @@ fun foo() {
 21 blockchain
 21 contract
 21 debug
+21 map
 21 random
-24 ExtraCurrenciesDict
+24 ExtraCurrenciesMap
 24 RemainingBitsAndRefs
 24 address
 24 bits256

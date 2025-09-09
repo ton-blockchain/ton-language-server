@@ -296,6 +296,10 @@ function calculateSizeOf(ty: Ty, ctx: EstimateContext): SizeOf {
             // Cell<Foo>, same as cell
             return createSizeOf(0, 0, 1, 1)
         }
+        if (ty.innerTy.name() === "map") {
+            // mao<int32, slice>, same as cell?
+            return createSizeOf(0, 1, 0, 1)
+        }
 
         if (ty.innerTy instanceof StructTy || ty.innerTy instanceof TypeAliasTy) {
             const parameters = ty.innerTy.anchor?.typeParameters() ?? []

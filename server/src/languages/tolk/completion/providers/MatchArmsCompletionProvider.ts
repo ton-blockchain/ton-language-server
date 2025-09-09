@@ -10,6 +10,7 @@ import {EnumTy, StructTy, UnionTy} from "@server/languages/tolk/types/ty"
 import {ResolveState} from "@server/psi/ResolveState"
 import {ReferenceCompletionProcessor} from "@server/languages/tolk/completion/ReferenceCompletionProcessor"
 import {Reference} from "@server/languages/tolk/psi/Reference"
+import {EnumCompletionProvider} from "@server/languages/tolk/completion/providers/EnumCompletionProvider"
 
 export class MatchArmsCompletionProvider implements CompletionProvider<CompletionContext> {
     public constructor(private readonly ref: Reference) {}
@@ -94,6 +95,7 @@ export class MatchArmsCompletionProvider implements CompletionProvider<Completio
             const processor = new ReferenceCompletionProcessor(ctx)
 
             this.ref.processResolveVariants(processor, state.withValue("completion", "true"))
+            EnumCompletionProvider.process(processor, state)
 
             for (const value of processor.result.values()) {
                 result.add({

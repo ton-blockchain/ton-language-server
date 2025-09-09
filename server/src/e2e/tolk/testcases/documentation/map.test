@@ -53,10 +53,9 @@ type dict =
 
 ---
 
-In Tolk v1.x there would be a type `map<K,V>`.
-Currently, working with dictionaries is still low-level, with raw cells.
-But just for clarity, we use "dict" instead of a "cell?" where a cell-dictionary is assumed.
-Every dictionary object can be null. TVM NULL is essentially "empty dictionary".
+`dict` is a low-level TVM dictionary.
+Think of it as "a map with unknown keys and unknown values".
+Prefer using `map<K, V>`, not `dict`.
 ```tolk
 fun emptyMap
 V

@@ -406,6 +406,20 @@ struct WithTwoRestFields {
     rest2: RemainingBitsAndRefs;
 }
 
+struct WithMaps {
+    m1: map<int8, RemainingBitsAndRefs>
+    m2: map<JustInt32, (int8, int8)>
+}
+
+enum EStoredAsInt8 { M100 = -100, Z = 0, P100 = 100 }
+enum EStoredAsUint1 { ZERO, ONE }
+
+struct WithEnums {
+    e1: EStoredAsInt8
+    e2: EStoredAsUint1
+    rem: uint7 = 0
+}
+
 
 
 // ---------------------------------------------
@@ -716,6 +730,37 @@ fun test_EdgeCaseIntegers() {
     return edge.toCell().hash() == manual.endCell().hash()
 }
 
+@method_id(230)
+fun test_serializeMaps() {
+    var (
+        m1: map<int8, RemainingBitsAndRefs>,
+        m2: map<JustInt32, (int8, int8)>,
+    ) = (createEmptyMap(), createEmptyMap());
+    m1.set(1, "");
+    m1.set(2, stringHexToSlice("01").appendRef(stringHexToSlice("02")));
+    m2.set({value: 3}, (3, 30));
+    m2.set({value: 4}, (4, 40));
+
+    var w = (WithMaps { m1, m2 }).toCell().load();
+    w.m2.delete({value: 4});
+    val d3 = w.m2.deleteAndGetDeleted({value: 3});
+    var r = w.m1.findFirst();
+    var kl = (0, 0);
+    while (r.isFound) {
+        kl = r.loadValue().remainingBitsAndRefsCount();
+        r = w.m1.iterateNext(r);
+    }
+    return (w.m1.isEmpty(), w.m2.isEmpty(), d3.isFound, d3.loadValue(), kl);
+}
+    
+@method_id(231)
+fun test_SimpleEnums() {
+    run<WithEnums>({e1: EStoredAsInt8.M100, e2: EStoredAsUint1.ZERO}, stringHexToSlice("9c00"));
+    run<WithEnums>({e1: EStoredAsInt8.Z, e2: EStoredAsUint1.ZERO}, stringHexToSlice("0000"));
+    run<WithEnums>({e1: EStoredAsInt8.P100, e2: EStoredAsUint1.ONE, rem: 1}, stringHexToSlice("6481"));
+    return -1;
+}
+
 fun main() {
     var t: JustInt32 = { value: 10 };
     var c = t.toCell();
@@ -737,18 +782,18 @@ fun main() {
 @testcase | 208 | | -1
 @testcase | 209 | | -1
 @testcase | 210 | | 123 555 46 (null)
-@testcase | 211 | | (null) typeid-4 123
-@testcase | 212 | | (null) typeid-5 123
+@testcase | 211 | | (null) typeid-3 123
+@testcase | 212 | | (null) typeid-4 123
 @testcase | 213 | | -1
 @testcase | 214 | | -1
 @testcase | 215 | | -1
 @testcase | 216 | | -1
 @testcase | 217 | | -1
 @testcase | 218 | | -1
-@testcase | 219 | | 44 (null) (null) 46 typeid-15
+@testcase | 219 | | 44 (null) (null) 46 typeid-11
 @testcase | 220 | | 0 0 (null) 99 typeid-8 typeid-9 99 1234 (null) 889129 14
 @testcase | 221 | | -1
-@testcase | 222 | | 510 567 9392843922 typeid-18 81923 81923 typeid-19 777 0 -1 (null) (null) 0 100000 100000 typeid-19
+@testcase | 222 | | 510 567 9392843922 typeid-13 81923 81923 typeid-14 777 0 -1 (null) (null) 0 100000 100000 typeid-14
 @testcase | 223 | | 10 55 (null)
 @testcase | 224 | | 60 50000000 5 9 123 -1
 @testcase | 225 | | 5 40 65535 8 50000000
@@ -756,4 +801,6 @@ fun main() {
 @testcase | 227 | | 16
 @testcase | 228 | | -1
 @testcase | 229 | | -1
+@testcase | 230 | | 0 -1 -1 3 30 8 1
+@testcase | 231 | | -1
  */

@@ -34,7 +34,6 @@ import {
     NullTy,
     EnumTy,
 } from "@server/languages/tolk/types/ty"
-import {TypeInferer} from "@server/languages/tolk/TypeInferer"
 import {parentOfType} from "@server/psi/utils"
 import {inferenceOf, typeOf} from "@server/languages/tolk/type-inference"
 
@@ -295,7 +294,7 @@ export class Reference {
             return true
         }
 
-        // For completion, we still need manually walk all possible variants.
+        // For completion, we still need to manually walk all possible variants.
         // But nevertheless, we can use inference results for faster resolving
         const resolved = inference?.resolve(qualifier.node)
         if (resolved) {
@@ -434,7 +433,7 @@ export class Reference {
                     }
 
                     if (receiver?.type === "type_instantiatedTs") {
-                        const receiverType = TypeInferer.inferType(new Expression(receiver, file))
+                        const receiverType = typeOf(receiver, file)
                         if (
                             receiverType instanceof InstantiationTy &&
                             expected instanceof InstantiationTy

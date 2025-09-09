@@ -105,11 +105,14 @@ const TOLK_GRAMMAR = {
         ),
     struct_field_declaration: $ =>
         seq(
+            field("modifiers", optional($.struct_field_modifiers)),
             field("name", $.identifier),
             ":",
             field("type", $._type_hint),
             optional(seq("=", field("default", $._expression))),
         ),
+
+    struct_field_modifiers: $ => repeat1(choice("readonly", "private")),
 
     enum_declaration: $ =>
         seq(
