@@ -1,0 +1,102 @@
+========================================================================
+unpackFromSlice correct signature for type alias
+========================================================================
+type SnakeString = slice
+
+fun SnakeString.unpackFromSlice(mutate s: slice) {
+}
+------------------------------------------------------------------------
+no issues
+
+========================================================================
+packToBuilder correct signature for type alias
+========================================================================
+type SnakeString = slice
+
+fun SnakeString.packToBuilder(self, mutate b: builder) {
+}
+------------------------------------------------------------------------
+no issues
+
+========================================================================
+unpackFromSlice for regular struct, should warn
+========================================================================
+struct RegularStruct {
+    value: int
+}
+
+fun RegularStruct.unpackFromSlice(mutate s: slice) {
+}
+------------------------------------------------------------------------
+3 1:4 to 1:14 Field 'value' is never used (tolk)
+3 4:18 to 4:33 Method 'unpackFromSlice' is never used, note, special `unpackFromSlice` method can be used only for type aliases to change serialization/deserialization logic (tolk)
+
+========================================================================
+packToBuilder for regular struct, should warn
+========================================================================
+struct RegularStruct {
+    value: int
+}
+
+fun RegularStruct.packToBuilder(self, mutate b: builder) {
+}
+------------------------------------------------------------------------
+3 1:4 to 1:14 Field 'value' is never used (tolk)
+3 4:18 to 4:31 Method 'packToBuilder' is never used, note, special `packToBuilder` method can be used only for type aliases to change serialization/deserialization logic (tolk)
+
+========================================================================
+static packToBuilder, should warn
+========================================================================
+type SnakeString = slice
+
+fun SnakeString.packToBuilder(mutate b: builder) {
+}
+------------------------------------------------------------------------
+3 2:16 to 2:29 Method 'packToBuilder' is never used, if you want custom serialization/deserialization logic, check signature of `packToBuilder` method, it should be like: `fun Type.packToBuilder(self, mutate b: builder)` (tolk)
+
+========================================================================
+unpackFromSlice with extra parameters, should warn
+========================================================================
+type SnakeString = slice
+
+fun SnakeString.unpackFromSlice(mutate s: slice, extra: int) {
+}
+------------------------------------------------------------------------
+3 2:16 to 2:31 Method 'unpackFromSlice' is never used, if you want custom serialization/deserialization logic, check signature of `unpackFromSlice` method, it should be like: `fun Type.unpackFromSlice(mutate s: slice)` (tolk)
+
+========================================================================
+packToBuilder with extra parameters, should warn
+========================================================================
+type SnakeString = slice
+
+fun SnakeString.packToBuilder(self, mutate b: builder, extra: int) {
+}
+------------------------------------------------------------------------
+3 2:16 to 2:29 Method 'packToBuilder' is never used, if you want custom serialization/deserialization logic, check signature of `packToBuilder` method, it should be like: `fun Type.packToBuilder(self, mutate b: builder)` (tolk)
+
+========================================================================
+Multiple type aliases with correct special methods
+========================================================================
+type String1 = slice
+type String2 = slice
+
+fun String1.unpackFromSlice(mutate s: slice) {}
+fun String1.packToBuilder(self, mutate b: builder) {}
+fun String2.unpackFromSlice(mutate s: slice) {}
+fun String2.packToBuilder(self, mutate b: builder) {}
+------------------------------------------------------------------------
+no issues
+
+========================================================================
+Mixed correct and incorrect special methods
+========================================================================
+type String1 = slice
+type String2 = slice
+
+fun String1.unpackFromSlice(mutate s: slice) {} // correct
+fun String1.packToBuilder(mutate b: builder) {} // wrong: missing self
+fun String2.unpackFromSlice(s: slice, o: int) {} // wrong: extra argument
+fun String2.packToBuilder(self, mutate b: builder) {} // correct
+------------------------------------------------------------------------
+3 4:12 to 4:25 Method 'packToBuilder' is never used, if you want custom serialization/deserialization logic, check signature of `packToBuilder` method, it should be like: `fun Type.packToBuilder(self, mutate b: builder)` (tolk)
+3 5:12 to 5:27 Method 'unpackFromSlice' is never used, if you want custom serialization/deserialization logic, check signature of `unpackFromSlice` method, it should be like: `fun Type.unpackFromSlice(mutate s: slice)` (tolk)

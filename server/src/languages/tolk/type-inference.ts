@@ -2586,7 +2586,8 @@ export class SinkExpression {
 export class InferenceResult {
     public constructor(public ctx: InferenceContext) {}
 
-    public typeOf(node: SyntaxNode): Ty | null {
+    public typeOf(node: SyntaxNode | null): Ty | null {
+        if (!node) return null
         return this.ctx.getType(node)
     }
 

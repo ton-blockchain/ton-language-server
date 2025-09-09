@@ -9,9 +9,14 @@ import {
     Enum,
     Func,
     GlobalVariable,
+    InstanceMethod,
+    MethodBase,
+    StaticMethod,
     Struct,
     TypeAlias,
 } from "@server/languages/tolk/psi/Decls"
+import {inferenceOf} from "@server/languages/tolk/type-inference"
+import {FuncTy, TypeAliasTy} from "@server/languages/tolk/types/ty"
 
 const IMPLICITLY_USED_FUNCTIONS: Set<string> = new Set([
     "onInternalMessage",
@@ -22,8 +27,6 @@ const IMPLICITLY_USED_FUNCTIONS: Set<string> = new Set([
     "onSplitInstall",
     "main",
 ])
-
-const IMPLICITLY_USED_METHODS: Set<string> = new Set(["unpackFromSlice", "packToBuilder"])
 
 export class UnusedTopLevelDeclarationInspection extends UnusedInspection implements Inspection {
     public readonly id: "unused-top-level-declaration" = InspectionIds.UNUSED_TOP_LEVEL_DECLARATION
@@ -74,7 +77,30 @@ export class UnusedTopLevelDeclarationInspection extends UnusedInspection implem
 
     private inspectMethod(fun: Func, diagnostics: lsp.Diagnostic[]): void {
         const name = fun.name()
-        if (IMPLICITLY_USED_METHODS.has(name)) {
+        if (this.isUnpackFromSlice(fun) || this.isPackToBuilder(fun)) {
+            return
+        }
+
+        const isSpecialMethod = name === "packToBuilder" || name === "unpackFromSlice"
+        if (isSpecialMethod) {
+            if (this.isMethodOfAlias(fun)) {
+                const expectedSignature =
+                    name === "packToBuilder" ? "self, mutate b: builder" : "mutate s: slice"
+
+                this.checkUnused(fun.nameIdentifier(), fun.file, diagnostics, {
+                    kind: "Method",
+                    code: "unused-method",
+                    additionalText: `, if you want custom serialization/deserialization logic, check signature of \`${name}\` method, it should be like: \`fun Type.${name}(${expectedSignature})\``,
+                    rangeNode: fun.nameIdentifier(),
+                })
+            } else {
+                this.checkUnused(fun.nameIdentifier(), fun.file, diagnostics, {
+                    kind: "Method",
+                    code: "unused-method",
+                    additionalText: `, note, special \`${name}\` method can be used only for type aliases to change serialization/deserialization logic`,
+                    rangeNode: fun.nameIdentifier(),
+                })
+            }
             return
         }
 
@@ -139,5 +165,51 @@ export class UnusedTopLevelDeclarationInspection extends UnusedInspection implem
                 rangeNode: member.node,
             })
         }
+    }
+
+    private isMethodOfAlias(fun: Func): boolean {
+        if (!(fun instanceof MethodBase)) return false
+
+        const inference = inferenceOf(fun.node, fun.file)
+        if (!inference) return false
+
+        const receiverTy = inference.typeOf(fun.receiverTypeNode())
+        if (!receiverTy) return false
+
+        return receiverTy instanceof TypeAliasTy
+    }
+
+    private isUnpackFromSlice(fun: Func): boolean {
+        return this.isMethod(fun, "unpackFromSlice", true, "slice")
+    }
+
+    private isPackToBuilder(fun: Func): boolean {
+        return this.isMethod(fun, "packToBuilder", false, "builder")
+    }
+
+    private isMethod(fun: Func, name: string, isStatic: boolean, expectedParams: string): boolean {
+        const hasName = fun.name() === name
+        if (!hasName) return false
+
+        if (!(fun instanceof MethodBase)) return false
+        if (isStatic && fun instanceof InstanceMethod) return false
+        if (!isStatic && fun instanceof StaticMethod) return false
+
+        const inference = inferenceOf(fun.node, fun.file)
+        if (!inference) return hasName
+
+        const actualFuncTy = inference.typeOf(fun.node)
+        if (!actualFuncTy || !(actualFuncTy instanceof FuncTy)) return hasName
+
+        const receiverTy = inference.typeOf(fun.receiverTypeNode())
+        if (!receiverTy) return false
+
+        const params =
+            fun instanceof InstanceMethod ? actualFuncTy.params.slice(1) : actualFuncTy.params
+
+        return (
+            receiverTy instanceof TypeAliasTy &&
+            params.map(it => it.name()).join(", ") === expectedParams
+        )
     }
 }

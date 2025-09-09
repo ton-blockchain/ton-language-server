@@ -25,6 +25,7 @@ export abstract class UnusedInspection {
             severity?: lsp.DiagnosticSeverity
             code?: string
             rangeNode?: SyntaxNode | null
+            additionalText?: string | null
             skipIf?: () => boolean
         },
     ): void {
@@ -41,7 +42,8 @@ export abstract class UnusedInspection {
             diagnostics.push({
                 severity: options.severity ?? lsp.DiagnosticSeverity.Hint,
                 range,
-                message: `${options.kind} '${node.text}' is never used`,
+                message:
+                    `${options.kind} '${node.text}' is never used` + (options.additionalText ?? ""),
                 source: "tolk",
                 code: options.code ?? "unused",
                 tags: [lsp.DiagnosticTag.Unnecessary],
