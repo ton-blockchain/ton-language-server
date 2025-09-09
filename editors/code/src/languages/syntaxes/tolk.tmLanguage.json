@@ -57,7 +57,7 @@
         },
         {
             "name": "storage.modifier",
-            "match": "\\b(global|const|var|val|fun|get|struct|enum)\\b"
+            "match": "\\b(global|const|var|val|fun|get|struct|enum|private|readonly)\\b"
         },
         {
             "name": "entity.name.type",
