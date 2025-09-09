@@ -298,3 +298,36 @@ fun main(o: Options = {}) {
                   (instance_argument
                     (identifier)
                     (number_literal)))))))))))
+
+========================================================================
+Struct fields with modifiers
+========================================================================
+
+struct Foo {
+	private readonly foo1: int
+	private foo2: int
+	readonly foo3: int
+	foo4: int
+}
+
+------------------------------------------------------------------------
+
+(source_file
+  (struct_declaration
+    (identifier)
+    (struct_body
+      (struct_field_declaration
+        (struct_field_modifiers)
+        (identifier)
+        (type_identifier))
+      (struct_field_declaration
+        (struct_field_modifiers)
+        (identifier)
+        (type_identifier))
+      (struct_field_declaration
+        (struct_field_modifiers)
+        (identifier)
+        (type_identifier))
+      (struct_field_declaration
+        (identifier)
+        (type_identifier)))))

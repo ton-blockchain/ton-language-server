@@ -24,6 +24,7 @@ export class CompletionContext {
     public fieldInit: boolean = false
     public isFunctionName: boolean = false
     public isMethodName: boolean = false
+    public expectFieldModifier: boolean = false
     public isEnumMemberName: boolean = false
 
     // struct fields
@@ -57,6 +58,32 @@ export class CompletionContext {
 
         if (parent.type === "annotation") {
             this.isAnnotationName = true
+        }
+
+        if (
+            element.node.type === "identifier" &&
+            element.node.parent?.type === "struct_field_declaration"
+        ) {
+            const prevSibling = element.node.previousNamedSibling
+            if (
+                prevSibling === null ||
+                prevSibling.type === "struct_field_modifiers" ||
+                prevSibling.text === "private" ||
+                prevSibling.text === "readonly"
+            ) {
+                this.expectFieldModifier = true
+            }
+        }
+        if (
+            element.node.type === "identifier" &&
+            element.node.parent?.type === "ERROR" &&
+            element.node.parent.parent?.type === "struct_body"
+        ) {
+            // struct ResetCounter {
+            //     queryId: uint64
+            //     <caret>
+            // }
+            this.expectFieldModifier = true
         }
 
         if (parent.type === "catch_clause" && element.node.type === "identifier") {
@@ -167,7 +194,6 @@ export class CompletionContext {
             !this.catchVariable &&
             !this.isFunctionName &&
             !this.isMethodName &&
-            !this.isEnumMemberName &&
             !this.isAnnotationName
         )
     }

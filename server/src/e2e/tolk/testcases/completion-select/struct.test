@@ -48,3 +48,25 @@ struct debug {}
 fun test() {
     let a = debug<caret>;
 }
+
+========================================================================
+Struct field modifiers completion for field without modifiers
+========================================================================
+struct Foo {
+    <caret>foo: int
+}
+------------------------------------------------------------------------
+struct Foo {
+    private <caret>foo: int
+}
+
+========================================================================
+Struct field modifiers completion for field with modifier
+========================================================================
+struct Foo {
+    private <caret>foo: int
+}
+------------------------------------------------------------------------
+struct Foo {
+    private readonly <caret>foo: int
+}

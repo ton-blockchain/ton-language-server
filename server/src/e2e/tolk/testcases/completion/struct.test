@@ -42,7 +42,8 @@ struct Foo {
     <caret>
 }
 ------------------------------------------------------------------------
-No completion items
+13 private
+13 readonly
 
 ========================================================================
 Completion inside struct after field name

@@ -4,7 +4,7 @@ Import path from stdlib documentation
 import "<caret>@stdlib/common"
 ------------------------------------------------------------------------
 ```tolk
-import "<working-dir>/tolk-stdlib/common.tolk"
+import "../server/src/e2e/tolk/tolk-stdlib/common.tolk"
 ```
 
 ========================================================================

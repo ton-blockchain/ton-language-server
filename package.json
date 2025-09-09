@@ -564,7 +564,7 @@
         "@ton/crypto": "^3.3.0",
         "glob": "^11.0.1",
         "jssha": "^3.3.1",
-        "tolkfmt-test-dev": "0.0.20",
+        "tolkfmt-test-dev": "0.0.21",
         "ton-assembly": "0.2.0",
         "vscode-languageclient": "^8.0.2",
         "vscode-languageserver": "^8.0.2",

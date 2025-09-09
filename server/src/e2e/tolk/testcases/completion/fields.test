@@ -119,3 +119,61 @@ fun main() {
 1  forceLoadLazyObject(self): slice
 1  stackMoveToTop(mutate self): void
 1  toCell(self, options: PackOptions = {}): Cell<T>
+
+========================================================================
+Field modifier completion for field without any modifiers
+========================================================================
+struct Foo {
+    <caret>foo: int
+}
+------------------------------------------------------------------------
+13 private
+13 readonly
+
+========================================================================
+Field modifier completion for field with private modifier
+========================================================================
+struct Foo {
+    private <caret>foo: int
+}
+------------------------------------------------------------------------
+13 readonly
+
+========================================================================
+Field modifier completion for field with readonly modifier
+========================================================================
+struct Foo {
+    readonly <caret>foo: int
+}
+------------------------------------------------------------------------
+13 private
+
+========================================================================
+Field modifier completion for field with readonly modifier 2
+========================================================================
+struct Foo {
+    <caret>readonly foo: int
+}
+------------------------------------------------------------------------
+13 private
+13 readonly
+
+========================================================================
+Field modifier completion for field with readonly and private modifiers
+========================================================================
+struct Foo {
+    private readonly <caret>foo: int
+}
+------------------------------------------------------------------------
+No completion items
+
+========================================================================
+Field modifier completion after other field
+========================================================================
+struct Foo {
+    foo: int
+    <caret>
+}
+------------------------------------------------------------------------
+13 private
+13 readonly
