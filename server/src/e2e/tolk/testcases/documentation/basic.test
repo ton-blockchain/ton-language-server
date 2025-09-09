@@ -212,6 +212,28 @@ Options for creating an outgoing message.
 Consider [createMessage] for examples.
 
 ========================================================================
+Struct with field with modifiers documentation
+========================================================================
+struct Foo {
+    readonly <caret>value: int,
+    private <caret>other: bool,
+    private readonly <caret>blabla: bool,
+}
+------------------------------------------------------------------------
+```tolk
+struct Foo
+readonly value: int
+```
+```tolk
+struct Foo
+private other: bool
+```
+```tolk
+struct Foo
+private readonly blabla: bool
+```
+
+========================================================================
 Struct field documentation
 ========================================================================
 struct Foo {

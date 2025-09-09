@@ -105,7 +105,7 @@ export function generateTolkDocFor(node: NamedNode, place: SyntaxNode): string |
 
                 const type = field.typeNode()?.node.text ?? "unknown"
 
-                return `    ${field.name()}: ${type}${field.defaultValuePresentation()}`
+                return `    ${field.modifiersPresentation()}${field.name()}: ${type}${field.defaultValuePresentation()}`
             })
 
             const packPrefix = struct.packPrefix()
@@ -218,7 +218,7 @@ export function generateTolkDocFor(node: NamedNode, place: SyntaxNode): string |
             const type = field.typeNode()?.node.text ?? "unknown"
 
             return defaultResult(
-                `${ownerPresentation}${node.name()}: ${type}${field.defaultValuePresentation()}`,
+                `${ownerPresentation}${field.modifiersPresentation()}${node.name()}: ${type}${field.defaultValuePresentation()}`,
                 doc,
             )
         }

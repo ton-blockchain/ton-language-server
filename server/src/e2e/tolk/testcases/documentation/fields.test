@@ -50,3 +50,27 @@ struct Foo
 value: int
 ```
 documentation here
+
+========================================================================
+Field with single modifier documentation
+========================================================================
+struct Foo {
+    readonly <caret>value: int
+}
+------------------------------------------------------------------------
+```tolk
+struct Foo
+readonly value: int
+```
+
+========================================================================
+Field with several modifiers documentation
+========================================================================
+struct Foo {
+    private readonly <caret>value: int
+}
+------------------------------------------------------------------------
+```tolk
+struct Foo
+private readonly value: int
+```
