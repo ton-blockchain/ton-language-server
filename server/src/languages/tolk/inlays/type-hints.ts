@@ -7,7 +7,6 @@ import {InlayHintLabelPart} from "vscode-languageserver"
 import {toLocation} from "@server/languages/tolk/inlays/common"
 import {CallLike, Expression, VarDeclaration} from "@server/languages/tolk/psi/TolkNode"
 import type {TolkFile} from "@server/languages/tolk/psi/TolkFile"
-import {TypeInferer} from "@server/languages/tolk/TypeInferer"
 import {FileDiff} from "@server/utils/FileDiff"
 import {InlayHintKind} from "vscode-languageserver-types"
 import {Constant, FunctionBase} from "@server/languages/tolk/psi/Decls"
@@ -92,7 +91,7 @@ export function constantDeclarationTypeHint(
 
     if (hasObviousType(expr)) return
 
-    const type = TypeInferer.inferType(expr)
+    const type = typeOf(expr.node, file)
     if (!type) return
 
     const position = {

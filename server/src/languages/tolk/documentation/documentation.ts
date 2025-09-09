@@ -18,7 +18,6 @@ import {parentOfType} from "@server/psi/utils"
 import {bitTypeName} from "@server/languages/tolk/lang/types-util"
 import {generateTlBTypeDoc} from "@server/languages/tolk/documentation/tlb-type-documentation"
 import type {Node as SyntaxNode} from "web-tree-sitter"
-import {TypeInferer} from "@server/languages/tolk/TypeInferer"
 import {functionTypeOf, typeOf} from "@server/languages/tolk/type-inference"
 import {StructTy, UnionTy, UnknownTy} from "@server/languages/tolk/types/ty"
 import {EstimateContext, sizeOfPresentation} from "@server/languages/tolk/types/size-of"
@@ -176,7 +175,7 @@ export function generateTolkDocFor(node: NamedNode, place: SyntaxNode): string |
         }
         case "constant_declaration": {
             const constant = new Constant(astNode, node.file)
-            const type = TypeInferer.inferType(constant)?.name() ?? "unknown"
+            const type = constant.declaredType()?.name() ?? "unknown"
 
             const value = constant.value()
             if (!value) return null
@@ -200,7 +199,7 @@ export function generateTolkDocFor(node: NamedNode, place: SyntaxNode): string |
         }
         case "global_var_declaration": {
             const variable = new GlobalVariable(astNode, node.file)
-            const type = variable.typeNode()?.node.text ?? "unknown"
+            const type = variable.declaredType()?.name() ?? "unknown"
 
             const doc = node.documentation()
             return defaultResult(`global ${node.name()}: ${type}`, doc)
@@ -272,8 +271,7 @@ export function generateTolkDocFor(node: NamedNode, place: SyntaxNode): string |
         }
         case "parameter_declaration": {
             const parameter = new Parameter(node.node, node.file)
-            const type = TypeInferer.inferType(node)
-            const typeName = type?.name() ?? "unknown"
+            const typeName = parameter.declaredType()?.name() ?? "unknown"
 
             const modifiersPresentation = parameter.isMutable() ? "mutate " : ""
 

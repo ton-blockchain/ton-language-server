@@ -3,13 +3,13 @@ import type {Node as SyntaxNode} from "web-tree-sitter"
 import {TolkFile} from "@server/languages/tolk/psi/TolkFile"
 import {asLspRange} from "@server/utils/position"
 import {Reference} from "@server/languages/tolk/psi/Reference"
-import {NamedNode, Expression} from "@server/languages/tolk/psi/TolkNode"
+import {NamedNode} from "@server/languages/tolk/psi/TolkNode"
 import {ImportResolver} from "@server/languages/tolk/psi/ImportResolver"
 import {filePathToUri} from "@server/files"
-import {TypeInferer} from "@server/languages/tolk/TypeInferer"
 import {NamedTy} from "@server/languages/tolk/types/ty"
 import {globalVFS} from "@server/vfs/global"
 import {existsVFS} from "@server/vfs/files-adapter"
+import {typeOf} from "@server/languages/tolk/type-inference"
 
 export async function provideTolkDefinition(
     hoverNode: SyntaxNode,
@@ -68,7 +68,7 @@ export function provideTolkTypeDefinition(
         return []
     }
 
-    const type = TypeInferer.inferType(new Expression(hoverNode, file))
+    const type = typeOf(hoverNode, file)
     if (type === null) {
         console.error(`Cannot infer type for Go to Type Definition for: ${hoverNode.text}`)
         return []

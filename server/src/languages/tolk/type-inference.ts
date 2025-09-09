@@ -1,12 +1,15 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
 import {
+    BitsNTy,
     BoolTy,
     BuiltinTy,
+    BytesNTy,
     CoinsTy,
     EnumTy,
     FuncTy,
     InstantiationTy,
+    IntNTy,
     IntTy,
     joinTypes,
     NeverTy,
@@ -16,9 +19,11 @@ import {
     TensorTy,
     TupleTy,
     Ty,
+    TypeAliasTy,
     TypeParameterTy,
     UnionTy,
     UnknownTy,
+    VarIntNTy,
     VoidTy,
 } from "@server/languages/tolk/types/ty"
 import {Node as SyntaxNode} from "web-tree-sitter"
@@ -35,9 +40,9 @@ import {
     StaticMethod,
     Struct,
     TypeAlias,
+    TypeParameter,
 } from "@server/languages/tolk/psi/Decls"
-import {CallLike, Expression, NamedNode, TolkNode} from "@server/languages/tolk/psi/TolkNode"
-import {TypeInferer} from "@server/languages/tolk/TypeInferer"
+import {CallLike, NamedNode} from "@server/languages/tolk/psi/TolkNode"
 import {TolkFile} from "@server/languages/tolk/psi/TolkFile"
 import {Reference, ScopeProcessor} from "@server/languages/tolk/psi/Reference"
 import {index, IndexFinder, IndexKey} from "@server/languages/tolk/indexes"
@@ -159,11 +164,12 @@ export class GenericSubstitutions {
 
             if (argTy.name() === paramTy.name()) {
                 // like TBody to TBody
-                // use default type if present
+                // use a default type if present
                 const defaultTypeNode = paramTy.anchor?.defaultType()
                 if (defaultTypeNode && paramTy.anchor) {
-                    const defaultType = TypeInferer.inferType(
-                        new TolkNode(defaultTypeNode, paramTy.anchor.file),
+                    const defaultType = InferenceWalker.convertType(
+                        defaultTypeNode,
+                        paramTy.anchor.file,
                     )
                     if (defaultType) {
                         mapping.set(paramTy.name(), defaultType)
@@ -362,8 +368,6 @@ class InferenceContext {
 }
 
 class InferenceWalker {
-    public typeInferer: TypeInferer = new TypeInferer()
-
     public constructor(public ctx: InferenceContext) {}
 
     public static methodCandidates(
@@ -380,7 +384,7 @@ class InferenceWalker {
         if (!expression) return flow
 
         const typeHint = constant.typeNode()?.node
-        const typeHintTy = this.convertType(typeHint, constant.file)
+        const typeHintTy = InferenceWalker.convertType(typeHint, constant.file)
         const flowAfterExpression = this.inferExpression(expression, flow, false, typeHintTy)
         const exprType = this.ctx.getType(expression)
         this.ctx.setType(constant.node, exprType)
@@ -389,14 +393,14 @@ class InferenceWalker {
 
     public inferGlobalVariable(variable: GlobalVariable, flow: FlowContext): FlowContext {
         const typeHint = variable.typeNode()?.node
-        const typeHintTy = this.convertType(typeHint, variable.file)
+        const typeHintTy = InferenceWalker.convertType(typeHint, variable.file)
         this.ctx.setType(variable.node, typeHintTy)
         return flow
     }
 
     public inferField(field: Field, flow: FlowContext): FlowContext {
         const typeHint = field.typeNode()?.node
-        const typeHintTy = this.convertType(typeHint, field.file)
+        const typeHintTy = InferenceWalker.convertType(typeHint, field.file)
 
         const defaultValue = field.defaultValue()?.node
         if (defaultValue) {
@@ -438,7 +442,7 @@ class InferenceWalker {
         const underlyingType = alias.underlyingType()
         if (!underlyingType) return flow
 
-        const exprType = this.convertType(underlyingType, alias.file)
+        const exprType = InferenceWalker.convertType(underlyingType, alias.file)
         this.ctx.setType(alias.node, exprType)
         this.ctx.setType(underlyingType, exprType)
         return flow
@@ -448,7 +452,7 @@ class InferenceWalker {
         if (func instanceof MethodBase) {
             const receiverTypeNode = func.receiverTypeNode()
             if (receiverTypeNode) {
-                const selfParameterType = this.convertType(receiverTypeNode, func.file)
+                const selfParameterType = InferenceWalker.convertType(receiverTypeNode, func.file)
                 if (selfParameterType) {
                     this.ctx.selfType = selfParameterType
                     this.ctx.setType(receiverTypeNode, selfParameterType)
@@ -457,12 +461,14 @@ class InferenceWalker {
         }
 
         const declaredReturnType = func.returnType()
-        this.ctx.declaredReturnType = declaredReturnType?.type() ?? undefined
+        this.ctx.declaredReturnType =
+            InferenceWalker.convertType(declaredReturnType?.node, declaredReturnType?.file) ??
+            undefined
 
         for (const typeParameter of func.typeParameters()) {
             const defaultTypeNode = typeParameter.defaultType()
             if (defaultTypeNode) {
-                const defaultType = this.convertType(defaultTypeNode, func.file)
+                const defaultType = InferenceWalker.convertType(defaultTypeNode, func.file)
                 flow.setSymbol(typeParameter, new TypeParameterTy(typeParameter, defaultType))
             } else {
                 flow.setSymbol(typeParameter, new TypeParameterTy(typeParameter))
@@ -470,7 +476,7 @@ class InferenceWalker {
         }
 
         for (const [index, param] of func.parameters().entries()) {
-            const declaredParamType = this.convertType(param.typeNode()?.node, func.file)
+            const declaredParamType = InferenceWalker.convertType(param.typeNode()?.node, func.file)
 
             const paramType =
                 (index === 0 && param.name() === "self" ? this.ctx.selfType : declaredParamType) ??
@@ -491,11 +497,11 @@ class InferenceWalker {
             flow = this.processBlockStatement(body, flow)
         }
 
-        // Infer whole function type including auto return type for future use,
+        // Infer a whole function type including the auto return type for future use,
         // for example, in type-hints.ts
 
         const parameters = func.parameters(true)
-        const returnType = declaredReturnType?.type() ?? this.inferReturnType()
+        const returnType = this.ctx.declaredReturnType ?? this.inferReturnType()
 
         const parametersTypes = parameters.map(it => this.ctx.getType(it.node) ?? UnknownTy.UNKNOWN)
 
@@ -866,7 +872,9 @@ class InferenceWalker {
         const exprType = this.ctx.getType(expr)
 
         const typeNodes = instantiationTs.childrenForFieldName("types").filter(it => it?.isNamed)
-        const types = typeNodes.map(it => this.convertType(it, this.ctx.file) ?? UnknownTy.UNKNOWN)
+        const types = typeNodes.map(
+            it => InferenceWalker.convertType(it, this.ctx.file) ?? UnknownTy.UNKNOWN,
+        )
 
         const resolved = this.ctx.getResolved(expr)
 
@@ -944,7 +952,7 @@ class InferenceWalker {
             }
 
             const qualifierType = qualifier ? this.ctx.getType(qualifier) : UnknownTy.UNKNOWN
-            const receiverType = this.convertType(
+            const receiverType = InferenceWalker.convertType(
                 resolvedFunc.receiverTypeNode(),
                 resolvedFunc.file,
             )
@@ -1038,14 +1046,16 @@ class InferenceWalker {
                 if (field.name(false) === fieldNode.text) {
                     resolved = field
 
-                    const structTy = baseType.anchor ? TypeInferer.inferType(baseType.anchor) : null
+                    const structTy = baseType.anchor
+                        ? InferenceWalker.namedNodeType(baseType.anchor)
+                        : null
                     const sub = GenericSubstitutions.deduce(structTy, qualifierType.unwrapAlias())
 
                     this.ctx.setResolved(node, resolved)
                     this.ctx.setResolved(fieldNode, resolved)
 
                     const type =
-                        this.convertType(field.typeNode()?.node, field.file)?.substitute(
+                        InferenceWalker.convertType(field.typeNode()?.node, field.file)?.substitute(
                             sub.mapping,
                         ) ?? null
 
@@ -1080,7 +1090,7 @@ class InferenceWalker {
 
         if (methodCandidates.length === 1) {
             resolved = methodCandidates[0]
-            const type = this.typeInferer.inferTypeNoCache(resolved)
+            const type = InferenceWalker.namedNodeType(resolved)
             this.ctx.setType(node, type)
             this.ctx.setType(fieldNode, type)
         }
@@ -1284,7 +1294,7 @@ class InferenceWalker {
             if (armPatternType) {
                 let armType =
                     this.ctx.getType(armPatternType) ??
-                    this.convertType(armPatternType, this.ctx.file)
+                    InferenceWalker.convertType(armPatternType, this.ctx.file)
 
                 if (
                     armType instanceof InstantiationTy &&
@@ -1357,7 +1367,7 @@ class InferenceWalker {
         const nextFlow = ExprFlow.create(flow, false)
 
         const typeNode = node.childForFieldName("type")
-        let structType = typeNode ? this.convertType(typeNode, this.ctx.file) : null
+        let structType = typeNode ? InferenceWalker.convertType(typeNode, this.ctx.file) : null
 
         if (structType === null && hint) {
             // val foo: Foo = { ... }
@@ -1392,10 +1402,7 @@ class InferenceWalker {
 
         let sub = new GenericSubstitutions()
         if (baseType.anchor && structType) {
-            sub = sub.deduce(
-                this.convertType(baseType.anchor.nameIdentifier(), baseType.anchor.file),
-                structType,
-            )
+            sub = sub.deduce(InferenceWalker.namedNodeType(baseType.anchor), structType)
         }
 
         if (
@@ -1425,7 +1432,7 @@ class InferenceWalker {
                 // Foo { field: value }
                 //       ^^^^^^^^^^^^
                 const resolved = baseType.fields().find(it => it.name(false) === name)
-                const originalFieldType = this.convertType(
+                const originalFieldType = InferenceWalker.convertType(
                     resolved?.typeNode()?.node,
                     resolved?.file,
                 )
@@ -1468,7 +1475,7 @@ class InferenceWalker {
                     resolved.node.type === "parameter_declaration"
                 ) {
                     const resolvedField = baseType.fields().find(it => it.name(false) === name)
-                    let fieldType = this.convertType(
+                    let fieldType = InferenceWalker.convertType(
                         resolvedField?.typeNode()?.node,
                         resolvedField?.file,
                     )
@@ -1520,7 +1527,7 @@ class InferenceWalker {
         }
 
         const exprType = this.ctx.getType(expr)?.unwrapAlias() ?? UnknownTy.UNKNOWN
-        let rightType = this.convertType(typeNode, this.ctx.file) ?? UnknownTy.UNKNOWN
+        let rightType = InferenceWalker.convertType(typeNode, this.ctx.file) ?? UnknownTy.UNKNOWN
 
         if (
             rightType instanceof InstantiationTy &&
@@ -1816,31 +1823,29 @@ class InferenceWalker {
             resolved.node.type === "method_declaration" ||
             resolved.node.type === "get_method_declaration"
         ) {
-            const type = this.typeInferer.inferType(resolved)
+            const type = InferenceWalker.namedNodeType(resolved)
             this.ctx.setType(resolved.node, type)
             this.ctx.setType(node, type)
             return nextFlow
         }
 
         if (resolved instanceof TypeAlias || resolved instanceof Struct) {
-            // identifier is actually a type, so try to infer it as a type
-            const type = TypeInferer.nameToType(node.text)
-            if (type) {
-                this.ctx.setType(node, type)
-                return nextFlow
-            }
-            this.ctx.setType(node, this.typeInferer.inferType(resolved))
+            this.ctx.setType(node, InferenceWalker.namedNodeType(resolved))
             return nextFlow
         }
 
         if (resolved instanceof Enum) {
-            const type = new EnumTy(resolved.name(), resolved)
-            this.ctx.setType(node, type)
+            this.ctx.setType(node, resolved.declaredType())
             return nextFlow
         }
 
-        if (resolved instanceof Constant || resolved instanceof GlobalVariable) {
-            this.ctx.setType(node, this.typeInferer.inferType(resolved))
+        if (resolved instanceof Constant) {
+            this.ctx.setType(node, resolved.declaredType())
+            return nextFlow
+        }
+
+        if (resolved instanceof GlobalVariable) {
+            this.ctx.setType(node, resolved.declaredType())
             return nextFlow
         }
 
@@ -1885,7 +1890,9 @@ class InferenceWalker {
 
         if (node.type === "var_declaration") {
             const typeNode = node.childForFieldName("type")
-            const type = typeNode ? this.convertType(typeNode, this.ctx.file) : UnknownTy.UNKNOWN
+            const type = typeNode
+                ? InferenceWalker.convertType(typeNode, this.ctx.file)
+                : UnknownTy.UNKNOWN
             this.ctx.setVarType(node, type)
             nextFlow.setSymbol(new NamedNode(node, this.ctx.file), type ?? UnknownTy.UNKNOWN)
         }
@@ -1935,18 +1942,256 @@ class InferenceWalker {
         return flow
     }
 
-    private convertType(
+    public static convertType(
         typeNode: SyntaxNode | null | undefined,
         file: TolkFile | null | undefined,
     ): Ty | null {
         if (!typeNode || !file) return null
+        return TOLK_CACHE.typeCache.cached(typeNode.id, () =>
+            InferenceWalker.convertTypeImpl(typeNode, file),
+        )
+    }
 
-        if (typeNode.type === "type_identifier") {
-            if (typeNode.text === "int") {
-                return IntTy.INT
+    private static convertTypeImpl(node: SyntaxNode | null | undefined, file: TolkFile): Ty | null {
+        if (!node) return null
+
+        if (node.type === "type_identifier") {
+            const name = node.text
+            if (name === "self") {
+                return InferenceWalker.inferSelfType(node, file)
             }
+
+            const type = InferenceWalker.asPrimitiveType(name)
+            if (type) {
+                return type
+            }
+
+            const resolved = Reference.resolve(new NamedNode(node, file))
+            if (resolved === null) return null
+            return this.namedNodeType(resolved)
         }
-        return TypeInferer.inferType(new Expression(typeNode, file))
+
+        if (node.type === "null_literal") {
+            return NullTy.NULL
+        }
+
+        if (node.type === "nullable_type") {
+            const inner = node.childForFieldName("inner")
+            if (!inner) return null
+            const innerType = InferenceWalker.convertType(inner, file)
+            if (innerType === null) return null
+            return UnionTy.create([innerType, NullTy.NULL])
+        }
+
+        if (node.type === "tensor_type" || node.type === "tuple_type") {
+            const expressions = node.namedChildren.filter(it => it !== null)
+
+            const types = expressions.map(
+                it => InferenceWalker.convertType(it, file) ?? UnknownTy.UNKNOWN,
+            )
+
+            if (node.type === "tensor_type") {
+                return new TensorTy(types)
+            }
+
+            return new TupleTy(types)
+        }
+
+        if (node.type === "parenthesized_type") {
+            const inner = node.childForFieldName("inner")
+            if (!inner) return null
+            return InferenceWalker.convertType(inner, file)
+        }
+
+        if (node.type === "type_instantiatedTs") {
+            const nameNode = node.childForFieldName("name")
+            const argsNode = node.childForFieldName("arguments")
+            if (!nameNode || !argsNode) return null
+
+            const namedNode = new NamedNode(nameNode, file)
+            const resolved = Reference.resolve(namedNode)
+
+            const innerTy = InferenceWalker.convertType(nameNode, file)?.unwrapInstantiation()
+            if (!innerTy) return null
+
+            const args = argsNode.namedChildren.filter(it => it !== null)
+
+            const argsTypes = args.map(
+                it => InferenceWalker.convertType(it, file) ?? UnknownTy.UNKNOWN,
+            )
+
+            if (resolved instanceof Struct || resolved instanceof TypeAlias) {
+                const mapping: Map<string, Ty> = new Map()
+                const typeParameters = resolved.typeParameters()
+
+                for (let i = 0; i < Math.min(typeParameters.length, argsTypes.length); i++) {
+                    const param = typeParameters[i]
+                    const type = argsTypes[i]
+
+                    mapping.set(param.name(), type)
+                }
+
+                return new InstantiationTy(innerTy, argsTypes).substitute(mapping)
+            }
+
+            return new InstantiationTy(innerTy, argsTypes)
+        }
+
+        if (node.type === "fun_callable_type") {
+            const paramTypeNode = node.childForFieldName("param_types")
+            const returnTypeNode = node.childForFieldName("return_type")
+
+            if (!paramTypeNode || !returnTypeNode) return null
+
+            const paramType = InferenceWalker.convertType(paramTypeNode, file)
+            const returnType = InferenceWalker.convertType(returnTypeNode, file)
+
+            if (!paramType || !returnType) return null
+
+            const paramTypes = paramType instanceof TensorTy ? paramType.elements : [paramType]
+
+            return new FuncTy(paramTypes, returnType)
+        }
+
+        if (node.type === "union_type") {
+            const types = this.convertUnionType(node, file)
+            if (!types) return null
+            return UnionTy.create(types)
+        }
+
+        return null
+    }
+
+    private static inferSelfType(node: SyntaxNode, file: TolkFile): Ty | null {
+        const methodOwner = parentOfType(node, "method_declaration")
+        if (!methodOwner) {
+            return null
+        }
+
+        const method = new MethodBase(methodOwner, file)
+        const receiver = method.receiverTypeNode()
+        if (receiver) {
+            return this.convertType(receiver, file)
+        }
+        return null
+    }
+
+    private static convertUnionType(node: SyntaxNode, file: TolkFile): Ty[] | null {
+        // TODO: self recursive types
+        const lhs = node.childForFieldName("lhs")
+        const rhs = node.childForFieldName("rhs")
+
+        if (!lhs || !rhs) return null
+
+        const lhsTy = InferenceWalker.convertType(lhs, file)
+        if (!lhsTy) return null
+
+        if (rhs.type === "union_type") {
+            const rhsTypes = this.convertUnionType(rhs, file)
+            if (!rhsTypes) return null
+            return [lhsTy, ...rhsTypes]
+        }
+
+        const rhsTy = InferenceWalker.convertType(rhs, file)
+        if (!rhsTy) return null
+
+        return [lhsTy, rhsTy]
+    }
+
+    public static namedNodeType(node: NamedNode): Ty | null {
+        if (node instanceof Struct) {
+            const fieldTypes = node.fields().map(it => {
+                try {
+                    return (
+                        InferenceWalker.convertType(it.typeNode()?.node, node.file) ??
+                        UnknownTy.UNKNOWN
+                    )
+                } catch {
+                    // cyclic dependency
+                    return UnknownTy.UNKNOWN
+                }
+            })
+
+            const baseTy = new StructTy(fieldTypes, node.name(), node)
+
+            const typeParameters = node.typeParameters()
+            if (typeParameters.length > 0) {
+                return new InstantiationTy(
+                    baseTy,
+                    typeParameters.map(it => {
+                        const defaultTypeNode = it.defaultType()
+                        if (defaultTypeNode) {
+                            const defaultType = InferenceWalker.convertType(
+                                defaultTypeNode,
+                                node.file,
+                            )
+                            return new TypeParameterTy(it, defaultType)
+                        }
+                        return new TypeParameterTy(it)
+                    }),
+                )
+            }
+
+            return baseTy
+        }
+        if (node instanceof TypeAlias) {
+            const underlyingType = node.underlyingType()
+            if (underlyingType === null) return null
+
+            const underlyingTypeName = underlyingType.text
+            if (underlyingTypeName === "builtin") {
+                const name = node.name()
+                const type = InferenceWalker.asPrimitiveType(node.name())
+                if (type) {
+                    return type
+                }
+                return new BuiltinTy(name, node)
+            }
+
+            const innerTy = InferenceWalker.convertType(underlyingType, node.file)
+            if (!innerTy) return null
+
+            const baseTy = new TypeAliasTy(node.name(), node, innerTy)
+
+            const typeParameters = node.typeParameters()
+            if (typeParameters.length > 0) {
+                return new InstantiationTy(
+                    baseTy,
+                    typeParameters.map(it => {
+                        const defaultTypeNode = it.defaultType()
+                        if (defaultTypeNode) {
+                            const defaultType = InferenceWalker.convertType(
+                                defaultTypeNode,
+                                node.file,
+                            )
+                            return new TypeParameterTy(it, defaultType)
+                        }
+                        return new TypeParameterTy(it)
+                    }),
+                )
+            }
+
+            return baseTy
+        }
+
+        if (node instanceof TypeParameter) {
+            const defaultTypeNode = node.defaultType()
+            if (defaultTypeNode) {
+                const defaultType = InferenceWalker.convertType(defaultTypeNode, node.file)
+                return new TypeParameterTy(node, defaultType)
+            }
+            return new TypeParameterTy(node)
+        }
+
+        if (node instanceof FunctionBase) {
+            const result = TOLK_CACHE.funcTypeCache.cached(node.node.id, () => {
+                return infer(node)
+            })
+
+            return result.ctx.getType(node.node)
+        }
+
+        return null
     }
 
     private processVarDefinitionAfterRight(
@@ -1956,7 +2201,9 @@ class InferenceWalker {
     ): void {
         if (lhs.type === "var_declaration") {
             const typeNode = lhs.childForFieldName("type")
-            const declaredType = typeNode ? this.convertType(typeNode, this.ctx.file) : undefined
+            const declaredType = typeNode
+                ? InferenceWalker.convertType(typeNode, this.ctx.file)
+                : undefined
 
             const smartcastedTy = declaredType
                 ? this.calcSmartcastTypeOnAssignment(declaredType, rightType)
@@ -2234,7 +2481,7 @@ class InferenceWalker {
             return ExprFlow.create(flow, usedAsCondition)
         }
 
-        const targetType = this.convertType(castedTo, this.ctx.file) ?? UnknownTy.UNKNOWN
+        const targetType = InferenceWalker.convertType(castedTo, this.ctx.file) ?? UnknownTy.UNKNOWN
         const afterExpr = this.inferExpression(expr, flow, false, targetType)
 
         this.ctx.setType(node, targetType)
@@ -2415,7 +2662,7 @@ class InferenceWalker {
                 const fieldDecl = qualifierType.fields().find(it => it.name(false) === fieldName)
                 const fieldTypeNode = fieldDecl?.typeNode()?.node
                 if (fieldTypeNode) {
-                    return this.convertType(fieldTypeNode, fieldDecl.file)
+                    return InferenceWalker.convertType(fieldTypeNode, fieldDecl.file)
                 }
             }
 
@@ -2553,6 +2800,60 @@ class InferenceWalker {
                 if (varDecl?.type === "var_declaration") {
                     return new SinkExpression(new NamedNode(varDecl, this.ctx.file))
                 }
+            }
+        }
+        return null
+    }
+
+    public static asPrimitiveType(name: string): Ty | null {
+        if (name.startsWith("int") || name.startsWith("uint")) {
+            const match = /^(u?int)(\d+)$/.exec(name)
+            if (match) {
+                const [_, prefix, bits] = match
+                const bitWidth = Number.parseInt(bits)
+                return new IntNTy(bitWidth, prefix === "uint")
+            }
+        }
+
+        if (name.startsWith("varint") || name.startsWith("varuint")) {
+            const match = /^(varu?int)(\d+)$/.exec(name)
+            if (match) {
+                const [_, prefix, bits] = match
+                const bitWidth = Number.parseInt(bits)
+                return new VarIntNTy(bitWidth, prefix === "varuint")
+            }
+        }
+
+        if (name.startsWith("bits") || name.startsWith("bytes")) {
+            const match = /^(bytes|bits)(\d+)$/.exec(name)
+            if (match) {
+                const [_, prefix, bits] = match
+                const bitWidth = Number.parseInt(bits)
+                if (prefix === "bytes") {
+                    return new BytesNTy(bitWidth)
+                }
+                return new BitsNTy(bitWidth)
+            }
+        }
+
+        switch (name) {
+            case "void": {
+                return VoidTy.VOID
+            }
+            case "int": {
+                return IntTy.INT
+            }
+            case "bool": {
+                return BoolTy.BOOL
+            }
+            case "coins": {
+                return CoinsTy.COINS
+            }
+            case "null": {
+                return NullTy.NULL
+            }
+            case "never": {
+                return NeverTy.NEVER
             }
         }
         return null

@@ -21,7 +21,6 @@ import {
 import {CompletionContext} from "./CompletionContext"
 import {CompletionWeight, WeightedCompletionItem} from "@server/completion/WeightedCompletionItem"
 import {ResolveState} from "@server/psi/ResolveState"
-import {TypeInferer} from "@server/languages/tolk/TypeInferer"
 import {CompletionItemAdditionalInformation} from "@server/completion/CompletionItemAdditionalInformation"
 import {typeOf} from "@server/languages/tolk/type-inference"
 
@@ -178,7 +177,7 @@ export class ReferenceCompletionProcessor implements ScopeProcessor {
                 data: additionalData,
             })
         } else if (node instanceof Constant) {
-            const typeName = TypeInferer.inferType(node)?.name() ?? "unknown"
+            const typeName = node.declaredType()?.name() ?? "unknown"
             const value = node.value()
 
             this.addItem({
@@ -193,7 +192,7 @@ export class ReferenceCompletionProcessor implements ScopeProcessor {
                 data: additionalData,
             })
         } else if (node instanceof GlobalVariable) {
-            const typeName = TypeInferer.inferType(node)?.name() ?? "unknown"
+            const typeName = node.declaredType()?.name() ?? "unknown"
             this.addItem({
                 label: name,
                 kind: CompletionItemKind.Variable,
