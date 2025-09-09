@@ -6,9 +6,9 @@ import {
     StoppedEvent,
     Thread,
     StackFrame,
-    Scope,
     TerminatedEvent,
     Source,
+    Scope,
 } from "@vscode/debugadapter"
 import {DebugProtocol} from "@vscode/debugprotocol"
 import * as path from "node:path"
@@ -16,13 +16,22 @@ import {LaunchRequestArguments} from "./types"
 import {createTraceInfoFromVmLogs} from "./trace-utils"
 import {StackElement, TraceInfo} from "ton-assembly/dist/trace"
 
+// eslint-disable-next-line functional/type-declaration-immutability
+interface NestedVariable {
+    name: string
+    value: string
+    type?: string
+    children?: NestedVariable[]
+    stackValue?: StackElement
+}
+
 export class TolkDebugAdapter extends LoggingDebugSession {
     private static readonly THREAD_ID: number = 1
     private currentStep: number = 0
     private traceInfo: TraceInfo | undefined
     private launchArgs: LaunchRequestArguments | undefined
 
-    private readonly variableHandles: Map<number, StackElement[]> = new Map()
+    private readonly variableHandles: Map<number, StackElement[] | NestedVariable[]> = new Map()
     private nextVariableHandle: number = 1000
 
     private readonly breakPoints: Map<string, DebugProtocol.SourceBreakpoint[]> = new Map()
@@ -127,6 +136,89 @@ export class TolkDebugAdapter extends LoggingDebugSession {
         this.nextVariableHandle = 1000
     }
 
+    private buildVariableTree(
+        variables: {name: string; type: string; value?: string}[],
+        stackElements: readonly StackElement[],
+    ): NestedVariable[] {
+        const root: Map<string, NestedVariable> = new Map()
+
+        variables.forEach((variable, index) => {
+            if (variable.name.startsWith("'") || variable.name.startsWith("lazy")) {
+                return
+            }
+
+            const stackValue = stackElements.at(stackElements.length - 1 - index)
+            const parts = variable.name.split(".")
+
+            if (parts.length === 1) {
+                root.set(variable.name, {
+                    name: variable.name,
+                    value:
+                        variable.value ??
+                        (stackValue ? this.formatStackElement(stackValue) : "Available in scope"),
+                    type: variable.type,
+                    stackValue,
+                })
+            } else {
+                const parentName = parts[0]
+                const childName = parts.slice(1).join(".")
+
+                if (!root.has(parentName)) {
+                    root.set(parentName, {
+                        name: parentName,
+                        value: `{...}`,
+                        children: [],
+                    })
+                }
+
+                const parent = root.get(parentName)
+                if (!parent) {
+                    return
+                }
+                if (!parent.children) {
+                    parent.children = []
+                }
+
+                parent.children.push({
+                    name: childName,
+                    value:
+                        variable.value ??
+                        (stackValue ? this.formatStackElement(stackValue) : "Available in scope"),
+                    type: variable.type,
+                    stackValue,
+                })
+            }
+        })
+
+        return [...root.values()]
+    }
+
+    private formatNestedVariables(
+        nestedVars: NestedVariable[],
+        variables: DebugProtocol.Variable[],
+    ): void {
+        nestedVars.forEach(nestedVar => {
+            let variableHandle = 0
+
+            if (nestedVar.children && nestedVar.children.length > 0) {
+                variableHandle = this.nextVariableHandle++
+                this.variableHandles.set(variableHandle, nestedVar.children)
+            } else if (nestedVar.stackValue && nestedVar.stackValue.$ === "Tuple") {
+                if (nestedVar.stackValue.elements.length > 0) {
+                    variableHandle = this.nextVariableHandle++
+                    this.variableHandles.set(variableHandle, nestedVar.stackValue.elements)
+                }
+            }
+
+            variables.push({
+                name: nestedVar.name,
+                value: nestedVar.value,
+                variablesReference: variableHandle,
+                type: nestedVar.type,
+            })
+        })
+    }
+
     protected override stackTraceRequest(
         response: DebugProtocol.StackTraceResponse,
         args: DebugProtocol.StackTraceArguments,
@@ -146,7 +238,6 @@ export class TolkDebugAdapter extends LoggingDebugSession {
         const currentStepData = this.traceInfo.steps[this.currentStep]
         const stackFrames: StackFrame[] = []
 
-        // Use Tolk source location if available, otherwise fall back to assembly
         let source: Source
         let line: number
         let column: number
@@ -191,7 +282,7 @@ export class TolkDebugAdapter extends LoggingDebugSession {
         response: DebugProtocol.ScopesResponse,
         args: DebugProtocol.ScopesArguments,
     ): void {
-        const scopes = [new Scope("Stack", 1, false)]
+        const scopes: Scope[] = []
 
         if (this.traceInfo && this.currentStep < this.traceInfo.steps.length) {
             const currentStep = this.traceInfo.steps[this.currentStep]
@@ -200,9 +291,17 @@ export class TolkDebugAdapter extends LoggingDebugSession {
                 currentStep.funcLoc.vars &&
                 currentStep.funcLoc.vars.length > 0
             ) {
-                scopes.push(new Scope("Tolk Variables", 2, false))
+                const scope: DebugProtocol.Scope = {
+                    name: "Tolk Variables",
+                    variablesReference: 1,
+                    expensive: false,
+                    presentationHint: "locals",
+                }
+                scopes.push(scope)
             }
         }
+
+        scopes.push(new Scope("Stack", 2, false))
 
         response.body = {scopes}
         this.sendResponse(response)
@@ -216,31 +315,39 @@ export class TolkDebugAdapter extends LoggingDebugSession {
         const variables: DebugProtocol.Variable[] = []
         const ref = args.variablesReference
 
-        if (ref === 1) {
+        if (ref === 2) {
             if (this.traceInfo && this.currentStep < this.traceInfo.steps.length) {
                 const elementsToFormat = this.traceInfo.steps[this.currentStep].stack
                 this.formatStackVariables(elementsToFormat, variables)
             }
-        } else if (ref === 2) {
+        } else if (ref === 1) {
             if (this.traceInfo && this.currentStep < this.traceInfo.steps.length) {
                 const currentStep = this.traceInfo.steps[this.currentStep]
+                const elementsToFormat = this.traceInfo.steps[this.currentStep].stack
                 if (currentStep.funcLoc?.vars) {
-                    currentStep.funcLoc.vars.forEach(varName => {
-                        // Try to find corresponding stack element or show as unavailable
-                        variables.push({
-                            name: varName,
-                            value: "Available in scope",
-                            variablesReference: 0,
-                            type: "tolk_var",
-                        })
-                    })
+                    const vars = (
+                        currentStep.funcLoc.vars as unknown as {
+                            name: string
+                            type: string
+                            value?: string
+                        }[]
+                    ).reverse()
+
+                    const variableTree = this.buildVariableTree(vars, elementsToFormat)
+                    this.formatNestedVariables(variableTree, variables)
                 }
             }
         } else {
-            // Nested variables (tuples, etc.)
             const elementsToFormat = this.variableHandles.get(ref)
             if (elementsToFormat) {
-                this.formatStackVariables(elementsToFormat, variables)
+                if (Array.isArray(elementsToFormat) && elementsToFormat.length > 0) {
+                    const firstElement = elementsToFormat[0]
+                    if ("name" in firstElement && "value" in firstElement) {
+                        this.formatNestedVariables(elementsToFormat as NestedVariable[], variables)
+                    } else {
+                        this.formatStackVariables(elementsToFormat as StackElement[], variables)
+                    }
+                }
             }
         }
 
@@ -252,7 +359,7 @@ export class TolkDebugAdapter extends LoggingDebugSession {
         elementsToFormat: readonly StackElement[],
         variables: DebugProtocol.Variable[],
     ): void {
-        elementsToFormat.forEach((element, index) => {
+        ;[...elementsToFormat].reverse().forEach((element, index) => {
             let variableHandle = 0
             let displayValue = this.formatStackElement(element)
 
@@ -267,7 +374,7 @@ export class TolkDebugAdapter extends LoggingDebugSession {
             }
 
             variables.push({
-                name: `[${elementsToFormat.length - 1 - index}]`,
+                name: `[${index}]`,
                 value: displayValue,
                 variablesReference: variableHandle,
                 type: element.$,
@@ -292,7 +399,7 @@ export class TolkDebugAdapter extends LoggingDebugSession {
             return
         }
 
-        const nextStep = this.findNextTolkStep(false) // false = step over (don't enter functions)
+        const nextStep = this.findNextTolkStep(false)
 
         if (nextStep >= 0) {
             this.currentStep = nextStep
@@ -300,7 +407,6 @@ export class TolkDebugAdapter extends LoggingDebugSession {
             this.sendResponse(response)
             this.sendEvent(new StoppedEvent("step", TolkDebugAdapter.THREAD_ID))
         } else {
-            // No more Tolk steps found, terminate
             this.currentStep = this.traceInfo.steps.length - 1
             this.sendResponse(response)
             this.sendEvent(new TerminatedEvent())
@@ -316,7 +422,7 @@ export class TolkDebugAdapter extends LoggingDebugSession {
             return
         }
 
-        const nextStep = this.findNextTolkStep(true) // true = step into (can enter functions)
+        const nextStep = this.findNextTolkStep(true)
 
         if (nextStep >= 0) {
             this.currentStep = nextStep
@@ -324,7 +430,6 @@ export class TolkDebugAdapter extends LoggingDebugSession {
             this.sendResponse(response)
             this.sendEvent(new StoppedEvent("step", TolkDebugAdapter.THREAD_ID))
         } else {
-            // No more Tolk steps found, terminate
             this.currentStep = this.traceInfo.steps.length - 1
             this.sendResponse(response)
             this.sendEvent(new TerminatedEvent())
@@ -337,7 +442,6 @@ export class TolkDebugAdapter extends LoggingDebugSession {
         request?: DebugProtocol.Request,
     ): void {
         if (this.traceInfo) {
-            // Find previous Tolk step
             const prevStep = this.findPreviousTolkStep()
 
             if (prevStep >= 0) {
@@ -425,14 +529,12 @@ export class TolkDebugAdapter extends LoggingDebugSession {
         this.lineToStepsMap.clear()
         if (!this.traceInfo || !this.launchArgs?.code) return
 
-        // Build map for both Tolk source files and assembly
         const tolkFileMap: Map<string, Map<number, number[]>> = new Map()
         const programPath = this.launchArgs.program ?? "assembly.tasm"
         const normCodePath = this.normalizePath(programPath)
         const tasmLineMap: Map<number, number[]> = new Map()
 
         this.traceInfo.steps.forEach((step, index) => {
-            // Map Tolk source locations
             if (step.funcLoc) {
                 const tolkFile = this.normalizePath(step.funcLoc.file)
                 if (!tolkFileMap.has(tolkFile)) {
@@ -451,7 +553,6 @@ export class TolkDebugAdapter extends LoggingDebugSession {
                 }
             }
 
-            // Map assembly locations (fallback)
             if (step.loc && step.loc.line) {
                 const line = step.loc.line + 1
                 if (!tasmLineMap.has(line)) {
@@ -464,7 +565,6 @@ export class TolkDebugAdapter extends LoggingDebugSession {
             }
         })
 
-        // Store all mappings
         tolkFileMap.forEach((lineMap, filePath) => {
             this.lineToStepsMap.set(filePath, lineMap)
             this.log(`Built Tolk line-to-step map for ${filePath}`)
@@ -509,7 +609,6 @@ export class TolkDebugAdapter extends LoggingDebugSession {
 
         const normClientPath = this.normalizePath(sourcePath)
 
-        // Check if this is a Tolk file or assembly file that we can debug
         const lineMap = this.lineToStepsMap.get(normClientPath)
         if (!lineMap) {
             this.log(`Ignoring breakpoints request for file not being debugged: ${normClientPath}`)
@@ -551,7 +650,6 @@ export class TolkDebugAdapter extends LoggingDebugSession {
     private findFirstTolkStep(): number {
         if (!this.traceInfo) return 0
 
-        // Look for first step with funcLoc (Tolk location)
         for (let i = 0; i < this.traceInfo.steps.length; i++) {
             const step = this.traceInfo.steps[i]
             if (step.funcLoc) {
@@ -572,7 +670,6 @@ export class TolkDebugAdapter extends LoggingDebugSession {
         const currentStep = this.traceInfo.steps[this.currentStep]
         const currentFuncLoc = currentStep.funcLoc
 
-        // If no Tolk mapping available, fall back to simple increment
         if (!currentFuncLoc) {
             return this.currentStep + 1 < this.traceInfo.steps.length ? this.currentStep + 1 : -1
         }
@@ -581,7 +678,6 @@ export class TolkDebugAdapter extends LoggingDebugSession {
         const currentFile = currentFuncLoc.file
         const currentLine = currentFuncLoc.line
 
-        // Look for next step with Tolk location
         for (let i = this.currentStep + 1; i < this.traceInfo.steps.length; i++) {
             const step = this.traceInfo.steps[i]
 
@@ -590,21 +686,16 @@ export class TolkDebugAdapter extends LoggingDebugSession {
                 const stepFile = step.funcLoc.file
                 const stepLine = step.funcLoc.line
 
-                // For step over: only stop if we're in the same function or returned to it
                 if (stepInto) {
-                    // For step into: stop at any line change, regardless of function
                     if (stepLine !== currentLine || stepFile !== currentFile) {
                         return i
                     }
                 } else {
                     if (stepFunction === currentFunction && stepFile === currentFile) {
-                        // Same function - stop if line changed
                         if (stepLine !== currentLine) {
                             return i
                         }
                     } else {
-                        // Different function - this might be a call, skip until we return
-                        // Look ahead to see if we return to the original function
                         const returnStep = this.findReturnToFunction(
                             i,
                             currentFunction,
@@ -642,20 +733,15 @@ export class TolkDebugAdapter extends LoggingDebugSession {
         return -1
     }
 
-    /**
-     * Find previous Tolk step
-     */
     private findPreviousTolkStep(): number {
         if (!this.traceInfo) return -1
 
-        // Look backwards for previous step with Tolk location and different line
         const currentStep = this.traceInfo.steps[this.currentStep]
         const currentLine = currentStep.funcLoc?.line
 
         for (let i = this.currentStep - 1; i >= 0; i--) {
             const step = this.traceInfo.steps[i]
             if (step.funcLoc) {
-                // Stop at different line
                 if (!currentLine || step.funcLoc.line !== currentLine) {
                     return i
                 }
@@ -675,7 +761,6 @@ export class TolkDebugAdapter extends LoggingDebugSession {
         for (let i = this.currentStep + 1; i < this.traceInfo.steps.length; i++) {
             const step = this.traceInfo.steps[i]
 
-            // Check Tolk source breakpoints first
             if (step.funcLoc) {
                 const tolkFile = this.normalizePath(step.funcLoc.file)
                 const tolkBreakpoints = this.breakPoints.get(tolkFile)
@@ -694,7 +779,6 @@ export class TolkDebugAdapter extends LoggingDebugSession {
                 }
             }
 
-            // Check assembly breakpoints as fallback
             if (step.loc && step.loc.line) {
                 const programPath = this.launchArgs.program ?? "assembly.tasm"
                 const normCodePath = this.normalizePath(programPath)
