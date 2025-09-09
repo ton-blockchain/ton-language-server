@@ -295,7 +295,7 @@ export class Reference {
             return true
         }
 
-        // For completion, we still need manually walk all possible variants.
+        // For completion, we still need to manually walk all possible variants.
         // But nevertheless, we can use inference results for faster resolving
         const resolved = inference?.resolve(qualifier.node)
         if (resolved) {

@@ -25,6 +25,7 @@ export class CompletionContext {
     public isFunctionName: boolean = false
     public isMethodName: boolean = false
     public expectFieldModifier: boolean = false
+    public isEnumMemberName: boolean = false
 
     // struct fields
     public inNameOfFieldInit: boolean = false
@@ -108,6 +109,13 @@ export class CompletionContext {
             parent.childForFieldName("name")?.equals(element.node)
         ) {
             this.isMethodName = true
+        }
+
+        if (
+            parent.type === "enum_member_declaration" &&
+            parent.childForFieldName("name")?.equals(element.node)
+        ) {
+            this.isEnumMemberName = true
         }
 
         if (parent.type === "binary_operator" && parent.parent?.type === "match_arm") {
