@@ -49,11 +49,14 @@ jobs:
           YARN_ENABLE_HARDENED_MODE: false
         run: yarn install --immutable
 
+      - name: Build WASM
+        run: yarn run grammar:wasm
+
       - name: Build Extension
-        run: yarn build
+        run: yarn run build
 
       - name: Run unit tests
-        run: yarn test
+        run: yarn run test
 
       - name: Run e2e tests
         if: matrix.os == 'ubuntu-latest'
