@@ -257,7 +257,7 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
             }
 
             const data = (await response.json()) as {
-                contracts: {address: string; name: string; sourceMap?: object}[]
+                contracts: {address: string; name: string; sourceMap?: object; abi?: object}[]
             }
 
             const serverAddresses = new Set(data.contracts.map(c => c.address))
@@ -269,12 +269,13 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
                 address: c.address,
                 name: c.name,
                 deployTime: new Date(),
-                abi: undefined,
+                abi: c.abi as ContractAbi | undefined,
             }))
 
             this.deployedContracts = [...existingContracts, ...serverContracts]
 
             this.refresh()
+            this.updateFormContracts()
         } catch (error) {
             console.warn("Error loading contracts from server:", error)
         }

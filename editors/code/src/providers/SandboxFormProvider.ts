@@ -173,6 +173,7 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
         contractAddress: string
         selectedMessage: string
         messageFields: Record<string, string>
+        sendMode: number
         value: string
         autoDebug?: boolean
     }): Promise<void> {
@@ -208,7 +209,12 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
                 command.contractAddress,
             )
 
-            const result = await sendMessage(command.contractAddress, messageBody, command.value)
+            const result = await sendMessage(
+                command.contractAddress,
+                messageBody,
+                command.sendMode,
+                command.value,
+            )
 
             if (result.success) {
                 this.showResult(
