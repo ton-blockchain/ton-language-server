@@ -57,6 +57,7 @@ export interface SendMessageCommand {
     readonly contractAddress: string
     readonly selectedMessage: string
     readonly messageFields: Record<string, string>
+    readonly sendMode: number
     readonly value: string
     readonly autoDebug?: boolean
 }

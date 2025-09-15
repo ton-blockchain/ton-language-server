@@ -143,6 +143,7 @@ export default function App({vscode}: Props): JSX.Element {
                                 contractAddress: selectedSendContract,
                                 selectedMessage: messageData.selectedMessage,
                                 messageFields: messageData.messageFields,
+                                sendMode: messageData.sendMode,
                                 value: messageData.value,
                                 autoDebug: messageData.autoDebug,
                             })

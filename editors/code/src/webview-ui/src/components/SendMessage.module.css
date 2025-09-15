@@ -221,6 +221,7 @@
 .checkboxText {
     font-size: 12px;
     line-height: 1.2;
+    margin-top: 3px;
     color: var(--vscode-settings-textInputForeground, var(--vscode-input-foreground));
     cursor: pointer;
     align-self: center;

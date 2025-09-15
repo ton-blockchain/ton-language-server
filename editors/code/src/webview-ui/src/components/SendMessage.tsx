@@ -1,6 +1,7 @@
 import React, {useState} from "react"
 import {ContractAbi} from "@shared/abi"
 import {Button, Input, Select} from "./ui"
+import {SendModeSelector} from "./SendModeSelector"
 import styles from "./SendMessage.module.css"
 
 interface Contract {
@@ -13,6 +14,7 @@ interface MessageData {
     readonly selectedMessage: string
     readonly messageFields: Record<string, string>
     readonly value: string
+    readonly sendMode: number
     readonly autoDebug?: boolean
 }
 
@@ -43,6 +45,7 @@ export const SendMessage: React.FC<Props> = ({
     const [selectedMessage, setSelectedMessage] = useState<string>("")
     const [messageFields, setMessageFields] = useState<Record<string, string>>({})
     const [value, setValue] = useState<string>("1.0")
+    const [sendMode, setSendMode] = useState<number>(0)
     const [lastTransaction, setLastTransaction] = useState<LastTransaction | null>(null)
     const [autoDebug, setAutoDebug] = useState<boolean>(false)
 
@@ -69,6 +72,7 @@ export const SendMessage: React.FC<Props> = ({
             selectedMessage,
             messageFields,
             value,
+            sendMode,
             autoDebug,
         })
     }
@@ -162,6 +166,10 @@ export const SendMessage: React.FC<Props> = ({
             </div>
 
             <div className={styles.formGroup}>
+                <SendModeSelector sendMode={sendMode} onSendModeChange={setSendMode} />
+            </div>
+
+            <div className={styles.formGroup}>
                 <label className={styles.checkboxLabel}>
                     <input
                         type="checkbox"
@@ -173,7 +181,7 @@ export const SendMessage: React.FC<Props> = ({
                         id="autoDebugCheckbox"
                     />
                     <span className={styles.checkboxMark}></span>
-                    <span className={styles.checkboxText}>Launch Assembly Debugger after send</span>
+                    <span className={styles.checkboxText}>Launch debugger after send</span>
                 </label>
             </div>
 
