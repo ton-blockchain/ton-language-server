@@ -37,9 +37,18 @@ export interface UpdateContractAbiMessage {
     readonly abi: ContractAbi
 }
 
+export interface ContractInfoData {
+    readonly account: string
+    readonly stateInit?: {
+        readonly code: string
+        readonly data: string
+    }
+    readonly abi?: ContractAbi
+}
+
 export interface UpdateContractInfoMessage {
     readonly type: "updateContractInfo"
-    readonly info: {account: string}
+    readonly info: ContractInfoData
 }
 
 export interface UpdateActiveEditorMessage {

@@ -114,6 +114,64 @@
     font-size: 12px;
 }
 
+.storageSection {
+    margin: 20px 0 16px 0;
+    padding: 12px;
+    background-color: var(--vscode-editorWidget-background);
+    border: 1px solid var(--vscode-widget-border);
+    border-radius: 4px;
+}
+
+.sectionTitle {
+    font-weight: 600;
+    color: var(--vscode-foreground);
+    font-size: 14px;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--vscode-descriptionForeground);
+}
+
+.storageGrid {
+    display: grid;
+    gap: 6px;
+}
+
+.storageItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 4px 0;
+    border-bottom: 1px solid var(--vscode-list-inactiveSelectionBackground);
+    font-size: 12px;
+}
+
+.storageItem:last-child {
+    border-bottom: none;
+}
+
+.fieldName {
+    font-weight: 500;
+    color: var(--vscode-descriptionForeground);
+    min-width: fit-content;
+    margin-right: 8px;
+}
+
+.fieldValue {
+    font-family: var(--vscode-editor-font-family);
+    background-color: var(--vscode-textCodeBlock-background);
+    color: var(--vscode-textPreformat-foreground);
+    padding: 2px 6px;
+    border: 1px solid var(--vscode-textBlockQuote-border);
+    border-radius: 3px;
+    cursor: pointer;
+    user-select: text;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
 .actions {
     display: flex;
     gap: 8px;

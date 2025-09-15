@@ -3,7 +3,7 @@ import {CompileDeploy} from "./components/CompileDeploy"
 import {SendMessage} from "./components/SendMessage"
 import {GetMethod} from "./components/GetMethod"
 import {NoOperation} from "./components/NoOperation"
-import {Contract, ResultData, Operation, VSCodeAPI, VSCodeMessage} from "./types"
+import {Contract, ResultData, Operation, VSCodeAPI, VSCodeMessage, ContractInfoData} from "./types"
 import {ContractAbi} from "@shared/abi"
 import {ContractInfo} from "./components/ContractInfo"
 
@@ -16,7 +16,7 @@ export default function App({vscode}: Props): JSX.Element {
     const [contracts, setContracts] = useState<Contract[]>([])
     const [results, setResults] = useState<Record<string, ResultData>>({})
     const [contractAbi, setContractAbi] = useState<ContractAbi | undefined>()
-    const [contractInfo, setContractInfo] = useState<{account: string} | undefined>()
+    const [contractInfo, setContractInfo] = useState<ContractInfoData | undefined>()
 
     const [selectedSendContract, setSelectedSendContract] = useState<string>("")
     const [selectedGetContract, setSelectedGetContract] = useState<string>("")

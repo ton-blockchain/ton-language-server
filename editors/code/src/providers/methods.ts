@@ -1,9 +1,10 @@
 import vscode from "vscode"
 import {GetContractAbiParams, GetContractAbiResponse} from "@shared/shared-msgtypes"
-import {TolkCompilerProvider} from "./TolkCompilerProvider"
+import {TolkCompilerProvider, TolkSourceMap} from "./TolkCompilerProvider"
 import {ContractAbi, Field} from "@shared/abi"
 import {beginCell} from "@ton/core"
 import {SandboxTreeProvider} from "./SandboxTreeProvider"
+import {ContractInfoData} from "../webview-ui/src/types"
 
 export async function loadContractAbiForDeploy(): Promise<ContractAbi | undefined> {
     const editor = vscode.window.activeTextEditor
@@ -31,7 +32,7 @@ export async function loadContractAbiForDeploy(): Promise<ContractAbi | undefine
 
 export async function loadContractInfo(address: string): Promise<{
     success: boolean
-    result?: {account: string}
+    result?: ContractInfoData
     error?: string
 }> {
     try {
@@ -52,7 +53,7 @@ export async function loadContractInfo(address: string): Promise<{
 
         return (await response.json()) as {
             success: boolean
-            result?: {account: string}
+            result?: ContractInfoData
             error?: string
         }
     } catch (error) {
@@ -93,7 +94,7 @@ export async function compileAndDeployFromEditor(
 
     try {
         const compiler = TolkCompilerProvider.getInstance()
-        const result = await compiler.compileContract(editor.document.getText())
+        const result = await compiler.compileContract(editor.document.uri)
 
         if (!result.success) {
             void vscode.window.showErrorMessage(`Compilation failed: ${result.error}`)
@@ -124,8 +125,8 @@ export async function compileAndDeployFromEditor(
             },
             name,
             value,
-            result.mapping,
-            result.mappingInfo,
+            result.sourceMap,
+            contractAbi,
         )
         if (deployResult.success && deployResult.address) {
             const contractName = getContractNameFromDocument(editor.document)
@@ -161,8 +162,8 @@ async function deployContract(
     },
     name: string,
     value?: string,
-    mapping?: object,
-    mappingInfo?: object,
+    sourceMap?: TolkSourceMap,
+    abi?: ContractAbi,
 ): Promise<{
     success: boolean
     address?: string
@@ -179,8 +180,8 @@ async function deployContract(
                 stateInit,
                 value,
                 name,
-                mapping,
-                mappingInfo,
+                sourceMap,
+                abi,
             }),
         })
 
