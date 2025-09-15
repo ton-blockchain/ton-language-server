@@ -35,7 +35,7 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
     private codeLensProvider?: SandboxCodeLensProvider
 
     public constructor() {
-        void this.checkSandboxStatus()
+        void this.checkSandboxStatus(true)
     }
 
     public setFormProvider(formProvider: SandboxFormProvider): void {
@@ -49,7 +49,7 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
 
     public refresh(): void {
         this._onDidChangeTreeData.fire(undefined)
-        void this.checkSandboxStatus()
+        void this.checkSandboxStatus(false)
     }
 
     public getTreeItem(element: SandboxTreeItem): vscode.TreeItem {
@@ -222,7 +222,7 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
         }
     }
 
-    private async checkSandboxStatus(): Promise<void> {
+    private async checkSandboxStatus(loadContracts: boolean): Promise<void> {
         try {
             const config = vscode.workspace.getConfiguration("ton")
             const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
@@ -233,11 +233,51 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
             })
 
             this.sandboxStatus = response.ok ? "connected" : "error"
+
+            if (this.sandboxStatus === "connected" && loadContracts) {
+                await this.loadContractsFromServer(sandboxUrl)
+            }
         } catch {
             this.sandboxStatus = "disconnected"
         }
 
         this.codeLensProvider?.refresh()
+    }
+
+    private async loadContractsFromServer(sandboxUrl: string): Promise<void> {
+        try {
+            const response = await fetch(`${sandboxUrl}/contracts`, {
+                method: "GET",
+                signal: AbortSignal.timeout(5000),
+            })
+
+            if (!response.ok) {
+                console.warn("Failed to load contracts from server:", response.statusText)
+                return
+            }
+
+            const data = (await response.json()) as {
+                contracts: {address: string; name: string; sourceMap?: object}[]
+            }
+
+            const serverAddresses = new Set(data.contracts.map(c => c.address))
+            const existingContracts = this.deployedContracts.filter(
+                c => !serverAddresses.has(c.address),
+            )
+
+            const serverContracts = data.contracts.map(c => ({
+                address: c.address,
+                name: c.name,
+                deployTime: new Date(),
+                abi: undefined,
+            }))
+
+            this.deployedContracts = [...existingContracts, ...serverContracts]
+
+            this.refresh()
+        } catch (error) {
+            console.warn("Error loading contracts from server:", error)
+        }
     }
 
     public isContractDeployed(address: string): boolean {
