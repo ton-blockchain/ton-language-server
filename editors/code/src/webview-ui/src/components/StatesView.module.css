@@ -1,0 +1,273 @@
+/* Codicon icons support */
+.codicon {
+    font-family: "codicon";
+    font-display: block;
+    text-rendering: auto;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.container {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    background-color: var(--vscode-sideBar-background);
+}
+
+.header {
+    display: flex;
+    align-items: center;
+    padding: 4px 12px;
+    border-bottom: 1px solid var(--vscode-panel-border);
+    background-color: var(--vscode-sideBar-background);
+    font-size: 11px;
+    color: var(--vscode-descriptionForeground);
+}
+
+.headerText {
+    font-weight: 600;
+    color: var(--vscode-foreground);
+    margin-right: 8px;
+}
+
+.arrow {
+    font-size: 14px;
+    color: var(--vscode-descriptionForeground);
+    opacity: 0;
+}
+
+.headerSubtext {
+    font-size: 10px;
+}
+
+.timeline {
+    display: flex;
+    flex: 1;
+    overflow-y: auto;
+}
+
+.timelineLine {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 2px 0px;
+    position: relative;
+}
+
+.timelineLine::before {
+    content: "";
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 2px;
+    background-color: var(--vscode-descriptionForeground);
+    transform: translateX(-50%);
+}
+
+.arrow {
+    font-size: 18px;
+    color: var(--vscode-descriptionForeground);
+    z-index: 1;
+}
+
+.operations {
+    flex: 1;
+    padding-left: 4px;
+}
+
+.nodeContainer {
+    position: relative;
+}
+
+.node {
+    display: flex;
+    align-items: center;
+    padding: 6px 8px;
+    margin: 0;
+    border-radius: 3px;
+    border: 1px solid transparent;
+    transition: background-color 0.1s ease;
+    min-height: 40px;
+}
+
+.node.compact {
+    cursor: pointer;
+    min-height: 32px;
+    padding: 0 8px 0 4px;
+}
+
+.node:hover {
+}
+
+.node::after {
+    content: "";
+    position: absolute;
+    left: -17px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: var(--vscode-descriptionForeground);
+    border: 2px solid var(--vscode-sideBar-background);
+    z-index: 2;
+}
+
+.expandButton {
+    background: none;
+    border: none;
+    color: var(--vscode-foreground);
+    cursor: pointer;
+    font-size: 12px;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 4px;
+}
+
+.placeholder {
+    width: 24px;
+    height: 20px;
+    margin-right: 4px;
+}
+
+.icon {
+    font-size: 12px;
+    margin-right: 6px;
+    width: 16px;
+    text-align: center;
+    opacity: 0.7;
+}
+
+.nodeContent {
+    flex: 1;
+    min-width: 0;
+}
+
+.compactContent {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+    overflow: hidden;
+}
+
+.nodeHeader {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 2px;
+    flex-wrap: wrap;
+}
+
+.contractName {
+    font-weight: 500;
+    color: var(--vscode-textLink-foreground);
+    font-size: 11px;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.label {
+    color: var(--vscode-foreground);
+    font-size: 11px;
+    flex-shrink: 0;
+}
+
+.arrow {
+    color: var(--vscode-foreground);
+    font-size: 11px;
+    flex-shrink: 0;
+    margin: 0 2px;
+}
+
+.restoreButton {
+    font-size: 20px;
+    background: none;
+    border: none;
+    color: var(--vscode-foreground);
+    cursor: pointer;
+    padding: 3px 4px 4px 4px;
+    margin-left: 4px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.7;
+    transition: opacity 0.1s ease;
+    flex-shrink: 0;
+}
+
+.restoreButton:hover {
+    opacity: 1;
+}
+
+.timestamp {
+    color: var(--vscode-descriptionForeground);
+    font-size: 10px;
+    flex-shrink: 0;
+    margin-left: auto;
+}
+
+.details {
+    color: var(--vscode-foreground);
+    font-size: 12px;
+    line-height: 1.4;
+    word-break: break-word;
+}
+
+.address {
+    font-family: var(--vscode-editor-font-family, "SF Mono", Monaco, "Cascadia Code", monospace);
+    font-size: 11px;
+    color: var(--vscode-descriptionForeground);
+    background-color: var(--vscode-textCodeBlock-background, rgba(0, 0, 0, 0.1));
+    padding: 2px 4px;
+    border-radius: 2px;
+    border: 1px solid var(--vscode-textBlockQuote-border, var(--vscode-widget-border));
+    margin-top: 2px;
+    word-break: break-all;
+}
+
+.detailsExpanded {
+    padding: 8px 12px;
+    margin-left: 32px;
+    margin-right: 8px;
+    background-color: var(--vscode-textBlockQuote-background, rgba(127, 127, 127, 0.1));
+    border-left: 2px solid var(--vscode-textBlockQuote-border, var(--vscode-widget-border));
+    border-radius: 3px;
+    margin-top: 2px;
+    margin-bottom: 4px;
+}
+
+.children {
+    position: relative;
+}
+
+.loading {
+    text-align: center;
+    padding: 20px 8px;
+    color: var(--vscode-descriptionForeground);
+    font-size: 13px;
+}
+
+.empty {
+    text-align: center;
+    padding: 20px 8px;
+    color: var(--vscode-descriptionForeground);
+}
+
+.empty p {
+    margin: 8px 0;
+    font-size: 13px;
+}
+
+.empty p:first-child {
+    font-size: 14px;
+    color: var(--vscode-foreground);
+}

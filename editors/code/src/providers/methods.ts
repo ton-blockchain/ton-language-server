@@ -134,6 +134,8 @@ export async function compileAndDeployFromEditor(
 
             treeProvider?.addDeployedContract(deployResult.address, contractName, contractAbi)
 
+            void vscode.commands.executeCommand("ton.sandbox.states.refresh")
+
             const message = isRedeploy
                 ? `Contract redeployed successfully! Address: ${formatAddress(deployResult.address)}`
                 : `Contract deployed successfully! Address: ${formatAddress(deployResult.address)}`

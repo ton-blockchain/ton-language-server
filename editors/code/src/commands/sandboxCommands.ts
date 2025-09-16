@@ -3,6 +3,7 @@
 import * as vscode from "vscode"
 import {SandboxTreeProvider} from "../providers/SandboxTreeProvider"
 import {SandboxFormProvider} from "../providers/SandboxFormProvider"
+import {StatesWebviewProvider} from "../providers/StatesWebviewProvider"
 import {beginCell, Cell} from "@ton/core"
 import {Message} from "@shared/abi"
 import {TolkSourceMap} from "../providers/TolkCompilerProvider"
@@ -10,6 +11,7 @@ import {TolkSourceMap} from "../providers/TolkCompilerProvider"
 export function registerSandboxCommands(
     treeProvider: SandboxTreeProvider,
     formProvider: SandboxFormProvider,
+    statesProvider: StatesWebviewProvider,
 ): vscode.Disposable[] {
     const disposables: vscode.Disposable[] = []
 
@@ -58,9 +60,18 @@ export function registerSandboxCommands(
                 await callGetMethodDirectly(address, methodName, methodId)
             },
         ),
+        vscode.commands.registerCommand("ton.sandbox.states.refresh", () => {
+            void statesProvider.handleLoadOperations()
+        }),
     )
 
     return disposables
+}
+
+interface ApiResponse<T = void> {
+    readonly success: boolean
+    readonly error?: string
+    readonly data?: T
 }
 
 interface SendMessageResponse {
@@ -341,7 +352,7 @@ function parseFieldTypeFromAbi(
     return parseFieldType(fieldName, fieldValue)
 }
 
-async function callGetMethodDirectly(
+export async function callGetMethodDirectly(
     address: string,
     methodName: string,
     methodId: number,
@@ -363,5 +374,71 @@ async function callGetMethodDirectly(
         void vscode.window.showErrorMessage(
             `❌ Call failed: ${error instanceof Error ? error.message : "Unknown error"}`,
         )
+    }
+}
+
+export async function getOperations(): Promise<{
+    success: boolean
+    operations?: import("../webview-ui/src/components/StatesView").OperationNode[]
+    error?: string
+}> {
+    try {
+        const config = vscode.workspace.getConfiguration("ton")
+        const serverUrl = config.get<string>("sandboxServerUrl") ?? "http://localhost:3000"
+
+        const response = await fetch(`${serverUrl}/operations`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+            },
+        })
+
+        if (!response.ok) {
+            return {
+                success: false,
+                error: `HTTP ${response.status}: ${response.statusText}`,
+            }
+        }
+
+        const data = (await response.json()) as {
+            operations: import("../webview-ui/src/components/StatesView").OperationNode[]
+        }
+        return {
+            success: true,
+            operations: data.operations,
+        }
+    } catch (error) {
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "Unknown error",
+        }
+    }
+}
+
+export async function restoreBlockchainState(eventId: string): Promise<ApiResponse> {
+    try {
+        const config = vscode.workspace.getConfiguration("ton")
+        const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
+
+        const response = await fetch(`${sandboxUrl}/restore-state`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({eventId}),
+        })
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+        }
+
+        return {
+            success: true,
+        }
+    } catch (error) {
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "Unknown error",
+        }
     }
 }

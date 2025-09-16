@@ -44,7 +44,14 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
     public constructor(
         private readonly _extensionUri: vscode.Uri,
         private readonly _treeProvider?: () => import("./SandboxTreeProvider").SandboxTreeProvider,
+        private readonly _statesProvider?: () => import("./StatesWebviewProvider").StatesWebviewProvider,
     ) {}
+
+    private refreshStates(): void {
+        if (this._statesProvider) {
+            void this._statesProvider().handleLoadOperations()
+        }
+    }
 
     public resolveWebviewView(
         webviewView: vscode.WebviewView,
@@ -225,6 +232,7 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
                     },
                     "send-external-message-result",
                 )
+                this.refreshStates()
 
                 if (command.autoDebug && result.txs.length > 0) {
                     const validTransactions = result.txs.map((tx, index) => {
@@ -332,6 +340,7 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
                     },
                     "send-internal-message-result",
                 )
+                this.refreshStates()
 
                 if (command.autoDebug && result.txs.length > 0) {
                     const validTransactions = result.txs.map((tx, index) => {

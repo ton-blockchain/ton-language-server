@@ -328,6 +328,12 @@
                 "icon": "$(trash)"
             },
             {
+                "command": "ton.sandbox.states.refresh",
+                "title": "Refresh States",
+                "category": "TON",
+                "icon": "$(refresh)"
+            },
+            {
                 "command": "ton.sandbox.sendMessageFromForm",
                 "title": "Send Message from Form",
                 "category": "TON"
@@ -380,6 +386,12 @@
                     "type": "webview",
                     "name": "Operations",
                     "when": "true"
+                },
+                {
+                    "id": "tonSandboxHistory",
+                    "type": "webview",
+                    "name": "History",
+                    "when": "true"
                 }
             ]
         },
@@ -421,6 +433,11 @@
                 {
                     "command": "ton.sandbox.clearContracts",
                     "when": "view == tonSandbox",
+                    "group": "navigation"
+                },
+                {
+                    "command": "ton.sandbox.states.refresh",
+                    "when": "view == tonSandboxHistory",
                     "group": "navigation"
                 }
             ],

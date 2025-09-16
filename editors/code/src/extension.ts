@@ -33,6 +33,7 @@ import {registerSaveBocDecompiledCommand} from "./commands/saveBocDecompiledComm
 import {registerSandboxCommands} from "./commands/sandboxCommands"
 import {SandboxTreeProvider} from "./providers/SandboxTreeProvider"
 import {SandboxFormProvider} from "./providers/SandboxFormProvider"
+import {StatesWebviewProvider} from "./providers/StatesWebviewProvider"
 import {
     TransactionDetailsProvider,
     TransactionDetails,
@@ -63,11 +64,23 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     const sandboxFormProvider = new SandboxFormProvider(
         context.extensionUri,
         () => sandboxTreeProvider,
+        () => statesWebviewProvider,
     )
     context.subscriptions.push(
         vscode.window.registerWebviewViewProvider(
             SandboxFormProvider.viewType,
             sandboxFormProvider,
+        ),
+    )
+
+    const statesWebviewProvider = new StatesWebviewProvider(
+        context.extensionUri,
+        () => sandboxTreeProvider,
+    )
+    context.subscriptions.push(
+        vscode.window.registerWebviewViewProvider(
+            StatesWebviewProvider.viewType,
+            statesWebviewProvider,
         ),
     )
 
@@ -97,7 +110,11 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         }),
     )
 
-    const sandboxCommands = registerSandboxCommands(sandboxTreeProvider, sandboxFormProvider)
+    const sandboxCommands = registerSandboxCommands(
+        sandboxTreeProvider,
+        sandboxFormProvider,
+        statesWebviewProvider,
+    )
 
     context.subscriptions.push(
         vscode.commands.registerCommand(
