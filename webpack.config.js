@@ -135,6 +135,7 @@ const webviewConfig = {
         extensions: [".ts", ".tsx", ".js", ".jsx"],
         alias: {
             "@shared": path.resolve(__dirname, "shared/src"),
+            "react-d3-tree": path.resolve(__dirname, "node_modules/react-d3-tree/lib/esm/index.js"),
         },
         fallback: {
             buffer: require.resolve("buffer"),

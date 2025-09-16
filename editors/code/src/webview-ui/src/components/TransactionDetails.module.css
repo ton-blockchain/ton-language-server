@@ -1,9 +1,9 @@
 /* Main container */
 .container {
     padding: 20px;
+    background-color: var(--vscode-editor-background);
     font-family: var(--vscode-font-family);
     color: var(--vscode-foreground);
-    background-color: var(--vscode-editor-background);
     height: 100vh;
     overflow: auto;
 }

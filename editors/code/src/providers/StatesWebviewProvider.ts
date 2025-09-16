@@ -4,7 +4,8 @@ import * as vscode from "vscode"
 import {OperationNode} from "../webview-ui/src/components/StatesView"
 import {StatesCommand, StatesMessage} from "../webview-ui/src/states-types"
 import {getOperations, restoreBlockchainState} from "../commands/sandboxCommands"
-import {processRawTransactions, RawTransactions} from "./lib/raw-transaction"
+import {processRawTransactions, RawTransactionInfo, RawTransactions} from "./lib/raw-transaction"
+import {Cell, loadTransaction} from "@ton/core"
 
 export class StatesWebviewProvider implements vscode.WebviewViewProvider {
     public static readonly viewType: string = "tonSandboxHistory"
@@ -140,7 +141,15 @@ export class StatesWebviewProvider implements vscode.WebviewViewProvider {
                 return
             }
 
-            const transactionInfos = processRawTransactions(rawTxs.transactions)
+            const parsedTransactions = rawTxs.transactions.map(
+                (it): RawTransactionInfo => ({
+                    ...it,
+                    transaction: it.transaction,
+                    parsedTransaction: loadTransaction(Cell.fromHex(it.transaction).asSlice()),
+                }),
+            )
+
+            const transactionInfos = processRawTransactions(parsedTransactions)
 
             const transactions = transactionInfos.flatMap((tx, index) => {
                 const contractName = tx.contractName ?? `TX_${index + 1}`

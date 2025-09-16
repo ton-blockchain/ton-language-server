@@ -2,6 +2,9 @@ import React from "react"
 import {createRoot} from "react-dom/client"
 import TransactionDetails from "./components/TransactionDetails"
 
+import "./main.css"
+import "./index.css"
+
 declare function acquireVsCodeApi(): {
     readonly postMessage: (msg: unknown) => void
     readonly setState: (state: unknown) => void

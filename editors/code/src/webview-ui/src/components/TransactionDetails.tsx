@@ -1,5 +1,13 @@
-import React, {JSX, useEffect, useState} from "react"
+import React, {JSX, useEffect, useMemo, useState} from "react"
 import styles from "./TransactionDetails.module.css"
+import {
+    processRawTransactions,
+    RawTransactionInfo,
+    RawTransactions,
+} from "../../../providers/lib/raw-transaction"
+import {TransactionInfo} from "../../../providers/lib/transaction"
+import {TransactionTree} from "./info"
+import {Cell, loadTransaction} from "@ton/core"
 
 interface LocalTransactionDetails {
     readonly contractAddress: string
@@ -21,8 +29,37 @@ interface Props {
     }
 }
 
+function parseMaybeTransactions(data: string): RawTransactions | undefined {
+    try {
+        return JSON.parse(data) as RawTransactions
+    } catch {
+        return undefined
+    }
+}
+
 export default function TransactionDetails({vscode}: Props): JSX.Element {
     const [transaction, setTransaction] = useState<LocalTransactionDetails | null>(null)
+    const [transactionInfos, setTransactionInfos] = useState<TransactionInfo[] | null>(null)
+
+    useMemo(() => {
+        if (!transaction || !transaction.resultString) return
+
+        const rawTxs = parseMaybeTransactions(transaction.resultString)
+        if (!rawTxs) {
+            return
+        }
+
+        const parsedTransactions = rawTxs.transactions.map(
+            (it): RawTransactionInfo => ({
+                ...it,
+                transaction: it.transaction,
+                parsedTransaction: loadTransaction(Cell.fromHex(it.transaction).asSlice()),
+            }),
+        )
+
+        const transactionInfos = processRawTransactions(parsedTransactions)
+        setTransactionInfos(transactionInfos)
+    }, [transaction, setTransactionInfos])
 
     useEffect(() => {
         const handleMessage = (event: MessageEvent<Message>): void => {
@@ -31,7 +68,6 @@ export default function TransactionDetails({vscode}: Props): JSX.Element {
             if (message.type === "updateTransactionDetails") {
                 setTransaction(message.transaction)
             }
-            // Other message types can be handled here
         }
 
         window.addEventListener("message", handleMessage)
@@ -84,7 +120,7 @@ export default function TransactionDetails({vscode}: Props): JSX.Element {
     }
 
     return (
-        <div className={styles.container}>
+        <div className={styles.container + " dark-theme"}>
             <div className={styles.header}>
                 <h2 className={styles.title}>Transaction Details</h2>
                 <div className={styles.status}>
@@ -119,6 +155,8 @@ export default function TransactionDetails({vscode}: Props): JSX.Element {
                     <div className={styles.transactionId}>{transaction.transactionId}</div>
                 </div>
             )}
+
+            {transactionInfos && <TransactionTree testData={{transactions: transactionInfos}} />}
 
             <div className={styles.card}>
                 <div className={styles.cardHeader}>

@@ -14,7 +14,7 @@ body {
         Arial,
         sans-serif;
     color: var(--vscode-editor-foreground);
-    background: var(--vscode-editor-background);
+    background-color: var(--vscode-editor-background);
 }
 
 .wrap {
