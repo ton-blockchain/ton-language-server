@@ -2,6 +2,10 @@
     color-scheme: light dark;
 }
 
+html {
+    background-color: var(--vscode-editor-background);
+}
+
 body {
     margin: 0;
     padding: 0;

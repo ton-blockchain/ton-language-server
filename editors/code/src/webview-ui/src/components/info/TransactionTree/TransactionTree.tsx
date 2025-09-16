@@ -31,6 +31,7 @@ interface TransactionTooltipData {
 interface TransactionTreeProps {
     readonly testData: {
         readonly transactions: TransactionInfo[]
+        readonly contracts: ContractData[]
     }
 }
 
@@ -128,9 +129,9 @@ export function TransactionTree({testData}: TransactionTreeProps): React.JSX.Ele
     const [selectedRootLt, setSelectedRootLt] = useState<string | null>(null)
     const triggerRectRef = useRef<DOMRect | null>(null)
 
-    const contracts: Map<string, ContractData> = new Map()
-
-    console.log(testData)
+    const contracts: Map<string, ContractData> = new Map(
+        testData.contracts.map(it => [it.address.toString(), it]),
+    )
 
     const rootTransactions = useMemo(() => {
         return testData.transactions
@@ -308,7 +309,7 @@ export function TransactionTree({testData}: TransactionTreeProps): React.JSX.Ele
                     : undefined
 
             const opcode = tx.opcode
-            const opcodeHex = opcode?.toString(16)
+            const opcodeHex = opcode ? "0x" + opcode.toString(16) : "empty"
 
             const contractLetter = thisAddress
                 ? (contracts.get(thisAddress.toString())?.letter ?? "?")
@@ -326,7 +327,7 @@ export function TransactionTree({testData}: TransactionTreeProps): React.JSX.Ele
                     success: isSuccess ? "✓" : "✗",
                     exitCode: exitCode?.toString() ?? "0",
                     value: formatCurrency(value),
-                    opcode: `0x${opcodeHex}`,
+                    opcode: opcodeHex,
                     outMsgs: tx.transaction.outMessagesCount.toString(),
                     withInitCode,
                     isBounced,

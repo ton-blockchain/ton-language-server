@@ -7,7 +7,17 @@ import {
 } from "../../../providers/lib/raw-transaction"
 import {TransactionInfo} from "../../../providers/lib/transaction"
 import {TransactionTree} from "./info"
-import {Cell, loadTransaction} from "@ton/core"
+import {Address, Cell, loadTransaction, loadShardAccount} from "@ton/core"
+
+import {ContractAbi} from "@shared/abi"
+import {ContractData} from "../../../providers/lib/contract"
+
+interface DeployedContractInfo {
+    readonly address: string
+    readonly name: string
+    readonly deployTime: string
+    readonly abi?: ContractAbi
+}
 
 interface LocalTransactionDetails {
     readonly contractAddress: string
@@ -16,6 +26,13 @@ interface LocalTransactionDetails {
     readonly timestamp: string
     readonly status: "success" | "pending" | "failed"
     readonly resultString?: string
+    readonly deployedContracts?: DeployedContractInfo[]
+    readonly account?: string // hex string for shardAccount
+    readonly stateInit?: {
+        readonly code: string // base64 string
+        readonly data: string // base64 string
+    }
+    readonly abi?: object
 }
 
 interface Message {
@@ -40,6 +57,31 @@ function parseMaybeTransactions(data: string): RawTransactions | undefined {
 export default function TransactionDetails({vscode}: Props): JSX.Element {
     const [transaction, setTransaction] = useState<LocalTransactionDetails | null>(null)
     const [transactionInfos, setTransactionInfos] = useState<TransactionInfo[] | null>(null)
+
+    const parsedAccount = useMemo(() => {
+        if (!transaction?.account) return null
+        try {
+            return loadShardAccount(Cell.fromHex(transaction.account).asSlice())
+        } catch (error) {
+            console.warn("Failed to parse account data:", error)
+            return null
+        }
+    }, [transaction?.account])
+
+    const parsedStateInit = useMemo(() => {
+        if (!transaction?.stateInit?.code || !transaction.stateInit.data) return null
+        try {
+            const codeCell = Cell.fromBase64(transaction.stateInit.code)
+            const dataCell = Cell.fromBase64(transaction.stateInit.data)
+            return {
+                code: codeCell,
+                data: dataCell,
+            }
+        } catch (error) {
+            console.warn("Failed to parse stateInit data:", error)
+            return null
+        }
+    }, [transaction?.stateInit?.code, transaction?.stateInit?.data])
 
     useMemo(() => {
         if (!transaction || !transaction.resultString) return
@@ -76,6 +118,24 @@ export default function TransactionDetails({vscode}: Props): JSX.Element {
         }
     }, [])
 
+    const contracts: ContractData[] = useMemo(() => {
+        if (!transaction) return []
+        if (!transaction.deployedContracts) return []
+
+        return transaction.deployedContracts.flatMap((it, index) => {
+            if (!parsedAccount) return []
+            const letter = String.fromCodePoint(65 + (index % 26))
+            return {
+                displayName: it.name,
+                address: Address.parse(it.address),
+                kind: it.name === "treasury" ? "treasury" : "user-contract",
+                letter,
+                stateInit: parsedStateInit ?? undefined,
+                account: parsedAccount,
+            } satisfies ContractData
+        })
+    }, [transaction?.deployedContracts, parsedStateInit, parsedAccount])
+
     if (!transaction) {
         return (
             <div className={styles.loading}>
@@ -85,96 +145,12 @@ export default function TransactionDetails({vscode}: Props): JSX.Element {
         )
     }
 
-    const getStatusIcon = (status: string): string => {
-        switch (status) {
-            case "success": {
-                return "✅"
-            }
-            case "pending": {
-                return "⏳"
-            }
-            case "failed": {
-                return "❌"
-            }
-            default: {
-                return "❓"
-            }
-        }
-    }
-
-    const getStatusClass = (status: string): string => {
-        switch (status) {
-            case "success": {
-                return styles.statusSuccess
-            }
-            case "pending": {
-                return styles.statusPending
-            }
-            case "failed": {
-                return styles.statusFailed
-            }
-            default: {
-                return ""
-            }
-        }
-    }
-
     return (
         <div className={styles.container + " dark-theme"}>
-            <div className={styles.header}>
-                <h2 className={styles.title}>Transaction Details</h2>
-                <div className={styles.status}>
-                    <span>{getStatusIcon(transaction.status)}</span>
-                    <span className={getStatusClass(transaction.status)}>
-                        {transaction.status === "success" && "Success"}
-                        {transaction.status === "pending" && "Processing"}
-                        {transaction.status === "failed" && "Error"}
-                    </span>
-                </div>
-            </div>
-
-            <div className={styles.card}>
-                <div className={styles.cardHeader}>
-                    <span className={styles.label}>Contract Address:</span>
-                </div>
-                <div className={styles.contractAddress}>{transaction.contractAddress}</div>
-            </div>
-
-            <div className={styles.card}>
-                <div className={styles.cardHeader}>
-                    <span className={styles.label}>Method:</span>
-                </div>
-                <div className={styles.methodName}>{transaction.methodName}</div>
-            </div>
-
-            {transaction.transactionId && (
-                <div className={styles.card}>
-                    <div className={styles.cardHeader}>
-                        <span className={styles.label}>Transaction ID:</span>
-                    </div>
-                    <div className={styles.transactionId}>{transaction.transactionId}</div>
-                </div>
-            )}
-
-            {transactionInfos && <TransactionTree testData={{transactions: transactionInfos}} />}
-
-            <div className={styles.card}>
-                <div className={styles.cardHeader}>
-                    <span className={styles.label}>Time:</span>
-                </div>
-                <div className={styles.timestamp}>
-                    {new Date(transaction.timestamp).toLocaleString()}
-                </div>
-            </div>
-
-            {transaction.resultString && (
-                <div className={styles.card}>
-                    <div className={styles.cardHeader}>
-                        <span className={styles.label}>Result:</span>
-                    </div>
-                    <div className={styles.resultString}>
-                        <pre>{transaction.resultString}</pre>
-                    </div>
+            {transactionInfos && (
+                <div className={styles.transactionsSection}>
+                    <div className={styles.sectionTitle}>Transaction Details</div>
+                    <TransactionTree testData={{transactions: transactionInfos, contracts}} />
                 </div>
             )}
         </div>

@@ -2,6 +2,15 @@
 //  Copyright © 2025 TON Core
 import * as vscode from "vscode"
 
+import {ContractAbi} from "@shared/abi"
+
+export interface DeployedContractInfo {
+    readonly address: string
+    readonly name: string
+    readonly deployTime: string
+    readonly abi?: ContractAbi
+}
+
 export interface TransactionDetails {
     readonly contractAddress: string
     readonly methodName: string
@@ -9,6 +18,13 @@ export interface TransactionDetails {
     readonly timestamp: string
     readonly status: "success" | "pending" | "failed"
     readonly resultString?: string
+    readonly deployedContracts?: DeployedContractInfo[]
+    readonly account?: string
+    readonly stateInit?: {
+        readonly code: string
+        readonly data: string
+    }
+    readonly abi?: object
 }
 
 export class TransactionDetailsProvider {

@@ -99,10 +99,6 @@
     padding: 0 8px 0 4px;
 }
 
-.node:hover {
-    background-color: var(--vscode-list-hoverBackground);
-}
-
 .node:focus {
     outline: 2px solid var(--vscode-focusBorder);
     outline-offset: -2px;
@@ -226,10 +222,9 @@
     border: none;
     color: var(--vscode-badge-foreground);
     cursor: pointer;
-    padding: 2px 6px;
+    padding: 2px 4px;
     margin-right: 4px;
-    border-radius: 10px;
-    font-size: 11px;
+    border-radius: 3px;
     display: none;
     align-items: center;
     justify-content: center;
@@ -252,10 +247,9 @@
     border: none;
     color: var(--vscode-badge-foreground);
     cursor: pointer;
-    padding: 2px 6px;
+    padding: 2px 4px;
     margin-right: 2px;
-    border-radius: 10px;
-    font-size: 11px;
+    border-radius: 3px;
     display: none;
     align-items: center;
     justify-content: center;

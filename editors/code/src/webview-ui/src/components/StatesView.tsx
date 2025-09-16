@@ -1,6 +1,7 @@
 import React, {useState, useEffect} from "react"
 import styles from "./StatesView.module.css"
 import {StatesVSCodeAPI} from "../states-types"
+import {VscDebugAlt, VscInfo, VscDebugStepInto} from "react-icons/vsc"
 
 export interface OperationNode {
     readonly id: string
@@ -118,7 +119,7 @@ export const StatesView: React.FC<Props> = ({
                                     })
                                 }}
                             >
-                                🐛
+                                <VscDebugAlt size={12} />
                             </button>
                             <button
                                 className={styles.detailsButton}
@@ -139,7 +140,7 @@ export const StatesView: React.FC<Props> = ({
                                     })
                                 }}
                             >
-                                ⓘ
+                                <VscInfo size={12} />
                             </button>
                             {new Date(node.timestamp).toLocaleTimeString([], {
                                 hour: "2-digit",
@@ -159,7 +160,7 @@ export const StatesView: React.FC<Props> = ({
                             })
                         }}
                     >
-                        ⟲
+                        <VscDebugStepInto size={12} />
                     </button>
                 </div>
 

@@ -113,6 +113,13 @@ export interface ShowTransactionDetailsCommand {
     readonly methodName: string
     readonly transactionId?: string
     readonly timestamp?: string
+    readonly resultString?: string
+    readonly account?: string // hex string for shardAccount
+    readonly stateInit?: {
+        readonly code: string // base64 string
+        readonly data: string // base64 string
+    }
+    readonly abi?: object
 }
 
 export type VSCodeMessage =

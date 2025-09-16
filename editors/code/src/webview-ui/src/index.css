@@ -311,7 +311,7 @@
     --color-change-theme-border: 0;
     --color-change-theme-color: var(--color-text-primary);
 
-    --color-background-primary: #1c1c1e;
+    --color-background-primary: var(--vscode-sideBar-background);
     --color-background-primary-rgb: 28, 28, 30;
     --color-background-secondary: #0f0f0f;
     --color-background-secondary-rgb: 44, 44, 46;

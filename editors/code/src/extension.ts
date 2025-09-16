@@ -41,6 +41,7 @@ import {
 import {SandboxCodeLensProvider} from "./providers/SandboxCodeLensProvider"
 import {ToolchainConfig} from "@server/settings/settings"
 import {configureDebugging} from "./debugging"
+import {loadContractInfo} from "./providers/methods"
 
 let client: LanguageClient | null = null
 let cachedToolchainInfo: SetToolchainVersionParams | null = null
@@ -54,6 +55,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     registerSaveBocDecompiledCommand(context)
 
     const sandboxTreeProvider = new SandboxTreeProvider()
+    setSandboxTreeProvider(sandboxTreeProvider)
     context.subscriptions.push(
         vscode.window.createTreeView("tonSandbox", {
             treeDataProvider: sandboxTreeProvider,
@@ -845,16 +847,21 @@ async function checkConflictingExtensions(): Promise<void> {
 
 // Global variable to store transaction details provider
 let globalTransactionDetailsProvider: TransactionDetailsProvider | undefined
+let globalSandboxTreeProvider: SandboxTreeProvider | undefined
 
 export function setTransactionDetailsProvider(provider: TransactionDetailsProvider): void {
     globalTransactionDetailsProvider = provider
+}
+
+export function setSandboxTreeProvider(provider: SandboxTreeProvider): void {
+    globalSandboxTreeProvider = provider
 }
 
 function registerTransactionDetailsCommand(disposables: vscode.Disposable[]): void {
     disposables.push(
         vscode.commands.registerCommand(
             "ton.sandbox.showTransactionDetails",
-            (args?: {
+            async (args?: {
                 contractAddress: string
                 methodName: string
                 transactionId?: string
@@ -869,6 +876,31 @@ function registerTransactionDetailsCommand(disposables: vscode.Disposable[]): vo
                     return
                 }
 
+                // Get deployed contracts from tree provider
+                const deployedContracts =
+                    globalSandboxTreeProvider?.getDeployedContracts().map(c => ({
+                        address: c.address,
+                        name: c.name,
+                        deployTime: c.deployTime.toISOString(),
+                        abi: c.abi,
+                    })) ?? []
+
+                // Get contract info from server using existing loadContractInfo function
+                let account: string | undefined
+                let stateInit: {code: string; data: string} | undefined
+                let abi: object | undefined
+
+                try {
+                    const contractInfo = await loadContractInfo(args.contractAddress)
+                    if (contractInfo.success && contractInfo.result) {
+                        account = contractInfo.result.account
+                        stateInit = contractInfo.result.stateInit
+                        abi = contractInfo.result.abi
+                    }
+                } catch (error) {
+                    console.warn("Failed to fetch contract info from server:", error)
+                }
+
                 const transaction: TransactionDetails = {
                     contractAddress: args.contractAddress,
                     methodName: args.methodName,
@@ -876,6 +908,10 @@ function registerTransactionDetailsCommand(disposables: vscode.Disposable[]): vo
                     timestamp: args.timestamp ?? new Date().toISOString(),
                     status: "success", // For now always success
                     resultString: args.resultString,
+                    deployedContracts,
+                    account, // Pass account data from server
+                    stateInit, // Pass stateInit data from server
+                    abi, // Pass ABI data from server
                 }
 
                 globalTransactionDetailsProvider.showTransactionDetails(transaction)
