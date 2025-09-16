@@ -33,7 +33,7 @@ export class ReferenceCompletionProcessor implements ScopeProcessor {
         if (this.ctx.isType) {
             if (node instanceof NamedNode) {
                 const name = node.name()
-                if (name === "intN" || name === "uintN" || name === "nitsN" || name === "bytesN") {
+                if (name === "intN" || name === "uintN" || name === "bitsN" || name === "bytesN") {
                     // intN-like types  implemented in VariableSizeTypeCompletionProvider
                     return false
                 }

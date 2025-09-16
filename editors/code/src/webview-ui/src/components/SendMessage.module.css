@@ -226,3 +226,60 @@
     cursor: pointer;
     align-self: center;
 }
+
+.radioGroupLabel {
+    display: block;
+    margin-bottom: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--vscode-input-foreground);
+}
+
+.radioGroup {
+    display: flex;
+    gap: 4px;
+    width: 100%;
+}
+
+.messageModeButton {
+    flex: 1;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    user-select: none;
+    transition: all 0.2s ease;
+    border: 1px solid transparent;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 20px;
+}
+
+.messageModeButton:hover {
+    border-color: var(--vscode-focusBorder);
+}
+
+.messageModeButton.selected {
+    background-color: var(--vscode-button-background);
+    color: var(--vscode-button-foreground);
+    border-color: var(--vscode-button-background);
+}
+
+.messageModeButton.selected:hover {
+    background-color: var(--vscode-button-hoverBackground);
+    border-color: var(--vscode-button-hoverBackground);
+}
+
+.messageModeButton:not(.selected) {
+    background-color: var(--vscode-input-background);
+    color: var(--vscode-descriptionForeground);
+    border-color: var(--vscode-input-border);
+}
+
+.messageModeButton:not(.selected):hover {
+    background-color: var(--vscode-toolbar-hoverBackground);
+    color: var(--vscode-input-foreground);
+}

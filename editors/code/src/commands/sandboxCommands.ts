@@ -5,6 +5,7 @@ import {SandboxTreeProvider} from "../providers/SandboxTreeProvider"
 import {SandboxFormProvider} from "../providers/SandboxFormProvider"
 import {beginCell, Cell} from "@ton/core"
 import {Message} from "@shared/abi"
+import {TolkSourceMap} from "../providers/TolkCompilerProvider"
 
 export function registerSandboxCommands(
     treeProvider: SandboxTreeProvider,
@@ -71,14 +72,14 @@ interface SendMessageResponse {
         readonly addr?: string
         readonly vmLogs?: string
         readonly code?: string
-        readonly mapping?: object
-        readonly mappingInfo?: object
+        readonly sourceMap?: TolkSourceMap
     }[]
 }
 
 export async function sendMessage(
     address: string,
     message: string,
+    sendMode: number,
     value?: string,
 ): Promise<SendMessageResponse> {
     const config = vscode.workspace.getConfiguration("ton")
@@ -87,7 +88,30 @@ export async function sendMessage(
     const response = await fetch(`${sandboxUrl}/send`, {
         method: "POST",
         headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({address, message, value}),
+        body: JSON.stringify({address, message, sendMode, value}),
+    })
+
+    if (!response.ok) {
+        throw new Error(`API call failed: ${response.status} ${response.statusText}`)
+    }
+
+    return (await response.json()) as SendMessageResponse
+}
+
+export async function sendInternalMessage(
+    fromAddress: string,
+    toAddress: string,
+    message: string,
+    sendMode: number,
+    value?: string,
+): Promise<SendMessageResponse> {
+    const config = vscode.workspace.getConfiguration("ton")
+    const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
+
+    const response = await fetch(`${sandboxUrl}/send-internal`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({fromAddress, toAddress, message, sendMode, value}),
     })
 
     if (!response.ok) {

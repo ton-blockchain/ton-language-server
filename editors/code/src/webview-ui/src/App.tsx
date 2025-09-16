@@ -148,6 +148,18 @@ export default function App({vscode}: Props): JSX.Element {
                                 autoDebug: messageData.autoDebug,
                             })
                         }}
+                        onSendInternalMessage={messageData => {
+                            vscode.postMessage({
+                                type: "sendInternalMessage",
+                                fromAddress: messageData.fromAddress,
+                                toAddress: selectedSendContract,
+                                selectedMessage: messageData.selectedMessage,
+                                messageFields: messageData.messageFields,
+                                sendMode: messageData.sendMode,
+                                value: messageData.value,
+                                autoDebug: messageData.autoDebug,
+                            })
+                        }}
                         handleShowTransactionDetails={tx => {
                             vscode.postMessage({
                                 type: "showTransactionDetails",

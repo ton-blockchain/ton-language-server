@@ -71,6 +71,17 @@ export interface SendMessageCommand {
     readonly autoDebug?: boolean
 }
 
+export interface SendInternalMessageCommand {
+    readonly type: "sendInternalMessage"
+    readonly fromAddress: string
+    readonly toAddress: string
+    readonly selectedMessage: string
+    readonly messageFields: Record<string, string>
+    readonly sendMode: number
+    readonly value: string
+    readonly autoDebug?: boolean
+}
+
 export interface CallGetMethodCommand {
     readonly type: "callGetMethod"
     readonly contractAddress: string
@@ -116,6 +127,7 @@ export type VSCodeMessage =
 
 export type VSCodeCommand =
     | SendMessageCommand
+    | SendInternalMessageCommand
     | CallGetMethodCommand
     | LoadAbiForDeployCommand
     | LoadContractInfoCommand

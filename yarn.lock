@@ -7817,9 +7817,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ton-assembly@npm:0.2.0":
-  version: 0.2.0
-  resolution: "ton-assembly@npm:0.2.0"
+"ton-assembly@file:/Users/petrmakhnev/tasm-new/ton-assembly-0.2.4-SNAPSHOT.5.tgz::locator=vscode-ton%40workspace%3A.":
+  version: 0.2.4-SNAPSHOT.5
+  resolution: "ton-assembly@file:/Users/petrmakhnev/tasm-new/ton-assembly-0.2.4-SNAPSHOT.5.tgz#/Users/petrmakhnev/tasm-new/ton-assembly-0.2.4-SNAPSHOT.5.tgz::hash=c08592&locator=vscode-ton%40workspace%3A."
   dependencies:
     "@ton/core": "npm:^0.60.1"
     "@tonstudio/parser-runtime": "npm:^0.0.1"
@@ -7827,10 +7827,10 @@ __metadata:
   peerDependencies:
     "@ton/core": ">=0.60.1"
   bin:
-    tasm: dist/cli/assembler.js
-    tdisasm: dist/cli/disassembler.js
-    tfift: dist/cli/fift-compiler.js
-  checksum: 10c0/63758e73048c4f4035b0e4ecc1518b37a69d1c357268bd98577bd031729dbb237cf1f81cc9856682642c361b54ca9be7be86da52cdb63560156fc35d32271cdf
+    tasm: ./dist/cli/assembler.js
+    tdisasm: ./dist/cli/disassembler.js
+    tfift: ./dist/cli/fift-compiler.js
+  checksum: 10c0/11865526ceb5b072b1db6b751096efb60fcecee868591b779ae9d342821636d496c9714f8ff3cf6f14716c3b4a24069d5aad236c2ff4bf976bee60dd7f76b1a2
   languageName: node
   linkType: hard
 
@@ -8361,7 +8361,7 @@ __metadata:
     react-dom: "npm:^18.3.1"
     style-loader: "npm:^4.0.0"
     tolkfmt-test-dev: "npm:0.0.21"
-    ton-assembly: "npm:0.2.0"
+    ton-assembly: /Users/petrmakhnev/tasm-new/ton-assembly-0.2.4-SNAPSHOT.5.tgz
     tree-sitter-cli: "npm:^0.25.8"
     ts-jest: "npm:^29.2.6"
     ts-loader: "npm:^9.5.1"

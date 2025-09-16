@@ -708,7 +708,7 @@
         "react": "^18.3.1",
         "react-dom": "^18.3.1",
         "tolkfmt-test-dev": "0.0.21",
-        "ton-assembly": "0.2.0",
+        "ton-assembly": "/Users/petrmakhnev/tasm-new/ton-assembly-0.2.4-SNAPSHOT.5.tgz",
         "vscode-debugadapter": "^1.51.0",
         "vscode-languageclient": "^8.0.2",
         "vscode-languageserver": "^8.0.2",

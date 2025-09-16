@@ -11,21 +11,25 @@ import {
     UpdateContractInfoMessage,
     UpdateActiveEditorMessage,
     Operation,
+    ContractInfoData,
 } from "../webview-ui/src/types"
-import {sendMessage, callGetMethod, buildStructuredMessage} from "../commands/sandboxCommands"
+import {
+    sendMessage,
+    sendInternalMessage,
+    callGetMethod,
+    buildStructuredMessage,
+} from "../commands/sandboxCommands"
 import {compileAndDeployFromEditor, loadContractAbiForDeploy, loadContractInfo} from "./methods"
 import {Cell} from "@ton/core"
 import {decompileCell} from "ton-assembly/dist/runtime"
 import {print} from "ton-assembly/dist/text"
-import {TolkMapping} from "./TolkCompilerProvider"
-import {TraceInfo} from "ton-assembly/dist/trace"
+import {TolkSourceMap} from "./TolkCompilerProvider"
 
 interface TransactionInfo {
     readonly vmLogs: string
     readonly code: string
     readonly contractName?: string
-    readonly mapping: TolkMapping
-    readonly mappingInfo: TraceInfo
+    readonly sourceMap?: TolkSourceMap
 }
 
 export class SandboxFormProvider implements vscode.WebviewViewProvider {
@@ -60,6 +64,10 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
             switch (command.type) {
                 case "sendMessage": {
                     void this.handleSendMessage(command)
+                    break
+                }
+                case "sendInternalMessage": {
+                    void this.handleSendInternalMessage(command)
                     break
                 }
                 case "callGetMethod": {
@@ -147,7 +155,7 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
         }
     }
 
-    public updateContractInfo(info: {account: string}): void {
+    public updateContractInfo(info: ContractInfoData): void {
         if (this.view) {
             const message: UpdateContractInfoMessage = {
                 type: "updateContractInfo",
@@ -236,8 +244,7 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
                                 vmLogs: tx.vmLogs ?? "",
                                 code: tx.code ?? "",
                                 contractName: `${contractName}_TX_${index + 1}`,
-                                mapping: (tx.mapping ?? {}) as TolkMapping,
-                                mappingInfo: (tx.mappingInfo ?? {}) as TraceInfo,
+                                sourceMap: tx.sourceMap,
                             }
                         })
 
@@ -261,6 +268,96 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
                     message: `Send failed: ${error instanceof Error ? error.message : "Unknown error"}`,
                 },
                 "send-message-result",
+            )
+        }
+    }
+
+    private async handleSendInternalMessage(command: {
+        fromAddress: string
+        toAddress: string
+        selectedMessage: string
+        messageFields: Record<string, string>
+        sendMode: number
+        value: string
+        autoDebug?: boolean
+    }): Promise<void> {
+        this.sequentialDebugQueue = []
+        this.isSequentialDebugRunning = false
+
+        if (!command.fromAddress) {
+            this.showResult(
+                {
+                    success: false,
+                    message: "Please select source contract first",
+                },
+                "send-internal-message-result",
+            )
+            return
+        }
+
+        if (!command.toAddress) {
+            this.showResult(
+                {
+                    success: false,
+                    message: "Please select target contract first",
+                },
+                "send-internal-message-result",
+            )
+            return
+        }
+
+        if (!command.selectedMessage) {
+            this.showResult(
+                {
+                    success: false,
+                    message: "Please select a message first",
+                },
+                "send-internal-message-result",
+            )
+            return
+        }
+
+        try {
+            const messageBody = buildStructuredMessage(
+                command.selectedMessage,
+                command.messageFields,
+                this,
+                command.toAddress,
+            )
+
+            const result = await sendInternalMessage(
+                command.fromAddress,
+                command.toAddress,
+                messageBody,
+                command.sendMode,
+                command.value,
+            )
+
+            if (result.success) {
+                this.showResult(
+                    {
+                        success: true,
+                        message: "Internal message sent successfully",
+                        details: result.vmLogs ? `VM Logs:\n${result.vmLogs}` : undefined,
+                    },
+                    "send-internal-message-result",
+                )
+            } else {
+                this.showResult(
+                    {
+                        success: false,
+                        message: `Send failed: ${result.error ?? "Unknown error"}`,
+                    },
+                    "send-internal-message-result",
+                )
+            }
+        } catch (error) {
+            this.showResult(
+                {
+                    success: false,
+                    message: `Send failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+                },
+                "send-internal-message-result",
             )
         }
     }
@@ -369,10 +466,6 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
         this.isSequentialDebugRunning = true
 
         console.log(
-            `start debugging with mapping: ${JSON.stringify(transactions[0].mapping, null, 2)} and info: ${JSON.stringify(transactions[0].mappingInfo, null, 2)}`,
-        )
-
-        console.log(
             `Starting sequential debugging for ${this.sequentialDebugQueue.length} transactions`,
         )
         void vscode.window.showInformationMessage(
@@ -422,11 +515,14 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
             const assemblyCodeBuffer = Buffer.from(assemblyCode, "utf8")
             await vscode.workspace.fs.writeFile(fileUri, assemblyCodeBuffer)
 
-            const doc = await vscode.workspace.openTextDocument(fileUri)
-            await vscode.window.showTextDocument(doc, {
-                preview: false,
-                preserveFocus: false,
-            })
+            if (transaction.sourceMap === undefined) {
+                // Show assembly only if source map is not available
+                const doc = await vscode.workspace.openTextDocument(fileUri)
+                await vscode.window.showTextDocument(doc, {
+                    preview: false,
+                    preserveFocus: false,
+                })
+            }
 
             const success = await vscode.debug.startDebugging(undefined, {
                 type: "tolk",
@@ -435,8 +531,9 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
                 code: transaction.code,
                 vmLogs: transaction.vmLogs,
                 program: fileUri.fsPath,
-                mapping: transaction.mapping,
-                mappingInfo: transaction.mappingInfo,
+                sourceMap: transaction.sourceMap,
+                assembly: assemblyCode,
+                assemblyPath: fileUri.fsPath,
                 stopOnEntry: true,
             })
 

@@ -1,13 +1,12 @@
 import {Cell} from "@ton/core"
 import {compileCellWithMapping, decompileCell} from "ton-assembly/dist/runtime"
-import {text} from "ton-assembly"
+import {text, trace} from "ton-assembly"
 import {
     createMappingInfo,
     createTraceInfoPerTransaction,
     TraceInfo,
     MappingInfo,
 } from "ton-assembly/dist/trace"
-import {TolkMapping} from "../../providers/TolkCompilerProvider"
 
 function extractCodeAndTrace(codeCell: Cell | undefined, vmLogs: string): TraceInfo {
     if (!codeCell) {
@@ -36,12 +35,12 @@ function extractCodeAndTrace(codeCell: Cell | undefined, vmLogs: string): TraceI
 export function createTraceInfoFromVmLogs(
     vmLogs: string,
     codeHex: string,
-    tolkMapping?: TolkMapping,
+    sourceMap?: trace.SourceMap,
     tolkMappingInfo?: MappingInfo,
 ): TraceInfo {
     try {
-        if (tolkMapping && tolkMappingInfo) {
-            return createTraceInfoPerTransaction(vmLogs, tolkMappingInfo, tolkMapping)[0]
+        if (sourceMap && tolkMappingInfo) {
+            return createTraceInfoPerTransaction(vmLogs, tolkMappingInfo, sourceMap)[0]
         }
         return extractCodeAndTrace(Cell.fromHex(codeHex), vmLogs)
     } catch (error) {

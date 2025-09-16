@@ -18,11 +18,16 @@ interface MessageData {
     readonly autoDebug?: boolean
 }
 
+interface InternalMessageData extends MessageData {
+    readonly fromAddress: string
+}
+
 interface Props {
     readonly contracts: Contract[]
     readonly selectedContract?: string
     readonly onContractChange: (address: string) => void
     readonly onSendMessage: (messageData: MessageData) => void
+    readonly onSendInternalMessage: (messageData: InternalMessageData) => void
     readonly handleShowTransactionDetails: (tx: LastTransaction) => void
     readonly result?: {success: boolean; message: string; details?: string}
 }
@@ -39,6 +44,7 @@ export const SendMessage: React.FC<Props> = ({
     selectedContract,
     onContractChange,
     onSendMessage,
+    onSendInternalMessage,
     handleShowTransactionDetails,
     result,
 }) => {
@@ -49,6 +55,9 @@ export const SendMessage: React.FC<Props> = ({
     const [lastTransaction, setLastTransaction] = useState<LastTransaction | null>(null)
     const [autoDebug, setAutoDebug] = useState<boolean>(false)
 
+    const [messageMode, setMessageMode] = useState<"external" | "internal">("external")
+    const [selectedFromContract, setSelectedFromContract] = useState<string>("")
+
     const contract = contracts.find(c => c.address === selectedContract)
     const message = contract?.abi?.messages.find(m => m.name === selectedMessage)
 
@@ -58,23 +67,44 @@ export const SendMessage: React.FC<Props> = ({
     }
 
     const handleSendMessage = (): void => {
-        if (!selectedContract || !selectedMessage) {
-            return
+        if (messageMode === "internal") {
+            if (!selectedFromContract || !selectedContract || !selectedMessage) {
+                return
+            }
+
+            setLastTransaction({
+                contractAddress: selectedContract,
+                methodName: selectedMessage,
+                timestamp: new Date().toISOString(),
+            })
+
+            onSendInternalMessage({
+                selectedMessage,
+                messageFields,
+                value,
+                sendMode,
+                autoDebug,
+                fromAddress: selectedFromContract,
+            })
+        } else {
+            if (!selectedContract || !selectedMessage) {
+                return
+            }
+
+            setLastTransaction({
+                contractAddress: selectedContract,
+                methodName: selectedMessage,
+                timestamp: new Date().toISOString(),
+            })
+
+            onSendMessage({
+                selectedMessage,
+                messageFields,
+                value,
+                sendMode,
+                autoDebug,
+            })
         }
-
-        setLastTransaction({
-            contractAddress: selectedContract,
-            methodName: selectedMessage,
-            timestamp: new Date().toISOString(),
-        })
-
-        onSendMessage({
-            selectedMessage,
-            messageFields,
-            value,
-            sendMode,
-            autoDebug,
-        })
     }
 
     const formatAddress = (address: string): string => {
@@ -84,6 +114,48 @@ export const SendMessage: React.FC<Props> = ({
 
     return (
         <div className={styles.container}>
+            <div className={styles.formGroup}>
+                <div className={styles.radioGroup}>
+                    <div
+                        className={`${styles.messageModeButton} ${messageMode === "external" ? styles.selected : ""}`}
+                        onClick={() => {
+                            setMessageMode("external")
+                            setSelectedFromContract("")
+                        }}
+                    >
+                        External Message
+                    </div>
+                    <div
+                        className={`${styles.messageModeButton} ${messageMode === "internal" ? styles.selected : ""}`}
+                        onClick={() => {
+                            setMessageMode("internal")
+                        }}
+                    >
+                        Contract to Contract
+                    </div>
+                </div>
+            </div>
+
+            {messageMode === "internal" && (
+                <div className={styles.formGroup}>
+                    <Select
+                        label="Source Contract:"
+                        id="sourceContractSelect"
+                        value={selectedFromContract}
+                        onChange={e => {
+                            setSelectedFromContract(e.target.value)
+                        }}
+                    >
+                        <option value="">Select source contract...</option>
+                        {contracts.map(contract => (
+                            <option key={contract.address} value={contract.address}>
+                                {contract.name} ({formatAddress(contract.address)})
+                            </option>
+                        ))}
+                    </Select>
+                </div>
+            )}
+
             <div className={styles.formGroup}>
                 <Select
                     label="Target Contract:"
