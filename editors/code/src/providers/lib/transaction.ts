@@ -15,6 +15,8 @@ export interface TransactionInfo {
     readonly c5: Cell | undefined
     readonly data: TransactionInfoData
     readonly code: Cell | undefined
+    readonly sourceMap: object | undefined
+    readonly contractName: string | undefined
     readonly parent: TransactionInfo | undefined
     readonly children: readonly TransactionInfo[]
 }

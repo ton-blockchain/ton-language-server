@@ -382,6 +382,11 @@
                 "command": "ton.sandbox.debugTransaction",
                 "title": "Debug Transaction",
                 "category": "TON"
+            },
+            {
+                "command": "ton.sandbox.startDebugSequence",
+                "title": "Start Debug Sequence",
+                "category": "TON"
             }
         ],
         "views": {

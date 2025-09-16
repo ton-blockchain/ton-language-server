@@ -66,6 +66,12 @@ export function registerSandboxCommands(
         vscode.commands.registerCommand("ton.sandbox.debugTransaction", (operationId: string) => {
             statesProvider.handleDebugTransaction(operationId)
         }),
+        vscode.commands.registerCommand(
+            "ton.sandbox.startDebugSequence",
+            (transactions: import("../providers/SandboxFormProvider").TransactionInfo[]) => {
+                formProvider.startSequentialDebugging(transactions)
+            },
+        ),
     )
 
     return disposables

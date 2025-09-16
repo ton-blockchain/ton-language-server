@@ -33,6 +33,8 @@ export interface RawTransactionInfo {
     readonly parsedTransaction: Transaction | undefined // filled later
     readonly fields: Record<string, unknown>
     readonly code: string | undefined
+    readonly sourceMap: object | undefined
+    readonly contractName: string | undefined
     readonly parentId: string
     readonly childrenIds: string[]
 }
@@ -51,6 +53,8 @@ interface MutableTransactionInfo {
     readonly c5: Cell | undefined
     readonly data: TransactionInfoData
     readonly code: Cell | undefined
+    readonly sourceMap: object | undefined
+    readonly contractName: string | undefined
     parent: TransactionInfo | undefined
     children: TransactionInfo[]
 }
@@ -124,6 +128,8 @@ const processRawTx = (
         c5,
         data: txData(parsedTx),
         code: tx.code ? Cell.fromHex(tx.code) : undefined,
+        sourceMap: tx.sourceMap,
+        contractName: tx.contractName,
         children: [],
     }
     visited.set(tx, result)

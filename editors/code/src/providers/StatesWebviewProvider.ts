@@ -142,19 +142,21 @@ export class StatesWebviewProvider implements vscode.WebviewViewProvider {
 
             const transactionInfos = processRawTransactions(rawTxs.transactions)
 
-            const transactions = transactionInfos.map((tx, index) => {
-                const contractName =
-                    operation.contractName ??
-                    operation.fromContract?.name ??
-                    operation.toContract?.name ??
-                    `TX_${index + 1}`
+            const transactions = transactionInfos.flatMap((tx, index) => {
+                const contractName = tx.contractName ?? `TX_${index + 1}`
 
-                return {
-                    vmLogs: tx.fields.vmLogs as string,
-                    code: tx.code ? tx.code.toString() : "",
-                    contractName: `${contractName}_TX_${index + 1}`,
-                    sourceMap: undefined, // TODO: We could store source maps in operations if needed
+                if (tx.code === undefined || operation.contractName === "treasury") {
+                    return []
                 }
+
+                return [
+                    {
+                        vmLogs: tx.fields.vmLogs as string,
+                        code: tx.code.toBoc().toString("hex"),
+                        contractName: `${contractName}_TX_${index + 1}`,
+                        sourceMap: tx.sourceMap,
+                    },
+                ]
             })
 
             if (transactions.length === 0) {
@@ -162,7 +164,7 @@ export class StatesWebviewProvider implements vscode.WebviewViewProvider {
                 return
             }
 
-            // formProvider.startSequentialDebugging(transactions)
+            void vscode.commands.executeCommand("ton.sandbox.startDebugSequence", transactions)
         } catch (error) {
             console.error("Failed to debug transaction:", error)
             void vscode.window.showErrorMessage("Failed to start debugging transaction")

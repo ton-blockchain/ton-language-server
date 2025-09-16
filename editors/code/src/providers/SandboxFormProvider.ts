@@ -25,7 +25,7 @@ import {decompileCell} from "ton-assembly/dist/runtime"
 import {print} from "ton-assembly/dist/text"
 import {TolkSourceMap} from "./TolkCompilerProvider"
 
-interface TransactionInfo {
+export interface TransactionInfo {
     readonly vmLogs: string
     readonly code: string
     readonly contractName?: string
@@ -474,7 +474,7 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
         await compileAndDeployFromEditor(name, storageFields, this._treeProvider?.(), value)
     }
 
-    private startSequentialDebugging(transactions: TransactionInfo[]): void {
+    public startSequentialDebugging(transactions: TransactionInfo[]): void {
         if (this.isSequentialDebugRunning) {
             console.warn("Sequential debugging already running")
             return
