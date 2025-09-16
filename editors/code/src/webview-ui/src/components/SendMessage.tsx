@@ -30,6 +30,7 @@ interface Props {
     readonly onSendInternalMessage: (messageData: InternalMessageData) => void
     readonly handleShowTransactionDetails: (tx: LastTransaction) => void
     readonly result?: {success: boolean; message: string; details?: string}
+    readonly onClearResult?: () => void
 }
 
 interface LastTransaction {
@@ -47,6 +48,7 @@ export const SendMessage: React.FC<Props> = ({
     onSendInternalMessage,
     handleShowTransactionDetails,
     result,
+    onClearResult,
 }) => {
     const [selectedMessage, setSelectedMessage] = useState<string>("")
     const [messageFields, setMessageFields] = useState<Record<string, string>>({})
@@ -69,6 +71,24 @@ export const SendMessage: React.FC<Props> = ({
             }
         }
     }, [messageMode, contracts, selectedFromContract])
+
+    useEffect(() => {
+        onClearResult?.()
+        return () => {}
+    }, [messageMode, onClearResult])
+
+    useEffect(() => {
+        if (result && onClearResult) {
+            const timer = setTimeout(() => {
+                onClearResult()
+            }, 5000)
+
+            return () => {
+                clearTimeout(timer)
+            }
+        }
+        return () => {}
+    }, [result, onClearResult])
 
     const handleFieldChange = (fieldName: string, fieldValue: string): void => {
         const newFields = {...messageFields, [fieldName]: fieldValue}
@@ -173,11 +193,17 @@ export const SendMessage: React.FC<Props> = ({
                     }}
                 >
                     <option value="">Select contract...</option>
-                    {contracts.map(contract => (
-                        <option key={contract.address} value={contract.address}>
-                            {contract.name} ({formatAddress(contract.address)})
-                        </option>
-                    ))}
+                    {contracts
+                        .filter(
+                            contract =>
+                                messageMode !== "internal" ||
+                                contract.address !== selectedFromContract,
+                        )
+                        .map(contract => (
+                            <option key={contract.address} value={contract.address}>
+                                {contract.name} ({formatAddress(contract.address)})
+                            </option>
+                        ))}
                 </Select>
             </div>
 

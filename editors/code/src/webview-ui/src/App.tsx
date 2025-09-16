@@ -14,13 +14,21 @@ interface Props {
 export default function App({vscode}: Props): JSX.Element {
     const [activeOperation, setActiveOperation] = useState<Operation>(null)
     const [contracts, setContracts] = useState<Contract[]>([])
-    const [results, setResults] = useState<Record<string, ResultData>>({})
+    const [results, setResults] = useState<Record<string, ResultData | undefined>>({})
     const [contractAbi, setContractAbi] = useState<ContractAbi | undefined>()
     const [contractInfo, setContractInfo] = useState<ContractInfoData | undefined>()
 
     const [selectedSendContract, setSelectedSendContract] = useState<string>("")
     const [selectedGetContract, setSelectedGetContract] = useState<string>("")
     const [selectedInfoContract, setSelectedInfoContract] = useState<string>("")
+
+    const clearSendResults = useCallback(() => {
+        setResults(prev => ({
+            ...prev,
+            "send-external-message-result": undefined,
+            "send-internal-message-result": undefined,
+        }))
+    }, [])
 
     const handleMessage = useCallback((event: MessageEvent<VSCodeMessage>): void => {
         const message: VSCodeMessage = event.data
@@ -167,7 +175,11 @@ export default function App({vscode}: Props): JSX.Element {
                                 timestamp: tx.timestamp,
                             })
                         }}
-                        result={results["send-external-message-result"]}
+                        result={
+                            results["send-internal-message-result"] ??
+                            results["send-external-message-result"]
+                        }
+                        onClearResult={clearSendResults}
                     />
                 )
             }

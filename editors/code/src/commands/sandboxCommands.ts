@@ -66,10 +66,10 @@ export function registerSandboxCommands(
 interface SendMessageResponse {
     readonly success: boolean
     readonly error?: string
-    readonly txs?: readonly {
-        readonly addr?: string
-        readonly vmLogs?: string
-        readonly code?: string
+    readonly txs: readonly {
+        readonly addr: string
+        readonly vmLogs: string
+        readonly code: string
         readonly sourceMap?: TolkSourceMap
     }[]
 }

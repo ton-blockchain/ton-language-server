@@ -226,20 +226,18 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
                     "send-external-message-result",
                 )
 
-                if (command.autoDebug && result.txs && result.txs.length > 0) {
-                    const validTransactions = result.txs
-                        .filter(tx => tx.vmLogs && tx.code)
-                        .map((tx, index) => {
-                            const contract = this.deployedContracts.find(c => c.address === tx.addr)
-                            const contractName = contract?.name ?? "UnknownContract"
+                if (command.autoDebug && result.txs.length > 0) {
+                    const validTransactions = result.txs.map((tx, index) => {
+                        const contract = this.deployedContracts.find(c => c.address === tx.addr)
+                        const contractName = contract?.name ?? "UnknownContract"
 
-                            return {
-                                vmLogs: tx.vmLogs ?? "",
-                                code: tx.code ?? "",
-                                contractName: `${contractName}_TX_${index + 1}`,
-                                sourceMap: tx.sourceMap,
-                            }
-                        })
+                        return {
+                            vmLogs: tx.vmLogs,
+                            code: tx.code,
+                            contractName: `${contractName}_TX_${index + 1}`,
+                            sourceMap: tx.sourceMap,
+                        }
+                    })
 
                     if (validTransactions.length > 0) {
                         this.startSequentialDebugging(validTransactions)
@@ -334,6 +332,25 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
                     },
                     "send-internal-message-result",
                 )
+
+                if (command.autoDebug && result.txs.length > 0) {
+                    const validTransactions = result.txs.map((tx, index) => {
+                        const contract = this.deployedContracts.find(c => c.address === tx.addr)
+                        const contractName = contract?.name ?? "UnknownContract"
+
+                        return {
+                            vmLogs: tx.vmLogs,
+                            code: tx.code,
+                            contractName: `${contractName}_TX_${index + 1}`,
+                            sourceMap: tx.sourceMap,
+                        }
+                    })
+
+                    if (validTransactions.length > 0) {
+                        console.log("txs:", validTransactions)
+                        this.startSequentialDebugging(validTransactions)
+                    }
+                }
             } else {
                 this.showResult(
                     {

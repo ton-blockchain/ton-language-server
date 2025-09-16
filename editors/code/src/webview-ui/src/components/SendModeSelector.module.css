@@ -98,7 +98,7 @@
 
 .dropdown {
     position: absolute;
-    top: 100%;
+    bottom: 100%;
     left: 0;
     right: 0;
     background-color: var(--vscode-quickInput-background);
@@ -108,7 +108,7 @@
     max-height: 300px;
     overflow-y: auto;
     z-index: 1000;
-    margin-top: 2px;
+    margin-bottom: 2px;
 }
 
 .dropdownItem {
