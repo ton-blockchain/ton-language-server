@@ -62,7 +62,7 @@
     left: 50%;
     top: 0;
     bottom: 0;
-    width: 2px;
+    width: 1px;
     background-color: var(--vscode-descriptionForeground);
     transform: translateX(-50%);
 }
@@ -110,6 +110,14 @@
     background-color: var(--vscode-list-hoverBackground);
 }
 
+.node:hover::after {
+    border: 2px solid var(--vscode-descriptionForeground);
+}
+
+.node.failed:hover::after {
+    border: 2px solid var(--vscode-errorForeground);
+}
+
 .node::after {
     content: "";
     position: absolute;
@@ -122,6 +130,27 @@
     background-color: var(--vscode-descriptionForeground);
     border: 2px solid var(--vscode-sideBar-background);
     z-index: 2;
+}
+
+.node.failed::after {
+    background-color: var(--vscode-errorForeground);
+}
+
+.node.failed::before {
+    content: "";
+    position: absolute;
+    left: -11px;
+    top: -10px;
+    bottom: -10px;
+    width: 2px;
+    background: linear-gradient(
+        to bottom,
+        transparent 0%,
+        var(--vscode-errorForeground) 20%,
+        var(--vscode-errorForeground) 80%,
+        transparent 100%
+    );
+    z-index: 1;
 }
 
 .expandButton {

@@ -2,6 +2,12 @@ import React, {useState, useEffect} from "react"
 import styles from "./StatesView.module.css"
 import {StatesVSCodeAPI} from "../states-types"
 import {VscDebugAlt, VscInfo, VscDebugStepInto} from "react-icons/vsc"
+import {
+    processRawTransactions,
+    RawTransactionInfo,
+    RawTransactions,
+} from "../../../providers/lib/raw-transaction"
+import {Cell, loadTransaction} from "@ton/core"
 
 export interface OperationNode {
     readonly id: string
@@ -66,10 +72,38 @@ export const StatesView: React.FC<Props> = ({
     const renderNode = (node: OperationNode): React.JSX.Element => {
         const isDetailsExpanded = expandedDetails.has(node.id)
 
+        const transactionInfos = (() => {
+            if (!node.resultString) {
+                return []
+            }
+            const rawTxs = parseMaybeTransactions(node.resultString)
+            if (!rawTxs) {
+                return []
+            }
+
+            const parsedTransactions = rawTxs.transactions.map(
+                (it): RawTransactionInfo => ({
+                    ...it,
+                    transaction: it.transaction,
+                    parsedTransaction: loadTransaction(Cell.fromHex(it.transaction).asSlice()),
+                }),
+            )
+
+            return processRawTransactions(parsedTransactions)
+        })()
+
+        const nonZeroExitCode = transactionInfos.find(it => {
+            if (it.computeInfo === "skipped") return false
+            return it.computeInfo.exitCode !== 0
+        })
+        const exitCode = nonZeroExitCode === undefined ? 0 : nonZeroExitCode.code
+
+        const failedClassName = exitCode === 0 ? "" : styles.failed
+
         return (
             <div key={node.id} className={styles.nodeContainer}>
                 <div
-                    className={`${styles.node} ${styles.compact} ${isDetailsExpanded ? styles.expanded : ""}`}
+                    className={`${styles.node} ${failedClassName} ${styles.compact} ${isDetailsExpanded ? styles.expanded : ""}`}
                     onClick={() => {
                         toggleDetails(node.id)
                     }}
@@ -200,4 +234,12 @@ export const StatesView: React.FC<Props> = ({
             )}
         </div>
     )
+}
+
+function parseMaybeTransactions(data: string): RawTransactions | undefined {
+    try {
+        return JSON.parse(data) as RawTransactions
+    } catch {
+        return undefined
+    }
 }
