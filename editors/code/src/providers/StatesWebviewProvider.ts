@@ -4,6 +4,7 @@ import * as vscode from "vscode"
 import {OperationNode} from "../webview-ui/src/components/StatesView"
 import {StatesCommand, StatesMessage} from "../webview-ui/src/states-types"
 import {getOperations, restoreBlockchainState} from "../commands/sandboxCommands"
+import {processRawTransactions, RawTransactions} from "./lib/raw-transaction"
 
 export class StatesWebviewProvider implements vscode.WebviewViewProvider {
     public static readonly viewType: string = "tonSandboxHistory"
@@ -55,6 +56,10 @@ export class StatesWebviewProvider implements vscode.WebviewViewProvider {
                     )
                     break
                 }
+                case "debugTransaction": {
+                    this.handleDebugTransaction(command.operationId)
+                    break
+                }
             }
         })
     }
@@ -103,6 +108,64 @@ export class StatesWebviewProvider implements vscode.WebviewViewProvider {
     private refreshTreeContracts(): void {
         if (this._treeProvider) {
             this._treeProvider().refresh()
+        }
+    }
+
+    private parseMaybeTransactions(data: string): RawTransactions | undefined {
+        try {
+            return JSON.parse(data) as RawTransactions
+        } catch {
+            return undefined
+        }
+    }
+
+    public handleDebugTransaction(operationId: string): void {
+        try {
+            const operation = this.operations.find(op => op.id === operationId)
+            if (!operation) {
+                void vscode.window.showErrorMessage(`Operation ${operationId} not found`)
+                return
+            }
+
+            if (!operation.resultString) {
+                void vscode.window.showErrorMessage(
+                    `No transaction data available for operation ${operationId}`,
+                )
+                return
+            }
+
+            const rawTxs = this.parseMaybeTransactions(operation.resultString)
+            if (!rawTxs) {
+                void vscode.window.showErrorMessage("No transaction found")
+                return
+            }
+
+            const transactionInfos = processRawTransactions(rawTxs.transactions)
+
+            const transactions = transactionInfos.map((tx, index) => {
+                const contractName =
+                    operation.contractName ??
+                    operation.fromContract?.name ??
+                    operation.toContract?.name ??
+                    `TX_${index + 1}`
+
+                return {
+                    vmLogs: tx.fields.vmLogs as string,
+                    code: tx.code ? tx.code.toString() : "",
+                    contractName: `${contractName}_TX_${index + 1}`,
+                    sourceMap: undefined, // TODO: We could store source maps in operations if needed
+                }
+            })
+
+            if (transactions.length === 0) {
+                void vscode.window.showErrorMessage("No transactions to debug")
+                return
+            }
+
+            // formProvider.startSequentialDebugging(transactions)
+        } catch (error) {
+            console.error("Failed to debug transaction:", error)
+            void vscode.window.showErrorMessage("Failed to start debugging transaction")
         }
     }
 

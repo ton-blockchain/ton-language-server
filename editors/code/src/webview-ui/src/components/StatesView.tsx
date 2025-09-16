@@ -108,6 +108,19 @@ export const StatesView: React.FC<Props> = ({
 
                         <span className={styles.timestamp}>
                             <button
+                                className={styles.debugButton}
+                                title="Debug transaction"
+                                onClick={e => {
+                                    e.stopPropagation()
+                                    vscode.postMessage({
+                                        type: "debugTransaction",
+                                        operationId: node.id,
+                                    })
+                                }}
+                            >
+                                🐛
+                            </button>
+                            <button
                                 className={styles.detailsButton}
                                 title="View transaction details"
                                 onClick={e => {

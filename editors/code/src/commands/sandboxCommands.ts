@@ -63,6 +63,9 @@ export function registerSandboxCommands(
         vscode.commands.registerCommand("ton.sandbox.states.refresh", () => {
             void statesProvider.handleLoadOperations()
         }),
+        vscode.commands.registerCommand("ton.sandbox.debugTransaction", (operationId: string) => {
+            statesProvider.handleDebugTransaction(operationId)
+        }),
     )
 
     return disposables

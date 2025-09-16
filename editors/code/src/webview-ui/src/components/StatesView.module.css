@@ -247,6 +247,32 @@
     cursor: pointer;
 }
 
+.debugButton {
+    background: transparent;
+    border: none;
+    color: var(--vscode-badge-foreground);
+    cursor: pointer;
+    padding: 2px 6px;
+    margin-right: 2px;
+    border-radius: 10px;
+    font-size: 11px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    opacity: 0.7;
+    transition: opacity 0.1s ease;
+}
+
+.node:hover .debugButton {
+    display: flex;
+}
+
+.debugButton:hover {
+    opacity: 1;
+    cursor: pointer;
+}
+
 .timestamp {
     color: var(--vscode-descriptionForeground);
     font-size: 10px;

@@ -377,6 +377,11 @@
                 "command": "ton.sandbox.showTransactionDetails",
                 "title": "Show Transaction Details",
                 "category": "TON"
+            },
+            {
+                "command": "ton.sandbox.debugTransaction",
+                "title": "Debug Transaction",
+                "category": "TON"
             }
         ],
         "views": {
