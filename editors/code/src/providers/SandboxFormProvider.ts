@@ -14,7 +14,7 @@ import {
     ContractInfoData,
 } from "../webview-ui/src/types"
 import {
-    sendMessage,
+    sendExternalMessage,
     sendInternalMessage,
     callGetMethod,
     buildStructuredMessage,
@@ -62,8 +62,8 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
 
         webviewView.webview.onDidReceiveMessage((command: VSCodeCommand) => {
             switch (command.type) {
-                case "sendMessage": {
-                    void this.handleSendMessage(command)
+                case "sendExternalMessage": {
+                    void this.handleSendExternalMessage(command)
                     break
                 }
                 case "sendInternalMessage": {
@@ -177,12 +177,10 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
         }
     }
 
-    private async handleSendMessage(command: {
+    private async handleSendExternalMessage(command: {
         contractAddress: string
         selectedMessage: string
         messageFields: Record<string, string>
-        sendMode: number
-        value: string
         autoDebug?: boolean
     }): Promise<void> {
         this.sequentialDebugQueue = []
@@ -193,7 +191,7 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
                     success: false,
                     message: "Please select a contract first",
                 },
-                "send-message-result",
+                "send-external-message-result",
             )
             return
         }
@@ -204,7 +202,7 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
                     success: false,
                     message: "Please select a message first",
                 },
-                "send-message-result",
+                "send-external-message-result",
             )
             return
         }
@@ -217,20 +215,15 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
                 command.contractAddress,
             )
 
-            const result = await sendMessage(
-                command.contractAddress,
-                messageBody,
-                command.sendMode,
-                command.value,
-            )
+            const result = await sendExternalMessage(command.contractAddress, messageBody)
 
             if (result.success) {
                 this.showResult(
                     {
                         success: true,
-                        message: `Message sent successfully to ${command.contractAddress}`,
+                        message: `External message sent successfully to ${command.contractAddress}`,
                     },
-                    "send-message-result",
+                    "send-external-message-result",
                 )
 
                 if (command.autoDebug && result.txs && result.txs.length > 0) {
@@ -256,18 +249,18 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
                 this.showResult(
                     {
                         success: false,
-                        message: `Send failed: ${result.error ?? "Unknown error"}`,
+                        message: `External message send failed: ${result.error ?? "Unknown error"}`,
                     },
-                    "send-message-result",
+                    "send-external-message-result",
                 )
             }
         } catch (error) {
             this.showResult(
                 {
                     success: false,
-                    message: `Send failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+                    message: `External message send failed: ${error instanceof Error ? error.message : "Unknown error"}`,
                 },
-                "send-message-result",
+                "send-external-message-result",
             )
         }
     }
@@ -338,7 +331,6 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
                     {
                         success: true,
                         message: "Internal message sent successfully",
-                        details: result.vmLogs ? `VM Logs:\n${result.vmLogs}` : undefined,
                     },
                     "send-internal-message-result",
                 )

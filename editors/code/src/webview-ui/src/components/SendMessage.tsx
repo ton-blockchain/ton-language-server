@@ -1,4 +1,4 @@
-import React, {useState} from "react"
+import React, {useState, useEffect} from "react"
 import {ContractAbi} from "@shared/abi"
 import {Button, Input, Select} from "./ui"
 import {SendModeSelector} from "./SendModeSelector"
@@ -13,8 +13,8 @@ interface Contract {
 interface MessageData {
     readonly selectedMessage: string
     readonly messageFields: Record<string, string>
-    readonly value: string
-    readonly sendMode: number
+    readonly value?: string
+    readonly sendMode?: number
     readonly autoDebug?: boolean
 }
 
@@ -55,11 +55,20 @@ export const SendMessage: React.FC<Props> = ({
     const [lastTransaction, setLastTransaction] = useState<LastTransaction | null>(null)
     const [autoDebug, setAutoDebug] = useState<boolean>(false)
 
-    const [messageMode, setMessageMode] = useState<"external" | "internal">("external")
+    const [messageMode, setMessageMode] = useState<"external" | "internal">("internal")
     const [selectedFromContract, setSelectedFromContract] = useState<string>("")
 
     const contract = contracts.find(c => c.address === selectedContract)
     const message = contract?.abi?.messages.find(m => m.name === selectedMessage)
+
+    useEffect(() => {
+        if (messageMode === "internal" && contracts.length > 0 && !selectedFromContract) {
+            const treasury = contracts.find(c => c.name === "treasury")
+            if (treasury) {
+                setSelectedFromContract(treasury.address)
+            }
+        }
+    }, [messageMode, contracts, selectedFromContract])
 
     const handleFieldChange = (fieldName: string, fieldValue: string): void => {
         const newFields = {...messageFields, [fieldName]: fieldValue}
@@ -100,8 +109,6 @@ export const SendMessage: React.FC<Props> = ({
             onSendMessage({
                 selectedMessage,
                 messageFields,
-                value,
-                sendMode,
                 autoDebug,
             })
         }
@@ -117,6 +124,14 @@ export const SendMessage: React.FC<Props> = ({
             <div className={styles.formGroup}>
                 <div className={styles.radioGroup}>
                     <div
+                        className={`${styles.messageModeButton} ${messageMode === "internal" ? styles.selected : ""}`}
+                        onClick={() => {
+                            setMessageMode("internal")
+                        }}
+                    >
+                        Internal Message
+                    </div>
+                    <div
                         className={`${styles.messageModeButton} ${messageMode === "external" ? styles.selected : ""}`}
                         onClick={() => {
                             setMessageMode("external")
@@ -124,14 +139,6 @@ export const SendMessage: React.FC<Props> = ({
                         }}
                     >
                         External Message
-                    </div>
-                    <div
-                        className={`${styles.messageModeButton} ${messageMode === "internal" ? styles.selected : ""}`}
-                        onClick={() => {
-                            setMessageMode("internal")
-                        }}
-                    >
-                        Contract to Contract
                     </div>
                 </div>
             </div>
@@ -224,22 +231,26 @@ export const SendMessage: React.FC<Props> = ({
                 <div className={styles.noMessages}>No messages available for this contract</div>
             )}
 
-            <div className={styles.formGroup}>
-                <Input
-                    label="Value (TON):"
-                    type="text"
-                    id="sendValue"
-                    value={value}
-                    onChange={e => {
-                        setValue(e.target.value)
-                    }}
-                    placeholder="1.0"
-                />
-            </div>
+            {messageMode === "internal" && (
+                <>
+                    <div className={styles.formGroup}>
+                        <Input
+                            label="Value (TON):"
+                            type="text"
+                            id="sendValue"
+                            value={value}
+                            onChange={e => {
+                                setValue(e.target.value)
+                            }}
+                            placeholder="1.0"
+                        />
+                    </div>
 
-            <div className={styles.formGroup}>
-                <SendModeSelector sendMode={sendMode} onSendModeChange={setSendMode} />
-            </div>
+                    <div className={styles.formGroup}>
+                        <SendModeSelector sendMode={sendMode} onSendModeChange={setSendMode} />
+                    </div>
+                </>
+            )}
 
             <div className={styles.formGroup}>
                 <label className={styles.checkboxLabel}>

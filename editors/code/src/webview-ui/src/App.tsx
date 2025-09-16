@@ -139,12 +139,10 @@ export default function App({vscode}: Props): JSX.Element {
                         onContractChange={setSelectedSendContract}
                         onSendMessage={messageData => {
                             vscode.postMessage({
-                                type: "sendMessage",
+                                type: "sendExternalMessage",
                                 contractAddress: selectedSendContract,
                                 selectedMessage: messageData.selectedMessage,
                                 messageFields: messageData.messageFields,
-                                sendMode: messageData.sendMode,
-                                value: messageData.value,
                                 autoDebug: messageData.autoDebug,
                             })
                         }}
@@ -155,8 +153,8 @@ export default function App({vscode}: Props): JSX.Element {
                                 toAddress: selectedSendContract,
                                 selectedMessage: messageData.selectedMessage,
                                 messageFields: messageData.messageFields,
-                                sendMode: messageData.sendMode,
-                                value: messageData.value,
+                                sendMode: messageData.sendMode ?? 0,
+                                value: messageData.value ?? "1.0",
                                 autoDebug: messageData.autoDebug,
                             })
                         }}
@@ -169,7 +167,7 @@ export default function App({vscode}: Props): JSX.Element {
                                 timestamp: tx.timestamp,
                             })
                         }}
-                        result={results["send-message-result"]}
+                        result={results["send-external-message-result"]}
                     />
                 )
             }

@@ -66,8 +66,6 @@ export function registerSandboxCommands(
 interface SendMessageResponse {
     readonly success: boolean
     readonly error?: string
-    readonly vmLogs?: string
-    readonly code?: string
     readonly txs?: readonly {
         readonly addr?: string
         readonly vmLogs?: string
@@ -76,19 +74,17 @@ interface SendMessageResponse {
     }[]
 }
 
-export async function sendMessage(
+export async function sendExternalMessage(
     address: string,
     message: string,
-    sendMode: number,
-    value?: string,
 ): Promise<SendMessageResponse> {
     const config = vscode.workspace.getConfiguration("ton")
     const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
 
-    const response = await fetch(`${sandboxUrl}/send`, {
+    const response = await fetch(`${sandboxUrl}/send-external`, {
         method: "POST",
         headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({address, message, sendMode, value}),
+        body: JSON.stringify({address, message}),
     })
 
     if (!response.ok) {

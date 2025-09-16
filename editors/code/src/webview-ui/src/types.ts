@@ -61,13 +61,11 @@ export interface UpdateActiveEditorMessage {
 }
 
 // Messages from Webview to Extension
-export interface SendMessageCommand {
-    readonly type: "sendMessage"
+export interface SendExternalMessageCommand {
+    readonly type: "sendExternalMessage"
     readonly contractAddress: string
     readonly selectedMessage: string
     readonly messageFields: Record<string, string>
-    readonly sendMode: number
-    readonly value: string
     readonly autoDebug?: boolean
 }
 
@@ -126,7 +124,7 @@ export type VSCodeMessage =
     | UpdateActiveEditorMessage
 
 export type VSCodeCommand =
-    | SendMessageCommand
+    | SendExternalMessageCommand
     | SendInternalMessageCommand
     | CallGetMethodCommand
     | LoadAbiForDeployCommand
