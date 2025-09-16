@@ -8,6 +8,7 @@ export interface TransactionDetails {
     readonly transactionId?: string
     readonly timestamp: string
     readonly status: "success" | "pending" | "failed"
+    readonly resultString?: string
 }
 
 export class TransactionDetailsProvider {

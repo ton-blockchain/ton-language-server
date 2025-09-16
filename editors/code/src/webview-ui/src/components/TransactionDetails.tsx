@@ -7,6 +7,7 @@ interface LocalTransactionDetails {
     readonly transactionId?: string
     readonly timestamp: string
     readonly status: "success" | "pending" | "failed"
+    readonly resultString?: string
 }
 
 interface Message {
@@ -127,6 +128,17 @@ export default function TransactionDetails({vscode}: Props): JSX.Element {
                     {new Date(transaction.timestamp).toLocaleString()}
                 </div>
             </div>
+
+            {transaction.resultString && (
+                <div className={styles.card}>
+                    <div className={styles.cardHeader}>
+                        <span className={styles.label}>Result:</span>
+                    </div>
+                    <div className={styles.resultString}>
+                        <pre>{transaction.resultString}</pre>
+                    </div>
+                </div>
+            )}
         </div>
     )
 }

@@ -110,6 +110,22 @@
     font-size: 0.9em;
 }
 
+.resultString {
+    background-color: var(--vscode-textCodeBlock-background);
+    padding: 8px;
+    border-radius: 3px;
+    border: 1px solid var(--vscode-textBlockQuote-border);
+    font-family: var(--vscode-editor-font-family, "Fira Code", monospace);
+    font-size: 0.8em;
+    overflow-x: auto;
+}
+
+.resultString pre {
+    margin: 0;
+    white-space: pre-wrap;
+    word-break: break-all;
+}
+
 /* Statuses */
 .statusSuccess {
     color: var(--vscode-charts-green);

@@ -853,12 +853,13 @@ export function setTransactionDetailsProvider(provider: TransactionDetailsProvid
 function registerTransactionDetailsCommand(disposables: vscode.Disposable[]): void {
     disposables.push(
         vscode.commands.registerCommand(
-            "ton.transaction.showDetails",
+            "ton.sandbox.showTransactionDetails",
             (args?: {
                 contractAddress: string
                 methodName: string
                 transactionId?: string
                 timestamp?: string
+                resultString?: string
             }) => {
                 if (!args || !globalTransactionDetailsProvider) {
                     console.log("Missing args or provider:", {
@@ -874,6 +875,7 @@ function registerTransactionDetailsCommand(disposables: vscode.Disposable[]): vo
                     transactionId: args.transactionId,
                     timestamp: args.timestamp ?? new Date().toISOString(),
                     status: "success", // For now always success
+                    resultString: args.resultString,
                 }
 
                 globalTransactionDetailsProvider.showTransactionDetails(transaction)

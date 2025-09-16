@@ -372,6 +372,11 @@
                 "command": "ton.sandbox.callGetMethodFromCodeLens",
                 "title": "Call Get Method from CodeLens",
                 "category": "TON"
+            },
+            {
+                "command": "ton.sandbox.showTransactionDetails",
+                "title": "Show Transaction Details",
+                "category": "TON"
             }
         ],
         "views": {

@@ -45,6 +45,16 @@ export class StatesWebviewProvider implements vscode.WebviewViewProvider {
                     void this.handleRestoreState(command.eventId)
                     break
                 }
+                case "showTransactionDetails": {
+                    void this.handleShowTransactionDetails(
+                        command.contractAddress,
+                        command.methodName,
+                        command.transactionId,
+                        command.timestamp,
+                        command.resultString,
+                    )
+                    break
+                }
             }
         })
     }
@@ -93,6 +103,27 @@ export class StatesWebviewProvider implements vscode.WebviewViewProvider {
     private refreshTreeContracts(): void {
         if (this._treeProvider) {
             this._treeProvider().refresh()
+        }
+    }
+
+    private async handleShowTransactionDetails(
+        contractAddress: string,
+        methodName: string,
+        transactionId?: string,
+        timestamp?: string,
+        resultString?: string,
+    ): Promise<void> {
+        try {
+            await vscode.commands.executeCommand("ton.sandbox.showTransactionDetails", {
+                contractAddress,
+                methodName,
+                transactionId,
+                timestamp,
+                resultString,
+            })
+        } catch (error) {
+            console.error("Failed to show transaction details:", error)
+            void vscode.window.showErrorMessage("Failed to show transaction details")
         }
     }
 

@@ -21,7 +21,20 @@ export interface RestoreStateCommand {
     readonly eventId: string
 }
 
-export type StatesCommand = LoadOperationsCommand | WebviewReadyCommand | RestoreStateCommand
+export interface ShowTransactionDetailsCommand {
+    readonly type: "showTransactionDetails"
+    readonly contractAddress: string
+    readonly methodName: string
+    readonly transactionId?: string
+    readonly timestamp: string
+    readonly resultString?: string
+}
+
+export type StatesCommand =
+    | LoadOperationsCommand
+    | WebviewReadyCommand
+    | RestoreStateCommand
+    | ShowTransactionDetailsCommand
 
 export interface StatesVSCodeAPI {
     readonly postMessage: (command: StatesCommand) => void

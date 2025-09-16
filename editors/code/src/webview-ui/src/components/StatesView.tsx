@@ -18,6 +18,7 @@ export interface OperationNode {
         readonly name?: string
         readonly address: string
     }
+    readonly resultString?: string
 }
 
 interface Props {
@@ -71,6 +72,13 @@ export const StatesView: React.FC<Props> = ({
                     onClick={() => {
                         toggleDetails(node.id)
                     }}
+                    tabIndex={0}
+                    onKeyDown={e => {
+                        if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault()
+                            toggleDetails(node.id)
+                        }
+                    }}
                 >
                     <div className={styles.compactContent}>
                         {node.type === "send-internal" ? (
@@ -97,7 +105,29 @@ export const StatesView: React.FC<Props> = ({
                                 </span>
                             </>
                         ) : null}
+
                         <span className={styles.timestamp}>
+                            <button
+                                className={styles.detailsButton}
+                                title="View transaction details"
+                                onClick={e => {
+                                    e.stopPropagation()
+                                    vscode.postMessage({
+                                        type: "showTransactionDetails",
+                                        contractAddress:
+                                            node.contractAddress ??
+                                            node.fromContract?.address ??
+                                            node.toContract?.address ??
+                                            "",
+                                        methodName: node.details ?? "transaction",
+                                        transactionId: node.id,
+                                        timestamp: node.timestamp,
+                                        resultString: node.resultString,
+                                    })
+                                }}
+                            >
+                                ⓘ
+                            </button>
                             {new Date(node.timestamp).toLocaleTimeString([], {
                                 hour: "2-digit",
                                 minute: "2-digit",

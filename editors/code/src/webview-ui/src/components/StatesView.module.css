@@ -100,6 +100,18 @@
 }
 
 .node:hover {
+    background-color: var(--vscode-list-hoverBackground);
+}
+
+.node:focus {
+    outline: 2px solid var(--vscode-focusBorder);
+    outline-offset: -2px;
+    background-color: var(--vscode-list-activeSelectionBackground);
+}
+
+.node:focus:not(:focus-visible) {
+    outline: none;
+    background-color: var(--vscode-list-hoverBackground);
 }
 
 .node::after {
@@ -209,11 +221,39 @@
     opacity: 1;
 }
 
+.detailsButton {
+    background: transparent;
+    border: none;
+    color: var(--vscode-badge-foreground);
+    cursor: pointer;
+    padding: 2px 6px;
+    margin-right: 4px;
+    border-radius: 10px;
+    font-size: 11px;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    opacity: 0.7;
+    transition: opacity 0.1s ease;
+}
+
+.node:hover .detailsButton {
+    display: flex;
+}
+
+.detailsButton:hover {
+    opacity: 1;
+    cursor: pointer;
+}
+
 .timestamp {
     color: var(--vscode-descriptionForeground);
     font-size: 10px;
     flex-shrink: 0;
     margin-left: auto;
+    display: flex;
+    align-items: center;
 }
 
 .details {
