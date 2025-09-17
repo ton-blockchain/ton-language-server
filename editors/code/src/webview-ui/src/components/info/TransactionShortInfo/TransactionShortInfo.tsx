@@ -166,12 +166,6 @@ export function TransactionShortInfo({
                                     </div>
                                 </div>
                                 <div className={styles.multiColumnItem}>
-                                    <div className={styles.multiColumnItemTitle}>IHR Disabled</div>
-                                    <div className={styles.multiColumnItemValue}>
-                                        {formatBoolean(inMessage.info.ihrDisabled)}
-                                    </div>
-                                </div>
-                                <div className={styles.multiColumnItem}>
                                     <div className={styles.multiColumnItemTitle}>Bounced</div>
                                     <div className={styles.multiColumnItemValue}>
                                         {formatBoolean(inMessage.info.bounced)}

@@ -112,6 +112,7 @@ export default function App({vscode}: Props): JSX.Element {
                     <ContractInfo
                         info={contractInfo}
                         contractAddress={selectedInfoContract}
+                        contracts={contracts}
                         onSendMessage={() => {
                             setSelectedSendContract(selectedInfoContract)
                             setActiveOperation("send-message")

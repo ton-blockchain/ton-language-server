@@ -2,11 +2,13 @@ import React, {useMemo} from "react"
 import styles from "./ContractInfo.module.css"
 import {Cell, loadShardAccount} from "@ton/core"
 import {ContractAbi} from "@shared/abi"
-import {ContractInfoData} from "../types"
+import {ContractInfoData, Contract} from "../types"
+import {VscEdit, VscFileCode} from "react-icons/vsc"
 
 interface Props {
     readonly info: ContractInfoData | undefined
     readonly contractAddress?: string
+    readonly contracts?: Contract[]
     readonly onSendMessage?: () => void
     readonly onCallGetMethod?: () => void
 }
@@ -124,15 +126,27 @@ function parseStorageData(abi: ContractAbi, dataBase64: string): Record<string, 
 export const ContractInfo: React.FC<Props> = ({
     info,
     contractAddress,
+    contracts = [],
     onSendMessage,
     onCallGetMethod,
 }) => {
+    const contractName = useMemo(() => {
+        if (!contractAddress || contracts.length === 0) return null
+        const contract = contracts.find(c => c.address === contractAddress)
+        return contract?.name ?? null
+    }, [contractAddress, contracts])
+
     const storageFields = useMemo(() => {
-        if (info?.abi && info.stateInit?.data) {
-            return parseStorageData(info.abi, info.stateInit.data)
+        if (info?.abi && info.account) {
+            const account = loadShardAccount(Cell.fromHex(info.account).beginParse())
+            const state = account.account?.storage.state
+            if (state?.type === "active" && state.state.data) {
+                return parseStorageData(info.abi, state.state.data.toBoc().toString("base64"))
+            }
         }
         return {}
     }, [info?.abi, info?.stateInit?.data])
+
     if (!info) {
         return (
             <div className={styles.container}>
@@ -147,11 +161,9 @@ export const ContractInfo: React.FC<Props> = ({
     try {
         const account = loadShardAccount(Cell.fromHex(info.account).beginParse())
         const balance = account.account?.storage.balance.coins.toString() ?? "0"
-        const isActive = account.account?.storage.state.type === "active"
-        const codeHash =
-            account.account?.storage.state.type === "active"
-                ? account.account.storage.state.state.code?.hash().toString("hex")
-                : undefined
+        const stateType = account.account?.storage.state.type
+        const isActive = stateType === "active"
+        const isFrozen = stateType === "frozen"
 
         const formatAddress = (address: string): string => {
             if (address.length <= 12) return address
@@ -166,51 +178,70 @@ export const ContractInfo: React.FC<Props> = ({
         return (
             <div className={styles.container}>
                 <div className={styles.header}>
-                    {contractAddress && (
-                        <div className={styles.address}>
-                            <span className={styles.addressLabel}>Address:</span>
-                            <span className={styles.addressValue} title={contractAddress}>
-                                {formatAddress(contractAddress)}
+                    <div className={styles.headerLeft}>
+                        <div className={styles.contractTitle}>
+                            <span className={styles.contractName}>
+                                {contractName ?? "Unknown Contract"}
                             </span>
+                            {contractAddress && (
+                                <span
+                                    className={styles.contractNameValue}
+                                    title={contractAddress}
+                                    onClick={() => {
+                                        navigator.clipboard
+                                            .writeText(contractAddress)
+                                            .catch(console.error)
+                                    }}
+                                >
+                                    {formatAddress(contractAddress)}
+                                </span>
+                            )}
                         </div>
-                    )}
-                </div>
-
-                <div className={styles.infoGrid}>
-                    <div className={styles.infoItem}>
-                        <span className={styles.label}>Status:</span>
-                        <span
-                            className={`${styles.status} ${isActive ? styles.active : styles.inactive}`}
+                        <div
+                            className={`${styles.contractStatus} ${
+                                isActive
+                                    ? styles.active
+                                    : isFrozen
+                                      ? styles.frozen
+                                      : styles.inactive
+                            }`}
                         >
-                            {isActive ? "Active" : "Inactive"}
-                        </span>
-                    </div>
-
-                    <div className={styles.infoItem}>
-                        <span className={styles.label}>Balance:</span>
-                        <span className={styles.balance}>{formatBalance(balance)}</span>
-                    </div>
-
-                    {codeHash && (
-                        <div className={styles.infoItem}>
-                            <span className={styles.label}>Code Hash:</span>
-                            <span className={styles.codeHash} title={codeHash}>
-                                {formatAddress(codeHash)}
+                            <span className={styles.statusDot}></span>
+                            <span className={styles.statusText}>
+                                {isActive ? "Active" : isFrozen ? "Frozen" : "Inactive"}
                             </span>
                         </div>
-                    )}
-
-                    <div className={styles.infoItem}>
-                        <span className={styles.label}>Last Transaction:</span>
-                        <span className={styles.lastTx}>
-                            {account.account?.storage.lastTransLt.toString() ?? "N/A"}
-                        </span>
+                        <div className={styles.contractBalance}>
+                            <span className={styles.balanceText}>{formatBalance(balance)}</span>
+                        </div>
+                    </div>
+                    <div className={styles.headerActions}>
+                        <button
+                            className={styles.headerActionButton}
+                            title="Rename contract"
+                            onClick={() => {
+                                // TODO: Implement contract renaming
+                                console.log("Rename contract clicked")
+                            }}
+                        >
+                            <VscEdit size={14} />
+                        </button>
+                        <button
+                            className={styles.headerActionButton}
+                            title="Open contract source"
+                            onClick={() => {
+                                // TODO: Implement opening contract source
+                                console.log("Open contract source clicked")
+                            }}
+                        >
+                            <VscFileCode size={14} />
+                        </button>
                     </div>
                 </div>
 
                 {Object.keys(storageFields).length > 0 && (
                     <div className={styles.storageSection}>
-                        <div className={styles.sectionTitle}>Storage Fields</div>
+                        <div className={styles.sectionTitle}>Storage</div>
                         <div className={styles.storageGrid}>
                             {Object.entries(storageFields).map(([fieldName, fieldValue]) => (
                                 <div key={fieldName} className={styles.storageItem}>
