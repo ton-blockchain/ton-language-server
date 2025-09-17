@@ -129,10 +129,9 @@ export async function compileAndDeployFromEditor(
             contractAbi,
         )
         if (deployResult.success && deployResult.address) {
-            const contractName = getContractNameFromDocument(editor.document)
             const isRedeploy = treeProvider?.isContractDeployed(deployResult.address) ?? false
 
-            treeProvider?.addDeployedContract(deployResult.address, contractName, contractAbi)
+            treeProvider?.addDeployedContract(deployResult.address, name, contractAbi)
 
             void vscode.commands.executeCommand("ton.sandbox.states.refresh")
 

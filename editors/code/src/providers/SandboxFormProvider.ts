@@ -91,7 +91,11 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
                     break
                 }
                 case "compileAndDeploy": {
-                    void this.handleCompileAndDeploy(command.name, command.storageFields)
+                    void this.handleCompileAndDeploy(
+                        command.name,
+                        command.storageFields,
+                        command.value,
+                    )
                     break
                 }
                 case "renameContract": {
