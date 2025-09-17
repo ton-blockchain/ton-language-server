@@ -241,9 +241,14 @@ export const ContractInfo: React.FC<Props> = ({
                                 className={styles.headerActionButton}
                                 title="Open contract source"
                                 onClick={() => {
-                                    // TODO: Implement opening contract source
-                                    console.log("Open contract source clicked")
+                                    if (info.sourceUri) {
+                                        vscode.postMessage({
+                                            type: "openContractSource",
+                                            sourceUri: info.sourceUri,
+                                        })
+                                    }
                                 }}
+                                disabled={!info.sourceUri}
                             >
                                 <VscFileCode size={14} />
                             </button>

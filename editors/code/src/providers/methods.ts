@@ -127,6 +127,7 @@ export async function compileAndDeployFromEditor(
             value,
             result.sourceMap,
             contractAbi,
+            editor.document.uri.toString(),
         )
         if (deployResult.success && deployResult.address) {
             const isRedeploy = treeProvider?.isContractDeployed(deployResult.address) ?? false
@@ -165,6 +166,7 @@ async function deployContract(
     value?: string,
     sourceMap?: TolkSourceMap,
     abi?: ContractAbi,
+    sourceUri?: string,
 ): Promise<{
     success: boolean
     address?: string
@@ -183,6 +185,7 @@ async function deployContract(
                 name,
                 sourceMap,
                 abi,
+                sourceUri,
             }),
         })
 

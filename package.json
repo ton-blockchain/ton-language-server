@@ -311,11 +311,6 @@
                 "icon": "$(symbol-method)"
             },
             {
-                "command": "ton.sandbox.selectContract",
-                "title": "Select Contract",
-                "category": "TON"
-            },
-            {
                 "command": "ton.sandbox.refresh",
                 "title": "Refresh",
                 "category": "TON",
@@ -454,13 +449,6 @@
                     "command": "ton.sandbox.states.refresh",
                     "when": "view == tonSandboxHistory",
                     "group": "navigation"
-                }
-            ],
-            "view/item/context": [
-                {
-                    "command": "ton.sandbox.selectContract",
-                    "when": "view == tonSandbox && viewItem == deployed-contract",
-                    "group": "inline"
                 }
             ]
         },

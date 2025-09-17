@@ -4,6 +4,7 @@ export interface Contract {
     readonly address: string
     readonly name: string
     readonly abi?: ContractAbi
+    readonly sourceUri?: string
 }
 
 export interface ResultData {
@@ -44,6 +45,7 @@ export interface ContractInfoData {
         readonly data: string
     }
     readonly abi?: ContractAbi
+    readonly sourceUri?: string
 }
 
 export interface UpdateContractInfoMessage {
@@ -132,6 +134,11 @@ export interface ShowTransactionDetailsCommand {
     readonly abi?: object
 }
 
+export interface OpenContractSourceCommand {
+    readonly type: "openContractSource"
+    readonly sourceUri: string
+}
+
 export type VSCodeMessage =
     | UpdateContractsMessage
     | ShowResultMessage
@@ -151,6 +158,7 @@ export type VSCodeCommand =
     | RefreshContractsCommand
     | WebviewReadyCommand
     | ShowTransactionDetailsCommand
+    | OpenContractSourceCommand
 
 export interface VSCodeAPI {
     readonly postMessage: (command: VSCodeCommand) => void

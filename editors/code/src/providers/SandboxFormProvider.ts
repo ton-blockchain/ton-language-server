@@ -121,11 +121,20 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
                     })
                     break
                 }
+                case "openContractSource": {
+                    void vscode.commands.executeCommand(
+                        "vscode.open",
+                        vscode.Uri.parse(command.sourceUri),
+                    )
+                    break
+                }
             }
         })
     }
 
-    public updateContracts(contracts: {address: string; name: string; abi?: ContractAbi}[]): void {
+    public updateContracts(
+        contracts: {address: string; name: string; abi?: ContractAbi; sourceUri?: string}[],
+    ): void {
         this.deployedContracts = contracts
         if (this.view && contracts.length > 0) {
             const message: UpdateContractsMessage = {

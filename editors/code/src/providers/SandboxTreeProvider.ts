@@ -21,6 +21,7 @@ interface DeployedContract {
     readonly name: string
     readonly deployTime: Date
     readonly abi?: ContractAbi
+    readonly sourceUri?: string
 }
 
 export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeItem> {
@@ -260,7 +261,13 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
             }
 
             const data = (await response.json()) as {
-                contracts: {address: string; name: string; sourceMap?: object; abi?: object}[]
+                contracts: {
+                    address: string
+                    name: string
+                    sourceMap?: object
+                    abi?: object
+                    sourceUri?: string
+                }[]
             }
 
             const serverAddresses = new Set(data.contracts.map(c => c.address))
@@ -273,6 +280,7 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
                 name: c.name,
                 deployTime: new Date(),
                 abi: c.abi as ContractAbi | undefined,
+                sourceUri: c.sourceUri,
             }))
 
             this.deployedContracts = [...existingContracts, ...serverContracts]
@@ -344,6 +352,7 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
                     address: c.address,
                     name: c.name,
                     abi: c.abi,
+                    sourceUri: c.sourceUri,
                 })),
             )
         }

@@ -16,12 +16,6 @@ export function registerSandboxCommands(
     const disposables: vscode.Disposable[] = []
 
     disposables.push(
-        vscode.commands.registerCommand("ton.sandbox.selectContract", async (address: string) => {
-            await vscode.env.clipboard.writeText(address)
-            void vscode.window.showInformationMessage(
-                `Contract address copied to clipboard: ${address}`,
-            )
-        }),
         vscode.commands.registerCommand("ton.sandbox.refresh", () => {
             treeProvider.refresh()
         }),
@@ -195,7 +189,13 @@ export async function renameContract(
 
 export async function getContracts(): Promise<{
     success: boolean
-    contracts?: {address: string; name?: string; sourceMap?: object; abi?: object}[]
+    contracts?: {
+        address: string
+        name?: string
+        sourceMap?: object
+        abi?: object
+        sourceUri?: string
+    }[]
     error?: string
 }> {
     const config = vscode.workspace.getConfiguration("ton")
@@ -216,7 +216,13 @@ export async function getContracts(): Promise<{
     }
 
     const data = (await response.json()) as {
-        contracts: {address: string; name?: string; sourceMap?: object; abi?: object}[]
+        contracts: {
+            address: string
+            name?: string
+            sourceMap?: object
+            abi?: object
+            sourceUri?: string
+        }[]
     }
     return {
         success: true,
