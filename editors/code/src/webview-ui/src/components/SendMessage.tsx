@@ -180,6 +180,34 @@ export const SendMessage: React.FC<Props> = ({
         })
     }
 
+    const isFormValid = (): boolean => {
+        if (!selectedContract || !selectedMessage) {
+            return false
+        }
+
+        if (messageMode === "internal") {
+            if (!selectedFromContract) {
+                return false
+            }
+
+            const numericValue = Number.parseFloat(value)
+            if (Number.isNaN(numericValue) || numericValue <= 0) {
+                return false
+            }
+        }
+
+        if (message?.fields) {
+            for (const field of message.fields) {
+                const fieldValue = messageFields[field.name] as string | undefined
+                if (!fieldValue?.trim()) {
+                    return false
+                }
+            }
+        }
+
+        return true
+    }
+
     const handleSendMessage = (): void => {
         if (messageMode === "internal") {
             if (!selectedFromContract || !selectedContract || !selectedMessage) {
@@ -371,7 +399,13 @@ export const SendMessage: React.FC<Props> = ({
                             id="sendValue"
                             value={value}
                             onChange={e => {
-                                setValue(e.target.value)
+                                const newValue = e.target.value
+                                const numericValue = Number.parseFloat(newValue)
+                                if (!Number.isNaN(numericValue) && numericValue >= 0) {
+                                    setValue(newValue)
+                                } else if (newValue === "" || newValue === ".") {
+                                    setValue(newValue)
+                                }
                                 if (selectedTemplate) {
                                     setSelectedTemplate("")
                                 }
@@ -410,7 +444,7 @@ export const SendMessage: React.FC<Props> = ({
             </div>
 
             <div className={styles.buttonRow}>
-                <Button onClick={handleSendMessage} disabled={contracts.length === 0}>
+                <Button onClick={handleSendMessage} disabled={!isFormValid()}>
                     Send Message
                 </Button>
                 <Button

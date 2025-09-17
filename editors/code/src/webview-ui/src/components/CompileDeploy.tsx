@@ -32,16 +32,25 @@ export const CompileDeploy: React.FC<Props> = ({onCompileAndDeploy, result, cont
         setStorageFields(newFields)
     }
 
-    const handleCompileAndDeploy = (): void => {
-        if (contractAbi?.storage?.fields) {
-            const emptyRequiredFields = contractAbi.storage.fields
-                .filter(field => !storageFields[field.name].trim())
-                .map(field => field.name)
+    const isFormValid = (): boolean => {
+        if (!contractName.trim()) {
+            return false
+        }
 
-            if (emptyRequiredFields.length > 0) {
-                return
+        if (contractAbi?.storage?.fields) {
+            for (const field of contractAbi.storage.fields) {
+                const value = storageFields[field.name] as string | undefined
+                if (!value?.trim()) {
+                    return false
+                }
             }
         }
+
+        const numericValue = Number.parseFloat(value)
+        return !Number.isNaN(numericValue) && numericValue > 0
+    }
+
+    const handleCompileAndDeploy = (): void => {
         onCompileAndDeploy(storageFields, value, contractName)
     }
 
@@ -97,13 +106,21 @@ export const CompileDeploy: React.FC<Props> = ({onCompileAndDeploy, result, cont
                             id="deployValue"
                             value={value}
                             onChange={e => {
-                                setValue(e.target.value)
+                                const newValue = e.target.value
+                                const numericValue = Number.parseFloat(newValue)
+                                if (!Number.isNaN(numericValue) && numericValue >= 0) {
+                                    setValue(newValue)
+                                } else if (newValue === "" || newValue === ".") {
+                                    setValue(newValue)
+                                }
                             }}
                             placeholder="1.0"
                         />
                     </div>
 
-                    <Button onClick={handleCompileAndDeploy}>Compile & Deploy from Editor</Button>
+                    <Button onClick={handleCompileAndDeploy} disabled={!isFormValid()}>
+                        Compile & Deploy from Editor
+                    </Button>
                 </>
             )}
 
