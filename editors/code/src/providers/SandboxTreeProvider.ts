@@ -235,7 +235,7 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
             this.sandboxStatus = response.ok ? "connected" : "error"
 
             if (this.sandboxStatus === "connected" && loadContracts) {
-                await this.loadContractsFromServer(sandboxUrl)
+                await this.loadContractsFromServer()
             }
         } catch {
             this.sandboxStatus = "disconnected"
@@ -244,8 +244,11 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
         this.codeLensProvider?.refresh()
     }
 
-    private async loadContractsFromServer(sandboxUrl: string): Promise<void> {
+    public async loadContractsFromServer(): Promise<void> {
         try {
+            const config = vscode.workspace.getConfiguration("ton")
+            const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
+
             const response = await fetch(`${sandboxUrl}/contracts`, {
                 method: "GET",
                 signal: AbortSignal.timeout(5000),

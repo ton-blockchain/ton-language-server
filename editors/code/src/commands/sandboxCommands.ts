@@ -167,6 +167,63 @@ export async function callGetMethod(
     }
 }
 
+export async function renameContract(
+    address: string,
+    newName: string,
+): Promise<{
+    success: boolean
+    error?: string
+}> {
+    const config = vscode.workspace.getConfiguration("ton")
+    const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
+
+    const response = await fetch(`${sandboxUrl}/rename-contract`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({address, newName}),
+    })
+
+    if (!response.ok) {
+        throw new Error(`API call failed: ${response.status} ${response.statusText}`)
+    }
+
+    return (await response.json()) as {
+        success: boolean
+        error?: string
+    }
+}
+
+export async function getContracts(): Promise<{
+    success: boolean
+    contracts?: {address: string; name?: string; sourceMap?: object; abi?: object}[]
+    error?: string
+}> {
+    const config = vscode.workspace.getConfiguration("ton")
+    const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
+
+    const response = await fetch(`${sandboxUrl}/contracts`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+        },
+    })
+
+    if (!response.ok) {
+        return {
+            success: false,
+            error: `HTTP ${response.status}: ${response.statusText}`,
+        }
+    }
+
+    const data = (await response.json()) as {
+        contracts: {address: string; name?: string; sourceMap?: object; abi?: object}[]
+    }
+    return {
+        success: true,
+        contracts: data.contracts,
+    }
+}
+
 export function buildStructuredMessage(
     messageName: string,
     messageFields: Record<string, string>,

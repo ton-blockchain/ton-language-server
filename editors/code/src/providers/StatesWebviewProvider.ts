@@ -3,7 +3,7 @@
 import * as vscode from "vscode"
 import {OperationNode} from "../webview-ui/src/components/StatesView"
 import {StatesCommand, StatesMessage} from "../webview-ui/src/states-types"
-import {getOperations, restoreBlockchainState} from "../commands/sandboxCommands"
+import {getOperations, restoreBlockchainState, getContracts} from "../commands/sandboxCommands"
 import {processRawTransactions, RawTransactionInfo, RawTransactions} from "./lib/raw-transaction"
 import {Cell, loadTransaction} from "@ton/core"
 
@@ -12,6 +12,7 @@ export class StatesWebviewProvider implements vscode.WebviewViewProvider {
 
     private view?: vscode.WebviewView
     private operations: OperationNode[] = []
+    private contracts: {address: string; name?: string; sourceMap?: object; abi?: object}[] = []
     private isLoading: boolean = false
 
     public constructor(
@@ -70,18 +71,28 @@ export class StatesWebviewProvider implements vscode.WebviewViewProvider {
         this.updateWebview()
 
         try {
-            const result = await getOperations()
+            const [operationsResult, contractsResult] = await Promise.all([
+                getOperations(),
+                getContracts(),
+            ])
 
-            if (result.success && result.operations) {
-                this.operations = result.operations
+            if (operationsResult.success && operationsResult.operations) {
+                this.operations = operationsResult.operations
             } else {
-                console.error("Failed to load operations:", result.error)
-                // Fallback to empty array
+                console.error("Failed to load operations:", operationsResult.error)
                 this.operations = []
             }
+
+            if (contractsResult.success && contractsResult.contracts) {
+                this.contracts = contractsResult.contracts
+            } else {
+                console.error("Failed to load contracts:", contractsResult.error)
+                this.contracts = []
+            }
         } catch (error) {
-            console.error("Failed to load operations:", error)
+            console.error("Failed to load operations and contracts:", error)
             this.operations = []
+            this.contracts = []
         } finally {
             this.isLoading = false
             this.updateWebview()
@@ -206,9 +217,10 @@ export class StatesWebviewProvider implements vscode.WebviewViewProvider {
             const message: StatesMessage = {
                 type: "updateOperations",
                 operations: this.operations,
+                contracts: this.contracts,
                 isLoading: this.isLoading,
             }
-            this.view.webview.postMessage(message)
+            void this.view.webview.postMessage(message)
         }
     }
 

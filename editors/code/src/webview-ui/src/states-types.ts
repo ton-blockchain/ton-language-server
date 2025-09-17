@@ -3,6 +3,7 @@ import {OperationNode} from "./components/StatesView"
 export interface UpdateOperationsMessage {
     readonly type: "updateOperations"
     readonly operations: OperationNode[]
+    readonly contracts?: {address: string; name?: string; sourceMap?: object; abi?: object}[]
     readonly isLoading?: boolean
 }
 

@@ -17,19 +17,14 @@ export interface OperationNode {
     readonly contractAddress?: string
     readonly success: boolean
     readonly details?: string
-    readonly fromContract?: {
-        readonly name?: string
-        readonly address: string
-    }
-    readonly toContract?: {
-        readonly name?: string
-        readonly address: string
-    }
+    readonly fromContract?: string
+    readonly toContract?: string
     readonly resultString?: string
 }
 
 interface Props {
     readonly operations: OperationNode[]
+    readonly contracts?: {address: string; name?: string; sourceMap?: object; abi?: object}[]
     readonly onLoadOperations: () => void
     readonly isLoading?: boolean
     readonly vscode: StatesVSCodeAPI
@@ -37,6 +32,7 @@ interface Props {
 
 export const StatesView: React.FC<Props> = ({
     operations,
+    contracts = [],
     onLoadOperations,
     isLoading = false,
     vscode,
@@ -62,8 +58,9 @@ export const StatesView: React.FC<Props> = ({
             return "treasury"
         }
 
-        if (!nameOrAddress.startsWith("EQ") && !nameOrAddress.startsWith("UQ")) {
-            return nameOrAddress
+        const contract = contracts.find(c => c.address === nameOrAddress)
+        if (contract?.name) {
+            return contract.name
         }
 
         return `${nameOrAddress.slice(0, 3)}...${nameOrAddress.slice(-3)}`
@@ -119,24 +116,20 @@ export const StatesView: React.FC<Props> = ({
                         {node.type === "send-internal" ? (
                             <>
                                 <span className={styles.contractName}>
-                                    {formatContractName(
-                                        node.fromContract?.name ?? node.fromContract?.address ?? "",
-                                    )}
+                                    {formatContractName(node.fromContract ?? "")}
                                 </span>
                                 <span className={styles.label}> → </span>
                                 <span className={styles.contractName}>
-                                    {formatContractName(
-                                        node.toContract?.name ?? node.toContract?.address ?? "",
-                                    )}
+                                    {formatContractName(node.toContract ?? "")}
                                 </span>
                             </>
-                        ) : node.contractName ? (
+                        ) : node.contractAddress ? (
                             <>
                                 {node.type === "deploy" && (
                                     <span className={styles.label}>Deploy </span>
                                 )}
                                 <span className={styles.contractName}>
-                                    {formatContractName(node.contractName)}
+                                    {formatContractName(node.contractAddress)}
                                 </span>
                             </>
                         ) : null}
@@ -164,8 +157,8 @@ export const StatesView: React.FC<Props> = ({
                                         type: "showTransactionDetails",
                                         contractAddress:
                                             node.contractAddress ??
-                                            node.fromContract?.address ??
-                                            node.toContract?.address ??
+                                            node.fromContract ??
+                                            node.toContract ??
                                             "",
                                         methodName: node.details ?? "transaction",
                                         transactionId: node.id,

@@ -47,7 +47,7 @@
         "grammar:fift:wasm": "cd server/src/languages/fift/tree-sitter-fift && tree-sitter generate && tree-sitter build --wasm",
         "grammar:tlb:wasm": "cd server/src/languages/tlb/tree-sitter-tlb && tree-sitter generate && tree-sitter build --wasm",
         "watch": "webpack --watch",
-        "precommit": "yarn build && yarn fmt && yarn lint",
+        "precommit": "yarn build && yarn fmt && yarn lint --fix",
         "test:grammars": "yarn test:grammars:tolk && yarn test:grammars:fift && yarn test:grammars:tlb",
         "test:grammars:tolk": "cd ./server/src/languages/tolk/tree-sitter-tolk/ && tree-sitter test",
         "test:grammars:fift": "cd ./server/src/languages/fift/tree-sitter-fift/ && tree-sitter test",

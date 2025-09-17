@@ -2,7 +2,7 @@ import React, {useMemo} from "react"
 import styles from "./ContractInfo.module.css"
 import {Cell, loadShardAccount} from "@ton/core"
 import {ContractAbi} from "@shared/abi"
-import {ContractInfoData, Contract} from "../types"
+import {ContractInfoData, Contract, VSCodeAPI} from "../types"
 import {VscEdit, VscFileCode} from "react-icons/vsc"
 
 interface Props {
@@ -11,6 +11,7 @@ interface Props {
     readonly contracts?: Contract[]
     readonly onSendMessage?: () => void
     readonly onCallGetMethod?: () => void
+    readonly vscode: VSCodeAPI
 }
 
 function parseStorageData(abi: ContractAbi, dataBase64: string): Record<string, unknown> {
@@ -129,12 +130,23 @@ export const ContractInfo: React.FC<Props> = ({
     contracts = [],
     onSendMessage,
     onCallGetMethod,
+    vscode,
 }) => {
     const contractName = useMemo(() => {
         if (!contractAddress || contracts.length === 0) return null
         const contract = contracts.find(c => c.address === contractAddress)
         return contract?.name ?? null
     }, [contractAddress, contracts])
+
+    const handleRenameContract = (): void => {
+        if (!contractAddress || !contractName) return
+
+        vscode.postMessage({
+            type: "renameContract",
+            contractAddress,
+            newName: contractName,
+        })
+    }
 
     const storageFields = useMemo(() => {
         if (info?.abi && info.account) {
@@ -215,28 +227,28 @@ export const ContractInfo: React.FC<Props> = ({
                             <span className={styles.balanceText}>{formatBalance(balance)}</span>
                         </div>
                     </div>
-                    <div className={styles.headerActions}>
-                        <button
-                            className={styles.headerActionButton}
-                            title="Rename contract"
-                            onClick={() => {
-                                // TODO: Implement contract renaming
-                                console.log("Rename contract clicked")
-                            }}
-                        >
-                            <VscEdit size={14} />
-                        </button>
-                        <button
-                            className={styles.headerActionButton}
-                            title="Open contract source"
-                            onClick={() => {
-                                // TODO: Implement opening contract source
-                                console.log("Open contract source clicked")
-                            }}
-                        >
-                            <VscFileCode size={14} />
-                        </button>
-                    </div>
+
+                    {contractName !== "treasury" && (
+                        <div className={styles.headerActions}>
+                            <button
+                                className={styles.headerActionButton}
+                                title="Rename contract"
+                                onClick={handleRenameContract}
+                            >
+                                <VscEdit size={14} />
+                            </button>
+                            <button
+                                className={styles.headerActionButton}
+                                title="Open contract source"
+                                onClick={() => {
+                                    // TODO: Implement opening contract source
+                                    console.log("Open contract source clicked")
+                                }}
+                            >
+                                <VscFileCode size={14} />
+                            </button>
+                        </div>
+                    )}
                 </div>
 
                 {Object.keys(storageFields).length > 0 && (

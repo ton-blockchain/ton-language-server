@@ -121,6 +121,7 @@ export default function App({vscode}: Props): JSX.Element {
                             setSelectedGetContract(selectedInfoContract)
                             setActiveOperation("get-method")
                         }}
+                        vscode={vscode}
                     />
                 )
             }

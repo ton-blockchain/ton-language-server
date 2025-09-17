@@ -103,6 +103,16 @@ export interface CompileAndDeployCommand {
     readonly name: string
 }
 
+export interface RenameContractCommand {
+    readonly type: "renameContract"
+    readonly contractAddress: string
+    readonly newName: string
+}
+
+export interface RefreshContractsCommand {
+    readonly type: "refreshContracts"
+}
+
 export interface WebviewReadyCommand {
     readonly type: "webviewReady"
 }
@@ -137,6 +147,8 @@ export type VSCodeCommand =
     | LoadAbiForDeployCommand
     | LoadContractInfoCommand
     | CompileAndDeployCommand
+    | RenameContractCommand
+    | RefreshContractsCommand
     | WebviewReadyCommand
     | ShowTransactionDetailsCommand
 

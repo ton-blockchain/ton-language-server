@@ -17,6 +17,7 @@ import {
     sendExternalMessage,
     sendInternalMessage,
     callGetMethod,
+    renameContract,
     buildStructuredMessage,
 } from "../commands/sandboxCommands"
 import {compileAndDeployFromEditor, loadContractAbiForDeploy, loadContractInfo} from "./methods"
@@ -91,6 +92,14 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
                 }
                 case "compileAndDeploy": {
                     void this.handleCompileAndDeploy(command.name, command.storageFields)
+                    break
+                }
+                case "renameContract": {
+                    void this.handleRenameContract(command.contractAddress, command.newName)
+                    break
+                }
+                case "refreshContracts": {
+                    this.updateContracts(this.deployedContracts)
                     break
                 }
                 case "webviewReady": {
@@ -463,6 +472,61 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
         const info = await loadContractInfo(contractAddress)
         if (info.result) {
             this.updateContractInfo(info.result)
+        }
+    }
+
+    private async handleRenameContract(
+        contractAddress: string,
+        currentName: string,
+    ): Promise<void> {
+        try {
+            const newName = await vscode.window.showInputBox({
+                prompt: "Enter new contract name",
+                value: currentName,
+                placeHolder: "Contract name",
+                validateInput: value => {
+                    if (!value || value.trim().length === 0) {
+                        return "Contract name cannot be empty"
+                    }
+                    if (value.trim() === currentName) {
+                        return "New name must be different from current name"
+                    }
+                    return null
+                },
+            })
+
+            if (!newName || newName.trim() === currentName) {
+                return
+            }
+
+            const result = await renameContract(contractAddress, newName.trim())
+
+            if (result.success) {
+                const contractIndex = this.deployedContracts.findIndex(
+                    c => c.address === contractAddress,
+                )
+                if (contractIndex !== -1) {
+                    this.deployedContracts[contractIndex].name = newName.trim()
+                }
+
+                if (this._treeProvider) {
+                    void this._treeProvider().loadContractsFromServer()
+                }
+
+                vscode.commands.executeCommand("ton.sandbox.states.refresh")
+
+                void vscode.window.showInformationMessage(
+                    `Contract renamed from "${currentName}" to "${newName.trim()}"`,
+                )
+            } else {
+                void vscode.window.showErrorMessage(
+                    `Failed to rename contract: ${result.error ?? "Unknown error"}`,
+                )
+            }
+        } catch (error) {
+            void vscode.window.showErrorMessage(
+                `Failed to rename contract: ${error instanceof Error ? error.message : "Unknown error"}`,
+            )
         }
     }
 

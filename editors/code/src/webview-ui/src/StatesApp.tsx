@@ -8,6 +8,9 @@ interface Props {
 
 export default function StatesApp({vscode}: Props): React.JSX.Element {
     const [operations, setOperations] = useState<OperationNode[]>([])
+    const [contracts, setContracts] = useState<
+        {address: string; name?: string; sourceMap?: object; abi?: object}[]
+    >([])
     const [isLoading, setIsLoading] = useState(false)
 
     const loadOperations = useCallback(() => {
@@ -25,6 +28,7 @@ export default function StatesApp({vscode}: Props): React.JSX.Element {
                 // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
                 case "updateOperations": {
                     setOperations(message.operations)
+                    setContracts(message.contracts ?? [])
                     setIsLoading(message.isLoading ?? false)
                     break
                 }
@@ -45,6 +49,7 @@ export default function StatesApp({vscode}: Props): React.JSX.Element {
     return (
         <StatesView
             operations={operations}
+            contracts={contracts}
             onLoadOperations={loadOperations}
             isLoading={isLoading}
             vscode={vscode}
