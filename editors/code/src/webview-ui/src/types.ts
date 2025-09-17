@@ -139,6 +139,82 @@ export interface OpenContractSourceCommand {
     readonly sourceUri: string
 }
 
+export interface CreateMessageTemplateCommand {
+    readonly type: "createMessageTemplate"
+    readonly name: string
+    readonly opcode: number
+    readonly messageFields: Record<string, string>
+    readonly sendMode: number
+    readonly value?: string
+    readonly description?: string
+}
+
+export interface GetMessageTemplatesCommand {
+    readonly type: "getMessageTemplates"
+}
+
+export interface UpdateMessageTemplateCommand {
+    readonly type: "updateMessageTemplate"
+    readonly id: string
+    readonly name?: string
+    readonly description?: string
+}
+
+export interface DeleteMessageTemplateCommand {
+    readonly type: "deleteMessageTemplate"
+    readonly id: string
+}
+
+export interface LoadMessageTemplateCommand {
+    readonly type: "loadMessageTemplate"
+    readonly id: string
+}
+
+export interface SaveMessageAsTemplateCommand {
+    readonly type: "saveMessageAsTemplate"
+    readonly contractAddress: string
+    readonly messageName: string
+    readonly messageFields: Record<string, string>
+    readonly sendMode: number
+    readonly value: string
+}
+
+export interface MessageTemplatesMessage {
+    readonly type: "messageTemplates"
+    readonly templates: MessageTemplate[]
+}
+
+export interface MessageTemplate {
+    readonly id: string
+    readonly name: string
+    readonly opcode: number
+    readonly messageFields: Record<string, string>
+    readonly sendMode: number
+    readonly value?: string
+    readonly createdAt: string
+    readonly description?: string
+}
+
+export interface MessageTemplateMessage {
+    readonly type: "messageTemplate"
+    readonly template: MessageTemplate
+}
+
+export interface TemplateCreatedMessage {
+    readonly type: "templateCreated"
+    readonly template: MessageTemplate
+}
+
+export interface TemplateUpdatedMessage {
+    readonly type: "templateUpdated"
+    readonly template: MessageTemplate
+}
+
+export interface TemplateDeletedMessage {
+    readonly type: "templateDeleted"
+    readonly templateId: string
+}
+
 export type VSCodeMessage =
     | UpdateContractsMessage
     | ShowResultMessage
@@ -146,6 +222,11 @@ export type VSCodeMessage =
     | UpdateContractAbiMessage
     | UpdateContractInfoMessage
     | UpdateActiveEditorMessage
+    | MessageTemplatesMessage
+    | MessageTemplateMessage
+    | TemplateCreatedMessage
+    | TemplateUpdatedMessage
+    | TemplateDeletedMessage
 
 export type VSCodeCommand =
     | SendExternalMessageCommand
@@ -159,6 +240,12 @@ export type VSCodeCommand =
     | WebviewReadyCommand
     | ShowTransactionDetailsCommand
     | OpenContractSourceCommand
+    | CreateMessageTemplateCommand
+    | GetMessageTemplatesCommand
+    | UpdateMessageTemplateCommand
+    | DeleteMessageTemplateCommand
+    | LoadMessageTemplateCommand
+    | SaveMessageAsTemplateCommand
 
 export interface VSCodeAPI {
     readonly postMessage: (command: VSCodeCommand) => void

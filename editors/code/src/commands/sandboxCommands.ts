@@ -7,6 +7,7 @@ import {StatesWebviewProvider} from "../providers/StatesWebviewProvider"
 import {beginCell, Cell} from "@ton/core"
 import {Message} from "@shared/abi"
 import {TolkSourceMap} from "../providers/TolkCompilerProvider"
+import {MessageTemplate} from "../webview-ui/src/types"
 
 export function registerSandboxCommands(
     treeProvider: SandboxTreeProvider,
@@ -158,6 +159,160 @@ export async function callGetMethod(
         result?: string
         logs?: string
         error?: string
+    }
+}
+
+export async function createMessageTemplate(templateData: {
+    name: string
+    opcode: number
+    messageFields: Record<string, string>
+    sendMode: number
+    value?: string
+    description?: string
+}): Promise<{
+    success: boolean
+    template?: MessageTemplate
+    error?: string
+}> {
+    const config = vscode.workspace.getConfiguration("ton")
+    const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
+
+    const response = await fetch(`${sandboxUrl}/message-templates`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(templateData),
+    })
+
+    if (!response.ok) {
+        return {
+            success: false,
+            error: `HTTP ${response.status}: ${response.statusText}`,
+        }
+    }
+
+    const template = (await response.json()) as MessageTemplate
+    return {
+        success: true,
+        template,
+    }
+}
+
+export async function getMessageTemplates(): Promise<{
+    success: boolean
+    templates?: MessageTemplate[]
+    error?: string
+}> {
+    const config = vscode.workspace.getConfiguration("ton")
+    const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
+
+    const response = await fetch(`${sandboxUrl}/message-templates`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+        },
+    })
+
+    if (!response.ok) {
+        return {
+            success: false,
+            error: `HTTP ${response.status}: ${response.statusText}`,
+        }
+    }
+
+    const data = (await response.json()) as {templates: MessageTemplate[]}
+    return {
+        success: true,
+        templates: data.templates,
+    }
+}
+
+export async function getMessageTemplate(id: string): Promise<{
+    success: boolean
+    template?: MessageTemplate
+    error?: string
+}> {
+    const config = vscode.workspace.getConfiguration("ton")
+    const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
+
+    const response = await fetch(`${sandboxUrl}/message-templates/${id}`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+        },
+    })
+
+    if (!response.ok) {
+        return {
+            success: false,
+            error: `HTTP ${response.status}: ${response.statusText}`,
+        }
+    }
+
+    const template = (await response.json()) as MessageTemplate
+    return {
+        success: true,
+        template,
+    }
+}
+
+export async function updateMessageTemplate(
+    id: string,
+    updates: {
+        name?: string
+        description?: string
+    },
+): Promise<{
+    success: boolean
+    error?: string
+}> {
+    const config = vscode.workspace.getConfiguration("ton")
+    const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
+
+    const response = await fetch(`${sandboxUrl}/message-templates/${id}`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updates),
+    })
+
+    if (!response.ok) {
+        return {
+            success: false,
+            error: `HTTP ${response.status}: ${response.statusText}`,
+        }
+    }
+
+    return {
+        success: true,
+    }
+}
+
+export async function deleteMessageTemplate(id: string): Promise<{
+    success: boolean
+    error?: string
+}> {
+    const config = vscode.workspace.getConfiguration("ton")
+    const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
+
+    const response = await fetch(`${sandboxUrl}/message-templates/${id}`, {
+        method: "DELETE",
+        headers: {
+            "Content-Type": "application/json",
+        },
+    })
+
+    if (!response.ok) {
+        return {
+            success: false,
+            error: `HTTP ${response.status}: ${response.statusText}`,
+        }
+    }
+
+    return {
+        success: true,
     }
 }
 

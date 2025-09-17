@@ -3,7 +3,15 @@ import {CompileDeploy} from "./components/CompileDeploy"
 import {SendMessage} from "./components/SendMessage"
 import {GetMethod} from "./components/GetMethod"
 import {NoOperation} from "./components/NoOperation"
-import {Contract, ResultData, Operation, VSCodeAPI, VSCodeMessage, ContractInfoData} from "./types"
+import {
+    Contract,
+    ResultData,
+    Operation,
+    VSCodeAPI,
+    VSCodeMessage,
+    ContractInfoData,
+    MessageTemplate,
+} from "./types"
 import {ContractAbi} from "@shared/abi"
 import {ContractInfo} from "./components/ContractInfo"
 
@@ -21,6 +29,8 @@ export default function App({vscode}: Props): JSX.Element {
     const [selectedSendContract, setSelectedSendContract] = useState<string>("")
     const [selectedGetContract, setSelectedGetContract] = useState<string>("")
     const [selectedInfoContract, setSelectedInfoContract] = useState<string>("")
+    const [loadedTemplate, setLoadedTemplate] = useState<MessageTemplate | null>(null)
+    const [messageTemplates, setMessageTemplates] = useState<MessageTemplate[]>([])
 
     const clearSendResults = useCallback(() => {
         setResults(prev => ({
@@ -87,6 +97,27 @@ export default function App({vscode}: Props): JSX.Element {
                 }
                 break
             }
+            case "messageTemplate": {
+                setLoadedTemplate(message.template)
+                setActiveOperation("send-message")
+                break
+            }
+            case "templateCreated": {
+                vscode.postMessage({type: "getMessageTemplates"})
+                break
+            }
+            case "templateUpdated": {
+                vscode.postMessage({type: "getMessageTemplates"})
+                break
+            }
+            case "templateDeleted": {
+                vscode.postMessage({type: "getMessageTemplates"})
+                break
+            }
+            case "messageTemplates": {
+                setMessageTemplates(message.templates)
+                break
+            }
         }
     }, [])
 
@@ -94,7 +125,10 @@ export default function App({vscode}: Props): JSX.Element {
         vscode.postMessage({
             type: "webviewReady",
         })
-    }, [])
+        vscode.postMessage({
+            type: "getMessageTemplates",
+        })
+    }, [vscode])
 
     useEffect(() => {
         window.addEventListener("message", handleMessage)
@@ -182,6 +216,9 @@ export default function App({vscode}: Props): JSX.Element {
                             results["send-external-message-result"]
                         }
                         onClearResult={clearSendResults}
+                        loadedTemplate={loadedTemplate ?? undefined}
+                        messageTemplates={messageTemplates}
+                        vscode={vscode}
                     />
                 )
             }

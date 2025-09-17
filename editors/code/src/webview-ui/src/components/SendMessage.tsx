@@ -1,7 +1,9 @@
-import React, {useState, useEffect} from "react"
+import React, {useState, useEffect, useMemo} from "react"
 import {ContractAbi} from "@shared/abi"
 import {Button, Input, Select} from "./ui"
 import {SendModeSelector} from "./SendModeSelector"
+import {MessageTemplate, VSCodeAPI} from "../types"
+import {VscSave} from "react-icons/vsc"
 import styles from "./SendMessage.module.css"
 
 interface Contract {
@@ -31,6 +33,9 @@ interface Props {
     readonly handleShowTransactionDetails: (tx: LastTransaction) => void
     readonly result?: {success: boolean; message: string; details?: string}
     readonly onClearResult?: () => void
+    readonly loadedTemplate?: MessageTemplate
+    readonly messageTemplates: MessageTemplate[]
+    readonly vscode: VSCodeAPI
 }
 
 interface LastTransaction {
@@ -49,6 +54,9 @@ export const SendMessage: React.FC<Props> = ({
     handleShowTransactionDetails,
     result,
     onClearResult,
+    loadedTemplate,
+    messageTemplates,
+    vscode,
 }) => {
     const [selectedMessage, setSelectedMessage] = useState<string>("")
     const [messageFields, setMessageFields] = useState<Record<string, string>>({})
@@ -59,9 +67,16 @@ export const SendMessage: React.FC<Props> = ({
 
     const [messageMode, setMessageMode] = useState<"external" | "internal">("internal")
     const [selectedFromContract, setSelectedFromContract] = useState<string>("")
+    const [localMessageTemplates, setLocalMessageTemplates] = useState<MessageTemplate[]>([])
+    const [selectedTemplate, setSelectedTemplate] = useState<string>("")
 
     const contract = contracts.find(c => c.address === selectedContract)
     const message = contract?.abi?.messages.find(m => m.name === selectedMessage)
+
+    const availableTemplates = useMemo(() => {
+        if (!message) return []
+        return localMessageTemplates.filter(template => template.opcode === message.opcode)
+    }, [localMessageTemplates, message])
 
     useEffect(() => {
         if (messageMode === "internal" && contracts.length > 0 && !selectedFromContract) {
@@ -90,9 +105,79 @@ export const SendMessage: React.FC<Props> = ({
         return () => {}
     }, [result, onClearResult])
 
+    useEffect(() => {
+        setLocalMessageTemplates(messageTemplates)
+    }, [messageTemplates])
+
+    useEffect(() => {
+        const messageHandler = (event: MessageEvent): void => {
+            const message = event.data as {type: string}
+            if (
+                message.type === "templateCreated" ||
+                message.type === "templateUpdated" ||
+                message.type === "templateDeleted"
+            ) {
+                vscode.postMessage({type: "getMessageTemplates"})
+            }
+        }
+
+        window.addEventListener("message", messageHandler)
+        return () => {
+            window.removeEventListener("message", messageHandler)
+        }
+    }, [vscode])
+
+    useEffect(() => {
+        if (loadedTemplate) {
+            setValue(loadedTemplate.value ?? "1.0")
+            setSendMode(loadedTemplate.sendMode)
+            setMessageFields(loadedTemplate.messageFields)
+        }
+    }, [loadedTemplate])
+
+    useEffect(() => {
+        if (selectedTemplate && localMessageTemplates.length > 0) {
+            const template = localMessageTemplates.find(t => t.id === selectedTemplate)
+            if (template) {
+                setValue(template.value ?? "1.0")
+                setSendMode(template.sendMode)
+                setMessageFields(template.messageFields)
+            }
+        }
+    }, [selectedTemplate, localMessageTemplates])
+
+    useEffect(() => {
+        setSelectedTemplate("")
+    }, [selectedMessage])
+
     const handleFieldChange = (fieldName: string, fieldValue: string): void => {
         const newFields = {...messageFields, [fieldName]: fieldValue}
         setMessageFields(newFields)
+        if (selectedTemplate) {
+            setSelectedTemplate("")
+        }
+    }
+
+    const handleSendModeChange = (newSendMode: number): void => {
+        setSendMode(newSendMode)
+        if (selectedTemplate) {
+            setSelectedTemplate("")
+        }
+    }
+
+    const handleSaveAsTemplate = (): void => {
+        if (!selectedContract || !selectedMessage) {
+            return
+        }
+
+        vscode.postMessage({
+            type: "saveMessageAsTemplate",
+            contractAddress: selectedContract,
+            messageName: selectedMessage,
+            messageFields: messageFields,
+            sendMode,
+            value,
+        })
     }
 
     const handleSendMessage = (): void => {
@@ -227,6 +312,26 @@ export const SendMessage: React.FC<Props> = ({
                 </Select>
             </div>
 
+            {availableTemplates.length > 0 && (
+                <div className={styles.formGroup}>
+                    <Select
+                        label="Template:"
+                        id="templateSelect"
+                        value={selectedTemplate}
+                        onChange={e => {
+                            setSelectedTemplate(e.target.value)
+                        }}
+                    >
+                        <option value="">Select template...</option>
+                        {availableTemplates.map(template => (
+                            <option key={template.id} value={template.id}>
+                                {template.name}
+                            </option>
+                        ))}
+                    </Select>
+                </div>
+            )}
+
             {message?.fields && message.fields.length > 0 ? (
                 <div className={styles.messageFieldsContainer}>
                     {message.fields.map(field => (
@@ -267,13 +372,19 @@ export const SendMessage: React.FC<Props> = ({
                             value={value}
                             onChange={e => {
                                 setValue(e.target.value)
+                                if (selectedTemplate) {
+                                    setSelectedTemplate("")
+                                }
                             }}
                             placeholder="1.0"
                         />
                     </div>
 
                     <div className={styles.formGroup}>
-                        <SendModeSelector sendMode={sendMode} onSendModeChange={setSendMode} />
+                        <SendModeSelector
+                            sendMode={sendMode}
+                            onSendModeChange={handleSendModeChange}
+                        />
                     </div>
                 </>
             )}
@@ -285,6 +396,10 @@ export const SendMessage: React.FC<Props> = ({
                         checked={autoDebug}
                         onChange={e => {
                             setAutoDebug(e.target.checked)
+                            // Reset selected template when user modifies auto debug setting
+                            if (selectedTemplate) {
+                                setSelectedTemplate("")
+                            }
                         }}
                         className={styles.checkbox}
                         id="autoDebugCheckbox"
@@ -294,9 +409,24 @@ export const SendMessage: React.FC<Props> = ({
                 </label>
             </div>
 
-            <Button onClick={handleSendMessage} disabled={contracts.length === 0}>
-                Send Message
-            </Button>
+            <div className={styles.buttonRow}>
+                <Button onClick={handleSendMessage} disabled={contracts.length === 0}>
+                    Send Message
+                </Button>
+                <Button
+                    onClick={handleSaveAsTemplate}
+                    disabled={contracts.length === 0 || !selectedContract || !selectedMessage}
+                    style={{
+                        backgroundColor: "var(--vscode-button-secondaryBackground)",
+                        color: "var(--vscode-button-secondaryForeground)",
+                        border: "1px solid var(--vscode-button-border)",
+                        marginRight: "8px",
+                    }}
+                >
+                    <VscSave size={14} style={{marginRight: "4px"}} />
+                    Save as Template
+                </Button>
+            </div>
 
             {result && (
                 <div className={styles.resultContainer}>

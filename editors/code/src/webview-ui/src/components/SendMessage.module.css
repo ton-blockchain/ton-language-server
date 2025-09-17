@@ -283,3 +283,9 @@
     background-color: var(--vscode-toolbar-hoverBackground);
     color: var(--vscode-input-foreground);
 }
+
+.buttonRow {
+    display: flex;
+    gap: 8px;
+    align-items: center;
+}

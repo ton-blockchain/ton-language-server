@@ -10,8 +10,18 @@ import {
     UpdateContractAbiMessage,
     UpdateContractInfoMessage,
     UpdateActiveEditorMessage,
+    MessageTemplatesMessage,
+    MessageTemplateMessage,
+    TemplateCreatedMessage,
+    TemplateUpdatedMessage,
+    TemplateDeletedMessage,
     Operation,
     ContractInfoData,
+    SaveMessageAsTemplateCommand,
+    LoadMessageTemplateCommand,
+    DeleteMessageTemplateCommand,
+    UpdateMessageTemplateCommand,
+    CreateMessageTemplateCommand,
 } from "../webview-ui/src/types"
 import {
     sendExternalMessage,
@@ -19,6 +29,11 @@ import {
     callGetMethod,
     renameContract,
     buildStructuredMessage,
+    createMessageTemplate,
+    getMessageTemplates,
+    getMessageTemplate,
+    updateMessageTemplate,
+    deleteMessageTemplate,
 } from "../commands/sandboxCommands"
 import {compileAndDeployFromEditor, loadContractAbiForDeploy, loadContractInfo} from "./methods"
 import {Cell} from "@ton/core"
@@ -126,6 +141,30 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
                         "vscode.open",
                         vscode.Uri.parse(command.sourceUri),
                     )
+                    break
+                }
+                case "createMessageTemplate": {
+                    void this.handleCreateMessageTemplate(command)
+                    break
+                }
+                case "getMessageTemplates": {
+                    void this.handleGetMessageTemplates()
+                    break
+                }
+                case "updateMessageTemplate": {
+                    void this.handleUpdateMessageTemplate(command)
+                    break
+                }
+                case "deleteMessageTemplate": {
+                    void this.handleDeleteMessageTemplate(command)
+                    break
+                }
+                case "loadMessageTemplate": {
+                    void this.handleLoadMessageTemplate(command)
+                    break
+                }
+                case "saveMessageAsTemplate": {
+                    void this.handleSaveMessageAsTemplate(command)
                     break
                 }
             }
@@ -720,5 +759,210 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
     <script type="module" src="${scriptUri.toString()}"></script>
 </body>
 </html>`
+    }
+
+    private async handleCreateMessageTemplate(
+        command: CreateMessageTemplateCommand,
+    ): Promise<void> {
+        try {
+            const result = await createMessageTemplate({
+                name: command.name,
+                opcode: command.opcode,
+                messageFields: command.messageFields,
+                sendMode: command.sendMode,
+                value: command.value,
+                description: command.description,
+            })
+
+            if (result.success && result.template && this.view) {
+                const message: TemplateCreatedMessage = {
+                    type: "templateCreated",
+                    template: result.template,
+                }
+                void this.view.webview.postMessage(message)
+
+                void this.handleGetMessageTemplates()
+
+                void vscode.window.showInformationMessage(
+                    `Template "${command.name}" created successfully`,
+                )
+            } else {
+                void vscode.window.showErrorMessage(
+                    `Failed to create template: ${result.error ?? "Unknown error"}`,
+                )
+            }
+        } catch (error) {
+            console.error("Create template error:", error)
+            void vscode.window.showErrorMessage(
+                `Failed to create template: ${error instanceof Error ? error.message : "Unknown error"}`,
+            )
+        }
+    }
+
+    private async handleGetMessageTemplates(): Promise<void> {
+        try {
+            const result = await getMessageTemplates()
+
+            if (result.success && result.templates) {
+                if (this.view) {
+                    const message: MessageTemplatesMessage = {
+                        type: "messageTemplates",
+                        templates: result.templates,
+                    }
+                    void this.view.webview.postMessage(message)
+                }
+            } else {
+                console.error("Failed to get templates:", result.error)
+            }
+        } catch (error) {
+            console.error("Get templates error:", error)
+        }
+    }
+
+    private async handleUpdateMessageTemplate(
+        command: UpdateMessageTemplateCommand,
+    ): Promise<void> {
+        try {
+            const result = await updateMessageTemplate(command.id, {
+                name: command.name,
+                description: command.description,
+            })
+
+            if (result.success) {
+                void vscode.window.showInformationMessage(`Template updated successfully`)
+
+                const templateResult = await getMessageTemplate(command.id)
+                if (templateResult.success && templateResult.template && this.view) {
+                    const message: TemplateUpdatedMessage = {
+                        type: "templateUpdated",
+                        template: templateResult.template,
+                    }
+                    void this.view.webview.postMessage(message)
+                }
+
+                void this.handleGetMessageTemplates()
+            } else {
+                void vscode.window.showErrorMessage(
+                    `Failed to update template: ${result.error ?? "Unknown error"}`,
+                )
+            }
+        } catch (error) {
+            console.error("Update template error:", error)
+            void vscode.window.showErrorMessage(
+                `Failed to update template: ${error instanceof Error ? error.message : "Unknown error"}`,
+            )
+        }
+    }
+
+    private async handleDeleteMessageTemplate(
+        command: DeleteMessageTemplateCommand,
+    ): Promise<void> {
+        try {
+            const result = await deleteMessageTemplate(command.id)
+
+            if (result.success) {
+                void vscode.window.showInformationMessage(`Template deleted successfully`)
+
+                if (this.view) {
+                    const message: TemplateDeletedMessage = {
+                        type: "templateDeleted",
+                        templateId: command.id,
+                    }
+                    void this.view.webview.postMessage(message)
+                }
+
+                void this.handleGetMessageTemplates()
+            } else {
+                void vscode.window.showErrorMessage(
+                    `Failed to delete template: ${result.error ?? "Unknown error"}`,
+                )
+            }
+        } catch (error) {
+            console.error("Delete template error:", error)
+            void vscode.window.showErrorMessage(
+                `Failed to delete template: ${error instanceof Error ? error.message : "Unknown error"}`,
+            )
+        }
+    }
+
+    private async handleLoadMessageTemplate(command: LoadMessageTemplateCommand): Promise<void> {
+        try {
+            const result = await getMessageTemplate(command.id)
+
+            if (result.success && result.template && this.view) {
+                const message: MessageTemplateMessage = {
+                    type: "messageTemplate",
+                    template: result.template,
+                }
+                void this.view.webview.postMessage(message)
+            } else {
+                console.error("Failed to load template:", result.error)
+            }
+        } catch (error) {
+            console.error("Load template error:", error)
+        }
+    }
+
+    private async handleSaveMessageAsTemplate(
+        command: SaveMessageAsTemplateCommand,
+    ): Promise<void> {
+        try {
+            const templateName = await vscode.window.showInputBox({
+                prompt: "Enter template name",
+                placeHolder: "My Template",
+                value: `${command.messageName} Template`,
+            })
+
+            if (!templateName) {
+                return
+            }
+
+            const contract = this.deployedContracts.find(c => c.address === command.contractAddress)
+            if (!contract?.abi) {
+                void vscode.window.showErrorMessage(
+                    `Contract ABI not found for address ${command.contractAddress}`,
+                )
+                return
+            }
+
+            const message = contract.abi.messages.find(m => m.name === command.messageName)
+            if (!message) {
+                void vscode.window.showErrorMessage(
+                    `Message "${command.messageName}" not found in contract ABI`,
+                )
+                return
+            }
+
+            const templateData = {
+                name: templateName,
+                opcode: message.opcode,
+                messageFields: command.messageFields,
+                sendMode: command.sendMode,
+                value: command.value,
+                description: `Template for ${command.messageName} message`,
+            }
+
+            const result = await createMessageTemplate(templateData)
+
+            if (result.success && result.template && this.view) {
+                const message: TemplateCreatedMessage = {
+                    type: "templateCreated",
+                    template: result.template,
+                }
+                void this.view.webview.postMessage(message)
+                void vscode.window.showInformationMessage(
+                    `Template "${templateName}" saved successfully`,
+                )
+            } else {
+                void vscode.window.showErrorMessage(
+                    `Failed to save template: ${result.error ?? "Unknown error"}`,
+                )
+            }
+        } catch (error) {
+            console.error("Save template error:", error)
+            void vscode.window.showErrorMessage(
+                `Failed to save template: ${error instanceof Error ? error.message : "Unknown error"}`,
+            )
+        }
     }
 }
