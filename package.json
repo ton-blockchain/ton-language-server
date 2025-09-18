@@ -382,6 +382,12 @@
                 "command": "ton.sandbox.startDebugSequence",
                 "title": "Start Debug Sequence",
                 "category": "TON"
+            },
+            {
+                "command": "ton.sandbox.deleteContract",
+                "title": "Delete Contract",
+                "category": "TON",
+                "icon": "$(trash)"
             }
         ],
         "views": {

@@ -68,6 +68,27 @@ export function registerSandboxCommands(
                 formProvider.startSequentialDebugging(transactions)
             },
         ),
+        vscode.commands.registerCommand(
+            "ton.sandbox.deleteContract",
+            async (contractAddress: string) => {
+                try {
+                    const deleteResult = await deleteContract(contractAddress)
+                    if (deleteResult.success) {
+                        treeProvider.removeContract(contractAddress)
+                        await treeProvider.loadContractsFromServer()
+                        void vscode.window.showInformationMessage("Contract deleted successfully")
+                    } else {
+                        void vscode.window.showErrorMessage(
+                            `Failed to delete contract: ${deleteResult.error ?? "Unknown error"}`,
+                        )
+                    }
+                } catch (error) {
+                    void vscode.window.showErrorMessage(
+                        `Failed to delete contract: ${error instanceof Error ? error.message : "Unknown error"}`,
+                    )
+                }
+            },
+        ),
     )
 
     return disposables
@@ -371,6 +392,32 @@ export async function getContracts(): Promise<{
     return {
         success: true,
         contracts: data.contracts,
+    }
+}
+
+export async function deleteContract(address: string): Promise<{
+    success: boolean
+    error?: string
+}> {
+    const config = vscode.workspace.getConfiguration("ton")
+    const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
+
+    const response = await fetch(`${sandboxUrl}/contracts/${address}`, {
+        method: "DELETE",
+        headers: {
+            "Content-Type": "application/json",
+        },
+    })
+
+    if (!response.ok) {
+        return {
+            success: false,
+            error: `HTTP ${response.status}: ${response.statusText}`,
+        }
+    }
+
+    return {
+        success: true,
     }
 }
 

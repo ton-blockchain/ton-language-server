@@ -3,7 +3,7 @@ import styles from "./ContractInfo.module.css"
 import {Cell, loadShardAccount} from "@ton/core"
 import {ContractAbi} from "@shared/abi"
 import {ContractInfoData, VSCodeAPI} from "../types"
-import {VscEdit, VscFileCode} from "react-icons/vsc"
+import {VscEdit, VscFileCode, VscTrash} from "react-icons/vsc"
 import {DeployedContract} from "../../../providers/lib/contract"
 
 interface Props {
@@ -149,6 +149,15 @@ export const ContractInfo: React.FC<Props> = ({
         })
     }
 
+    const handleDeleteContract = (): void => {
+        if (!contractAddress) return
+
+        vscode.postMessage({
+            type: "deleteContract",
+            contractAddress,
+        })
+    }
+
     const storageFields = useMemo(() => {
         if (info?.abi && info.account) {
             const account = loadShardAccount(Cell.fromHex(info.account).beginParse())
@@ -252,6 +261,13 @@ export const ContractInfo: React.FC<Props> = ({
                                 disabled={!info.sourceUri}
                             >
                                 <VscFileCode size={14} />
+                            </button>
+                            <button
+                                className={`${styles.headerActionButton} ${styles.deleteButton}`}
+                                title="Delete contract"
+                                onClick={handleDeleteContract}
+                            >
+                                <VscTrash size={14} />
                             </button>
                         </div>
                     )}

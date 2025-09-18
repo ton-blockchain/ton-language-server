@@ -105,6 +105,11 @@ export interface RenameContractCommand {
     readonly newName: string
 }
 
+export interface DeleteContractCommand {
+    readonly type: "deleteContract"
+    readonly contractAddress: string
+}
+
 export interface RefreshContractsCommand {
     readonly type: "refreshContracts"
 }
@@ -230,6 +235,7 @@ export type VSCodeCommand =
     | LoadContractInfoCommand
     | CompileAndDeployCommand
     | RenameContractCommand
+    | DeleteContractCommand
     | RefreshContractsCommand
     | WebviewReadyCommand
     | ShowTransactionDetailsCommand

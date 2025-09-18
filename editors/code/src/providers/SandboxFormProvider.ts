@@ -118,6 +118,10 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
                     void this.handleRenameContract(command.contractAddress, command.newName)
                     break
                 }
+                case "deleteContract": {
+                    void this.handleDeleteContract(command.contractAddress)
+                    break
+                }
                 case "refreshContracts": {
                     this.updateContracts(this.deployedContracts)
                     break
@@ -589,6 +593,33 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
         } catch (error) {
             void vscode.window.showErrorMessage(
                 `Failed to rename contract: ${error instanceof Error ? error.message : "Unknown error"}`,
+            )
+        }
+    }
+
+    private async handleDeleteContract(contractAddress: string): Promise<void> {
+        try {
+            const contract = this.deployedContracts.find(c => c.address === contractAddress)
+            if (!contract) {
+                void vscode.window.showErrorMessage("Contract not found")
+                return
+            }
+
+            const result = await vscode.window.showWarningMessage(
+                `Are you sure you want to delete contract "${contract.name}"?`,
+                {modal: true},
+                "Delete",
+                "Cancel",
+            )
+
+            if (result !== "Delete") {
+                return
+            }
+
+            await vscode.commands.executeCommand("ton.sandbox.deleteContract", contractAddress)
+        } catch (error) {
+            void vscode.window.showErrorMessage(
+                `Failed to delete contract: ${error instanceof Error ? error.message : "Unknown error"}`,
             )
         }
     }
