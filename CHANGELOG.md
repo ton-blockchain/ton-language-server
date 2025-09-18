@@ -2,6 +2,36 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.0] - 19.09.2025
+
+### Tolk
+
+- feat(tolk): add constant evaluator, inlay hints for evaluated constants and show this value on hover in https://github.com/ton-blockchain/ton-language-server/pull/150
+- feat(tolk): support `readonly` and `private` modifiers from Tolk 1.1 in https://github.com/ton-blockchain/ton-language-server/pull/156
+- feat(tolk): support assembly get methods in https://github.com/ton-blockchain/ton-language-server/pull/147
+- feat(tolk): support enums from Tolk 1.1 in https://github.com/ton-blockchain/ton-language-server/pull/143
+- feat(tolk): use the latest tests and stdlib from Tolk 1.1 in https://github.com/ton-blockchain/ton-language-server/pull/164
+- feat(tolk/highlighting): support highlighting for `enum`, `readonly` and `private` keywords in https://github.com/ton-blockchain/ton-language-server/pull/141
+- feat(tolk/inlay-hints): don't show `constString` parameter hint for compile-time stdlib functions in https://github.com/ton-blockchain/ton-language-server/pull/151
+- feat(tolk/inspections): add `CallArgumentsCountMismatch` inspection in https://github.com/ton-blockchain/ton-language-server/pull/138
+- feat(tolk/inspections): warn about unused `packToBuilder` and `unpackFromSlice` methods for non-alias types and with wrong signature in https://github.com/ton-blockchain/ton-language-server/pull/158
+- fix(tolk): fix completion for enums in https://github.com/ton-blockchain/ton-language-server/pull/157
+- fix(tolk/grammar): fix triple quote string parsing in https://github.com/ton-blockchain/ton-language-server/pull/153
+- refactor(tolk): small fixes in https://github.com/ton-blockchain/ton-language-server/pull/144
+- refactor(tolk/type-inference): simplify type inference implementation in https://github.com/ton-blockchain/ton-language-server/pull/162
+
+### FunC
+
+- fix(func/inspections): support transitively includes in https://github.com/ton-blockchain/ton-language-server/pull/159
+
+### Other
+
+- chore(ci): enabled the `FunC` build by @Danil42Russia in https://github.com/ton-blockchain/ton-language-server/pull/168
+- chore(deps): bump the npm_and_yarn group across 2 directories with 2 updates by @dependabot[bot] in https://github.com/ton-blockchain/ton-language-server/pull/165
+- chore: add missed commas in README.md in https://github.com/ton-blockchain/ton-language-server/pull/139
+- chore: update tolkfmt with enum support in https://github.com/ton-blockchain/ton-language-server/pull/145
+- feat(ci): checking packages for vulnerabilities by @Danil42Russia in https://github.com/ton-blockchain/ton-language-server/pull/166
+
 ## [0.4.1] - 12.08.2025
 
 ### Added
