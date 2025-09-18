@@ -89,6 +89,46 @@ export function registerSandboxCommands(
                 }
             },
         ),
+        vscode.commands.registerCommand("ton.sandbox.copyContractAbi", async () => {
+            try {
+                const activeEditor = vscode.window.activeTextEditor
+                if (!activeEditor) {
+                    void vscode.window.showWarningMessage("No active editor found")
+                    return
+                }
+
+                const document = activeEditor.document
+                const filePath = document.uri.fsPath
+
+                if (!filePath.endsWith(".tolk")) {
+                    void vscode.window.showWarningMessage(
+                        "Active file is not a Tolk contract (.tolk)",
+                    )
+                    return
+                }
+
+                const abiResult = await vscode.commands.executeCommand("tolk.getContractAbi", {
+                    textDocument: {
+                        uri: document.uri.toString(),
+                    },
+                })
+
+                if (!abiResult) {
+                    void vscode.window.showWarningMessage("Failed to get contract ABI")
+                    return
+                }
+
+                const abiJson = JSON.stringify(abiResult, null, 2)
+
+                await vscode.env.clipboard.writeText(abiJson)
+
+                void vscode.window.showInformationMessage("Contract ABI copied to clipboard")
+            } catch (error) {
+                void vscode.window.showErrorMessage(
+                    `Failed to copy contract ABI: ${error instanceof Error ? error.message : "Unknown error"}`,
+                )
+            }
+        }),
     )
 
     return disposables
@@ -431,9 +471,7 @@ export function buildStructuredMessage(
 
     let messageAbi: Message | null = null
     if (contractAddress) {
-        try {
-            messageAbi = getMessageAbiFromFormProvider(formProvider, contractAddress, messageName)
-        } catch {}
+        messageAbi = getMessageAbiFromFormProvider(formProvider, contractAddress, messageName)
     }
 
     const opcode = messageAbi?.opcode ?? 0

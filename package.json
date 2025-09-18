@@ -388,6 +388,12 @@
                 "title": "Delete Contract",
                 "category": "TON",
                 "icon": "$(trash)"
+            },
+            {
+                "command": "ton.sandbox.copyContractAbi",
+                "title": "Copy Contract ABI",
+                "category": "TON",
+                "icon": "$(copy)"
             }
         ],
         "views": {
@@ -424,6 +430,12 @@
             {
                 "command": "tolk.build",
                 "key": "f5",
+                "when": "editorTextFocus && editorLangId == 'tolk'"
+            },
+            {
+                "command": "ton.sandbox.copyContractAbi",
+                "key": "ctrl+shift+c",
+                "mac": "cmd+shift+c",
                 "when": "editorTextFocus && editorLangId == 'tolk'"
             }
         ],
