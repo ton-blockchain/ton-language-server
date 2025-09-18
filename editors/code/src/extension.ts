@@ -876,16 +876,8 @@ function registerTransactionDetailsCommand(disposables: vscode.Disposable[]): vo
                     return
                 }
 
-                // Get deployed contracts from tree provider
-                const deployedContracts =
-                    globalSandboxTreeProvider?.getDeployedContracts().map(c => ({
-                        address: c.address,
-                        name: c.name,
-                        deployTime: c.deployTime.toISOString(),
-                        abi: c.abi,
-                    })) ?? []
+                const deployedContracts = globalSandboxTreeProvider?.getDeployedContracts() ?? []
 
-                // Get contract info from server using existing loadContractInfo function
                 let account: string | undefined
                 let stateInit: {code: string; data: string} | undefined
                 let abi: object | undefined
@@ -906,12 +898,12 @@ function registerTransactionDetailsCommand(disposables: vscode.Disposable[]): vo
                     methodName: args.methodName,
                     transactionId: args.transactionId,
                     timestamp: args.timestamp ?? new Date().toISOString(),
-                    status: "success", // For now always success
+                    status: "success",
                     resultString: args.resultString,
                     deployedContracts,
-                    account, // Pass account data from server
-                    stateInit, // Pass stateInit data from server
-                    abi, // Pass ABI data from server
+                    account,
+                    stateInit,
+                    abi,
                 }
 
                 globalTransactionDetailsProvider.showTransactionDetails(transaction)

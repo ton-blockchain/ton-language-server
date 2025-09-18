@@ -81,11 +81,12 @@ export async function compileAndDeployFromEditor(
         return
     }
 
+    const sourceUri = editor.document.uri.toString()
     const abiResult: GetContractAbiResponse = await vscode.commands.executeCommand(
         "tolk.getContractAbi",
         {
             textDocument: {
-                uri: editor.document.uri.toString(),
+                uri: sourceUri,
             },
         } satisfies GetContractAbiParams,
     )
@@ -127,12 +128,18 @@ export async function compileAndDeployFromEditor(
             value,
             result.sourceMap,
             contractAbi,
-            editor.document.uri.toString(),
+            sourceUri,
         )
         if (deployResult.success && deployResult.address) {
             const isRedeploy = treeProvider?.isContractDeployed(deployResult.address) ?? false
 
-            treeProvider?.addDeployedContract(deployResult.address, name, contractAbi)
+            treeProvider?.addDeployedContract(
+                deployResult.address,
+                name,
+                contractAbi,
+                sourceUri,
+                result.sourceMap,
+            )
 
             void vscode.commands.executeCommand("ton.sandbox.states.refresh")
 

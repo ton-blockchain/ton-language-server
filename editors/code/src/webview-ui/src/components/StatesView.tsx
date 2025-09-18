@@ -97,6 +97,9 @@ export const StatesView: React.FC<Props> = ({
 
         const failedClassName = exitCode === 0 ? "" : styles.failed
 
+        const contract = contracts.find(c => c.address === node.toContract)
+        const hasSourceMap = contract?.sourceMap !== undefined
+
         return (
             <div key={node.id} className={styles.nodeContainer}>
                 <div
@@ -135,19 +138,21 @@ export const StatesView: React.FC<Props> = ({
                         ) : null}
 
                         <span className={styles.timestamp}>
-                            <button
-                                className={styles.debugButton}
-                                title="Debug transaction"
-                                onClick={e => {
-                                    e.stopPropagation()
-                                    vscode.postMessage({
-                                        type: "debugTransaction",
-                                        operationId: node.id,
-                                    })
-                                }}
-                            >
-                                <VscDebugAlt size={12} />
-                            </button>
+                            {hasSourceMap && (
+                                <button
+                                    className={styles.debugButton}
+                                    title="Debug transaction"
+                                    onClick={e => {
+                                        e.stopPropagation()
+                                        vscode.postMessage({
+                                            type: "debugTransaction",
+                                            operationId: node.id,
+                                        })
+                                    }}
+                                >
+                                    <VscDebugAlt size={12} />
+                                </button>
+                            )}
                             <button
                                 className={styles.detailsButton}
                                 title="View transaction details"

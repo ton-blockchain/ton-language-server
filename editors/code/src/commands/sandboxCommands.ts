@@ -8,6 +8,7 @@ import {beginCell, Cell} from "@ton/core"
 import {Message} from "@shared/abi"
 import {TolkSourceMap} from "../providers/TolkCompilerProvider"
 import {MessageTemplate} from "../webview-ui/src/types"
+import {DeployedContract} from "../providers/lib/contract"
 
 export function registerSandboxCommands(
     treeProvider: SandboxTreeProvider,
@@ -344,13 +345,7 @@ export async function renameContract(
 
 export async function getContracts(): Promise<{
     success: boolean
-    contracts?: {
-        address: string
-        name?: string
-        sourceMap?: object
-        abi?: object
-        sourceUri?: string
-    }[]
+    contracts?: DeployedContract[]
     error?: string
 }> {
     const config = vscode.workspace.getConfiguration("ton")
@@ -371,13 +366,7 @@ export async function getContracts(): Promise<{
     }
 
     const data = (await response.json()) as {
-        contracts: {
-            address: string
-            name?: string
-            sourceMap?: object
-            abi?: object
-            sourceUri?: string
-        }[]
+        contracts: DeployedContract[]
     }
     return {
         success: true,

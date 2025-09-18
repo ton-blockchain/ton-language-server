@@ -1,16 +1,10 @@
 import React, {useState, useEffect, useMemo} from "react"
-import {ContractAbi} from "@shared/abi"
 import {Button, Input, Select} from "./ui"
 import {SendModeSelector} from "./SendModeSelector"
 import {MessageTemplate, VSCodeAPI} from "../types"
 import {VscSave} from "react-icons/vsc"
 import styles from "./SendMessage.module.css"
-
-interface Contract {
-    readonly address: string
-    readonly name: string
-    readonly abi?: ContractAbi
-}
+import {DeployedContract} from "../../../providers/lib/contract"
 
 interface MessageData {
     readonly selectedMessage: string
@@ -25,7 +19,7 @@ interface InternalMessageData extends MessageData {
 }
 
 interface Props {
-    readonly contracts: Contract[]
+    readonly contracts: DeployedContract[]
     readonly selectedContract?: string
     readonly onContractChange: (address: string) => void
     readonly onSendMessage: (messageData: MessageData) => void
@@ -252,6 +246,8 @@ export const SendMessage: React.FC<Props> = ({
         return `${address.slice(0, 6)}...${address.slice(Math.max(0, address.length - 6))}`
     }
 
+    const hasSourceMap = contract?.sourceMap !== undefined
+
     return (
         <div className={styles.container}>
             <div className={styles.formGroup}>
@@ -430,12 +426,12 @@ export const SendMessage: React.FC<Props> = ({
                         checked={autoDebug}
                         onChange={e => {
                             setAutoDebug(e.target.checked)
-                            // Reset selected template when user modifies auto debug setting
                             if (selectedTemplate) {
                                 setSelectedTemplate("")
                             }
                         }}
                         className={styles.checkbox}
+                        disabled={!hasSourceMap}
                         id="autoDebugCheckbox"
                     />
                     <span className={styles.checkboxMark}></span>

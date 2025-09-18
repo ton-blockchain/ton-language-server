@@ -195,6 +195,27 @@
     border-color: var(--vscode-settings-checkboxBorder, var(--vscode-focusBorder));
 }
 
+.checkbox:disabled ~ .checkboxMark {
+    opacity: 0.5;
+    cursor: not-allowed;
+    background-color: var(--vscode-settings-checkboxBackground, var(--vscode-input-background));
+    border-color: var(--vscode-settings-checkboxBorder, var(--vscode-input-border));
+}
+
+.checkbox:disabled ~ .checkboxText {
+    opacity: 0.5;
+    cursor: not-allowed;
+    color: var(--vscode-settings-textInputForeground, var(--vscode-descriptionForeground));
+}
+
+.checkboxLabel:has(.checkbox:disabled) {
+    cursor: not-allowed;
+}
+
+.checkboxLabel:has(.checkbox:disabled):hover .checkboxMark {
+    border-color: var(--vscode-settings-checkboxBorder, var(--vscode-input-border));
+}
+
 .checkbox:checked ~ .checkboxMark {
     background-color: var(--vscode-settings-checkboxForeground, var(--vscode-focusBorder));
     border-color: var(--vscode-settings-checkboxForeground, var(--vscode-focusBorder));

@@ -40,6 +40,7 @@ import {Cell} from "@ton/core"
 import {decompileCell} from "ton-assembly/dist/runtime"
 import {print} from "ton-assembly/dist/text"
 import {TolkSourceMap} from "./TolkCompilerProvider"
+import {DeployedContract} from "./lib/contract"
 
 export interface TransactionInfo {
     readonly vmLogs: string
@@ -52,7 +53,7 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
     public static readonly viewType: string = "tonSandboxForm"
 
     private view?: vscode.WebviewView
-    public deployedContracts: {address: string; name: string; abi?: ContractAbi}[] = []
+    public deployedContracts: DeployedContract[] = []
 
     private sequentialDebugQueue: TransactionInfo[] = []
     private isSequentialDebugRunning: boolean = false
@@ -171,9 +172,7 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
         })
     }
 
-    public updateContracts(
-        contracts: {address: string; name: string; abi?: ContractAbi; sourceUri?: string}[],
-    ): void {
+    public updateContracts(contracts: DeployedContract[]): void {
         this.deployedContracts = contracts
         if (this.view && contracts.length > 0) {
             const message: UpdateContractsMessage = {
@@ -404,6 +403,19 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
                 this.refreshStates()
 
                 if (command.autoDebug && result.txs.length > 0) {
+                    const noSourceMaps = result.txs.every(tx => tx.sourceMap === undefined)
+                    if (noSourceMaps) {
+                        this.showResult(
+                            {
+                                success: false,
+                                message:
+                                    "Source maps are not available, are you using the beta version of the Tolk compiler?",
+                            },
+                            "send-internal-message-result",
+                        )
+                        return
+                    }
+
                     const validTransactions = result.txs.map((tx, index) => {
                         const contract = this.deployedContracts.find(c => c.address === tx.addr)
                         const contractName = contract?.name ?? "UnknownContract"
@@ -417,7 +429,6 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
                     })
 
                     if (validTransactions.length > 0) {
-                        console.log("txs:", validTransactions)
                         this.startSequentialDebugging(validTransactions)
                     }
                 }
@@ -717,6 +728,8 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
                             console.warn(`Failed to clean up temp file ${fileUri.fsPath}:`, error)
                         },
                     )
+
+                    vscode.workspace.fs.delete(debugDirUri, {useTrash: false})
 
                     if (remainingCount > 0) {
                         void vscode.window.showInformationMessage(

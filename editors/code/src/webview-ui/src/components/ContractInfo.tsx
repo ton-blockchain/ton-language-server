@@ -2,13 +2,14 @@ import React, {useMemo} from "react"
 import styles from "./ContractInfo.module.css"
 import {Cell, loadShardAccount} from "@ton/core"
 import {ContractAbi} from "@shared/abi"
-import {ContractInfoData, Contract, VSCodeAPI} from "../types"
+import {ContractInfoData, VSCodeAPI} from "../types"
 import {VscEdit, VscFileCode} from "react-icons/vsc"
+import {DeployedContract} from "../../../providers/lib/contract"
 
 interface Props {
     readonly info: ContractInfoData | undefined
     readonly contractAddress?: string
-    readonly contracts?: Contract[]
+    readonly contracts?: DeployedContract[]
     readonly onSendMessage?: () => void
     readonly onCallGetMethod?: () => void
     readonly vscode: VSCodeAPI

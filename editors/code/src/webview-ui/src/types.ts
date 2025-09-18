@@ -1,11 +1,5 @@
 import {ContractAbi} from "@shared/abi"
-
-export interface Contract {
-    readonly address: string
-    readonly name: string
-    readonly abi?: ContractAbi
-    readonly sourceUri?: string
-}
+import {DeployedContract} from "../../providers/lib/contract"
 
 export interface ResultData {
     readonly success: boolean
@@ -18,7 +12,7 @@ export type Operation = "compile-deploy" | "send-message" | "get-method" | "cont
 // Messages from Extension to Webview
 export interface UpdateContractsMessage {
     readonly type: "updateContracts"
-    readonly contracts: Contract[]
+    readonly contracts: DeployedContract[]
 }
 
 export interface ShowResultMessage {

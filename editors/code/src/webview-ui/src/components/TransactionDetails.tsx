@@ -9,15 +9,7 @@ import {TransactionInfo} from "../../../providers/lib/transaction"
 import {TransactionTree} from "./info"
 import {Address, Cell, loadTransaction, loadShardAccount} from "@ton/core"
 
-import {ContractAbi} from "@shared/abi"
-import {ContractData} from "../../../providers/lib/contract"
-
-interface DeployedContractInfo {
-    readonly address: string
-    readonly name: string
-    readonly deployTime: string
-    readonly abi?: ContractAbi
-}
+import {ContractData, DeployedContract} from "../../../providers/lib/contract"
 
 interface LocalTransactionDetails {
     readonly contractAddress: string
@@ -26,7 +18,7 @@ interface LocalTransactionDetails {
     readonly timestamp: string
     readonly status: "success" | "pending" | "failed"
     readonly resultString?: string
-    readonly deployedContracts?: DeployedContractInfo[]
+    readonly deployedContracts?: DeployedContract[]
     readonly account?: string // hex string for shardAccount
     readonly stateInit?: {
         readonly code: string // base64 string

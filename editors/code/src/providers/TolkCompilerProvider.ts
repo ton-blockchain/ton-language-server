@@ -5,6 +5,8 @@ import {ToolchainConfig} from "@server/settings/settings"
 import {Toolchain} from "@server/languages/tolk/toolchain/toolchain"
 import {Cell, runtime as i, trace, text} from "ton-assembly"
 import {SourceMap} from "ton-assembly/dist/trace"
+import {promisify} from "node:util"
+import {execFile} from "node:child_process"
 
 export interface CompilationResult {
     readonly success: boolean
@@ -89,7 +91,7 @@ export class TolkCompilerProvider {
     private async compileWithBinary(
         contractFilePath: Uri,
         toolchainPath: string,
-    ): Promise<[Cell, TolkSourceMap]> {
+    ): Promise<[Cell, TolkSourceMap | undefined]> {
         const tempFolderUri = vscode.Uri.joinPath(
             vscode.workspace.workspaceFolders?.[0]?.uri ?? vscode.Uri.file(process.cwd()),
             ".tolk-temp-" + Date.now(),
@@ -99,17 +101,23 @@ export class TolkCompilerProvider {
         try {
             await vscode.workspace.fs.createDirectory(tempFolderUri)
 
+            const supportsSourceMaps = await compilerSupportsSourceMaps(toolchainPath)
+            if (!supportsSourceMaps) {
+                console.log("Source maps are not supported by the Tolk compiler!")
+            }
+
             const taskDefinition: vscode.TaskDefinition = {
                 type: "shell",
             }
 
+            const sourceMapArg = supportsSourceMaps ? "--source-map true" : ""
             const task = new vscode.Task(
                 taskDefinition,
                 vscode.TaskScope.Workspace,
                 "Tolk Compile",
                 "tolk",
                 new vscode.ShellExecution(
-                    `"${toolchainPath}" "${contractFilePath.fsPath}" --source-map true --output-json "${outputFileUri.fsPath}"`,
+                    `"${toolchainPath}" "${contractFilePath.fsPath}" ${sourceMapArg} --output-json "${outputFileUri.fsPath}"`,
                 ),
             )
 
@@ -138,26 +146,56 @@ export class TolkCompilerProvider {
                 void vscode.tasks.executeTask(task)
             })
 
+            const exists = await this.fileExists(outputFileUri)
+            if (!exists) {
+                throw new Error("check terminal for errors!")
+            }
+
             const outputBuffer = await vscode.workspace.fs.readFile(outputFileUri)
             const outputJson = Buffer.from(outputBuffer).toString("utf8")
             const result = JSON.parse(outputJson) as TolkCompilerOutput
 
             const codeCell = Cell.fromBase64(result.debugCodeBoc64 ?? result.codeBoc64)
+            const [cell] = recompileCell(codeCell)
 
-            const initialInstructions = i.decompileCell(codeCell)
-            const [cell, mapping] = recompileCell(codeCell)
-
-            return [cell, result.sourceMap ?? ({} as TolkSourceMap)]
+            return [cell, result.sourceMap]
         } catch (error) {
             if (error instanceof Error) {
-                throw new TypeError(`Compilation failed: ${error.message}`)
+                throw new TypeError(error.message)
             }
             throw new TypeError("Unknown compilation error")
         } finally {
             try {
-                // await vscode.workspace.fs.delete(tempFolderUri, {recursive: true})
+                await vscode.workspace.fs.delete(tempFolderUri, {recursive: true})
             } catch {}
         }
+    }
+
+    private async fileExists(outputFileUri: Uri): Promise<boolean> {
+        try {
+            await vscode.workspace.fs.stat(outputFileUri)
+        } catch {
+            return false
+        }
+        return true
+    }
+}
+
+const execFileP = promisify(execFile)
+
+export async function compilerSupportsSourceMaps(cmd: string, cwd?: string): Promise<boolean> {
+    try {
+        const {stdout} = await execFileP(cmd, ["-h"], {
+            cwd: cwd ?? vscode.workspace.workspaceFolders?.[0]?.uri.fsPath,
+            shell: false,
+            windowsHide: true,
+            maxBuffer: 10 * 1024 * 1024,
+            env: {...process.env},
+            timeout: 1000,
+        })
+        return stdout.includes("--source-map")
+    } catch {
+        return false
     }
 }
 

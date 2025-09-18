@@ -5,6 +5,8 @@ import {SandboxFormProvider} from "./SandboxFormProvider"
 import {ContractAbi} from "@shared/abi"
 import type {SandboxCodeLensProvider} from "./SandboxCodeLensProvider"
 import {formatAddress} from "./methods"
+import {DeployedContract} from "./lib/contract"
+import {TolkSourceMap} from "./TolkCompilerProvider"
 
 interface SandboxTreeItem {
     readonly id: string
@@ -14,14 +16,6 @@ interface SandboxTreeItem {
     readonly iconPath?: vscode.ThemeIcon
     readonly collapsibleState?: vscode.TreeItemCollapsibleState
     readonly command?: vscode.Command
-}
-
-interface DeployedContract {
-    readonly address: string
-    readonly name: string
-    readonly deployTime: Date
-    readonly abi?: ContractAbi
-    readonly sourceUri?: string
 }
 
 export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeItem> {
@@ -261,13 +255,7 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
             }
 
             const data = (await response.json()) as {
-                contracts: {
-                    address: string
-                    name: string
-                    sourceMap?: object
-                    abi?: object
-                    sourceUri?: string
-                }[]
+                contracts: DeployedContract[]
             }
 
             const serverAddresses = new Set(data.contracts.map(c => c.address))
@@ -275,12 +263,9 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
                 c => !serverAddresses.has(c.address),
             )
 
-            const serverContracts = data.contracts.map(c => ({
-                address: c.address,
-                name: c.name,
+            const serverContracts: DeployedContract[] = data.contracts.map(c => ({
+                ...c,
                 deployTime: new Date(),
-                abi: c.abi as ContractAbi | undefined,
-                sourceUri: c.sourceUri,
             }))
 
             this.deployedContracts = [...existingContracts, ...serverContracts]
@@ -296,7 +281,13 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
         return this.deployedContracts.some(c => c.address === address)
     }
 
-    public addDeployedContract(address: string, name?: string, abi?: ContractAbi): void {
+    public addDeployedContract(
+        address: string,
+        name: string | undefined,
+        abi: ContractAbi | undefined,
+        sourceUri: string,
+        sourceMap: TolkSourceMap | undefined,
+    ): void {
         const existingIndex = this.deployedContracts.findIndex(c => c.address === address)
 
         if (existingIndex === -1) {
@@ -306,6 +297,8 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
                 name: contractName,
                 deployTime: new Date(),
                 abi,
+                sourceUri,
+                sourceMap,
             })
         } else {
             const existingContract = this.deployedContracts[existingIndex]
@@ -347,14 +340,7 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
 
     private updateFormContracts(): void {
         if (this.formProvider) {
-            this.formProvider.updateContracts(
-                this.deployedContracts.map(c => ({
-                    address: c.address,
-                    name: c.name,
-                    abi: c.abi,
-                    sourceUri: c.sourceUri,
-                })),
-            )
+            this.formProvider.updateContracts(this.deployedContracts)
         }
     }
 }

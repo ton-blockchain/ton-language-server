@@ -4,7 +4,6 @@ import {SendMessage} from "./components/SendMessage"
 import {GetMethod} from "./components/GetMethod"
 import {NoOperation} from "./components/NoOperation"
 import {
-    Contract,
     ResultData,
     Operation,
     VSCodeAPI,
@@ -14,6 +13,7 @@ import {
 } from "./types"
 import {ContractAbi} from "@shared/abi"
 import {ContractInfo} from "./components/ContractInfo"
+import {DeployedContract} from "../../providers/lib/contract"
 
 interface Props {
     readonly vscode: VSCodeAPI
@@ -21,7 +21,7 @@ interface Props {
 
 export default function App({vscode}: Props): JSX.Element {
     const [activeOperation, setActiveOperation] = useState<Operation>(null)
-    const [contracts, setContracts] = useState<Contract[]>([])
+    const [contracts, setContracts] = useState<DeployedContract[]>([])
     const [results, setResults] = useState<Record<string, ResultData | undefined>>({})
     const [contractAbi, setContractAbi] = useState<ContractAbi | undefined>()
     const [contractInfo, setContractInfo] = useState<ContractInfoData | undefined>()

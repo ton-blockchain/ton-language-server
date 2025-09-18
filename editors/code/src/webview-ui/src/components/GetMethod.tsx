@@ -1,13 +1,7 @@
 import React, {useState} from "react"
-import {ContractAbi} from "@shared/abi"
 import {Button, Input, Select} from "./ui"
 import styles from "./GetMethod.module.css"
-
-interface Contract {
-    readonly address: string
-    readonly name: string
-    readonly abi?: ContractAbi
-}
+import {DeployedContract} from "../../../providers/lib/contract"
 
 interface MethodData {
     readonly selectedMethod: string
@@ -15,7 +9,7 @@ interface MethodData {
 }
 
 interface Props {
-    readonly contracts: Contract[]
+    readonly contracts: DeployedContract[]
     readonly selectedContract?: string
     readonly onContractChange: (address: string) => void
     readonly onCallGetMethod: (methodData: MethodData) => void
