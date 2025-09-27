@@ -31,7 +31,6 @@
         "node-gyp-build": "^4.8.2"
     },
     "devDependencies": {
-        "prebuildify": "^6.0.1",
         "tree-sitter-cli": "^0.25.0"
     },
     "peerDependencies": {
