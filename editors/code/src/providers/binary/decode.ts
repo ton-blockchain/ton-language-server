@@ -1,19 +1,6 @@
-import {Address, BitReader, Cell, ExternalAddress, Slice} from "@ton/core"
+import {Address, BitReader, ExternalAddress, Slice} from "@ton/core"
 import {ContractAbi, TypeAbi, TypeInfo} from "@shared/abi"
-
-export type ParsedObject = Record<string, ParsedSlice | undefined>
-
-export interface NestedObject {
-    readonly $: "nested-object"
-    readonly name: string
-    readonly value: ParsedObject | undefined
-}
-
-export type ParsedSlice = Readonly<
-    bigint | Address | ExternalAddress | AddressNone | Cell | Slice | NestedObject | boolean | null
->
-
-export class AddressNone {}
+import {AddressNone, ParsedObject, ParsedSlice} from "./types"
 
 function parseAddress(slice: Slice): Address | ExternalAddress | AddressNone {
     const prefix = slice.preloadUint(2)

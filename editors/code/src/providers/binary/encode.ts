@@ -1,6 +1,6 @@
 import {Address, beginCell, Builder, Cell, ExternalAddress, Slice} from "@ton/core"
 import {ContractAbi, TypeAbi, TypeInfo} from "@shared/abi"
-import {ParsedObject, ParsedSlice, NestedObject} from "./decode"
+import {NestedObject, ParsedObject, ParsedSlice} from "./types"
 
 /**
  * Encode a parsed object back to a slice using ABI type definition
