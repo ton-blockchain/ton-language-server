@@ -146,6 +146,19 @@ export const StatesView: React.FC<Props> = ({
                                     {formatContractName(node.toContract ?? "")}
                                 </span>
                             </>
+                        ) : node.type === "send-external" && node.contractAddress ? (
+                            <>
+                                <span className={styles.label}>
+                                    →{" "}
+                                    {getMessageName(node.contractAddress, node.opcode) ??
+                                        (node.opcode
+                                            ? "0x" + node.opcode.toString(16)
+                                            : "external")}{" "}
+                                </span>
+                                <span className={styles.contractName}>
+                                    {formatContractName(node.contractAddress)}
+                                </span>
+                            </>
                         ) : node.contractAddress ? (
                             <>
                                 {node.type === "deploy" && (
