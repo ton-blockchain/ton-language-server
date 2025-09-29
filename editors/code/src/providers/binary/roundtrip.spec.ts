@@ -216,6 +216,15 @@ const mockAbi: ContractAbi = {
     externalEntryPoint: undefined,
 }
 
+function typeAlias(aliasName: string, innerType: TypeInfo): TypeInfo {
+    return {
+        name: "type-alias",
+        aliasName,
+        innerType,
+        humanReadable: aliasName,
+    }
+}
+
 function createMockTypeAbi(
     fields: readonly Field[],
     opcode?: number,
@@ -243,7 +252,7 @@ function testRoundtrip(
     }
 }
 
-describe("Roundtrip encoding/decoding", () => {
+describe("Round-trip encoding/decoding", () => {
     describe("Basic integer types", () => {
         it(
             "should round-trip uint5",
@@ -270,6 +279,66 @@ describe("Roundtrip encoding/decoding", () => {
             "should round-trip uint64",
             testRoundtrip([field("value", uint(64))], {
                 value: 18_446_744_073_709_551_615n, // max uint64
+            }),
+        )
+
+        it(
+            "should round-trip int8 min/max values",
+            testRoundtrip([field("min_val", int(8)), field("max_val", int(8))], {
+                min_val: -128n,
+                max_val: 127n,
+            }),
+        )
+
+        it(
+            "should round-trip uint8 max value",
+            testRoundtrip([field("value", uint(8))], {
+                value: 255n,
+            }),
+        )
+
+        it(
+            "should round-trip int16 values",
+            testRoundtrip([field("negative", int(16)), field("positive", int(16))], {
+                negative: -32768n,
+                positive: 32767n,
+            }),
+        )
+
+        it(
+            "should round-trip uint16 max value",
+            testRoundtrip([field("value", uint(16))], {
+                value: 65535n,
+            }),
+        )
+
+        it(
+            "should round-trip int64 min/max values",
+            testRoundtrip([field("min_val", int(64)), field("max_val", int(64))], {
+                min_val: -9_223_372_036_854_775_808n,
+                max_val: 9_223_372_036_854_775_807n,
+            }),
+        )
+
+        it(
+            "should round-trip uint1 (single bit)",
+            testRoundtrip([field("bit", uint(1))], {
+                bit: 1n,
+            }),
+        )
+
+        it(
+            "should round-trip uint256 large value",
+            testRoundtrip([field("large", uint(256))], {
+                large: BigInt("0x123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0"),
+            }),
+        )
+
+        it(
+            "should round-trip zero values",
+            testRoundtrip([field("zero_int", int(32)), field("zero_uint", uint(32))], {
+                zero_int: 0n,
+                zero_uint: 0n,
             }),
         )
     })
@@ -557,6 +626,28 @@ describe("Roundtrip encoding/decoding", () => {
             expect(parsedData.var_int).toBe(1000n)
         })
 
+        it("should round-trip varint32", () => {
+            const fields: Field[] = [field("var_int32", varint32())]
+            const typeAbi = createMockTypeAbi(fields)
+
+            const testData = {var_int32: -123456789n}
+            const encodedCell = encodeData(mockAbi, typeAbi, testData)
+            const parsedData = parseData(mockAbi, typeAbi, encodedCell.beginParse())
+
+            expect(parsedData.var_int32).toBe(-123456789n)
+        })
+
+        it("should round-trip varuint16", () => {
+            const fields: Field[] = [field("var_uint16", varuint16())]
+            const typeAbi = createMockTypeAbi(fields)
+
+            const testData = {var_uint16: 65535n}
+            const encodedCell = encodeData(mockAbi, typeAbi, testData)
+            const parsedData = parseData(mockAbi, typeAbi, encodedCell.beginParse())
+
+            expect(parsedData.var_uint16).toBe(65535n)
+        })
+
         it("should round-trip varuint32", () => {
             const fields: Field[] = [field("var_uint", varuint32())]
             const typeAbi = createMockTypeAbi(fields)
@@ -566,6 +657,23 @@ describe("Roundtrip encoding/decoding", () => {
             const parsedData = parseData(mockAbi, typeAbi, encodedCell.beginParse())
 
             expect(parsedData.var_uint).toBe(50_000n)
+        })
+
+        it("should round-trip optional varint types", () => {
+            const fields: Field[] = [
+                field("maybe_varint16", optional(varint16())),
+                field("maybe_varuint32", optional(varuint32())),
+            ]
+            const typeAbi = createMockTypeAbi(fields)
+
+            const testData = {
+                maybe_varint16: -999n,
+                maybe_varuint32: null,
+            }
+            const encodedCell = encodeData(mockAbi, typeAbi, testData)
+            const parsedData = parseData(mockAbi, typeAbi, encodedCell.beginParse())
+
+            expect(parsedData).toEqual(testData)
         })
     })
 
@@ -678,6 +786,134 @@ describe("Roundtrip encoding/decoding", () => {
                 },
             }
 
+            const encodedCell = encodeData(mockAbi, typeAbi, testData)
+            const parsedData = parseData(mockAbi, typeAbi, encodedCell.beginParse())
+
+            expectNormalizedEqual(parsedData, testData)
+        })
+    })
+
+    describe("Type aliases", () => {
+        it("should round-trip type alias for int32", () => {
+            const fields: Field[] = [field("user_id", typeAlias("UserId", int(32)))]
+            const typeAbi = createMockTypeAbi(fields)
+
+            const testData = {user_id: 12345n}
+            const encodedCell = encodeData(mockAbi, typeAbi, testData)
+            const parsedData = parseData(mockAbi, typeAbi, encodedCell.beginParse())
+
+            expect(parsedData).toEqual(testData)
+        })
+
+        it("should round-trip type alias for address", () => {
+            const fields: Field[] = [field("wallet", typeAlias("WalletAddress", address()))]
+            const typeAbi = createMockTypeAbi(fields)
+
+            const testData = {
+                wallet: Address.parse(
+                    "0:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+                ),
+            }
+            const encodedCell = encodeData(mockAbi, typeAbi, testData)
+            const parsedData = parseData(mockAbi, typeAbi, encodedCell.beginParse())
+
+            expectNormalizedEqual(parsedData, testData)
+        })
+
+        it("should round-trip optional type alias", () => {
+            const fields: Field[] = [field("maybe_amount", optional(typeAlias("Amount", coins())))]
+            const typeAbi = createMockTypeAbi(fields)
+
+            const testDataWithValue = {maybe_amount: 1000000000n}
+            const encodedCell = encodeData(mockAbi, typeAbi, testDataWithValue)
+            const parsedData = parseData(mockAbi, typeAbi, encodedCell.beginParse())
+
+            expect(parsedData).toEqual(testDataWithValue)
+        })
+
+        it("should round-trip nested type aliases", () => {
+            const fields: Field[] = [
+                field("balance", typeAlias("Balance", typeAlias("Amount", coins()))),
+            ]
+            const typeAbi = createMockTypeAbi(fields)
+
+            const testData = {balance: 500000000n}
+            const encodedCell = encodeData(mockAbi, typeAbi, testData)
+            const parsedData = parseData(mockAbi, typeAbi, encodedCell.beginParse())
+
+            expect(parsedData).toEqual(testData)
+        })
+    })
+
+    describe("Extended bits types", () => {
+        it("should round-trip various bit widths", () => {
+            const fields: Field[] = [
+                field("bits1", bits(1)),
+                field("bits7", bits(7)),
+                field("bits32", bits(32)),
+                field("bits256", bits(256)),
+            ]
+            const typeAbi = createMockTypeAbi(fields)
+
+            const testData = {
+                bits1: makeSlice("b{1}"),
+                bits7: makeSlice("b{1010101}"),
+                bits32: makeSlice("x{DEADBEEF}"),
+                bits256: makeSlice(
+                    "x{123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0123456789ABCDEF0}",
+                ),
+            }
+            const encodedCell = encodeData(mockAbi, typeAbi, testData)
+            const parsedData = parseData(mockAbi, typeAbi, encodedCell.beginParse())
+
+            expectNormalizedEqual(parsedData, testData)
+        })
+
+        it("should round-trip empty bits", () => {
+            const fields: Field[] = [field("empty_bits", bits(0))]
+            const typeAbi = createMockTypeAbi(fields)
+
+            const testData = {empty_bits: makeSlice("x{}")}
+            const encodedCell = encodeData(mockAbi, typeAbi, testData)
+            const parsedData = parseData(mockAbi, typeAbi, encodedCell.beginParse())
+
+            expectNormalizedEqual(parsedData, testData)
+        })
+    })
+
+    describe("Complex nested structures", () => {
+        it("should round-trip mixed complex types", () => {
+            const fields: Field[] = [
+                field("id", uint(64)),
+                field("optional_struct", optional(struct("Point"))),
+                field("typed_cell", cell(optional(coins()))),
+                field("alias_field", typeAlias("CustomBits", bits(64))),
+                field("var_amount", varuint32()),
+                field("final_slice", slice()),
+            ]
+            const typeAbi = createMockTypeAbi(fields)
+
+            const testData = {
+                id: 999999999n,
+                optional_struct: {
+                    $: "nested-object" as const,
+                    name: "Point",
+                    value: {
+                        x: -999n,
+                        y: 999n,
+                    },
+                },
+                typed_cell: {
+                    $: "nested-object" as const,
+                    name: "Cell<coins?>",
+                    value: {
+                        value: 123456789n,
+                    },
+                },
+                alias_field: makeSlice("x{ABCDEF1234567890}"),
+                var_amount: 888888n,
+                final_slice: makeSlice("x{CAFEBABE}"),
+            }
             const encodedCell = encodeData(mockAbi, typeAbi, testData)
             const parsedData = parseData(mockAbi, typeAbi, encodedCell.beginParse())
 
