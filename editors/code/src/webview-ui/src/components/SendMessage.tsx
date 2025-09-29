@@ -9,6 +9,7 @@ import * as binary from "../../../providers/binary"
 import {ContractAbi, TypeAbi} from "@shared/abi"
 import {Cell} from "@ton/core"
 import {formatParsedSlice} from "../../../providers/binary"
+import {AbiFieldsForm} from "./AbiFieldsForm"
 
 interface MessageData {
     readonly selectedMessage: string
@@ -62,6 +63,7 @@ export const SendMessage: React.FC<Props> = ({
     const [sendMode, setSendMode] = useState<number>(0)
     const [lastTransaction, setLastTransaction] = useState<LastTransaction | null>(null)
     const [autoDebug, setAutoDebug] = useState<boolean>(false)
+    const [isMessageFieldsValid, setMessageFieldsValid] = useState<boolean>(true)
 
     const [messageMode, setMessageMode] = useState<"external" | "internal">("internal")
     const [selectedFromContract, setSelectedFromContract] = useState<string>("")
@@ -173,29 +175,6 @@ export const SendMessage: React.FC<Props> = ({
         }
     }
 
-    const handleFieldChange = (fieldName: string, fieldValue: string): void => {
-        const contract = contracts.find(c => c.address === selectedContract)
-        const message = contract?.abi?.messages.find(m => m.name === selectedMessage)
-        const field = message?.fields.find(f => f.name === fieldName)
-
-        let parsedValue: binary.ParsedSlice
-        if (field) {
-            try {
-                parsedValue = binary.parseStringFieldValue(fieldValue, field.type)
-            } catch {
-                parsedValue = fieldValue
-            }
-        } else {
-            parsedValue = fieldValue
-        }
-
-        const newFields = {...messageFields, [fieldName]: parsedValue}
-        setMessageFields(newFields)
-        if (selectedTemplate) {
-            setSelectedTemplate("")
-        }
-    }
-
     const handleSendModeChange = (newSendMode: number): void => {
         setSendMode(newSendMode)
         if (selectedTemplate) {
@@ -220,6 +199,10 @@ export const SendMessage: React.FC<Props> = ({
 
     const isFormValid = (): boolean => {
         if (!selectedContract || !selectedMessage) {
+            return false
+        }
+
+        if (!isMessageFieldsValid) {
             return false
         }
 
@@ -418,33 +401,12 @@ export const SendMessage: React.FC<Props> = ({
                 </div>
             )}
 
-            {message?.fields && message.fields.length > 0 ? (
-                <div className={styles.messageFieldsContainer}>
-                    {message.fields.map(field => (
-                        <div key={field.name} className={styles.messageField}>
-                            <div className={styles.messageFieldHeader}>
-                                <span className={styles.messageFieldName}>{field.name}</span>
-                                <span className={styles.messageFieldType}>
-                                    {field.type.humanReadable}
-                                </span>
-                            </div>
-                            <input
-                                type="text"
-                                value={binary.formatParsedSlice(messageFields[field.name]) ?? ""}
-                                onChange={e => {
-                                    handleFieldChange(field.name, e.target.value)
-                                }}
-                                placeholder={`Enter ${field.name} (${field.type.humanReadable})`}
-                                className={styles.messageFieldInput}
-                            />
-                        </div>
-                    ))}
-                </div>
-            ) : (
-                selectedMessage && (
-                    <div className={styles.noMessages}>This message has no fields</div>
-                )
-            )}
+            <AbiFieldsForm
+                abi={message}
+                fields={messageFields}
+                onFieldsChange={setMessageFields}
+                onValidationChange={setMessageFieldsValid}
+            />
 
             {!contract?.abi?.messages && selectedContract && (
                 <div className={styles.noMessages}>No messages available for this contract</div>

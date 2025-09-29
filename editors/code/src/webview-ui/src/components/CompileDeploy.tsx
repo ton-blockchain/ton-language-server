@@ -1,9 +1,10 @@
-import React, {useEffect, useState} from "react"
+import React, {useEffect, useMemo, useState} from "react"
 import {ContractAbi} from "@shared/abi"
-import {Button, Input, Label, FieldInput} from "./ui"
+import {Button, Input, Label} from "./ui"
 import styles from "./CompileDeploy.module.css"
 import * as binary from "../../../providers/binary"
 import {formatParsedSlice} from "../../../providers/binary"
+import {AbiFieldsForm} from "./AbiFieldsForm"
 
 interface Props {
     readonly onCompileAndDeploy: (
@@ -18,6 +19,7 @@ interface Props {
 export const CompileDeploy: React.FC<Props> = ({onCompileAndDeploy, result, contractAbi}) => {
     const [storageFields, setStorageFields] = useState<binary.ParsedObject>({})
     const [value, setValue] = useState<string>("1.0")
+    const [isStorageFieldsValid, setStorageFieldsValid] = useState<boolean>(true)
 
     const [customContractName, setCustomContractName] = useState<string>(contractAbi?.name ?? "")
 
@@ -25,28 +27,11 @@ export const CompileDeploy: React.FC<Props> = ({onCompileAndDeploy, result, cont
     const defaultContractName = contractAbi?.name ?? "UnknownContract"
     const contractName = customContractName.trim() ? customContractName : defaultContractName
 
+    const storageAbi = useMemo(() => contractAbi?.storage, [contractAbi])
+
     useEffect(() => {
         setCustomContractName(contractAbi?.name ?? "")
     }, [contractAbi])
-
-    const handleFieldChange = (fieldName: string, fieldValue: string): void => {
-        const storage = contractAbi?.storage
-        const field = storage?.fields.find(f => f.name === fieldName)
-
-        let parsedValue: binary.ParsedSlice
-        if (field) {
-            try {
-                parsedValue = binary.parseStringFieldValue(fieldValue, field.type)
-            } catch {
-                parsedValue = fieldValue
-            }
-        } else {
-            parsedValue = fieldValue
-        }
-
-        const newFields = {...storageFields, [fieldName]: parsedValue}
-        setStorageFields(newFields)
-    }
 
     const createStateInit = (): string => {
         if (!contractAbi?.storage) {
@@ -68,8 +53,12 @@ export const CompileDeploy: React.FC<Props> = ({onCompileAndDeploy, result, cont
             return false
         }
 
-        if (contractAbi?.storage?.fields) {
-            for (const field of contractAbi.storage.fields) {
+        if (!isStorageFieldsValid) {
+            return false
+        }
+
+        if (storageAbi?.fields) {
+            for (const field of storageAbi.fields) {
                 const fieldValue = storageFields[field.name] as string | undefined
                 if (fieldValue === undefined) {
                     return false
@@ -114,26 +103,12 @@ export const CompileDeploy: React.FC<Props> = ({onCompileAndDeploy, result, cont
                         />
                     </div>
 
-                    {contractAbi.storage?.fields && contractAbi.storage.fields.length > 0 && (
-                        <div className={styles.storageFields}>
-                            <div className={styles.formGroup}>
-                                <Label>Storage Fields:</Label>
-                            </div>
-                            {contractAbi.storage.fields.map(field => (
-                                <FieldInput
-                                    key={field.name}
-                                    name={field.name}
-                                    type={field.type.humanReadable}
-                                    value={
-                                        binary.formatParsedSlice(storageFields[field.name]) ?? ""
-                                    }
-                                    onChange={value => {
-                                        handleFieldChange(field.name, value)
-                                    }}
-                                />
-                            ))}
-                        </div>
-                    )}
+                    <AbiFieldsForm
+                        abi={storageAbi}
+                        fields={storageFields}
+                        onFieldsChange={setStorageFields}
+                        onValidationChange={setStorageFieldsValid}
+                    />
 
                     <div className={styles.formGroup}>
                         <Input

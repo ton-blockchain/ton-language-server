@@ -1,0 +1,37 @@
+.container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.formGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.fieldsContainer {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.select {
+    width: 100%;
+    padding: 6px 8px;
+    background-color: var(--vscode-input-background);
+    color: var(--vscode-input-foreground);
+    border: 1px solid var(--vscode-input-border);
+    border-radius: 2px;
+    font-family: inherit;
+    font-size: 12px;
+}
+
+.select:focus {
+    outline: none;
+    border-color: var(--vscode-focusBorder);
+}
+
+.select:disabled {
+    opacity: 0.6;
+}
