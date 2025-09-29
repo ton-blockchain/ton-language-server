@@ -97,6 +97,7 @@ export interface CompileAndDeployCommand {
     readonly stateInit: string
     readonly value?: string
     readonly name: string
+    readonly storageType?: string
 }
 
 export interface RenameContractCommand {

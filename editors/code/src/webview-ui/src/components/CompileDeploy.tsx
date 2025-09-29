@@ -1,6 +1,6 @@
 import React, {useEffect, useMemo, useState} from "react"
 import {ContractAbi} from "@shared/abi"
-import {Button, Input, Label} from "./ui"
+import {Button, Input, Label, Select} from "./ui"
 import styles from "./CompileDeploy.module.css"
 import * as binary from "../../../providers/binary"
 import {AbiFieldsForm} from "./AbiFieldsForm"
@@ -11,6 +11,7 @@ interface Props {
         stateInit: string, // Base64 encoded Cell
         value?: string,
         contractName?: string,
+        storageType?: string,
     ) => void
     readonly result?: {success: boolean; message: string; details?: string}
     readonly contractAbi?: ContractAbi
@@ -28,24 +29,54 @@ export const CompileDeploy: React.FC<Props> = ({
     const [isStorageFieldsValid, setStorageFieldsValid] = useState<boolean>(true)
 
     const [customContractName, setCustomContractName] = useState<string>(contractAbi?.name ?? "")
+    const [selectedStorageType, setSelectedStorageType] = useState<string>("")
 
     const isAbiLoading = !contractAbi
     const defaultContractName = contractAbi?.name ?? "UnknownContract"
     const contractName = customContractName.trim() ? customContractName : defaultContractName
 
-    const storageAbi = useMemo(() => contractAbi?.storage, [contractAbi])
+    const storageTypes = useMemo(() => {
+        if (!contractAbi?.types) return []
+        return contractAbi.types.filter(type => type.name.includes("Storage"))
+    }, [contractAbi?.types])
+
+    const storageAbi = useMemo(() => {
+        if (contractAbi?.storage) {
+            return contractAbi.storage
+        }
+        if (selectedStorageType && contractAbi?.types) {
+            return contractAbi.types.find(type => type.name === selectedStorageType) ?? undefined
+        }
+        if (storageTypes.length > 0 && !selectedStorageType) {
+            return storageTypes[0]
+        }
+        return undefined
+    }, [contractAbi?.storage, contractAbi?.types, selectedStorageType, storageTypes])
 
     useEffect(() => {
         setCustomContractName(contractAbi?.name ?? "")
     }, [contractAbi])
 
+    useEffect(() => {
+        if (storageTypes.length > 0 && !selectedStorageType && !contractAbi?.storage) {
+            setSelectedStorageType(storageTypes[0].name)
+        }
+    }, [storageTypes, selectedStorageType, contractAbi?.storage])
+
+    useEffect(() => {
+        setStorageFields({})
+    }, [selectedStorageType])
+
     const createStateInit = (): string => {
-        if (!contractAbi?.storage) {
+        if (!contractAbi) {
+            throw new Error("Contract ABI not found")
+        }
+        if (!storageAbi) {
             throw new Error("Storage ABI not found")
         }
 
         try {
-            const encodedCell = binary.encodeData(contractAbi, contractAbi.storage, storageFields)
+            const encodedCell = binary.encodeData(contractAbi, storageAbi, storageFields)
             return encodedCell.toBoc().toString("base64")
         } catch (error) {
             throw new Error(
@@ -68,7 +99,9 @@ export const CompileDeploy: React.FC<Props> = ({
     }
 
     const handleCompileAndDeploy = (): void => {
-        onCompileAndDeploy(createStateInit(), value, contractName)
+        const storageTypeToPass =
+            !contractAbi?.storage && selectedStorageType ? selectedStorageType : undefined
+        onCompileAndDeploy(createStateInit(), value, contractName, storageTypeToPass)
     }
 
     return (
@@ -96,6 +129,24 @@ export const CompileDeploy: React.FC<Props> = ({
                             placeholder={defaultContractName}
                         />
                     </div>
+
+                    {!contractAbi.storage && storageTypes.length > 1 && (
+                        <div className={styles.formGroup}>
+                            <Select
+                                label="Storage Type:"
+                                value={selectedStorageType}
+                                onChange={e => {
+                                    setSelectedStorageType(e.target.value)
+                                }}
+                            >
+                                {storageTypes.map(storageType => (
+                                    <option key={storageType.name} value={storageType.name}>
+                                        {storageType.name}
+                                    </option>
+                                ))}
+                            </Select>
+                        </div>
+                    )}
 
                     <AbiFieldsForm
                         abi={storageAbi}

@@ -68,6 +68,7 @@ export async function compileAndDeployFromEditor(
     stateInit: string, // Base64 encoded Cell
     treeProvider: SandboxTreeProvider | undefined,
     value?: string,
+    storageType?: string,
 ): Promise<void> {
     const editor = vscode.window.activeTextEditor
     if (!editor) {
@@ -90,7 +91,19 @@ export async function compileAndDeployFromEditor(
         } satisfies GetContractAbiParams,
     )
 
-    const contractAbi = abiResult.abi
+    let contractAbi = abiResult.abi
+
+    // If we have several storage types, we request actual one from the user
+    // If so, we need to update the ABI with the actual storage type for all further operations
+    if (storageType && contractAbi && !contractAbi.storage) {
+        const storageTypeDef = contractAbi.types.find(type => type.name === storageType)
+        if (storageTypeDef) {
+            contractAbi = {
+                ...contractAbi,
+                storage: storageTypeDef,
+            }
+        }
+    }
 
     try {
         const compiler = TolkCompilerProvider.getInstance()
