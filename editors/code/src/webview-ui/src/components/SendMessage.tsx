@@ -330,7 +330,7 @@ export const SendMessage: React.FC<Props> = ({
                     <option value="">Select message...</option>
                     {contract?.abi?.messages.map(msg => (
                         <option key={msg.name} value={msg.name}>
-                            {msg.name} (opcode: 0x{msg.opcode.toString(16)})
+                            {msg.name} (opcode: 0x{msg.opcode?.toString(16)})
                         </option>
                     ))}
                 </Select>

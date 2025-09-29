@@ -979,7 +979,7 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
 
             const templateData = {
                 name: templateName,
-                opcode: message.opcode,
+                opcode: message.opcode ?? 0,
                 messageFields: command.messageFields,
                 sendMode: command.sendMode,
                 value: command.value,

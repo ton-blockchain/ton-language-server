@@ -1,10 +1,10 @@
 import {TolkFile} from "@server/languages/tolk/psi/TolkFile"
-import {ContractAbi, EntryPoint, GetMethod, Message, Storage, TypeAbi} from "@shared/abi"
+import {ContractAbi, EntryPoint, GetMethod, Storage, TypeAbi} from "@shared/abi"
 import {ImportResolver} from "@server/languages/tolk/psi/ImportResolver"
 
 export function contractAbi(file: TolkFile): ContractAbi | undefined {
     const getMethods: GetMethod[] = []
-    const messages: Message[] = []
+    const messages: TypeAbi[] = []
     const types: TypeAbi[] = []
     let storage: Storage | undefined = undefined
     let entryPoint: EntryPoint | undefined = undefined
@@ -46,7 +46,6 @@ export function contractAbi(file: TolkFile): ContractAbi | undefined {
                         }
                     }),
                 }
-                continue
             }
 
             const fields = struct.fields().map(field => {
@@ -60,6 +59,8 @@ export function contractAbi(file: TolkFile): ContractAbi | undefined {
             if (!packPrefixNode) {
                 types.push({
                     name: struct.name(),
+                    opcode: undefined,
+                    opcodeWidth: undefined,
                     fields,
                 })
                 continue
@@ -77,12 +78,15 @@ export function contractAbi(file: TolkFile): ContractAbi | undefined {
                 }
             }
 
-            messages.push({
+            const type: TypeAbi = {
                 name: struct.name(),
                 opcode: Number(packPrefix),
                 opcodeWidth: prefixLen,
                 fields,
-            })
+            }
+
+            messages.push(type)
+            types.push(type)
         }
     }
 

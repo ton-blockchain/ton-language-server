@@ -5,7 +5,7 @@ import {SandboxTreeProvider} from "../providers/SandboxTreeProvider"
 import {SandboxFormProvider} from "../providers/SandboxFormProvider"
 import {StatesWebviewProvider} from "../providers/StatesWebviewProvider"
 import {beginCell, Cell} from "@ton/core"
-import {Message} from "@shared/abi"
+import {TypeAbi} from "@shared/abi"
 import {TolkSourceMap} from "../providers/TolkCompilerProvider"
 import {MessageTemplate} from "../webview-ui/src/types"
 import {DeployedContract} from "../providers/lib/contract"
@@ -469,7 +469,7 @@ export function buildStructuredMessage(
 ): string {
     const builder = beginCell()
 
-    let messageAbi: Message | null = null
+    let messageAbi: TypeAbi | null = null
     if (contractAddress) {
         messageAbi = getMessageAbiFromFormProvider(formProvider, contractAddress, messageName)
     }
@@ -541,7 +541,7 @@ function getMessageAbiFromFormProvider(
     formProvider: SandboxFormProvider,
     contractAddress: string,
     messageName: string,
-): Message | null {
+): TypeAbi | null {
     const contracts = formProvider.deployedContracts
 
     const contract = contracts.find(c => c.address === contractAddress)
