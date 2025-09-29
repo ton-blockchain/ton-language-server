@@ -1,10 +1,10 @@
 import React, {useMemo} from "react"
 import styles from "./ContractInfo.module.css"
 import {Cell, loadShardAccount} from "@ton/core"
-import {ContractAbi} from "@shared/abi"
 import {ContractInfoData, VSCodeAPI} from "../types"
 import {VscEdit, VscFileCode, VscTrash} from "react-icons/vsc"
 import {DeployedContract} from "../../../providers/lib/contract"
+import * as binary from "../../../providers/binary"
 
 interface Props {
     readonly info: ContractInfoData | undefined
@@ -13,116 +13,6 @@ interface Props {
     readonly onSendMessage?: () => void
     readonly onCallGetMethod?: () => void
     readonly vscode: VSCodeAPI
-}
-
-function parseStorageData(abi: ContractAbi, dataBase64: string): Record<string, unknown> {
-    const result: Record<string, unknown> = {}
-
-    try {
-        const dataCell = Cell.fromBase64(dataBase64)
-        const parser = dataCell.beginParse()
-
-        const storageAbi = abi.storage
-        if (storageAbi?.fields) {
-            for (const field of storageAbi.fields) {
-                try {
-                    const fieldType = field.type.humanReadable.toLowerCase()
-
-                    if (fieldType === "bool") {
-                        result[field.name] = parser.loadBit() ? "true" : "false"
-                    } else if (fieldType.startsWith("uint")) {
-                        const bitsMatch = /uint(\d+)/.exec(fieldType)
-                        if (bitsMatch) {
-                            const bits = Number.parseInt(bitsMatch[1])
-                            if (bits <= 32) {
-                                result[field.name] = parser.loadUint(bits).toString()
-                            } else {
-                                // Для больших значений используем последовательное чтение
-                                let value = 0n
-                                for (let i = 0; i < Math.ceil(bits / 32); i++) {
-                                    const chunkBits = Math.min(32, bits - i * 32)
-                                    const chunk = parser.loadUint(chunkBits)
-                                    value |= BigInt(chunk) << BigInt(i * 32)
-                                }
-                                result[field.name] = value.toString()
-                            }
-                        } else {
-                            // Для uint без размера используем 256 бит
-                            let value = 0n
-                            for (let i = 0; i < 8; i++) {
-                                const chunk = parser.loadUint(32)
-                                value |= BigInt(chunk) << BigInt(i * 32)
-                            }
-                            result[field.name] = value.toString()
-                        }
-                    } else if (fieldType.startsWith("int")) {
-                        const bitsMatch = /int(\d+)/.exec(fieldType)
-                        if (bitsMatch) {
-                            const bits = Number.parseInt(bitsMatch[1])
-                            if (bits <= 32) {
-                                result[field.name] = parser.loadInt(bits).toString()
-                            } else {
-                                // Для больших значений используем последовательное чтение
-                                let value = 0n
-                                for (let i = 0; i < Math.ceil(bits / 32); i++) {
-                                    const chunkBits = Math.min(32, bits - i * 32)
-                                    const chunk = parser.loadUint(chunkBits)
-                                    value |= BigInt(chunk) << BigInt(i * 32)
-                                }
-                                // Обработка знака для отрицательных чисел
-                                if (bits > 0 && (value & (1n << BigInt(bits - 1))) !== 0n) {
-                                    value -= 1n << BigInt(bits)
-                                }
-                                result[field.name] = value.toString()
-                            }
-                        } else {
-                            // Для int без размера используем 257 бит
-                            let value = 0n
-                            for (let i = 0; i < 9; i++) {
-                                const chunkBits = i === 8 ? 1 : 32
-                                const chunk = parser.loadUint(chunkBits)
-                                value |= BigInt(chunk) << BigInt(i * 32)
-                            }
-                            result[field.name] = value.toString()
-                        }
-                    } else if (fieldType.startsWith("varuint")) {
-                        const bitsMatch = /varuint(\d+)/.exec(fieldType)
-                        if (bitsMatch) {
-                            const maxBits = Number.parseInt(bitsMatch[1])
-                            const maxBytes = Math.ceil(maxBits / 8)
-                            result[field.name] = parser.loadVarUintBig(maxBytes).toString()
-                        } else {
-                            result[field.name] = parser.loadVarUintBig(16).toString()
-                        }
-                    } else if (fieldType.startsWith("varint")) {
-                        const bitsMatch = /varint(\d+)/.exec(fieldType)
-                        if (bitsMatch) {
-                            const maxBits = Number.parseInt(bitsMatch[1])
-                            const maxBytes = Math.ceil(maxBits / 8)
-                            result[field.name] = parser.loadVarIntBig(maxBytes).toString()
-                        } else {
-                            result[field.name] = parser.loadVarIntBig(16).toString()
-                        }
-                    } else if (fieldType === "cell") {
-                        const cell = parser.loadRef()
-                        result[field.name] = cell.toBoc().toString("base64")
-                    } else if (fieldType === "address") {
-                        result[field.name] = parser.loadAddress().toString()
-                    } else {
-                        // Неизвестный тип
-                        result[field.name] = "Unknown type: " + field.type.humanReadable
-                    }
-                } catch (error) {
-                    result[field.name] =
-                        "Parse error: " + (error instanceof Error ? error.message : "Unknown")
-                }
-            }
-        }
-    } catch (error) {
-        console.warn("Failed to parse storage data:", error)
-    }
-
-    return result
 }
 
 export const ContractInfo: React.FC<Props> = ({
@@ -158,16 +48,16 @@ export const ContractInfo: React.FC<Props> = ({
         })
     }
 
-    const storageFields = useMemo(() => {
+    const storageFields = useMemo((): binary.ParsedObject => {
         if (info?.abi && info.account) {
             const account = loadShardAccount(Cell.fromHex(info.account).beginParse())
             const state = account.account?.storage.state
-            if (state?.type === "active" && state.state.data) {
-                return parseStorageData(info.abi, state.state.data.toBoc().toString("base64"))
+            if (state?.type === "active" && state.state.data && info.abi.storage) {
+                return binary.parseData(info.abi, info.abi.storage, state.state.data.asSlice())
             }
         }
         return {}
-    }, [info?.abi, info?.stateInit?.data])
+    }, [info?.abi, info?.account])
 
     if (!info) {
         return (
@@ -277,23 +167,22 @@ export const ContractInfo: React.FC<Props> = ({
                     <div className={styles.storageSection}>
                         <div className={styles.sectionTitle}>Storage</div>
                         <div className={styles.storageGrid}>
-                            {Object.entries(storageFields).map(([fieldName, fieldValue]) => (
-                                <div key={fieldName} className={styles.storageItem}>
-                                    <span className={styles.fieldName}>{fieldName}:</span>
-                                    <span className={styles.fieldValue} title={String(fieldValue)}>
-                                        {typeof fieldValue === "boolean"
-                                            ? fieldValue
-                                                ? "true"
-                                                : "false"
-                                            : typeof fieldValue === "string" &&
-                                                fieldValue.startsWith("Parse error")
-                                              ? "❌ " + fieldValue
-                                              : String(fieldValue).length > 20
-                                                ? String(fieldValue).slice(0, 20) + "..."
-                                                : String(fieldValue)}
-                                    </span>
-                                </div>
-                            ))}
+                            {Object.entries(storageFields).map(([fieldName, fieldValue]) => {
+                                const formattedValue = binary.formatParsedSlice(fieldValue)
+                                const displayValue =
+                                    formattedValue.length > 20
+                                        ? formattedValue.slice(0, 20) + "..."
+                                        : formattedValue
+
+                                return (
+                                    <div key={fieldName} className={styles.storageItem}>
+                                        <span className={styles.fieldName}>{fieldName}:</span>
+                                        <span className={styles.fieldValue} title={formattedValue}>
+                                            {displayValue}
+                                        </span>
+                                    </div>
+                                )
+                            })}
                         </div>
                     </div>
                 )}

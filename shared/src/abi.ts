@@ -24,7 +24,7 @@ export type TypeInfo = (
 
 export interface ContractAbi {
     readonly name: string
-    readonly storage: Storage | undefined
+    readonly storage: TypeAbi | undefined
     readonly types: TypeAbi[]
     readonly messages: readonly TypeAbi[]
     readonly getMethods: readonly GetMethod[]
@@ -34,10 +34,6 @@ export interface ContractAbi {
 
 export interface EntryPoint {
     readonly pos: Pos | undefined
-}
-
-export interface Storage {
-    readonly fields: readonly Field[]
 }
 
 export interface TypeAbi {

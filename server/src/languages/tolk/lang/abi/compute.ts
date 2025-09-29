@@ -1,5 +1,5 @@
 import {TolkFile} from "@server/languages/tolk/psi/TolkFile"
-import {ContractAbi, EntryPoint, Field, GetMethod, Storage, TypeAbi} from "@shared/abi"
+import {ContractAbi, EntryPoint, Field, GetMethod, TypeAbi} from "@shared/abi"
 import {ImportResolver} from "@server/languages/tolk/psi/ImportResolver"
 import {typeOf} from "@server/languages/tolk/type-inference"
 import {convertTyToTypeInfo} from "./type-converter"
@@ -8,7 +8,7 @@ export function contractAbi(file: TolkFile): ContractAbi | undefined {
     const getMethods: GetMethod[] = []
     const messages: TypeAbi[] = []
     const types: TypeAbi[] = []
-    let storage: Storage | undefined = undefined
+    let storage: TypeAbi | undefined = undefined
     let entryPoint: EntryPoint | undefined = undefined
     let externalEntryPoint: EntryPoint | undefined = undefined
 
@@ -41,6 +41,9 @@ export function contractAbi(file: TolkFile): ContractAbi | undefined {
         for (const struct of currentFile.getStructs()) {
             if (struct.name() === "Storage") {
                 storage = {
+                    name: struct.name(),
+                    opcode: undefined,
+                    opcodeWidth: undefined,
                     fields: struct.fields().map((field): Field => {
                         const ty = typeOf(field.node, file)
                         return {
