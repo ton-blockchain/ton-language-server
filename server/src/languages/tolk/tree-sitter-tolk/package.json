@@ -34,8 +34,6 @@
         }
     },
     "devDependencies": {
-        "prebuildify": "^6.0.0",
-        "prettier": "^3.2.5",
         "tree-sitter-cli": "^0.25.0"
     },
     "tree-sitter": [

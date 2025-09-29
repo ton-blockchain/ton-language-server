@@ -1,7 +1,7 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
 
-import * as jsSHA from "jssha"
+import * as crypto from "node:crypto"
 
 const bufferToBigInt = (buffer: Buffer): bigint =>
     buffer.reduce((acc, byte) => (acc << 8n) | BigInt(byte), 0n)
@@ -12,11 +12,7 @@ const bufferToBigInt = (buffer: Buffer): bigint =>
  * @returns 256-bit hash as bigint
  */
 export function sha256(str: string): bigint {
-    // @ts-expect-error strange bug
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const hasher: jsSHA.default = new jsSHA("SHA-256", "HEX")
-    hasher.update(Buffer.from(str, "utf8").toString("hex"))
-    const res = hasher.getHash("HEX")
+    const res = crypto.createHash("sha256").update(str).digest("hex")
     return bufferToBigInt(Buffer.from(res, "hex"))
 }
 
