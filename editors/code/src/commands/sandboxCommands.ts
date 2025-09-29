@@ -484,7 +484,7 @@ export function buildStructuredMessage(
         }
 
         const fieldAbi = messageAbi?.fields.find(f => f.name === fieldName)
-        const fieldType = fieldAbi?.type ?? fieldName
+        const fieldType = fieldAbi?.type.humanReadable ?? fieldName
 
         const fieldTypeInfo = parseFieldTypeFromAbi(fieldType, fieldName, fieldValue)
 

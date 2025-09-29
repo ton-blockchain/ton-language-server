@@ -26,7 +26,7 @@ function parseStorageData(abi: ContractAbi, dataBase64: string): Record<string, 
         if (storageAbi?.fields) {
             for (const field of storageAbi.fields) {
                 try {
-                    const fieldType = field.type.toLowerCase()
+                    const fieldType = field.type.humanReadable.toLowerCase()
 
                     if (fieldType === "bool") {
                         result[field.name] = parser.loadBit() ? "true" : "false"
@@ -110,7 +110,7 @@ function parseStorageData(abi: ContractAbi, dataBase64: string): Record<string, 
                         result[field.name] = parser.loadAddress().toString()
                     } else {
                         // Неизвестный тип
-                        result[field.name] = "Unknown type: " + field.type
+                        result[field.name] = "Unknown type: " + field.type.humanReadable
                     }
                 } catch (error) {
                     result[field.name] =

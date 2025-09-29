@@ -221,7 +221,7 @@ async function buildInitialData(
             continue
         }
 
-        const fieldTypeInfo = parseFieldTypeFromAbi(field.type)
+        const fieldTypeInfo = parseFieldTypeFromAbi(field.type.humanReadable)
         if (!fieldTypeInfo) {
             continue
         }
@@ -266,7 +266,7 @@ async function buildInitialData(
             }
         } catch (error) {
             throw new Error(
-                `Failed to encode storage field ${field.name} (${field.type}) with value ${fieldValue}: ${error instanceof Error ? error.message : "Unknown error"}`,
+                `Failed to encode storage field ${field.name} (${field.type.humanReadable}) with value ${fieldValue}: ${error instanceof Error ? error.message : "Unknown error"}`,
             )
         }
     }

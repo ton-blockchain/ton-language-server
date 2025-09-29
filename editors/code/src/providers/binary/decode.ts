@@ -1,5 +1,5 @@
 import {Address, BitReader, Cell, ExternalAddress, Slice} from "@ton/core"
-import {ContractAbi, TypeAbi} from "@shared/abi"
+import {ContractAbi, TypeAbi, TypeInfo} from "@shared/abi"
 
 export type ParsedObject = Record<string, ParsedSlice>
 
@@ -12,120 +12,6 @@ export interface NestedObject {
 export type ParsedSlice = Readonly<
     bigint | Address | ExternalAddress | Cell | Slice | NestedObject | boolean | null
 >
-
-type BaseTypeInfo =
-    | {readonly name: "int"; readonly width: number}
-    | {readonly name: "uint"; readonly width: number}
-    | {readonly name: "coins"}
-    | {readonly name: "bool"}
-    | {readonly name: "address"}
-    | {readonly name: "bits"; readonly width: number}
-    | {readonly name: "cell"; readonly innerType?: string}
-    | {readonly name: "slice"}
-    | {readonly name: "varint16"}
-    | {readonly name: "varint32"}
-    | {readonly name: "varuint16"}
-    | {readonly name: "varuint32"}
-
-type TypeInfo = BaseTypeInfo | {readonly name: "option"; readonly innerType: BaseTypeInfo}
-
-function parseTypeString(typeStr: string): TypeInfo {
-    let type = typeStr.trim()
-    let isOptional = false
-
-    if (type.endsWith("?")) {
-        isOptional = true
-        type = type.slice(0, -1).trim()
-    }
-
-    let baseTypeInfo: BaseTypeInfo
-
-    const cellMatch = /^Cell<(.+)>$/.exec(type)
-    if (cellMatch) {
-        baseTypeInfo = {
-            name: "cell",
-            innerType: cellMatch[1],
-        }
-    } else {
-        const intMatch = /^(u?int)(\d+)$/.exec(type)
-        if (intMatch) {
-            const width = Number.parseInt(intMatch[2])
-            baseTypeInfo = {
-                name: intMatch[1] === "uint" ? "uint" : "int",
-                width,
-            }
-        } else {
-            const bitsMatch = /^bits(\d+)$/.exec(type)
-            if (bitsMatch) {
-                const width = Number.parseInt(bitsMatch[1])
-                baseTypeInfo = {
-                    name: "bits",
-                    width,
-                }
-            } else {
-                const bytesMatch = /^bytes(\d+)$/.exec(type)
-                if (bytesMatch) {
-                    const bitWidth = Number.parseInt(bytesMatch[1]) * 8
-                    baseTypeInfo = {
-                        name: "bits",
-                        width: bitWidth,
-                    }
-                } else {
-                    switch (type) {
-                        case "coins": {
-                            baseTypeInfo = {name: "coins"}
-                            break
-                        }
-                        case "bool": {
-                            baseTypeInfo = {name: "bool"}
-                            break
-                        }
-                        case "address": {
-                            baseTypeInfo = {name: "address"}
-                            break
-                        }
-                        case "cell": {
-                            baseTypeInfo = {name: "cell"}
-                            break
-                        }
-                        case "slice": {
-                            baseTypeInfo = {name: "slice"}
-                            break
-                        }
-                        case "varint16": {
-                            baseTypeInfo = {name: "varint16"}
-                            break
-                        }
-                        case "varint32": {
-                            baseTypeInfo = {name: "varint32"}
-                            break
-                        }
-                        case "varuint16": {
-                            baseTypeInfo = {name: "varuint16"}
-                            break
-                        }
-                        case "varuint32": {
-                            baseTypeInfo = {name: "varuint32"}
-                            break
-                        }
-                        default: {
-                            throw new Error(`Unsupported type: ${type}`)
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    if (isOptional) {
-        return {
-            name: "option",
-            innerType: baseTypeInfo,
-        }
-    }
-
-    return baseTypeInfo
-}
 
 function parseAddress(slice: Slice): Address | ExternalAddress | null {
     const prefix = slice.preloadUint(2)
@@ -153,6 +39,10 @@ function parseFieldValue(slice: Slice, typeInfo: TypeInfo, abi: ContractAbi): Pa
         if (!hasValue) {
             return null
         }
+        return parseFieldValue(slice, typeInfo.innerType, abi)
+    }
+
+    if (typeInfo.name === "type-alias") {
         return parseFieldValue(slice, typeInfo.innerType, abi)
     }
 
@@ -184,14 +74,15 @@ function parseFieldValue(slice: Slice, typeInfo: TypeInfo, abi: ContractAbi): Pa
         case "cell": {
             const cellRef = slice.loadRef()
             if (typeInfo.innerType) {
-                // For typed cells, we create a nested object
-                const innerTypeInfo = parseTypeString(typeInfo.innerType)
-                const cellSlice = cellRef.beginParse()
-                const parsedInner = parseFieldValue(cellSlice, innerTypeInfo, abi)
-                return {
-                    $: "nested-object" as const,
-                    name: `Cell<${typeInfo.innerType}>`,
-                    value: {inner: parsedInner},
+                const innerTypeAbi = abi.types.find(t => t.name === typeInfo.innerType)
+                if (innerTypeAbi) {
+                    const cellSlice = cellRef.beginParse()
+                    const parsedInner = parseData(abi, innerTypeAbi, cellSlice)
+                    return {
+                        $: "nested-object" as const,
+                        name: `Cell<${typeInfo.innerType}>`,
+                        value: parsedInner,
+                    }
                 }
             }
             return cellRef
@@ -223,7 +114,7 @@ function parseFieldValue(slice: Slice, typeInfo: TypeInfo, abi: ContractAbi): Pa
         }
     }
 
-    throw new Error(`unexpected type: ${JSON.stringify(typeInfo)}`)
+    throw new Error(`unexpected type`)
 }
 
 /**
@@ -248,11 +139,10 @@ export function parseData(abi: ContractAbi, typeAbi: TypeAbi, data: Slice): Pars
 
     for (const field of typeAbi.fields) {
         try {
-            const typeInfo = parseTypeString(field.type)
-            object[field.name] = parseFieldValue(slice, typeInfo, abi)
+            object[field.name] = parseFieldValue(slice, field.type, abi)
         } catch (error) {
             throw new Error(
-                `Failed to parse field '${field.name}' of type '${field.type}': ${error}`,
+                `Failed to parse field '${field.name}' of type '${field.type.humanReadable}': ${error}`,
             )
         }
     }

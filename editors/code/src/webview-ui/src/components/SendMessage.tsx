@@ -362,7 +362,9 @@ export const SendMessage: React.FC<Props> = ({
                         <div key={field.name} className={styles.messageField}>
                             <div className={styles.messageFieldHeader}>
                                 <span className={styles.messageFieldName}>{field.name}</span>
-                                <span className={styles.messageFieldType}>{field.type}</span>
+                                <span className={styles.messageFieldType}>
+                                    {field.type.humanReadable}
+                                </span>
                             </div>
                             <input
                                 type="text"
@@ -370,7 +372,7 @@ export const SendMessage: React.FC<Props> = ({
                                 onChange={e => {
                                     handleFieldChange(field.name, e.target.value)
                                 }}
-                                placeholder={`Enter ${field.name} (${field.type})`}
+                                placeholder={`Enter ${field.name} (${field.type.humanReadable})`}
                                 className={styles.messageFieldInput}
                             />
                         </div>

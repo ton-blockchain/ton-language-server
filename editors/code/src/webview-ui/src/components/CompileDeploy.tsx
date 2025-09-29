@@ -89,7 +89,7 @@ export const CompileDeploy: React.FC<Props> = ({onCompileAndDeploy, result, cont
                                 <FieldInput
                                     key={field.name}
                                     name={field.name}
-                                    type={field.type}
+                                    type={field.type.humanReadable}
                                     value={storageFields[field.name] || ""}
                                     onChange={value => {
                                         handleFieldChange(field.name, value)

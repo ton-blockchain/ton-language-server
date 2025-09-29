@@ -1,3 +1,25 @@
+export type BaseTypeInfo =
+    | {readonly name: "int"; readonly width: number}
+    | {readonly name: "uint"; readonly width: number}
+    | {readonly name: "coins"}
+    | {readonly name: "bool"}
+    | {readonly name: "address"}
+    | {readonly name: "bits"; readonly width: number}
+    | {readonly name: "cell"; readonly innerType?: string}
+    | {readonly name: "slice"}
+    | {readonly name: "varint16"}
+    | {readonly name: "varint32"}
+    | {readonly name: "varuint16"}
+    | {readonly name: "varuint32"}
+
+export type TypeInfo = (
+    | BaseTypeInfo
+    | {readonly name: "option"; readonly innerType: TypeInfo}
+    | {readonly name: "type-alias"; readonly aliasName: string; readonly innerType: TypeInfo}
+) & {
+    readonly humanReadable: string
+}
+
 export interface ContractAbi {
     readonly name: string
     readonly storage: Storage | undefined
@@ -25,7 +47,7 @@ export interface TypeAbi {
 
 export interface Field {
     readonly name: string
-    readonly type: string
+    readonly type: TypeInfo
 }
 
 export interface GetMethod {
