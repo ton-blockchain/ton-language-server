@@ -266,3 +266,20 @@
     flex-direction: column;
     gap: 2px;
 }
+
+.externalOutNode {
+    pointer-events: none;
+}
+
+.externalOutArrow::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 0;
+    height: 0;
+    border-left: 6px solid var(--color-text-accent);
+    border-top: 4px solid transparent;
+    border-bottom: 4px solid transparent;
+}
