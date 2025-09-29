@@ -4,9 +4,9 @@ import * as vscode from "vscode"
 import {SandboxTreeProvider} from "../providers/SandboxTreeProvider"
 import {SandboxFormProvider} from "../providers/SandboxFormProvider"
 import {StatesWebviewProvider} from "../providers/StatesWebviewProvider"
-import {TolkSourceMap} from "../providers/TolkCompilerProvider"
 import {MessageTemplate} from "../webview-ui/src/types"
 import {DeployedContract} from "../providers/lib/contract"
+import {SourceMap} from "ton-source-map"
 
 export function registerSandboxCommands(
     treeProvider: SandboxTreeProvider,
@@ -145,7 +145,7 @@ interface SendMessageResponse {
         readonly addr: string
         readonly vmLogs: string
         readonly code: string
-        readonly sourceMap?: TolkSourceMap
+        readonly sourceMap?: SourceMap
     }[]
 }
 

@@ -50,7 +50,7 @@ export function formatParsedSlice(value: ParsedSlice | undefined): string | unde
         }
 
         if (value instanceof Cell) {
-            return value.toString()
+            return value.toBoc().toString("base64")
         }
 
         if (value instanceof Slice) {

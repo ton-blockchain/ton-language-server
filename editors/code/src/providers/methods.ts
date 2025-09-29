@@ -1,9 +1,10 @@
 import vscode from "vscode"
 import {GetContractAbiParams, GetContractAbiResponse} from "@shared/shared-msgtypes"
-import {TolkCompilerProvider, TolkSourceMap} from "./TolkCompilerProvider"
+import {TolkCompilerProvider} from "./TolkCompilerProvider"
 import {ContractAbi} from "@shared/abi"
 import {SandboxTreeProvider} from "./SandboxTreeProvider"
 import {ContractInfoData} from "../webview-ui/src/types"
+import {SourceMap} from "ton-source-map"
 
 export async function loadContractAbiForDeploy(): Promise<ContractAbi | undefined> {
     const editor = vscode.window.activeTextEditor
@@ -165,7 +166,7 @@ async function deployContract(
     },
     name: string,
     value?: string,
-    sourceMap?: TolkSourceMap,
+    sourceMap?: SourceMap,
     abi?: ContractAbi,
     sourceUri?: string,
 ): Promise<{

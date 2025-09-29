@@ -65,10 +65,9 @@ function convertTyToBaseTypeInfo(ty: Ty): BaseTypeInfo & {humanReadable: string}
         }
     }
 
-    if (ty instanceof IntTy) {
+    if (ty instanceof CoinsTy) {
         return {
-            name: "int",
-            width: 257,
+            name: "coins",
             humanReadable,
         }
     }
@@ -105,16 +104,17 @@ function convertTyToBaseTypeInfo(ty: Ty): BaseTypeInfo & {humanReadable: string}
         throw new Error(`Unsupported VarIntNTy size: ${ty.size}`)
     }
 
-    if (ty instanceof CoinsTy) {
+    if (ty instanceof BoolTy) {
         return {
-            name: "coins",
+            name: "bool",
             humanReadable,
         }
     }
 
-    if (ty instanceof BoolTy) {
+    if (ty instanceof IntTy) {
         return {
-            name: "bool",
+            name: "int",
+            width: 257,
             humanReadable,
         }
     }

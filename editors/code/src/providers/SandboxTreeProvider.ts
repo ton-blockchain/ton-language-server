@@ -6,7 +6,7 @@ import {ContractAbi} from "@shared/abi"
 import type {SandboxCodeLensProvider} from "./SandboxCodeLensProvider"
 import {formatAddress} from "./methods"
 import {DeployedContract} from "./lib/contract"
-import {TolkSourceMap} from "./TolkCompilerProvider"
+import {SourceMap} from "ton-source-map"
 
 interface SandboxTreeItem {
     readonly id: string
@@ -286,7 +286,7 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
         name: string | undefined,
         abi: ContractAbi | undefined,
         sourceUri: string,
-        sourceMap: TolkSourceMap | undefined,
+        sourceMap: SourceMap | undefined,
     ): void {
         const existingIndex = this.deployedContracts.findIndex(c => c.address === address)
 

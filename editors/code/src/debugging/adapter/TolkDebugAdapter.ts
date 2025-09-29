@@ -12,12 +12,8 @@ import {
 import {DebugProtocol} from "@vscode/debugprotocol"
 import * as path from "node:path"
 import {LaunchRequestArguments} from "./types"
-import {
-    StackElement,
-    TraceInfo,
-    SourceMapVariable,
-    createTraceInfoPerTransaction,
-} from "ton-assembly/dist/trace"
+import {StackElement, TraceInfo, createTraceInfoPerTransaction} from "ton-assembly/dist/trace"
+import {HighLevelSourceMapVariable} from "ton-source-map"
 
 // eslint-disable-next-line functional/type-declaration-immutability
 interface NestedVariable {
@@ -108,11 +104,12 @@ export class TolkDebugAdapter extends LoggingDebugSession {
 
         this.traceInfo = createTraceInfoPerTransaction(
             args.vmLogs,
-            args.sourceMap.mappingInfo,
-            args.sourceMap.sourcemap,
+            args.sourceMap.assemblyMapping,
+            args.sourceMap.highlevelMapping,
         )[0]
 
         if (this.traceInfo.steps.length === 0) {
+            this.log(args.vmLogs)
             this.sendErrorResponse(
                 response,
                 1003,
@@ -151,15 +148,15 @@ export class TolkDebugAdapter extends LoggingDebugSession {
 
         const stackFrames: StackFrame[] = []
 
-        const frameTitle = `${currentStepTarget.func} (step ${this.currentStep})`
+        const frameTitle = `${currentStepTarget.context.containing_function} (step ${this.currentStep})`
 
-        const filepath = currentStepTarget.file
+        const filepath = currentStepTarget.loc.file
         const source = new Source(
             path.basename(filepath),
             this.convertDebuggerPathToClient(filepath),
         )
-        const line = currentStepTarget.line
-        const column = currentStepTarget.pos + 1
+        const line = currentStepTarget.loc.line + 1
+        const column = currentStepTarget.loc.column + 2
 
         const stackFrame = new StackFrame(0, frameTitle, source, line, column)
         stackFrame.instructionPointerReference = "ref"
@@ -213,7 +210,7 @@ export class TolkDebugAdapter extends LoggingDebugSession {
         }
         const currentStepTarget = currentStepTargets[0]
 
-        if (currentStepTarget.vars.length > 0) {
+        if (currentStepTarget.variables.length > 0) {
             const scope: DebugProtocol.Scope = {
                 name: "Variables",
                 variablesReference: 1,
@@ -261,7 +258,7 @@ export class TolkDebugAdapter extends LoggingDebugSession {
                 }
 
                 const currentStepTarget = currentStepTargets[0]
-                const vars = [...currentStepTarget.vars].reverse()
+                const vars = [...currentStepTarget.variables].reverse()
 
                 const variableTree = this.buildVariableTree(vars, elementsToFormat)
                 this.formatNestedVariables(variableTree, variables)
@@ -285,7 +282,7 @@ export class TolkDebugAdapter extends LoggingDebugSession {
     }
 
     private buildVariableTree(
-        variables: readonly SourceMapVariable[],
+        variables: readonly HighLevelSourceMapVariable[],
         stackElements: readonly StackElement[],
     ): NestedVariable[] {
         const root: Map<string, NestedVariable> = new Map()
@@ -303,7 +300,8 @@ export class TolkDebugAdapter extends LoggingDebugSession {
                     $: "nested-variable",
                     name: variable.name,
                     value:
-                        variable.value ?? (stackValue ? formatStackElement(stackValue) : "Unknown"),
+                        variable.constant_value ??
+                        (stackValue ? formatStackElement(stackValue) : "Unknown"),
                     type: variable.type,
                     stackValue,
                 })
@@ -332,7 +330,8 @@ export class TolkDebugAdapter extends LoggingDebugSession {
                     $: "nested-variable",
                     name: childName,
                     value:
-                        variable.value ?? (stackValue ? formatStackElement(stackValue) : "Unknown"),
+                        variable.constant_value ??
+                        (stackValue ? formatStackElement(stackValue) : "Unknown"),
                     type: variable.type,
                     stackValue,
                 })

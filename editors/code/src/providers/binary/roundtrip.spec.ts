@@ -206,7 +206,7 @@ function testRoundtrip(
         const typeAbi = createMockTypeAbi(fields, opcode, opcodeWidth)
         const encodedCell = encodeData(mockAbi, typeAbi, testData)
         const parsedData = parseData(mockAbi, typeAbi, encodedCell.beginParse())
-        expect(parsedData).toEqual(testData)
+        expectNormalizedEqual(parsedData, testData)
     }
 }
 
@@ -912,6 +912,26 @@ describe("Round-trip encoding/decoding", () => {
                     maybe_query: 456n,
                     maybe_addr: null,
                     final_flag: false,
+                },
+            ),
+        )
+
+        it(
+            "should round-trip two addresses and coins",
+            testRoundtrip(
+                [
+                    field("amount", coins()),
+                    field("sender", address()),
+                    field("recipient", address()),
+                ],
+                {
+                    sender: Address.parse(
+                        "0:1111111111111111111111111111111111111111111111111111111111111111",
+                    ),
+                    recipient: Address.parse(
+                        "0:2222222222222222222222222222222222222222222222222222222222222222",
+                    ),
+                    amount: 2_500_000_000n,
                 },
             ),
         )

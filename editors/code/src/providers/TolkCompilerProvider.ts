@@ -3,22 +3,17 @@
 import vscode, {Uri} from "vscode"
 import {ToolchainConfig} from "@server/settings/settings"
 import {Toolchain} from "@server/languages/tolk/toolchain/toolchain"
-import {Cell, runtime as i, trace, text} from "ton-assembly"
-import {SourceMap} from "ton-assembly/dist/trace"
+import {Cell, runtime as i, text} from "ton-assembly"
 import {promisify} from "node:util"
 import {execFile} from "node:child_process"
+import {SourceMap} from "ton-source-map"
 
 export interface CompilationResult {
     readonly success: boolean
     readonly code?: string
     readonly error?: string
     readonly output?: string
-    readonly sourceMap?: TolkSourceMap
-}
-
-export interface TolkSourceMap {
-    readonly sourcemap?: SourceMap
-    readonly mappingInfo: trace.MappingInfo
+    readonly sourceMap?: SourceMap
 }
 
 interface TolkCompilerOutput {
@@ -28,7 +23,10 @@ interface TolkCompilerOutput {
     readonly codeBoc64: string
     readonly debugCodeBoc64?: string
     readonly codeHashHex: string
-    readonly sourceMap?: TolkSourceMap
+    readonly fiftSourceMapCode?: string
+    readonly sourceMapCodeRecompiledBoc64?: string
+    readonly sourceMapCodeBoc64?: string
+    readonly sourceMap?: SourceMap
     readonly sourcesSnapshot: {
         readonly filename: string
         readonly contents: string
@@ -91,7 +89,7 @@ export class TolkCompilerProvider {
     private async compileWithBinary(
         contractFilePath: Uri,
         toolchainPath: string,
-    ): Promise<[Cell, TolkSourceMap | undefined]> {
+    ): Promise<[Cell, SourceMap | undefined]> {
         const tempFolderUri = vscode.Uri.joinPath(
             vscode.workspace.workspaceFolders?.[0]?.uri ?? vscode.Uri.file(process.cwd()),
             ".tolk-temp-" + Date.now(),
@@ -155,10 +153,10 @@ export class TolkCompilerProvider {
             const outputJson = Buffer.from(outputBuffer).toString("utf8")
             const result = JSON.parse(outputJson) as TolkCompilerOutput
 
-            const codeCell = Cell.fromBase64(result.debugCodeBoc64 ?? result.codeBoc64)
-            const [cell] = recompileCell(codeCell)
-
-            return [cell, result.sourceMap]
+            const codeCell = Cell.fromBase64(
+                result.sourceMapCodeRecompiledBoc64 ?? result.codeBoc64,
+            )
+            return [codeCell, result.sourceMap]
         } catch (error) {
             if (error instanceof Error) {
                 throw new TypeError(error.message)

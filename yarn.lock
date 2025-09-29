@@ -2410,14 +2410,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@ton/core@npm:0.60.1, @ton/core@npm:^0.60.1":
-  version: 0.60.1
-  resolution: "@ton/core@npm:0.60.1"
+"@ton/core@npm:0.61.0":
+  version: 0.61.0
+  resolution: "@ton/core@npm:0.61.0"
   dependencies:
     symbol.inspect: "npm:1.0.1"
   peerDependencies:
     "@ton/crypto": ">=3.2.0"
-  checksum: 10c0/aa2181cb1b7db85ce651f5d31b552858e2e6b98bb69803fc384a7e62b6a9cb4685f6e9f6f00a29bddfa872486ba7c2eb9e51fc84a8599b253c1649b2802876be
+  checksum: 10c0/0bec288efa33c2302bf2d783a7d723a7b24b31da1bce28907036110e0979b28faeb3bbea761c32b83ea07e8352230591ad655e896b9146e4c539ff53ed327fe3
   languageName: node
   linkType: hard
 
@@ -10106,20 +10106,30 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ton-assembly@file:/Users/petrmakhnev/tasm-new/ton-assembly-0.2.4-SNAPSHOT.5.tgz::locator=vscode-ton%40workspace%3A.":
-  version: 0.2.4-SNAPSHOT.5
-  resolution: "ton-assembly@file:/Users/petrmakhnev/tasm-new/ton-assembly-0.2.4-SNAPSHOT.5.tgz#/Users/petrmakhnev/tasm-new/ton-assembly-0.2.4-SNAPSHOT.5.tgz::hash=c08592&locator=vscode-ton%40workspace%3A."
+"ton-assembly@file:/Users/petrmakhnev/tasm-new/ton-assembly-0.3.4.tgz::locator=vscode-ton%40workspace%3A.":
+  version: 0.3.4
+  resolution: "ton-assembly@file:/Users/petrmakhnev/tasm-new/ton-assembly-0.3.4.tgz#/Users/petrmakhnev/tasm-new/ton-assembly-0.3.4.tgz::hash=7e4c1e&locator=vscode-ton%40workspace%3A."
   dependencies:
-    "@ton/core": "npm:^0.60.1"
     "@tonstudio/parser-runtime": "npm:^0.0.1"
     cac: "npm:^6.7.14"
+    ton-source-map: "npm:^0.2.1"
   peerDependencies:
-    "@ton/core": ">=0.60.1"
+    "@ton/core": ">=0.61.0"
+  peerDependenciesMeta:
+    "@ton/core":
+      optional: false
   bin:
     tasm: ./dist/cli/assembler.js
     tdisasm: ./dist/cli/disassembler.js
     tfift: ./dist/cli/fift-compiler.js
-  checksum: 10c0/11865526ceb5b072b1db6b751096efb60fcecee868591b779ae9d342821636d496c9714f8ff3cf6f14716c3b4a24069d5aad236c2ff4bf976bee60dd7f76b1a2
+  checksum: 10c0/c27e970f9e907561b4aeafb583ee1b411b3f7ea363e047d37a8504a8990574d470f851db067c7e78c8472ebca99b1d5caa2d6a1d42435abde6b7013d5d7c2bb7
+  languageName: node
+  linkType: hard
+
+"ton-source-map@npm:^0.2.1, ton-source-map@npm:^0.2.2":
+  version: 0.2.2
+  resolution: "ton-source-map@npm:0.2.2"
+  checksum: 10c0/c1e0413983f589a1dfcbb53aa35d04f42244e88d75899eb4c04a3733ac37d2a915063dc91a726409b0239e4a039059d860e1069efb9c8faa6580d06c8b88f3a0
   languageName: node
   linkType: hard
 
@@ -10762,7 +10772,7 @@ __metadata:
     "@babel/core": "npm:^7.26.0"
     "@babel/plugin-transform-modules-commonjs": "npm:^7.25.9"
     "@babel/preset-env": "npm:^7.26.0"
-    "@ton/core": "npm:0.60.1"
+    "@ton/core": "npm:0.61.0"
     "@ton/crypto": "npm:^3.3.0"
     "@types/jest": "npm:^29.5.14"
     "@types/mocha": "npm:^10.0.6"
@@ -10799,7 +10809,8 @@ __metadata:
     react-markdown: "npm:^10.1.0"
     style-loader: "npm:^4.0.0"
     tolkfmt-test-dev: "npm:0.0.21"
-    ton-assembly: /Users/petrmakhnev/tasm-new/ton-assembly-0.2.4-SNAPSHOT.5.tgz
+    ton-assembly: /Users/petrmakhnev/tasm-new/ton-assembly-0.3.4.tgz
+    ton-source-map: "npm:^0.2.2"
     tree-sitter-cli: "npm:^0.25.8"
     ts-jest: "npm:^29.2.6"
     ts-loader: "npm:^9.5.1"

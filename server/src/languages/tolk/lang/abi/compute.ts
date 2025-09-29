@@ -39,23 +39,6 @@ export function contractAbi(file: TolkFile): ContractAbi | undefined {
         }
 
         for (const struct of currentFile.getStructs()) {
-            if (struct.name() === "Storage") {
-                storage = {
-                    name: struct.name(),
-                    opcode: undefined,
-                    opcodeWidth: undefined,
-                    fields: struct.fields().map((field): Field => {
-                        const ty = typeOf(field.node, file)
-                        return {
-                            name: field.name(),
-                            type: ty
-                                ? convertTyToTypeInfo(ty)
-                                : {name: "slice", humanReadable: "slice"},
-                        }
-                    }),
-                }
-            }
-
             const fields: Field[] = struct.fields().map(field => {
                 const ty = typeOf(field.node, file)
                 return {
@@ -63,6 +46,15 @@ export function contractAbi(file: TolkFile): ContractAbi | undefined {
                     type: ty ? convertTyToTypeInfo(ty) : {name: "slice", humanReadable: "slice"},
                 }
             })
+
+            if (struct.name() === "Storage") {
+                storage = {
+                    name: struct.name(),
+                    opcode: undefined,
+                    opcodeWidth: undefined,
+                    fields,
+                }
+            }
 
             const packPrefixNode = struct.packPrefix()
             if (!packPrefixNode) {

@@ -38,14 +38,14 @@ import {compileAndDeployFromEditor, loadContractAbiForDeploy, loadContractInfo} 
 import {Cell} from "@ton/core"
 import {decompileCell} from "ton-assembly/dist/runtime"
 import {print} from "ton-assembly/dist/text"
-import {TolkSourceMap} from "./TolkCompilerProvider"
 import {DeployedContract} from "./lib/contract"
+import {SourceMap} from "ton-source-map"
 
 export interface TransactionInfo {
     readonly vmLogs: string
     readonly code: string
     readonly contractName?: string
-    readonly sourceMap?: TolkSourceMap
+    readonly sourceMap?: SourceMap
 }
 
 export class SandboxFormProvider implements vscode.WebviewViewProvider {

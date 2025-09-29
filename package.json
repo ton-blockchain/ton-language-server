@@ -737,7 +737,7 @@
         ]
     },
     "dependencies": {
-        "@ton/core": "0.60.1",
+        "@ton/core": "0.61.0",
         "@ton/crypto": "^3.3.0",
         "@vscode/debugadapter": "^1.68.0",
         "@vscode/debugprotocol": "^1.68.0",
@@ -750,7 +750,8 @@
         "react-icons": "^5.5.0",
         "react-markdown": "^10.1.0",
         "tolkfmt-test-dev": "0.0.21",
-        "ton-assembly": "/Users/petrmakhnev/tasm-new/ton-assembly-0.2.4-SNAPSHOT.5.tgz",
+        "ton-assembly": "/Users/petrmakhnev/tasm-new/ton-assembly-0.3.4.tgz",
+        "ton-source-map": "^0.2.2",
         "vscode-debugadapter": "^1.51.0",
         "vscode-languageclient": "^8.0.2",
         "vscode-languageserver": "^8.0.2",

@@ -1,5 +1,5 @@
 import {DebugProtocol} from "@vscode/debugprotocol"
-import {TolkSourceMap} from "../../providers/TolkCompilerProvider"
+import {SourceMap} from "ton-source-map"
 
 /**
  * Interface for launch configuration arguments.
@@ -13,7 +13,7 @@ export interface LaunchRequestArguments extends DebugProtocol.LaunchRequestArgum
     /** Path to the assembly file to debug */
     readonly program?: string
     /** Tolk source mapping for debugging original source */
-    readonly sourceMap?: TolkSourceMap
+    readonly sourceMap?: SourceMap
     readonly assembly: string
     readonly assemblyPath: string
     /** Enable logging of the Debug Adapter Protocol. */

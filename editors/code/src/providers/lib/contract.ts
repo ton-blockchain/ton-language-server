@@ -1,6 +1,6 @@
 import {Address, ShardAccount, StateInit} from "@ton/core"
 import {ContractAbi} from "@shared/abi"
-import {TolkSourceMap} from "../TolkCompilerProvider"
+import {SourceMap} from "ton-source-map"
 
 export interface ContractData {
     readonly address: Address
@@ -18,5 +18,5 @@ export interface DeployedContract {
     readonly deployTime?: Date
     readonly abi?: ContractAbi
     readonly sourceUri?: string
-    readonly sourceMap?: TolkSourceMap
+    readonly sourceMap?: SourceMap
 }
