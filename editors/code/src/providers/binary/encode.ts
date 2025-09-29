@@ -102,12 +102,10 @@ function encodeFieldValue(
         }
 
         case "address": {
-            if (value instanceof Address || value instanceof ExternalAddress || value === null) {
+            if (value instanceof Address || value instanceof ExternalAddress) {
                 builder.storeAddress(value)
             } else {
-                throw new TypeError(
-                    `Expected Address, ExternalAddress or null for address type, got ${typeof value}`,
-                )
+                builder.storeUint(0, 2)
             }
             break
         }
@@ -116,7 +114,10 @@ function encodeFieldValue(
             if (!(value instanceof Slice)) {
                 throw new TypeError(`Expected Slice for bits type, got ${typeof value}`)
             }
-            const bits = value.loadBits(value.remainingBits)
+            const bits = value.clone().loadBits(value.remainingBits)
+            if (bits.length !== typeInfo.width) {
+                throw new Error(`Invalid data bits length ${bits.length} for bits${typeInfo.width}`)
+            }
             builder.storeBits(bits)
             break
         }

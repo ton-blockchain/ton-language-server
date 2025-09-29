@@ -121,6 +121,7 @@ export default tseslint.config(
             "unicorn/prefer-string-raw": "off",
             "unicorn/no-useless-undefined": "off",
             "unicorn/require-post-message-target-origin": "off",
+            "unicorn/numeric-separators-style": "off",
         },
     },
 )

@@ -1,4 +1,4 @@
-import {parseData, ParsedObject} from "./decode"
+import {AddressNone, parseData, ParsedObject} from "./decode"
 import {encodeData} from "./encode"
 import {ContractAbi, Field, TypeAbi, TypeInfo} from "@shared/abi"
 import {Address, beginCell, BitString, Cell, ExternalAddress, Slice, BitReader} from "@ton/core"
@@ -79,6 +79,46 @@ function field(name: string, type: TypeInfo): Field {
     return {name, type}
 }
 
+function normalizeForComparison(obj: unknown): unknown {
+    if (obj === null || obj === undefined) {
+        return obj
+    }
+
+    if (typeof obj === "bigint") {
+        return obj.toString()
+    }
+
+    if (obj instanceof Address || obj instanceof ExternalAddress) {
+        return obj.toString()
+    }
+
+    if (obj instanceof Slice) {
+        return obj.toString()
+    }
+
+    if (obj instanceof Cell) {
+        return obj.hash().toString("hex")
+    }
+
+    if (Array.isArray(obj)) {
+        return obj.map(element => normalizeForComparison(element))
+    }
+
+    if (typeof obj === "object") {
+        const normalized: Record<string, unknown> = {}
+        for (const [key, value] of Object.entries(obj)) {
+            normalized[key] = normalizeForComparison(value)
+        }
+        return normalized
+    }
+
+    return obj
+}
+
+function expectNormalizedEqual(actual: unknown, expected: unknown): void {
+    expect(normalizeForComparison(actual)).toEqual(normalizeForComparison(expected))
+}
+
 function convertBinSliceToHex(binSlice: string): string {
     const binBits = binSlice.slice(2, -1)
     let hexBits = "x{"
@@ -140,6 +180,33 @@ const mockAbi: ContractAbi = {
                 field("age", uint(8)),
                 field("active", bool()),
                 field("location", struct("Point")),
+            ],
+        },
+        {
+            name: "Message",
+            opcode: 0x12345678,
+            opcodeWidth: 32,
+            fields: [
+                field("op", uint(32)),
+                field("query_id", uint(64)),
+                field("sender", address()),
+                field("amount", coins()),
+            ],
+        },
+        {
+            name: "Transfer",
+            opcode: 0xab,
+            opcodeWidth: 8,
+            fields: [field("to", address()), field("value", coins()), field("bounce", bool())],
+        },
+        {
+            name: "ComplexMessage",
+            opcode: 0x1234,
+            opcodeWidth: 16,
+            fields: [
+                field("header", struct("Message")),
+                field("payload", optional(cell(struct("Point")))),
+                field("metadata", bits(128)),
             ],
         },
     ],
@@ -242,6 +309,7 @@ describe("Roundtrip encoding/decoding", () => {
 
             expect(parsedData.addr).toBeInstanceOf(Address)
             expect((parsedData.addr as Address).equals(addr)).toBe(true)
+            expectNormalizedEqual(parsedData, testData)
         })
 
         it("should round-trip external address", () => {
@@ -256,17 +324,18 @@ describe("Roundtrip encoding/decoding", () => {
             expect(parsedData.addr).toBeInstanceOf(ExternalAddress)
             expect((parsedData.addr as ExternalAddress).value).toBe(70n)
             expect((parsedData.addr as ExternalAddress).bits).toBe(10)
+            expectNormalizedEqual(parsedData, testData)
         })
 
-        it("should round-trip null address", () => {
+        it("should round-trip AddressNone", () => {
             const fields: Field[] = [field("addr", address())]
             const typeAbi = createMockTypeAbi(fields)
 
-            const testData = {addr: null}
+            const testData = {addr: new AddressNone()}
             const encodedCell = encodeData(mockAbi, typeAbi, testData)
             const parsedData = parseData(mockAbi, typeAbi, encodedCell.beginParse())
 
-            expect(parsedData.addr).toBe(null)
+            expect(parsedData.addr).toEqual(new AddressNone())
         })
     })
 
@@ -528,6 +597,94 @@ describe("Roundtrip encoding/decoding", () => {
         })
     })
 
+    describe("Slice types", () => {
+        it("should round-trip slice with data and refs", () => {
+            const refCell = beginCell().storeInt(999, 32).endCell()
+            const sliceData = makeSlice("x{DEADBEEF12345678}", [refCell])
+            const fields: Field[] = [field("slice_field", slice())]
+            const typeAbi = createMockTypeAbi(fields)
+
+            const testData = {slice_field: sliceData}
+            const encodedCell = encodeData(mockAbi, typeAbi, testData)
+            const parsedData = parseData(mockAbi, typeAbi, encodedCell.beginParse())
+
+            expect(parsedData.slice_field).toBeInstanceOf(Slice)
+            expectNormalizedEqual(parsedData, testData)
+        })
+
+        it("should round-trip slice with only data", () => {
+            const sliceData = makeSlice("x{CAFEBABE}")
+            const fields: Field[] = [field("data_slice", slice())]
+            const typeAbi = createMockTypeAbi(fields)
+
+            const testData = {data_slice: sliceData}
+            const encodedCell = encodeData(mockAbi, typeAbi, testData)
+            const parsedData = parseData(mockAbi, typeAbi, encodedCell.beginParse())
+
+            expect(parsedData.data_slice).toBeInstanceOf(Slice)
+            expectNormalizedEqual(parsedData, testData)
+        })
+
+        it("should round-trip empty slice", () => {
+            const emptySlice = makeSlice("x{}")
+            const fields: Field[] = [field("empty_slice", slice())]
+            const typeAbi = createMockTypeAbi(fields)
+
+            const testData = {empty_slice: emptySlice}
+            const encodedCell = encodeData(mockAbi, typeAbi, testData)
+            const parsedData = parseData(mockAbi, typeAbi, encodedCell.beginParse())
+
+            expect(parsedData.empty_slice).toBeInstanceOf(Slice)
+            expectNormalizedEqual(parsedData, testData)
+        })
+
+        it("should round-trip optional slice with value", () => {
+            const sliceData = makeSlice("x{ABCDEF123456}")
+            const fields: Field[] = [field("maybe_slice", optional(slice()))]
+            const typeAbi = createMockTypeAbi(fields)
+
+            const testData = {maybe_slice: sliceData}
+            const encodedCell = encodeData(mockAbi, typeAbi, testData)
+            const parsedData = parseData(mockAbi, typeAbi, encodedCell.beginParse())
+
+            expect(parsedData.maybe_slice).toBeInstanceOf(Slice)
+            expectNormalizedEqual(parsedData, testData)
+        })
+
+        it("should round-trip optional slice with null", () => {
+            const fields: Field[] = [field("maybe_slice", optional(slice()))]
+            const typeAbi = createMockTypeAbi(fields)
+
+            const testData = {maybe_slice: null}
+            const encodedCell = encodeData(mockAbi, typeAbi, testData)
+            const parsedData = parseData(mockAbi, typeAbi, encodedCell.beginParse())
+
+            expect(parsedData.maybe_slice).toBe(null)
+            expectNormalizedEqual(parsedData, testData)
+        })
+
+        it("should round-trip Cell containing slice", () => {
+            const sliceData = makeSlice("x{FEDCBA9876543210}")
+            const fields: Field[] = [field("slice_cell", cell(slice()))]
+            const typeAbi = createMockTypeAbi(fields)
+
+            const testData = {
+                slice_cell: {
+                    $: "nested-object" as const,
+                    name: "Cell<slice>",
+                    value: {
+                        value: sliceData,
+                    },
+                },
+            }
+
+            const encodedCell = encodeData(mockAbi, typeAbi, testData)
+            const parsedData = parseData(mockAbi, typeAbi, encodedCell.beginParse())
+
+            expectNormalizedEqual(parsedData, testData)
+        })
+    })
+
     describe("Combined types", () => {
         it(
             "should round-trip multiple fields",
@@ -650,6 +807,192 @@ describe("Roundtrip encoding/decoding", () => {
             const parsedData = parseData(mockAbi, typeAbi, encodedCell.beginParse())
 
             expect(parsedData).toEqual(testDataWithNull)
+        })
+    })
+
+    describe("Struct types with opcodes", () => {
+        it("should round-trip struct with 32-bit opcode", () => {
+            const fields: Field[] = [field("msg", struct("Message"))]
+            const typeAbi = createMockTypeAbi(fields)
+
+            const testData = {
+                msg: {
+                    $: "nested-object" as const,
+                    name: "Message",
+                    value: {
+                        op: 0x11111111n,
+                        query_id: 123456789n,
+                        sender: Address.parse(
+                            "0:1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+                        ),
+                        amount: 1000000000n,
+                    },
+                },
+            }
+
+            const encodedCell = encodeData(mockAbi, typeAbi, testData)
+            const parsedData = parseData(mockAbi, typeAbi, encodedCell.beginParse())
+
+            expectNormalizedEqual(parsedData, testData)
+        })
+
+        it("should round-trip struct with 8-bit opcode", () => {
+            const fields: Field[] = [field("transfer", struct("Transfer"))]
+            const typeAbi = createMockTypeAbi(fields)
+
+            const testData = {
+                transfer: {
+                    $: "nested-object" as const,
+                    name: "Transfer",
+                    value: {
+                        to: Address.parse(
+                            "0:fedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321",
+                        ),
+                        value: 500000000n,
+                        bounce: true,
+                    },
+                },
+            }
+
+            const encodedCell = encodeData(mockAbi, typeAbi, testData)
+            const parsedData = parseData(mockAbi, typeAbi, encodedCell.beginParse())
+
+            expectNormalizedEqual(parsedData, testData)
+        })
+
+        it("should round-trip complex struct with nested opcode struct", () => {
+            const fields: Field[] = [field("complex", struct("ComplexMessage"))]
+            const typeAbi = createMockTypeAbi(fields)
+
+            const testData = {
+                complex: {
+                    $: "nested-object" as const,
+                    name: "ComplexMessage",
+                    value: {
+                        header: {
+                            $: "nested-object" as const,
+                            name: "Message",
+                            value: {
+                                op: 0x99999999n,
+                                query_id: 987654321n,
+                                sender: Address.parse(
+                                    "0:fedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321",
+                                ),
+                                amount: 2000000000n,
+                            },
+                        },
+                        payload: null, // Set to null since it's optional
+                        metadata: makeSlice("x{DEADBEEFCAFEBABE1234567890ABCDEF}"),
+                    },
+                },
+            }
+
+            const encodedCell = encodeData(mockAbi, typeAbi, testData)
+            const parsedData = parseData(mockAbi, typeAbi, encodedCell.beginParse())
+
+            expectNormalizedEqual(parsedData, testData)
+        })
+
+        it("should round-trip complex struct with non-null payload", () => {
+            const fields: Field[] = [field("complex", struct("ComplexMessage"))]
+            const typeAbi = createMockTypeAbi(fields)
+
+            const testData = {
+                complex: {
+                    $: "nested-object" as const,
+                    name: "ComplexMessage",
+                    value: {
+                        header: {
+                            $: "nested-object" as const,
+                            name: "Message",
+                            value: {
+                                op: 0x88888888n,
+                                query_id: 555666777n,
+                                sender: Address.parse(
+                                    "0:fedcba0987654321fedcba0987654321fedcba0987654321fedcba0987654321",
+                                ),
+                                amount: 1500000000n,
+                            },
+                        },
+                        payload: {
+                            $: "nested-object" as const,
+                            name: "Cell<Point>",
+                            value: {
+                                x: -100n,
+                                y: -200n,
+                            },
+                        },
+                        metadata: makeSlice("x{DEADBEEFCAFEBABE1234567890ABCDEF}"),
+                    },
+                },
+            }
+
+            const encodedCell = encodeData(mockAbi, typeAbi, testData)
+            const parsedData = parseData(mockAbi, typeAbi, encodedCell.beginParse())
+
+            expectNormalizedEqual(parsedData, testData)
+        })
+
+        it("should round-trip optional struct with opcode", () => {
+            const fields: Field[] = [field("maybe_transfer", optional(struct("Transfer")))]
+            const typeAbi = createMockTypeAbi(fields)
+
+            const testDataWithValue = {
+                maybe_transfer: {
+                    $: "nested-object" as const,
+                    name: "Transfer",
+                    value: {
+                        to: Address.parse(
+                            "0:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+                        ),
+                        value: 750000000n,
+                        bounce: false,
+                    },
+                },
+            }
+
+            const encodedCell = encodeData(mockAbi, typeAbi, testDataWithValue)
+            const parsedData = parseData(mockAbi, typeAbi, encodedCell.beginParse())
+
+            expectNormalizedEqual(parsedData, testDataWithValue)
+        })
+
+        it("should round-trip optional struct with opcode as null", () => {
+            const fields: Field[] = [field("maybe_msg", optional(struct("Message")))]
+            const typeAbi = createMockTypeAbi(fields)
+
+            const testDataWithNull = {
+                maybe_msg: null,
+            }
+
+            const encodedCell = encodeData(mockAbi, typeAbi, testDataWithNull)
+            const parsedData = parseData(mockAbi, typeAbi, encodedCell.beginParse())
+
+            expect(parsedData).toEqual(testDataWithNull)
+        })
+
+        it("should round-trip Cell containing struct with opcode", () => {
+            const fields: Field[] = [field("msg_cell", cell(struct("Transfer")))]
+            const typeAbi = createMockTypeAbi(fields)
+
+            const testData = {
+                msg_cell: {
+                    $: "nested-object" as const,
+                    name: "Cell<Transfer>",
+                    value: {
+                        to: Address.parse(
+                            "0:cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+                        ),
+                        value: 300000000n,
+                        bounce: true,
+                    },
+                },
+            }
+
+            const encodedCell = encodeData(mockAbi, typeAbi, testData)
+            const parsedData = parseData(mockAbi, typeAbi, encodedCell.beginParse())
+
+            expectNormalizedEqual(parsedData, testData)
         })
     })
 

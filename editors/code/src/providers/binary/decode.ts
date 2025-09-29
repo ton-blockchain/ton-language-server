@@ -10,17 +10,19 @@ export interface NestedObject {
 }
 
 export type ParsedSlice = Readonly<
-    bigint | Address | ExternalAddress | Cell | Slice | NestedObject | boolean | null
+    bigint | Address | ExternalAddress | AddressNone | Cell | Slice | NestedObject | boolean | null
 >
 
-function parseAddress(slice: Slice): Address | ExternalAddress | null {
+export class AddressNone {}
+
+function parseAddress(slice: Slice): Address | ExternalAddress | AddressNone {
     const prefix = slice.preloadUint(2)
     if (prefix === 2) {
         return slice.loadAddress()
     }
     if (prefix === 0) {
         slice.skip(2)
-        return null
+        return new AddressNone()
     }
     if (prefix === 1) {
         return slice.loadExternalAddress()
@@ -160,7 +162,7 @@ function parseFieldValue(slice: Slice, typeInfo: TypeInfo, abi: ContractAbi): Pa
  */
 export function parseData(abi: ContractAbi, typeAbi: TypeAbi, data: Slice): ParsedObject {
     const object: ParsedObject = {}
-    const slice = data.clone()
+    const slice = data
 
     if (typeAbi.opcode !== undefined && typeAbi.opcodeWidth !== undefined) {
         const actualOpcode = slice.loadUint(typeAbi.opcodeWidth)
