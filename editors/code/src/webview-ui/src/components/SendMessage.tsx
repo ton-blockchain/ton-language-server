@@ -404,6 +404,7 @@ export const SendMessage: React.FC<Props> = ({
             <AbiFieldsForm
                 abi={message}
                 contractAbi={contract?.abi}
+                contracts={contracts}
                 fields={messageFields}
                 onFieldsChange={setMessageFields}
                 onValidationChange={setMessageFieldsValid}

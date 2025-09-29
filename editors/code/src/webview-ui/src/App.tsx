@@ -162,6 +162,7 @@ export default function App({vscode}: Props): JSX.Element {
             case "compile-deploy": {
                 return (
                     <CompileDeploy
+                        contracts={contracts}
                         onCompileAndDeploy={(stateInit, value, contractName) => {
                             vscode.postMessage({
                                 type: "compileAndDeploy",

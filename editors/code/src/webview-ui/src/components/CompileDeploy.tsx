@@ -4,6 +4,7 @@ import {Button, Input, Label} from "./ui"
 import styles from "./CompileDeploy.module.css"
 import * as binary from "../../../providers/binary"
 import {AbiFieldsForm} from "./AbiFieldsForm"
+import {DeployedContract} from "../../../providers/lib/contract"
 
 interface Props {
     readonly onCompileAndDeploy: (
@@ -13,9 +14,15 @@ interface Props {
     ) => void
     readonly result?: {success: boolean; message: string; details?: string}
     readonly contractAbi?: ContractAbi
+    readonly contracts: readonly DeployedContract[]
 }
 
-export const CompileDeploy: React.FC<Props> = ({onCompileAndDeploy, result, contractAbi}) => {
+export const CompileDeploy: React.FC<Props> = ({
+    onCompileAndDeploy,
+    result,
+    contractAbi,
+    contracts,
+}) => {
     const [storageFields, setStorageFields] = useState<binary.ParsedObject>({})
     const [value, setValue] = useState<string>("1.0")
     const [isStorageFieldsValid, setStorageFieldsValid] = useState<boolean>(true)
@@ -93,6 +100,7 @@ export const CompileDeploy: React.FC<Props> = ({onCompileAndDeploy, result, cont
                     <AbiFieldsForm
                         abi={storageAbi}
                         contractAbi={contractAbi}
+                        contracts={contracts}
                         fields={storageFields}
                         onFieldsChange={setStorageFields}
                         onValidationChange={setStorageFieldsValid}

@@ -1,13 +1,15 @@
 import React, {useEffect, useMemo} from "react"
 import {ContractAbi, Field, TypeAbi, TypeInfo} from "@shared/abi"
-import {FieldInput} from "./ui"
+import {FieldInput, AddressInput} from "./ui"
 import styles from "./AbiFieldsForm.module.css"
 import * as binary from "../../../providers/binary"
 import {formatParsedSlice} from "../../../providers/binary"
+import {DeployedContract} from "../../../providers/lib/contract"
 
 interface Props {
     readonly abi: TypeAbi | undefined
     readonly contractAbi?: ContractAbi
+    readonly contracts: readonly DeployedContract[]
     readonly fields: binary.ParsedObject
     readonly onFieldsChange: (fields: binary.ParsedObject) => void
     readonly onValidationChange: (isValid: boolean) => void
@@ -16,10 +18,31 @@ interface Props {
 export const AbiFieldsForm: React.FC<Props> = ({
     abi,
     contractAbi,
+    contracts,
     fields,
     onFieldsChange,
     onValidationChange,
 }) => {
+    const isAddressField = (fieldType: TypeInfo): boolean => {
+        const containsAddress = (type: TypeInfo): boolean => {
+            if (type.name === "address") {
+                return true
+            }
+            if (type.name === "cell" && type.innerType) {
+                return containsAddress(type.innerType)
+            }
+            if (type.name === "option") {
+                return containsAddress(type.innerType)
+            }
+            if (type.name === "type-alias") {
+                return containsAddress(type.innerType)
+            }
+            return false
+        }
+
+        return containsAddress(fieldType)
+    }
+
     const handleFieldChange = (
         fieldPath: string,
         fieldValue: string,
@@ -221,6 +244,26 @@ export const AbiFieldsForm: React.FC<Props> = ({
                         <div className={styles.nestedFields}>
                             {renderFields(anonStructFields, fieldPath, depth + 1)}
                         </div>
+                    </div>
+                )
+            }
+
+            if (isAddressField(field.type)) {
+                return (
+                    <div key={fieldPath} className={styles.fieldContainer}>
+                        <div className={styles.fieldHeader}>
+                            <span className={styles.fieldName}>{field.name}</span>
+                            <span className={styles.fieldType}>{field.type.humanReadable}</span>
+                        </div>
+                        <AddressInput
+                            contracts={contracts}
+                            value={formatParsedSlice(fieldValue) ?? ""}
+                            onChange={value => {
+                                handleFieldChange(fieldPath, value, field.type)
+                            }}
+                            placeholder={`Enter ${field.type.humanReadable}`}
+                            className={styles.addressInput}
+                        />
                     </div>
                 )
             }
