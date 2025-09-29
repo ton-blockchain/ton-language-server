@@ -106,11 +106,7 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
                     break
                 }
                 case "compileAndDeploy": {
-                    void this.handleCompileAndDeploy(
-                        command.name,
-                        command.storageFields,
-                        command.value,
-                    )
+                    void this.handleCompileAndDeploy(command.name, command.stateInit, command.value)
                     break
                 }
                 case "renameContract": {
@@ -611,10 +607,10 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
 
     private async handleCompileAndDeploy(
         name: string,
-        storageFields: Record<string, string>,
+        stateInit: string,
         value?: string,
     ): Promise<void> {
-        await compileAndDeployFromEditor(name, storageFields, this._treeProvider?.(), value)
+        await compileAndDeployFromEditor(name, stateInit, this._treeProvider?.(), value)
     }
 
     public startSequentialDebugging(transactions: TransactionInfo[]): void {

@@ -2,10 +2,12 @@ import React, {useEffect, useState} from "react"
 import {ContractAbi} from "@shared/abi"
 import {Button, Input, Label, FieldInput} from "./ui"
 import styles from "./CompileDeploy.module.css"
+import * as binary from "../../../providers/binary"
+import {formatParsedSlice} from "../../../providers/binary"
 
 interface Props {
     readonly onCompileAndDeploy: (
-        storageFields: Record<string, string>,
+        stateInit: string, // Base64 encoded Cell
         value?: string,
         contractName?: string,
     ) => void
@@ -14,7 +16,7 @@ interface Props {
 }
 
 export const CompileDeploy: React.FC<Props> = ({onCompileAndDeploy, result, contractAbi}) => {
-    const [storageFields, setStorageFields] = useState<Record<string, string>>({})
+    const [storageFields, setStorageFields] = useState<binary.ParsedObject>({})
     const [value, setValue] = useState<string>("1.0")
 
     const [customContractName, setCustomContractName] = useState<string>(contractAbi?.name ?? "")
@@ -27,9 +29,38 @@ export const CompileDeploy: React.FC<Props> = ({onCompileAndDeploy, result, cont
         setCustomContractName(contractAbi?.name ?? "")
     }, [contractAbi])
 
-    const handleFieldChange = (fieldName: string, value: string): void => {
-        const newFields = {...storageFields, [fieldName]: value}
+    const handleFieldChange = (fieldName: string, fieldValue: string): void => {
+        const storage = contractAbi?.storage
+        const field = storage?.fields.find(f => f.name === fieldName)
+
+        let parsedValue: binary.ParsedSlice
+        if (field) {
+            try {
+                parsedValue = binary.parseStringFieldValue(fieldValue, field.type)
+            } catch {
+                parsedValue = fieldValue
+            }
+        } else {
+            parsedValue = fieldValue
+        }
+
+        const newFields = {...storageFields, [fieldName]: parsedValue}
         setStorageFields(newFields)
+    }
+
+    const createStateInit = (): string => {
+        if (!contractAbi?.storage) {
+            throw new Error("Storage ABI not found")
+        }
+
+        try {
+            const encodedCell = binary.encodeData(contractAbi, contractAbi.storage, storageFields)
+            return encodedCell.toBoc().toString("base64")
+        } catch (error) {
+            throw new Error(
+                `Failed to encode storage: ${error instanceof Error ? error.message : "Unknown error"}`,
+            )
+        }
     }
 
     const isFormValid = (): boolean => {
@@ -39,8 +70,11 @@ export const CompileDeploy: React.FC<Props> = ({onCompileAndDeploy, result, cont
 
         if (contractAbi?.storage?.fields) {
             for (const field of contractAbi.storage.fields) {
-                const value = storageFields[field.name] as string | undefined
-                if (!value?.trim()) {
+                const fieldValue = storageFields[field.name] as string | undefined
+                if (fieldValue === undefined) {
+                    return false
+                }
+                if (!formatParsedSlice(fieldValue)?.trim()) {
                     return false
                 }
             }
@@ -51,7 +85,7 @@ export const CompileDeploy: React.FC<Props> = ({onCompileAndDeploy, result, cont
     }
 
     const handleCompileAndDeploy = (): void => {
-        onCompileAndDeploy(storageFields, value, contractName)
+        onCompileAndDeploy(createStateInit(), value, contractName)
     }
 
     return (
@@ -90,7 +124,9 @@ export const CompileDeploy: React.FC<Props> = ({onCompileAndDeploy, result, cont
                                     key={field.name}
                                     name={field.name}
                                     type={field.type.humanReadable}
-                                    value={storageFields[field.name] || ""}
+                                    value={
+                                        binary.formatParsedSlice(storageFields[field.name]) ?? ""
+                                    }
                                     onChange={value => {
                                         handleFieldChange(field.name, value)
                                     }}

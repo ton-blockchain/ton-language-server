@@ -94,7 +94,7 @@ export interface LoadContractInfoCommand {
 
 export interface CompileAndDeployCommand {
     readonly type: "compileAndDeploy"
-    readonly storageFields: Record<string, string>
+    readonly stateInit: string
     readonly value?: string
     readonly name: string
 }
