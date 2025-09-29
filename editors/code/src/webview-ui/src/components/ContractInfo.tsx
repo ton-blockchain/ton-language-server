@@ -1,8 +1,8 @@
-import React, {useMemo} from "react"
+import React, {useMemo, useState, useEffect} from "react"
 import styles from "./ContractInfo.module.css"
 import {Cell, loadShardAccount} from "@ton/core"
 import {ContractInfoData, VSCodeAPI} from "../types"
-import {VscEdit, VscFileCode, VscTrash} from "react-icons/vsc"
+import {VscEdit, VscFileCode, VscTrash, VscCopy, VscCheck} from "react-icons/vsc"
 import {DeployedContract} from "../../../providers/lib/contract"
 import * as binary from "../../../providers/binary"
 
@@ -28,6 +28,29 @@ export const ContractInfo: React.FC<Props> = ({
         const contract = contracts.find(c => c.address === contractAddress)
         return contract?.name ?? null
     }, [contractAddress, contracts])
+
+    const [copySuccess, setCopySuccess] = useState(false)
+
+    const handleCopyContractCode = async (): Promise<void> => {
+        if (!info?.stateInit?.code) return
+
+        try {
+            await navigator.clipboard.writeText(info.stateInit.code)
+            setCopySuccess(true)
+        } catch {}
+    }
+
+    useEffect(() => {
+        let timer: NodeJS.Timeout | undefined
+        if (copySuccess) {
+            timer = setTimeout(() => {
+                setCopySuccess(false)
+            }, 2000)
+        }
+        return () => {
+            if (timer) clearTimeout(timer)
+        }
+    }, [copySuccess])
 
     const handleRenameContract = (): void => {
         if (!contractAddress || !contractName) return
@@ -165,30 +188,42 @@ export const ContractInfo: React.FC<Props> = ({
                         </div>
                     </div>
 
-                    {contractName !== "treasury" && (
-                        <div className={styles.headerActions}>
-                            <button
-                                className={styles.headerActionButton}
-                                title="Rename contract"
-                                onClick={handleRenameContract}
-                            >
-                                <VscEdit size={14} />
-                            </button>
-                            <button
-                                className={styles.headerActionButton}
-                                title="Open contract source"
-                                onClick={() => {
-                                    if (info.sourceUri) {
-                                        vscode.postMessage({
-                                            type: "openContractSource",
-                                            sourceUri: info.sourceUri,
-                                        })
-                                    }
-                                }}
-                                disabled={!info.sourceUri}
-                            >
-                                <VscFileCode size={14} />
-                            </button>
+                    <div className={styles.headerActions}>
+                        {contractName !== "treasury" && (
+                            <>
+                                <button
+                                    className={styles.headerActionButton}
+                                    title="Rename contract"
+                                    onClick={handleRenameContract}
+                                >
+                                    <VscEdit size={14} />
+                                </button>
+                                <button
+                                    className={styles.headerActionButton}
+                                    title="Open contract source"
+                                    onClick={() => {
+                                        if (info.sourceUri) {
+                                            vscode.postMessage({
+                                                type: "openContractSource",
+                                                sourceUri: info.sourceUri,
+                                            })
+                                        }
+                                    }}
+                                    disabled={!info.sourceUri}
+                                >
+                                    <VscFileCode size={14} />
+                                </button>
+                            </>
+                        )}
+                        <button
+                            className={`${styles.headerActionButton} ${copySuccess ? styles.copySuccess : ""}`}
+                            title="Copy contract code as base64"
+                            onClick={() => void handleCopyContractCode()}
+                            disabled={!info.stateInit?.code}
+                        >
+                            {copySuccess ? <VscCheck size={14} /> : <VscCopy size={14} />}
+                        </button>
+                        {contractName !== "treasury" && (
                             <button
                                 className={`${styles.headerActionButton} ${styles.deleteButton}`}
                                 title="Delete contract"
@@ -196,8 +231,8 @@ export const ContractInfo: React.FC<Props> = ({
                             >
                                 <VscTrash size={14} />
                             </button>
-                        </div>
-                    )}
+                        )}
+                    </div>
                 </div>
 
                 {Object.keys(storageFields).length > 0 && (

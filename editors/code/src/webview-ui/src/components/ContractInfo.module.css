@@ -42,6 +42,10 @@
     background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
 }
 
+.copySuccess {
+    color: var(--vscode-notificationsInfoIcon-foreground, #3794ff);
+}
+
 .contractTitle {
     display: flex;
     align-items: center;
