@@ -152,10 +152,10 @@ function convertTyToBaseTypeInfo(ty: Ty): BaseTypeInfo & {humanReadable: string}
     if (ty instanceof InstantiationTy) {
         const innerTypeName = ty.innerTy.name()
         if (innerTypeName === "Cell") {
-            const innerTypeStr = ty.types.length > 0 ? ty.types[0].name() : undefined
+            const innerType = ty.types.length > 0 ? convertTyToTypeInfo(ty.types[0]) : undefined
             return {
                 name: "cell",
-                innerType: innerTypeStr,
+                innerType,
                 humanReadable,
             }
         }

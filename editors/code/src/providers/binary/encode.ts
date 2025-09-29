@@ -27,6 +27,26 @@ export function encodeData(abi: ContractAbi, typeAbi: TypeAbi, data: ParsedObjec
     return builder.endCell()
 }
 
+function encodeTypedCell(abi: ContractAbi, typeInfo: TypeInfo, value: ParsedObject): Cell {
+    const builder = beginCell()
+
+    if (typeInfo.name === "struct") {
+        const structTypeAbi = abi.types.find(t => t.name === typeInfo.structName)
+        if (!structTypeAbi) {
+            throw new Error(`Struct type '${typeInfo.structName}' not found in ABI`)
+        }
+        return encodeData(abi, structTypeAbi, value)
+    }
+
+    if (typeInfo.name === "anon-struct") {
+        const innerType = typeInfo.fields[0]
+        encodeFieldValue(builder, innerType, value.value as ParsedSlice, abi)
+        return builder.endCell()
+    }
+
+    throw new Error(`cannot encode Cell<${typeInfo.humanReadable}>`)
+}
+
 function encodeFieldValue(
     builder: Builder,
     typeInfo: TypeInfo,
@@ -106,14 +126,9 @@ function encodeFieldValue(
                 builder.storeRef(value)
             } else if (value && typeof value === "object" && "$" in value) {
                 const nestedObj = value as NestedObject
-                if (typeInfo.innerType && nestedObj.value && typeof nestedObj.value === "object") {
-                    const innerTypeAbi = abi.types.find(t => t.name === typeInfo.innerType)
-                    if (innerTypeAbi) {
-                        const innerCell = encodeData(abi, innerTypeAbi, nestedObj.value)
-                        builder.storeRef(innerCell)
-                    } else {
-                        throw new Error(`Type '${typeInfo.innerType}' not found in ABI`)
-                    }
+                if (typeInfo.innerType && nestedObj.value !== undefined) {
+                    const innerCell = encodeTypedCell(abi, typeInfo.innerType, nestedObj.value)
+                    builder.storeRef(innerCell)
                 } else {
                     throw new Error(`Invalid nested object for typed cell`)
                 }
@@ -185,6 +200,9 @@ function encodeFieldValue(
             const structCell = encodeData(abi, structTypeAbi, nestedObj.value)
             builder.storeSlice(structCell.beginParse())
             break
+        }
+        case "anon-struct": {
+            throw new Error('Not implemented yet: "anon-struct" case')
         }
     }
 }

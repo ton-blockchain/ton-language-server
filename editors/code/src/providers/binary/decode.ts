@@ -33,6 +33,27 @@ function parseBits(slice: Slice, bitWidth: number): Slice {
     return new Slice(new BitReader(bits), [])
 }
 
+function parseTypedCell(slice: Slice, typeInfo: TypeInfo, abi: ContractAbi): ParsedObject {
+    if (typeInfo.name === "struct") {
+        const structTypeAbi = abi.types.find(t => t.name === typeInfo.structName)
+        if (!structTypeAbi) {
+            throw new Error(`Struct type '${typeInfo.structName}' not found in ABI`)
+        }
+        return parseData(abi, structTypeAbi, slice)
+    }
+
+    if (typeInfo.name === "anon-struct") {
+        const innerType = typeInfo.fields[0]
+        return {
+            value: parseFieldValue(slice, innerType, abi),
+        }
+    }
+
+    return {
+        value: parseFieldValue(slice, typeInfo, abi),
+    }
+}
+
 function parseFieldValue(slice: Slice, typeInfo: TypeInfo, abi: ContractAbi): ParsedSlice {
     if (typeInfo.name === "option") {
         const hasValue = slice.loadBoolean()
@@ -74,15 +95,12 @@ function parseFieldValue(slice: Slice, typeInfo: TypeInfo, abi: ContractAbi): Pa
         case "cell": {
             const cellRef = slice.loadRef()
             if (typeInfo.innerType) {
-                const innerTypeAbi = abi.types.find(t => t.name === typeInfo.innerType)
-                if (innerTypeAbi) {
-                    const cellSlice = cellRef.beginParse()
-                    const parsedInner = parseData(abi, innerTypeAbi, cellSlice)
-                    return {
-                        $: "nested-object" as const,
-                        name: `Cell<${typeInfo.innerType}>`,
-                        value: parsedInner,
-                    }
+                const cellSlice = cellRef.beginParse()
+                const parsedInner = parseTypedCell(cellSlice, typeInfo.innerType, abi)
+                return {
+                    $: "nested-object" as const,
+                    name: `Cell<${typeInfo.innerType.humanReadable}>`,
+                    value: parsedInner,
                 }
             }
             return cellRef
@@ -124,6 +142,9 @@ function parseFieldValue(slice: Slice, typeInfo: TypeInfo, abi: ContractAbi): Pa
                 name: typeInfo.structName,
                 value: parsedStruct,
             }
+        }
+        case "anon-struct": {
+            throw new Error("Anonymous struct should be handled earlier")
         }
     }
 

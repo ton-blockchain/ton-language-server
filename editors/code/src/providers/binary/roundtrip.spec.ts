@@ -28,9 +28,23 @@ function bits(width: number): TypeInfo {
     return {name: "bits", width, humanReadable: `bits${width}`}
 }
 
-function cell(innerType?: string): TypeInfo {
-    const humanReadable = innerType ? `Cell<${innerType}>` : "cell"
-    return {name: "cell", innerType, humanReadable}
+function cell(innerType?: TypeInfo): TypeInfo {
+    const humanReadable = innerType ? `Cell<${innerType.humanReadable}>` : "cell"
+    if (innerType) {
+        if (innerType.name === "struct") {
+            return {name: "cell", innerType, humanReadable}
+        }
+        return {
+            name: "cell",
+            innerType: {
+                name: "anon-struct",
+                fields: [innerType],
+                humanReadable: innerType.humanReadable,
+            },
+            humanReadable,
+        }
+    }
+    return {name: "cell", innerType: undefined, humanReadable}
 }
 
 function slice(): TypeInfo {
@@ -313,6 +327,153 @@ describe("Roundtrip encoding/decoding", () => {
                 maybe_ref: null,
             }),
         )
+    })
+
+    describe("Typed Cell references", () => {
+        it("should round-trip Cell<int32>", () => {
+            const fields: Field[] = [field("typed_cell", cell(int(32)))]
+            const typeAbi = createMockTypeAbi(fields)
+
+            const testData = {
+                typed_cell: {
+                    $: "nested-object" as const,
+                    name: "Cell<int32>",
+                    value: {
+                        value: 42n,
+                    },
+                },
+            }
+
+            const encodedCell = encodeData(mockAbi, typeAbi, testData)
+            const parsedData = parseData(mockAbi, typeAbi, encodedCell.beginParse())
+
+            expect(parsedData).toEqual(testData)
+        })
+
+        it("should round-trip Cell<uint256?>", () => {
+            const fields: Field[] = [field("typed_cell", cell(optional(uint(256))))]
+            const typeAbi = createMockTypeAbi(fields)
+
+            const testDataWithValue = {
+                typed_cell: {
+                    $: "nested-object" as const,
+                    name: "Cell<uint256?>",
+                    value: {
+                        value: 123_456_789n,
+                    },
+                },
+            }
+
+            const encodedCell = encodeData(mockAbi, typeAbi, testDataWithValue)
+            const parsedData = parseData(mockAbi, typeAbi, encodedCell.beginParse())
+
+            expect(parsedData).toEqual(testDataWithValue)
+        })
+
+        it("should round-trip Cell<uint256?> with null", () => {
+            const fields: Field[] = [field("typed_cell", cell(optional(uint(256))))]
+            const typeAbi = createMockTypeAbi(fields)
+
+            const testDataWithNull = {
+                typed_cell: {
+                    $: "nested-object" as const,
+                    name: "Cell<uint256?>",
+                    value: {
+                        value: null,
+                    },
+                },
+            }
+
+            const encodedCell = encodeData(mockAbi, typeAbi, testDataWithNull)
+            const parsedData = parseData(mockAbi, typeAbi, encodedCell.beginParse())
+
+            expect(parsedData).toEqual(testDataWithNull)
+        })
+
+        it("should round-trip Cell<Point>", () => {
+            const fields: Field[] = [field("typed_cell", cell(struct("Point")))]
+            const typeAbi = createMockTypeAbi(fields)
+
+            const testData = {
+                typed_cell: {
+                    $: "nested-object" as const,
+                    name: "Cell<Point>",
+                    value: {
+                        x: 10n,
+                        y: 20n,
+                    },
+                },
+            }
+
+            const encodedCell = encodeData(mockAbi, typeAbi, testData)
+            const parsedData = parseData(mockAbi, typeAbi, encodedCell.beginParse())
+
+            expect(parsedData).toEqual(testData)
+        })
+
+        it("should round-trip Cell<Person> (nested struct)", () => {
+            const fields: Field[] = [field("typed_cell", cell(struct("Person")))]
+            const typeAbi = createMockTypeAbi(fields)
+
+            const testData = {
+                typed_cell: {
+                    $: "nested-object" as const,
+                    name: "Cell<Person>",
+                    value: {
+                        age: 30n,
+                        active: false,
+                        location: {
+                            $: "nested-object" as const,
+                            name: "Point",
+                            value: {
+                                x: 50n,
+                                y: 100n,
+                            },
+                        },
+                    },
+                },
+            }
+
+            const encodedCell = encodeData(mockAbi, typeAbi, testData)
+            const parsedData = parseData(mockAbi, typeAbi, encodedCell.beginParse())
+
+            expect(parsedData).toEqual(testData)
+        })
+
+        it("should round-trip optional Cell<Point>", () => {
+            const fields: Field[] = [field("maybe_typed_cell", optional(cell(struct("Point"))))]
+            const typeAbi = createMockTypeAbi(fields)
+
+            const testDataWithValue = {
+                maybe_typed_cell: {
+                    $: "nested-object" as const,
+                    name: "Cell<Point>",
+                    value: {
+                        x: 15n,
+                        y: 25n,
+                    },
+                },
+            }
+
+            const encodedCell = encodeData(mockAbi, typeAbi, testDataWithValue)
+            const parsedData = parseData(mockAbi, typeAbi, encodedCell.beginParse())
+
+            expect(parsedData).toEqual(testDataWithValue)
+        })
+
+        it("should round-trip optional Cell<Point> with null", () => {
+            const fields: Field[] = [field("maybe_typed_cell", optional(cell(struct("Point"))))]
+            const typeAbi = createMockTypeAbi(fields)
+
+            const testDataWithNull = {
+                maybe_typed_cell: null,
+            }
+
+            const encodedCell = encodeData(mockAbi, typeAbi, testDataWithNull)
+            const parsedData = parseData(mockAbi, typeAbi, encodedCell.beginParse())
+
+            expect(parsedData).toEqual(testDataWithNull)
+        })
     })
 
     describe("Variable integer types", () => {

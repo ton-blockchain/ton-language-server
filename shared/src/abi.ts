@@ -5,13 +5,14 @@ export type BaseTypeInfo =
     | {readonly name: "bool"}
     | {readonly name: "address"}
     | {readonly name: "bits"; readonly width: number}
-    | {readonly name: "cell"; readonly innerType?: string}
+    | {readonly name: "cell"; readonly innerType?: TypeInfo}
     | {readonly name: "slice"}
     | {readonly name: "varint16"}
     | {readonly name: "varint32"}
     | {readonly name: "varuint16"}
     | {readonly name: "varuint32"}
     | {readonly name: "struct"; readonly structName: string}
+    | {readonly name: "anon-struct"; readonly fields: readonly TypeInfo[]}
 
 export type TypeInfo = (
     | BaseTypeInfo
