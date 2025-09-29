@@ -207,6 +207,36 @@
     font-size: 10px;
 }
 
+.nestedStorageGroup {
+    margin-bottom: 8px;
+    border-left: 2px solid var(--vscode-panel-border);
+    padding-left: 8px;
+}
+
+.nestedStorageHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 4px;
+    font-size: 11px;
+}
+
+.structFieldName {
+    font-weight: 500;
+    color: var(--vscode-foreground);
+}
+
+.structFieldType {
+    font-size: 10px;
+    color: var(--vscode-descriptionForeground);
+    font-family: var(--vscode-editor-font-family);
+}
+
+.nestedStorageContent {
+    display: grid;
+    gap: 2px;
+}
+
 .actions {
     display: flex;
     gap: 6px;

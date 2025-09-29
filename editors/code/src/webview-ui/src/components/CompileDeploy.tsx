@@ -3,7 +3,6 @@ import {ContractAbi} from "@shared/abi"
 import {Button, Input, Label} from "./ui"
 import styles from "./CompileDeploy.module.css"
 import * as binary from "../../../providers/binary"
-import {formatParsedSlice} from "../../../providers/binary"
 import {AbiFieldsForm} from "./AbiFieldsForm"
 
 interface Props {
@@ -57,18 +56,6 @@ export const CompileDeploy: React.FC<Props> = ({onCompileAndDeploy, result, cont
             return false
         }
 
-        if (storageAbi?.fields) {
-            for (const field of storageAbi.fields) {
-                const fieldValue = storageFields[field.name] as string | undefined
-                if (fieldValue === undefined) {
-                    return false
-                }
-                if (!formatParsedSlice(fieldValue)?.trim()) {
-                    return false
-                }
-            }
-        }
-
         const numericValue = Number.parseFloat(value)
         return !Number.isNaN(numericValue) && numericValue > 0
     }
@@ -105,6 +92,7 @@ export const CompileDeploy: React.FC<Props> = ({onCompileAndDeploy, result, cont
 
                     <AbiFieldsForm
                         abi={storageAbi}
+                        contractAbi={contractAbi}
                         fields={storageFields}
                         onFieldsChange={setStorageFields}
                         onValidationChange={setStorageFieldsValid}

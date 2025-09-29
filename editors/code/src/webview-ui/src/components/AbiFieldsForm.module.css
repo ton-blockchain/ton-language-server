@@ -13,7 +13,8 @@
 .fieldsContainer {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    gap: 8px;
+    padding: 8px 0;
 }
 
 .select {
@@ -34,4 +35,35 @@
 
 .select:disabled {
     opacity: 0.6;
+}
+
+.nestedFieldGroup {
+    border-left: 2px solid var(--vscode-panel-border);
+    padding-left: 12px;
+    margin-bottom: 12px;
+}
+
+.structLabel {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 6px;
+}
+
+.structLabel .fieldName {
+    font-weight: 500;
+    font-size: 12px;
+    color: var(--vscode-foreground);
+}
+
+.structLabel .fieldType {
+    font-size: 11px;
+    color: var(--vscode-descriptionForeground);
+    font-family: var(--vscode-editor-font-family);
+}
+
+.nestedFields {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
 }
