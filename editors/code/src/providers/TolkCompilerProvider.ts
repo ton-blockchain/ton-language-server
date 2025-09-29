@@ -110,14 +110,14 @@ export class TolkCompilerProvider {
                 type: "shell",
             }
 
-            const sourceMapArg = supportsSourceMaps ? "--source-map true" : ""
+            const sourceMapArg = supportsSourceMaps ? "--source-map" : ""
             const task = new vscode.Task(
                 taskDefinition,
                 vscode.TaskScope.Workspace,
                 "Tolk Compile",
                 "tolk",
                 new vscode.ShellExecution(
-                    `"${toolchainPath}" "${contractFilePath.fsPath}" ${sourceMapArg} --output-json "${outputFileUri.fsPath}"`,
+                    `"${toolchainPath}" ${sourceMapArg} --output-json "${outputFileUri.fsPath}" "${contractFilePath.fsPath}"`,
                 ),
             )
 

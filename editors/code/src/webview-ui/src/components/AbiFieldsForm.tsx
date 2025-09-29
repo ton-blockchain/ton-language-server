@@ -157,7 +157,7 @@ export const AbiFieldsForm: React.FC<Props> = ({
                 return true // TODO: validate nested fields
             }
 
-            const fieldValue = fields[field.name] as string | undefined
+            const fieldValue = fields[field.name]
             if (fieldValue === undefined) {
                 return false
             }

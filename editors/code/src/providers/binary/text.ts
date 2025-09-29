@@ -39,6 +39,9 @@ export function parseStringFieldValue(fieldValue: string, fieldType: TypeInfo): 
         }
 
         case "cell": {
+            if (fieldValue.startsWith("x{") || fieldValue.startsWith("b{")) {
+                return binary.makeSlice(fieldValue).asCell()
+            }
             return Cell.fromBase64(fieldValue)
         }
 
