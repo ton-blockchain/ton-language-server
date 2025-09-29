@@ -309,11 +309,14 @@ export function TransactionTree({testData}: TransactionTreeProps): React.JSX.Ele
                     : undefined
 
             const opcode = tx.opcode
-            const opcodeHex = opcode ? "0x" + opcode.toString(16) : "empty"
 
-            const contractLetter = thisAddress
-                ? (contracts.get(thisAddress.toString())?.letter ?? "?")
-                : "?"
+            const targetContract = thisAddress ? contracts.get(thisAddress.toString()) : undefined
+            const typeAbi = targetContract?.abi?.messages.find(it => it.opcode === opcode)
+            const opcodeNane = typeAbi?.name
+
+            const opcodeHex = opcodeNane ?? (opcode ? "0x" + opcode.toString(16) : "empty")
+
+            const contractLetter = thisAddress ? (targetContract?.letter ?? "?") : "?"
 
             const lt = tx.transaction.lt.toString()
             const isSelected = selectedTransaction?.transaction.lt.toString() === lt

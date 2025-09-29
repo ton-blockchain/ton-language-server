@@ -1,9 +1,10 @@
 import {OperationNode} from "./components/StatesView"
+import {DeployedContract} from "../../providers/lib/contract"
 
 export interface UpdateOperationsMessage {
     readonly type: "updateOperations"
     readonly operations: OperationNode[]
-    readonly contracts?: {address: string; name?: string; sourceMap?: object; abi?: object}[]
+    readonly contracts?: DeployedContract[]
     readonly isLoading?: boolean
 }
 

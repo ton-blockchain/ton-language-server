@@ -1,6 +1,7 @@
 import React, {useEffect, useState, useCallback} from "react"
 import {StatesView, OperationNode} from "./components/StatesView"
 import {StatesVSCodeAPI, UpdateOperationsMessage} from "./states-types"
+import {DeployedContract} from "../../providers/lib/contract"
 
 interface Props {
     readonly vscode: StatesVSCodeAPI
@@ -8,9 +9,7 @@ interface Props {
 
 export default function StatesApp({vscode}: Props): React.JSX.Element {
     const [operations, setOperations] = useState<OperationNode[]>([])
-    const [contracts, setContracts] = useState<
-        {address: string; name?: string; sourceMap?: object; abi?: object}[]
-    >([])
+    const [contracts, setContracts] = useState<DeployedContract[]>([])
     const [isLoading, setIsLoading] = useState(false)
 
     const loadOperations = useCallback(() => {

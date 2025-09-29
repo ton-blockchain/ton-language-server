@@ -100,7 +100,6 @@ export function TransactionShortInfo({
     onContractClick,
     transactions,
 }: TransactionShortInfoProps): React.JSX.Element {
-    const [showTraceViewer, setShowTraceViewer] = useState(false)
     const [showActions, setShowActions] = useState(false)
 
     if (tx.transaction.description.type !== "generic") {
@@ -122,6 +121,11 @@ export function TransactionShortInfo({
     const money = tx.money
 
     const sendMode = computeSendMode(tx, transactions)
+
+    const thisAddress = tx.address
+    const targetContract = thisAddress ? contracts.get(thisAddress.toString()) : undefined
+    const typeAbi = targetContract?.abi?.messages.find(it => it.opcode === tx.opcode)
+    const opcodeNane = typeAbi?.name
 
     return (
         <>
@@ -205,7 +209,7 @@ export function TransactionShortInfo({
                             <div className={styles.multiColumnItem}>
                                 <div className={styles.multiColumnItemTitle}>Opcode</div>
                                 <div className={styles.multiColumnItemValue}>
-                                    <OpcodeChip opcode={tx.opcode} abiName={undefined} />
+                                    <OpcodeChip opcode={tx.opcode} abiName={opcodeNane} />
                                 </div>
                             </div>
                         </div>

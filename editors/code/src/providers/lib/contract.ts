@@ -9,6 +9,7 @@ export interface ContractData {
     readonly letter: string
     readonly displayName: string
     readonly kind: "treasury" | "user-contract"
+    readonly abi?: ContractAbi
 }
 
 // eslint-disable-next-line functional/type-declaration-immutability

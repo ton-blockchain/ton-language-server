@@ -6,13 +6,14 @@ import {StatesCommand, StatesMessage} from "../webview-ui/src/states-types"
 import {getOperations, restoreBlockchainState, getContracts} from "../commands/sandboxCommands"
 import {processRawTransactions, RawTransactionInfo, RawTransactions} from "./lib/raw-transaction"
 import {Cell, loadTransaction} from "@ton/core"
+import {DeployedContract} from "./lib/contract"
 
 export class StatesWebviewProvider implements vscode.WebviewViewProvider {
     public static readonly viewType: string = "tonSandboxHistory"
 
     private view?: vscode.WebviewView
     private operations: OperationNode[] = []
-    private contracts: {address: string; name?: string; sourceMap?: object; abi?: object}[] = []
+    private contracts: DeployedContract[] = []
     private isLoading: boolean = false
 
     public constructor(

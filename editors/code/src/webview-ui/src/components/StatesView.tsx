@@ -8,6 +8,7 @@ import {
     RawTransactions,
 } from "../../../providers/lib/raw-transaction"
 import {Cell, loadTransaction} from "@ton/core"
+import {DeployedContract} from "../../../providers/lib/contract"
 
 export interface OperationNode {
     readonly id: string
@@ -20,11 +21,12 @@ export interface OperationNode {
     readonly fromContract?: string
     readonly toContract?: string
     readonly resultString?: string
+    readonly opcode?: number
 }
 
 interface Props {
     readonly operations: OperationNode[]
-    readonly contracts?: {address: string; name?: string; sourceMap?: object; abi?: object}[]
+    readonly contracts?: DeployedContract[]
     readonly onLoadOperations: () => void
     readonly isLoading?: boolean
     readonly vscode: StatesVSCodeAPI
@@ -64,6 +66,20 @@ export const StatesView: React.FC<Props> = ({
         }
 
         return `${nameOrAddress.slice(0, 3)}...${nameOrAddress.slice(-3)}`
+    }
+
+    const getMessageName = (
+        contractAddress: string | undefined,
+        opcode: number | undefined,
+    ): string | undefined => {
+        if (!contractAddress || !opcode) return undefined
+
+        const contract = contracts.find(c => c.address === contractAddress)
+        if (!contract?.abi || typeof contract.abi !== "object") return undefined
+
+        const abi = contract.abi
+        const message = abi.messages.find(msg => msg.opcode === opcode)
+        return message?.name
     }
 
     const renderNode = (node: OperationNode): React.JSX.Element => {
@@ -121,7 +137,11 @@ export const StatesView: React.FC<Props> = ({
                                 <span className={styles.contractName}>
                                     {formatContractName(node.fromContract ?? "")}
                                 </span>
-                                <span className={styles.label}> → </span>
+                                <span className={styles.label}>
+                                    {getMessageName(node.toContract, node.opcode) ??
+                                        "0x" + node.opcode?.toString(16)}{" "}
+                                    →
+                                </span>
                                 <span className={styles.contractName}>
                                     {formatContractName(node.toContract ?? "")}
                                 </span>

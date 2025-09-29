@@ -124,6 +124,7 @@ export default function TransactionDetails({vscode}: Props): JSX.Element {
                 letter,
                 stateInit: parsedStateInit ?? undefined,
                 account: parsedAccount,
+                abi: it.abi,
             } satisfies ContractData
         })
     }, [transaction?.deployedContracts, parsedStateInit, parsedAccount])
