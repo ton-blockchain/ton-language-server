@@ -1,7 +1,7 @@
 import {Address, BitReader, Cell, ExternalAddress, Slice} from "@ton/core"
 import {ContractAbi, TypeAbi, TypeInfo} from "@shared/abi"
 
-export type ParsedObject = Record<string, ParsedSlice>
+export type ParsedObject = Record<string, ParsedSlice | undefined>
 
 export interface NestedObject {
     readonly $: "nested-object"
