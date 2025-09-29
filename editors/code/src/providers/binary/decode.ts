@@ -112,6 +112,19 @@ function parseFieldValue(slice: Slice, typeInfo: TypeInfo, abi: ContractAbi): Pa
         case "varuint32": {
             return slice.loadVarUintBig(5)
         }
+
+        case "struct": {
+            const structTypeAbi = abi.types.find(t => t.name === typeInfo.structName)
+            if (!structTypeAbi) {
+                throw new Error(`Struct type '${typeInfo.structName}' not found in ABI`)
+            }
+            const parsedStruct = parseData(abi, structTypeAbi, slice)
+            return {
+                $: "nested-object" as const,
+                name: typeInfo.structName,
+                value: parsedStruct,
+            }
+        }
     }
 
     throw new Error(`unexpected type`)

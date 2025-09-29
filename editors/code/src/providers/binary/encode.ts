@@ -162,5 +162,29 @@ function encodeFieldValue(
             builder.storeVarUint(value, 5)
             break
         }
+
+        case "struct": {
+            if (!value || typeof value !== "object" || !("$" in value)) {
+                throw new TypeError(`Expected NestedObject for struct type, got ${typeof value}`)
+            }
+            const nestedObj = value
+            if (nestedObj.name !== typeInfo.structName) {
+                throw new TypeError(
+                    `Expected NestedObject with name '${typeInfo.structName}', got '${nestedObj.name}'`,
+                )
+            }
+            if (!nestedObj.value || typeof nestedObj.value !== "object") {
+                throw new TypeError(
+                    `Expected NestedObject with value for struct '${typeInfo.structName}'`,
+                )
+            }
+            const structTypeAbi = abi.types.find(t => t.name === typeInfo.structName)
+            if (!structTypeAbi) {
+                throw new Error(`Struct type '${typeInfo.structName}' not found in ABI`)
+            }
+            const structCell = encodeData(abi, structTypeAbi, nestedObj.value)
+            builder.storeSlice(structCell.beginParse())
+            break
+        }
     }
 }

@@ -11,6 +11,7 @@ export type BaseTypeInfo =
     | {readonly name: "varint32"}
     | {readonly name: "varuint16"}
     | {readonly name: "varuint32"}
+    | {readonly name: "struct"; readonly structName: string}
 
 export type TypeInfo = (
     | BaseTypeInfo

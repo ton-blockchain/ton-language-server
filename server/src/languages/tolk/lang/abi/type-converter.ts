@@ -7,6 +7,7 @@ import {
     InstantiationTy,
     IntNTy,
     IntTy,
+    StructTy,
     Ty,
     TypeAliasTy,
     UnionTy,
@@ -37,6 +38,14 @@ export function convertTyToTypeInfo(ty: Ty): TypeInfo {
             name: "type-alias",
             aliasName: ty.name(),
             innerType,
+            humanReadable: ty.name(),
+        }
+    }
+
+    if (ty instanceof StructTy) {
+        return {
+            name: "struct",
+            structName: ty.name(),
             humanReadable: ty.name(),
         }
     }
