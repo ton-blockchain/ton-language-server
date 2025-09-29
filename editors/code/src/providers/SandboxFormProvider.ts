@@ -28,7 +28,6 @@ import {
     sendInternalMessage,
     callGetMethod,
     renameContract,
-    buildStructuredMessage,
     createMessageTemplate,
     getMessageTemplates,
     getMessageTemplate,
@@ -251,7 +250,7 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
     private async handleSendExternalMessage(command: {
         contractAddress: string
         selectedMessage: string
-        messageFields: Record<string, string>
+        messageBody: string
         autoDebug?: boolean
     }): Promise<void> {
         this.sequentialDebugQueue = []
@@ -279,14 +278,7 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
         }
 
         try {
-            const messageBody = buildStructuredMessage(
-                command.selectedMessage,
-                command.messageFields,
-                this,
-                command.contractAddress,
-            )
-
-            const result = await sendExternalMessage(command.contractAddress, messageBody)
+            const result = await sendExternalMessage(command.contractAddress, command.messageBody)
 
             if (result.success) {
                 this.showResult(
@@ -339,7 +331,7 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
         fromAddress: string
         toAddress: string
         selectedMessage: string
-        messageFields: Record<string, string>
+        messageBody: string
         sendMode: number
         value: string
         autoDebug?: boolean
@@ -381,17 +373,10 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
         }
 
         try {
-            const messageBody = buildStructuredMessage(
-                command.selectedMessage,
-                command.messageFields,
-                this,
-                command.toAddress,
-            )
-
             const result = await sendInternalMessage(
                 command.fromAddress,
                 command.toAddress,
-                messageBody,
+                command.messageBody,
                 command.sendMode,
                 command.value,
             )

@@ -186,7 +186,7 @@ export default function App({vscode}: Props): JSX.Element {
                                 type: "sendExternalMessage",
                                 contractAddress: selectedSendContract,
                                 selectedMessage: messageData.selectedMessage,
-                                messageFields: messageData.messageFields,
+                                messageBody: messageData.messageBody,
                                 autoDebug: messageData.autoDebug,
                             })
                         }}
@@ -196,7 +196,7 @@ export default function App({vscode}: Props): JSX.Element {
                                 fromAddress: messageData.fromAddress,
                                 toAddress: selectedSendContract,
                                 selectedMessage: messageData.selectedMessage,
-                                messageFields: messageData.messageFields,
+                                messageBody: messageData.messageBody,
                                 sendMode: messageData.sendMode ?? 0,
                                 value: messageData.value ?? "1.0",
                                 autoDebug: messageData.autoDebug,

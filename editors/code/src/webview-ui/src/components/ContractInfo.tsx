@@ -168,7 +168,7 @@ export const ContractInfo: React.FC<Props> = ({
                         <div className={styles.sectionTitle}>Storage</div>
                         <div className={styles.storageGrid}>
                             {Object.entries(storageFields).map(([fieldName, fieldValue]) => {
-                                const formattedValue = binary.formatParsedSlice(fieldValue)
+                                const formattedValue = binary.formatParsedSlice(fieldValue) ?? ""
                                 const displayValue =
                                     formattedValue.length > 20
                                         ? formattedValue.slice(0, 20) + "..."

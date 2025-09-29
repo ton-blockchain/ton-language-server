@@ -61,7 +61,7 @@ export interface SendExternalMessageCommand {
     readonly type: "sendExternalMessage"
     readonly contractAddress: string
     readonly selectedMessage: string
-    readonly messageFields: Record<string, string>
+    readonly messageBody: string
     readonly autoDebug?: boolean
 }
 
@@ -70,7 +70,7 @@ export interface SendInternalMessageCommand {
     readonly fromAddress: string
     readonly toAddress: string
     readonly selectedMessage: string
-    readonly messageFields: Record<string, string>
+    readonly messageBody: string
     readonly sendMode: number
     readonly value: string
     readonly autoDebug?: boolean

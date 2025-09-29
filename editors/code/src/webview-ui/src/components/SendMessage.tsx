@@ -5,10 +5,14 @@ import {MessageTemplate, VSCodeAPI} from "../types"
 import {VscSave} from "react-icons/vsc"
 import styles from "./SendMessage.module.css"
 import {DeployedContract} from "../../../providers/lib/contract"
+import * as binary from "../../../providers/binary"
+import {TypeAbi, TypeInfo} from "@shared/abi"
+import {Address, Cell} from "@ton/core"
+import {formatParsedSlice} from "../../../providers/binary"
 
 interface MessageData {
     readonly selectedMessage: string
-    readonly messageFields: Record<string, string>
+    readonly messageBody: string // Base64 encoded BOC
     readonly value?: string
     readonly sendMode?: number
     readonly autoDebug?: boolean
@@ -53,7 +57,7 @@ export const SendMessage: React.FC<Props> = ({
     vscode,
 }) => {
     const [selectedMessage, setSelectedMessage] = useState<string>("")
-    const [messageFields, setMessageFields] = useState<Record<string, string>>({})
+    const [messageFields, setMessageFields] = useState<binary.ParsedObject>({})
     const [value, setValue] = useState<string>("1.0")
     const [sendMode, setSendMode] = useState<number>(0)
     const [lastTransaction, setLastTransaction] = useState<LastTransaction | null>(null)
@@ -125,9 +129,12 @@ export const SendMessage: React.FC<Props> = ({
         if (loadedTemplate) {
             setValue(loadedTemplate.value ?? "1.0")
             setSendMode(loadedTemplate.sendMode)
-            setMessageFields(loadedTemplate.messageFields)
+
+            setMessageFields(
+                convertStringFieldsToParsedObject(loadedTemplate.messageFields, message),
+            )
         }
-    }, [loadedTemplate])
+    }, [loadedTemplate, selectedContract, selectedMessage, contracts])
 
     useEffect(() => {
         if (selectedTemplate && localMessageTemplates.length > 0) {
@@ -135,17 +142,129 @@ export const SendMessage: React.FC<Props> = ({
             if (template) {
                 setValue(template.value ?? "1.0")
                 setSendMode(template.sendMode)
-                setMessageFields(template.messageFields)
+                setMessageFields(convertStringFieldsToParsedObject(template.messageFields, message))
             }
         }
-    }, [selectedTemplate, localMessageTemplates])
+    }, [selectedTemplate, localMessageTemplates, selectedContract, selectedMessage, contracts])
 
     useEffect(() => {
         setSelectedTemplate("")
     }, [selectedMessage])
 
+    const convertStringFieldsToParsedObject = (
+        stringFields: Record<string, string>,
+        messageAbi: TypeAbi | undefined,
+    ): binary.ParsedObject => {
+        const result: binary.ParsedObject = {}
+
+        for (const [fieldName, fieldValue] of Object.entries(stringFields)) {
+            const field = messageAbi?.fields.find(f => f.name === fieldName)
+            if (field === undefined) {
+                result[fieldName] = fieldValue
+            } else {
+                try {
+                    result[fieldName] = parseFieldValue(fieldValue, field.type)
+                } catch {
+                    result[fieldName] = fieldValue
+                }
+            }
+        }
+
+        return result
+    }
+
+    const convertParsedObjectToStringFields = (
+        parsedFields: binary.ParsedObject,
+    ): Record<string, string> => {
+        const result: Record<string, string> = {}
+
+        for (const [fieldName, fieldValue] of Object.entries(parsedFields)) {
+            result[fieldName] = binary.formatParsedSlice(fieldValue) ?? ""
+        }
+
+        return result
+    }
+
+    const parseFieldValue = (fieldValue: string, fieldType: TypeInfo): binary.ParsedSlice => {
+        if (!fieldValue.trim()) {
+            return null
+        }
+
+        switch (fieldType.name) {
+            case "int":
+            case "uint":
+            case "coins":
+            case "varint16":
+            case "varint32":
+            case "varuint16":
+            case "varuint32": {
+                return BigInt(fieldValue)
+            }
+
+            case "bool": {
+                return fieldValue.toLowerCase() === "true" || fieldValue === "1"
+            }
+
+            case "address": {
+                if (fieldValue === "null" || fieldValue === "") {
+                    return new binary.AddressNone()
+                }
+                try {
+                    return Address.parse(fieldValue)
+                } catch {
+                    return new binary.AddressNone()
+                }
+            }
+
+            case "bits":
+            case "slice": {
+                return binary.makeSlice(fieldValue)
+            }
+
+            case "cell": {
+                return Cell.fromBase64(fieldValue)
+            }
+
+            case "option": {
+                if (fieldValue === "null" || fieldValue === "") {
+                    return null
+                }
+                return parseFieldValue(fieldValue, fieldType.innerType)
+            }
+
+            case "type-alias": {
+                return parseFieldValue(fieldValue, fieldType.innerType)
+            }
+
+            case "struct": {
+                throw new Error('Not implemented yet: "struct" case')
+            }
+            case "anon-struct": {
+                throw new Error('Not implemented yet: "anon-struct" case')
+            }
+            default: {
+                return fieldValue
+            }
+        }
+    }
+
     const handleFieldChange = (fieldName: string, fieldValue: string): void => {
-        const newFields = {...messageFields, [fieldName]: fieldValue}
+        const contract = contracts.find(c => c.address === selectedContract)
+        const message = contract?.abi?.messages.find(m => m.name === selectedMessage)
+        const field = message?.fields.find(f => f.name === fieldName)
+
+        let parsedValue: binary.ParsedSlice
+        if (field) {
+            try {
+                parsedValue = parseFieldValue(fieldValue, field.type)
+            } catch {
+                parsedValue = fieldValue
+            }
+        } else {
+            parsedValue = fieldValue
+        }
+
+        const newFields = {...messageFields, [fieldName]: parsedValue}
         setMessageFields(newFields)
         if (selectedTemplate) {
             setSelectedTemplate("")
@@ -168,7 +287,7 @@ export const SendMessage: React.FC<Props> = ({
             type: "saveMessageAsTemplate",
             contractAddress: selectedContract,
             messageName: selectedMessage,
-            messageFields: messageFields,
+            messageFields: convertParsedObjectToStringFields(messageFields),
             sendMode,
             value,
         })
@@ -193,13 +312,31 @@ export const SendMessage: React.FC<Props> = ({
         if (message?.fields) {
             for (const field of message.fields) {
                 const fieldValue = messageFields[field.name] as string | undefined
-                if (!fieldValue?.trim()) {
+                if (fieldValue === undefined) {
+                    return false
+                }
+                if (!formatParsedSlice(fieldValue)?.trim()) {
                     return false
                 }
             }
         }
 
         return true
+    }
+
+    const createMessageBody = (): string => {
+        if (!message || !contract?.abi) {
+            throw new Error("Message ABI not found")
+        }
+
+        try {
+            const encodedCell = binary.encodeData(contract.abi, message, messageFields)
+            return encodedCell.toBoc().toString("base64")
+        } catch (error) {
+            throw new Error(
+                `Failed to encode message: ${error instanceof Error ? error.message : "Unknown error"}`,
+            )
+        }
     }
 
     const handleSendMessage = (): void => {
@@ -216,7 +353,7 @@ export const SendMessage: React.FC<Props> = ({
 
             onSendInternalMessage({
                 selectedMessage,
-                messageFields,
+                messageBody: createMessageBody(),
                 value,
                 sendMode,
                 autoDebug,
@@ -235,7 +372,7 @@ export const SendMessage: React.FC<Props> = ({
 
             onSendMessage({
                 selectedMessage,
-                messageFields,
+                messageBody: createMessageBody(),
                 autoDebug,
             })
         }
@@ -368,7 +505,7 @@ export const SendMessage: React.FC<Props> = ({
                             </div>
                             <input
                                 type="text"
-                                value={messageFields[field.name] || ""}
+                                value={binary.formatParsedSlice(messageFields[field.name]) ?? ""}
                                 onChange={e => {
                                     handleFieldChange(field.name, e.target.value)
                                 }}
