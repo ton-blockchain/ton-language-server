@@ -797,7 +797,7 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
             const result = await createMessageTemplate({
                 name: command.name,
                 opcode: command.opcode,
-                messageFields: command.messageFields,
+                messageBody: command.messageBody,
                 sendMode: command.sendMode,
                 value: command.value,
                 description: command.description,
@@ -947,25 +947,13 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
             }
 
             const contract = this.deployedContracts.find(c => c.address === command.contractAddress)
-            if (!contract?.abi) {
-                void vscode.window.showErrorMessage(
-                    `Contract ABI not found for address ${command.contractAddress}`,
-                )
-                return
-            }
-
-            const message = contract.abi.messages.find(m => m.name === command.messageName)
-            if (!message) {
-                void vscode.window.showErrorMessage(
-                    `Message "${command.messageName}" not found in contract ABI`,
-                )
-                return
-            }
+            const message = contract?.abi?.messages.find(m => m.name === command.messageName)
+            const opcode = message?.opcode ?? 0
 
             const templateData = {
                 name: templateName,
-                opcode: message.opcode ?? 0,
-                messageFields: command.messageFields,
+                opcode,
+                messageBody: command.messageBody,
                 sendMode: command.sendMode,
                 value: command.value,
                 description: `Template for ${command.messageName} message`,

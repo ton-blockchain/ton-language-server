@@ -4,8 +4,6 @@ import * as vscode from "vscode"
 import {SandboxTreeProvider} from "../providers/SandboxTreeProvider"
 import {SandboxFormProvider} from "../providers/SandboxFormProvider"
 import {StatesWebviewProvider} from "../providers/StatesWebviewProvider"
-import {beginCell, Cell} from "@ton/core"
-import {TypeAbi} from "@shared/abi"
 import {TolkSourceMap} from "../providers/TolkCompilerProvider"
 import {MessageTemplate} from "../webview-ui/src/types"
 import {DeployedContract} from "../providers/lib/contract"
@@ -227,7 +225,7 @@ export async function callGetMethod(
 export async function createMessageTemplate(templateData: {
     name: string
     opcode: number
-    messageFields: Record<string, string>
+    messageBody: string
     sendMode: number
     value?: string
     description?: string
@@ -459,198 +457,6 @@ export async function deleteContract(address: string): Promise<{
     return {
         success: true,
     }
-}
-
-export function buildStructuredMessage(
-    messageName: string,
-    messageFields: Record<string, string>,
-    formProvider: SandboxFormProvider,
-    contractAddress?: string,
-): string {
-    const builder = beginCell()
-
-    let messageAbi: TypeAbi | null = null
-    if (contractAddress) {
-        messageAbi = getMessageAbiFromFormProvider(formProvider, contractAddress, messageName)
-    }
-
-    const opcode = messageAbi?.opcode ?? 0
-    const opcodeWidth = messageAbi?.opcodeWidth ?? 32
-    builder.storeUint(opcode, opcodeWidth)
-
-    for (const [fieldName, fieldValue] of Object.entries(messageFields)) {
-        if (!fieldValue.trim()) {
-            continue
-        }
-
-        const fieldAbi = messageAbi?.fields.find(f => f.name === fieldName)
-        const fieldType = fieldAbi?.type.humanReadable ?? fieldName
-
-        const fieldTypeInfo = parseFieldTypeFromAbi(fieldType, fieldName, fieldValue)
-
-        try {
-            switch (fieldTypeInfo.type) {
-                case "uint": {
-                    const value = BigInt(fieldValue)
-                    builder.storeUint(value, fieldTypeInfo.bits)
-                    break
-                }
-                case "int": {
-                    const value = BigInt(fieldValue)
-                    builder.storeInt(value, fieldTypeInfo.bits)
-                    break
-                }
-                case "bool": {
-                    const value = fieldValue.toLowerCase() === "true" || fieldValue === "1"
-                    builder.storeBit(value)
-                    break
-                }
-                case "varuint": {
-                    const value = BigInt(fieldValue)
-                    builder.storeVarUint(value, fieldTypeInfo.maxBytes)
-                    break
-                }
-                case "varint": {
-                    const value = BigInt(fieldValue)
-                    builder.storeVarInt(value, fieldTypeInfo.maxBytes)
-                    break
-                }
-                case "cell": {
-                    const cellValue = Cell.fromBase64(fieldValue)
-                    builder.storeRef(cellValue)
-                    break
-                }
-                default: {
-                    const value = BigInt(fieldValue)
-                    builder.storeUint(value, 256)
-                    break
-                }
-            }
-        } catch (error) {
-            throw new Error(
-                `Failed to encode field ${fieldName} (${fieldType}) with value ${fieldValue}: ${error instanceof Error ? error.message : "Unknown error"}`,
-            )
-        }
-    }
-
-    const cell = builder.endCell()
-    return cell.toBoc().toString("base64")
-}
-
-function getMessageAbiFromFormProvider(
-    formProvider: SandboxFormProvider,
-    contractAddress: string,
-    messageName: string,
-): TypeAbi | null {
-    const contracts = formProvider.deployedContracts
-
-    const contract = contracts.find(c => c.address === contractAddress)
-    if (!contract || !contract.abi || contract.abi.messages.length === 0) {
-        return null
-    }
-
-    const message = contract.abi.messages.find(m => m.name === messageName)
-    return message ?? null
-}
-
-interface FieldTypeInfo {
-    readonly type: string
-    readonly bits: number
-    readonly maxBytes: number
-}
-
-function parseFieldType(fieldName: string, fieldValue: string): FieldTypeInfo {
-    const lowerName = fieldName.toLowerCase()
-    const lowerValue = fieldValue.toLowerCase()
-
-    if (lowerName.includes("bool") || lowerName.includes("flag")) {
-        return {type: "bool", bits: 1, maxBytes: 1}
-    }
-
-    const varuintMatch = /varuint(\d+)?/.exec(lowerName)
-    if (varuintMatch) {
-        const maxBytes = varuintMatch[1] ? Math.ceil(Number.parseInt(varuintMatch[1], 10) / 8) : 16
-        return {type: "varuint", bits: 0, maxBytes}
-    }
-
-    const varintMatch = /varint(\d+)?/.exec(lowerName)
-    if (varintMatch) {
-        const maxBytes = varintMatch[1] ? Math.ceil(Number.parseInt(varintMatch[1], 10) / 8) : 16
-        return {type: "varint", bits: 0, maxBytes}
-    }
-
-    const uintMatch = /uint(\d+)?/.exec(lowerName)
-    if (uintMatch) {
-        const bits = uintMatch[1] ? Number.parseInt(uintMatch[1], 10) : 256
-        return {type: "uint", bits, maxBytes: 0}
-    }
-
-    const intMatch = /int(\d+)?/.exec(lowerName)
-    if (intMatch && !lowerName.includes("uint")) {
-        const bits = intMatch[1] ? Number.parseInt(intMatch[1], 10) : 257
-        return {type: "int", bits, maxBytes: 0}
-    }
-
-    if (lowerName.includes("cell") || lowerName.includes("ref")) {
-        return {type: "cell", bits: 0, maxBytes: 0}
-    }
-
-    if (lowerValue === "true" || lowerValue === "false") {
-        return {type: "bool", bits: 1, maxBytes: 1}
-    }
-
-    if (fieldValue.length > 20 && /^[\d+/A-Za-z]*={0,2}$/.test(fieldValue)) {
-        try {
-            Cell.fromBase64(fieldValue)
-            return {type: "cell", bits: 0, maxBytes: 0}
-        } catch {}
-    }
-
-    return {type: "uint", bits: 256, maxBytes: 0}
-}
-
-function parseFieldTypeFromAbi(
-    abiType: string,
-    fieldName: string,
-    fieldValue: string,
-): FieldTypeInfo {
-    const lowerAbiType = abiType.toLowerCase()
-
-    if (lowerAbiType === "bool") {
-        return {type: "bool", bits: 1, maxBytes: 1}
-    }
-
-    const uintMatch = /^uint(\d+)$/.exec(lowerAbiType)
-    if (uintMatch) {
-        const bits = Number.parseInt(uintMatch[1], 10)
-        return {type: "uint", bits, maxBytes: 0}
-    }
-
-    const intMatch = /^int(\d+)$/.exec(lowerAbiType)
-    if (intMatch) {
-        const bits = Number.parseInt(intMatch[1], 10)
-        return {type: "int", bits, maxBytes: 0}
-    }
-
-    const varuintMatch = /^varuint(\d+)$/.exec(lowerAbiType)
-    if (varuintMatch) {
-        const maxBits = Number.parseInt(varuintMatch[1], 10)
-        const maxBytes = Math.ceil(maxBits / 8)
-        return {type: "varuint", bits: 0, maxBytes}
-    }
-
-    const varintMatch = /^varint(\d+)$/.exec(lowerAbiType)
-    if (varintMatch) {
-        const maxBits = Number.parseInt(varintMatch[1], 10)
-        const maxBytes = Math.ceil(maxBits / 8)
-        return {type: "varint", bits: 0, maxBytes}
-    }
-
-    if (lowerAbiType === "cell") {
-        return {type: "cell", bits: 0, maxBytes: 0}
-    }
-
-    return parseFieldType(fieldName, fieldValue)
 }
 
 export async function callGetMethodDirectly(

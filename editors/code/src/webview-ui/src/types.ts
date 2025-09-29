@@ -142,7 +142,7 @@ export interface CreateMessageTemplateCommand {
     readonly type: "createMessageTemplate"
     readonly name: string
     readonly opcode: number
-    readonly messageFields: Record<string, string>
+    readonly messageBody: string // Base64 encoded BoC
     readonly sendMode: number
     readonly value?: string
     readonly description?: string
@@ -173,7 +173,7 @@ export interface SaveMessageAsTemplateCommand {
     readonly type: "saveMessageAsTemplate"
     readonly contractAddress: string
     readonly messageName: string
-    readonly messageFields: Record<string, string>
+    readonly messageBody: string // Base64 encoded BoC
     readonly sendMode: number
     readonly value: string
 }
@@ -187,7 +187,7 @@ export interface MessageTemplate {
     readonly id: string
     readonly name: string
     readonly opcode: number
-    readonly messageFields: Record<string, string>
+    readonly messageBody: string // Base64 encoded BoC
     readonly sendMode: number
     readonly value?: string
     readonly createdAt: string

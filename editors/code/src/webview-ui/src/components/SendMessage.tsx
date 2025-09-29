@@ -6,7 +6,7 @@ import {VscSave} from "react-icons/vsc"
 import styles from "./SendMessage.module.css"
 import {DeployedContract} from "../../../providers/lib/contract"
 import * as binary from "../../../providers/binary"
-import {TypeAbi, TypeInfo} from "@shared/abi"
+import {ContractAbi, TypeAbi, TypeInfo} from "@shared/abi"
 import {Address, Cell} from "@ton/core"
 import {formatParsedSlice} from "../../../providers/binary"
 
@@ -131,7 +131,7 @@ export const SendMessage: React.FC<Props> = ({
             setSendMode(loadedTemplate.sendMode)
 
             setMessageFields(
-                convertStringFieldsToParsedObject(loadedTemplate.messageFields, message),
+                parseMessageBodyToParsedObject(loadedTemplate.messageBody, message, contract?.abi),
             )
         }
     }, [loadedTemplate, selectedContract, selectedMessage, contracts])
@@ -142,7 +142,10 @@ export const SendMessage: React.FC<Props> = ({
             if (template) {
                 setValue(template.value ?? "1.0")
                 setSendMode(template.sendMode)
-                setMessageFields(convertStringFieldsToParsedObject(template.messageFields, message))
+
+                setMessageFields(
+                    parseMessageBodyToParsedObject(template.messageBody, message, contract?.abi),
+                )
             }
         }
     }, [selectedTemplate, localMessageTemplates, selectedContract, selectedMessage, contracts])
@@ -151,38 +154,23 @@ export const SendMessage: React.FC<Props> = ({
         setSelectedTemplate("")
     }, [selectedMessage])
 
-    const convertStringFieldsToParsedObject = (
-        stringFields: Record<string, string>,
+    const parseMessageBodyToParsedObject = (
+        messageBody: string,
         messageAbi: TypeAbi | undefined,
+        contractAbi?: ContractAbi,
     ): binary.ParsedObject => {
-        const result: binary.ParsedObject = {}
-
-        for (const [fieldName, fieldValue] of Object.entries(stringFields)) {
-            const field = messageAbi?.fields.find(f => f.name === fieldName)
-            if (field === undefined) {
-                result[fieldName] = fieldValue
-            } else {
-                try {
-                    result[fieldName] = parseFieldValue(fieldValue, field.type)
-                } catch {
-                    result[fieldName] = fieldValue
-                }
-            }
+        if (!messageAbi || !contractAbi) {
+            return {}
         }
 
-        return result
-    }
-
-    const convertParsedObjectToStringFields = (
-        parsedFields: binary.ParsedObject,
-    ): Record<string, string> => {
-        const result: Record<string, string> = {}
-
-        for (const [fieldName, fieldValue] of Object.entries(parsedFields)) {
-            result[fieldName] = binary.formatParsedSlice(fieldValue) ?? ""
+        try {
+            const cell = Cell.fromBase64(messageBody)
+            const slice = cell.beginParse()
+            return binary.parseData(contractAbi, messageAbi, slice)
+        } catch (error) {
+            console.error("Failed to parse message body:", error)
+            return {}
         }
-
-        return result
     }
 
     const parseFieldValue = (fieldValue: string, fieldType: TypeInfo): binary.ParsedSlice => {
@@ -287,7 +275,7 @@ export const SendMessage: React.FC<Props> = ({
             type: "saveMessageAsTemplate",
             contractAddress: selectedContract,
             messageName: selectedMessage,
-            messageFields: convertParsedObjectToStringFields(messageFields),
+            messageBody: createMessageBody(),
             sendMode,
             value,
         })
