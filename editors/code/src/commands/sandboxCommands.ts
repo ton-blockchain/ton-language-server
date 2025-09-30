@@ -7,7 +7,7 @@ import {StatesWebviewProvider} from "../providers/StatesWebviewProvider"
 import {MessageTemplate} from "../webview-ui/src/types"
 import {DeployedContract} from "../providers/lib/contract"
 import {SourceMap} from "ton-source-map"
-import {Cell, parseTuple, TupleItem, TupleReader} from "@ton/core"
+import {Cell, parseTuple, serializeTuple, TupleItem, TupleReader} from "@ton/core"
 import {ContractAbi, TypeAbi} from "@shared/abi"
 import * as binary from "../providers/binary"
 import {formatParsedObject, ParsedObject} from "../providers/binary"
@@ -206,6 +206,7 @@ export interface CallGetMethodResponse {
 export async function callGetMethod(
     address: string,
     methodId: number,
+    parametersBase64: string,
 ): Promise<CallGetMethodResponse> {
     const config = vscode.workspace.getConfiguration("ton")
     const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
@@ -213,7 +214,7 @@ export async function callGetMethod(
     const response = await fetch(`${sandboxUrl}/get`, {
         method: "POST",
         headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({address, methodId}),
+        body: JSON.stringify({address, parameters: parametersBase64, methodId}),
     })
 
     if (!response.ok) {
@@ -522,7 +523,8 @@ export async function callGetMethodDirectly(
     methodId: number,
 ): Promise<void> {
     try {
-        const result = await callGetMethod(contract.address, methodId)
+        const emptyParameters = serializeTuple([]).toBoc().toString("base64")
+        const result = await callGetMethod(contract.address, methodId, emptyParameters)
 
         if (result.success) {
             const reader = new TupleReader(result.result ?? [])

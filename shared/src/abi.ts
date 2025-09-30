@@ -54,6 +54,7 @@ export interface GetMethod {
     readonly id: number
     readonly pos: Pos | undefined
     readonly returnType?: TypeInfo
+    readonly parameters?: Field[]
 }
 
 export interface Pos {

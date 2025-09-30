@@ -34,11 +34,23 @@ export function contractAbi(file: TolkFile): ContractAbi | undefined {
         for (const method of currentFile.getGetMethods()) {
             const returnType = method.returnType()
             const returnTy = returnType ? typeOf(returnType.node, file) : null
+
+            const parameters: Field[] = method.parameters().map(param => {
+                const paramTy = typeOf(param.node, file)
+                return {
+                    name: param.name(),
+                    type: paramTy
+                        ? convertTyToTypeInfo(paramTy)
+                        : {name: "slice", humanReadable: "slice"},
+                }
+            })
+
             getMethods.push({
                 name: method.name(),
                 id: method.computeMethodId(),
                 pos: method.nameIdentifier()?.startPosition,
                 returnType: convertTyToTypeInfo(returnTy ?? VoidTy.VOID),
+                parameters,
             })
         }
 

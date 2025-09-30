@@ -2,10 +2,16 @@ import React, {useState} from "react"
 import {Button, Input, Select} from "./ui"
 import styles from "./GetMethod.module.css"
 import {DeployedContract} from "../../../providers/lib/contract"
+import {AbiFieldsForm} from "./AbiFieldsForm"
+import * as binary from "../../../providers/binary"
+import {TypeAbi} from "@shared/abi"
+import {encodeTuple} from "../../../providers/binary"
+import {serializeTuple} from "@ton/core"
 
 interface MethodData {
     readonly selectedMethod: string
     readonly methodId: string
+    readonly parameters: string // Base64 encoded BOC
 }
 
 interface Props {
@@ -25,11 +31,24 @@ export const GetMethod: React.FC<Props> = ({
 }) => {
     const [selectedMethod, setSelectedMethod] = useState<string>("")
     const [methodId, setMethodId] = useState<string>("0")
+    const [methodParameters, setMethodParameters] = useState<binary.ParsedObject>({})
+    const [isParametersValid, setParametersValid] = useState<boolean>(true)
+
     const contract = contracts.find(c => c.address === selectedContract)
     const method = contract?.abi?.getMethods.find(m => m.name === selectedMethod)
 
+    const methodParamsAbi: TypeAbi | undefined = method?.parameters
+        ? {
+              name: `${method.name}_params`,
+              opcode: undefined,
+              opcodeWidth: undefined,
+              fields: method.parameters,
+          }
+        : undefined
+
     const handleMethodChange = (methodName: string): void => {
         setSelectedMethod(methodName)
+        setMethodParameters({})
         const method = contract?.abi?.getMethods.find(m => m.name === methodName)
         if (method) {
             setMethodId(method.id.toString())
@@ -42,9 +61,18 @@ export const GetMethod: React.FC<Props> = ({
         if (!selectedContract) {
             return
         }
+
+        const encodedParameters =
+            methodParamsAbi && contract?.abi
+                ? encodeTuple(contract.abi, methodParamsAbi, methodParameters)
+                : []
+
+        const encodedParametersCell = serializeTuple(encodedParameters)
+
         onCallGetMethod({
             selectedMethod,
             methodId,
+            parameters: encodedParametersCell.toBoc().toString("base64"),
         })
     }
 
@@ -109,7 +137,24 @@ export const GetMethod: React.FC<Props> = ({
                 />
             </div>
 
-            <Button onClick={handleCallGetMethod} disabled={contracts.length === 0}>
+            {methodParamsAbi && methodParamsAbi.fields.length > 0 && (
+                <div className={styles.formGroup}>
+                    <div className={styles.parametersTitle}>Method Parameters:</div>
+                    <AbiFieldsForm
+                        abi={methodParamsAbi}
+                        contractAbi={contract?.abi}
+                        contracts={contracts}
+                        fields={methodParameters}
+                        onFieldsChange={setMethodParameters}
+                        onValidationChange={setParametersValid}
+                    />
+                </div>
+            )}
+
+            <Button
+                onClick={handleCallGetMethod}
+                disabled={contracts.length === 0 || !isParametersValid}
+            >
                 Call Get Method
             </Button>
 

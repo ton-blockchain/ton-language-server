@@ -243,6 +243,7 @@ export default function App({vscode}: Props): JSX.Element {
                                 contractAddress: selectedGetContract,
                                 selectedMethod: methodData.selectedMethod,
                                 methodId: methodData.methodId,
+                                parameters: methodData.parameters,
                             })
                         }}
                         result={results["get-method-result"]}

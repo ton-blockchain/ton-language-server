@@ -449,6 +449,7 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
         contractAddress: string
         selectedMethod: string
         methodId: string
+        parameters: string
     }): Promise<void> {
         if (!command.contractAddress) {
             this.showResult(
@@ -488,7 +489,11 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
         const contractAbi = contract?.abi
 
         try {
-            const result = await callGetMethod(command.contractAddress, methodId)
+            const result = await callGetMethod(
+                command.contractAddress,
+                methodId,
+                command.parameters,
+            )
 
             if (result.success && result.result) {
                 const reader = new TupleReader(result.result)

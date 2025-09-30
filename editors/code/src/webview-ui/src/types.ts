@@ -92,6 +92,7 @@ export interface CallGetMethodCommand {
     readonly contractAddress: string
     readonly selectedMethod: string
     readonly methodId: string
+    readonly parameters: string // Base64 encoded cell
 }
 
 export interface LoadAbiForDeployCommand {
