@@ -5,6 +5,7 @@ import {GetMethod, EntryPoint} from "@shared/abi"
 import {GetContractAbiParams, GetContractAbiResponse} from "@shared/shared-msgtypes"
 import {SandboxTreeProvider} from "./SandboxTreeProvider"
 import {Event} from "vscode"
+import {DeployedContract} from "./lib/contract"
 
 export class SandboxCodeLensProvider implements vscode.CodeLensProvider {
     private readonly _onDidChangeCodeLenses: vscode.EventEmitter<void> =
@@ -129,7 +130,7 @@ export class SandboxCodeLensProvider implements vscode.CodeLensProvider {
             return new vscode.CodeLens(range, {
                 title: `Execute get method`,
                 command: "ton.sandbox.callGetMethodFromCodeLens",
-                arguments: [deployedContract.address, getMethod.name, getMethod.id],
+                arguments: [deployedContract, getMethod.id],
             })
         }
 
@@ -142,12 +143,7 @@ export class SandboxCodeLensProvider implements vscode.CodeLensProvider {
         return baseName.replace(/\.(tolk|fc|func)$/, "")
     }
 
-    private findDeployedContract(contractName: string):
-        | {
-              address: string
-              name: string
-          }
-        | undefined {
+    private findDeployedContract(contractName: string): DeployedContract | undefined {
         const deployedContracts = this.treeProvider.getDeployedContracts()
         return deployedContracts.find(c => c.name === contractName)
     }

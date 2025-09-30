@@ -3,6 +3,7 @@ import {ContractAbi, EntryPoint, Field, GetMethod, TypeAbi} from "@shared/abi"
 import {ImportResolver} from "@server/languages/tolk/psi/ImportResolver"
 import {typeOf} from "@server/languages/tolk/type-inference"
 import {convertTyToTypeInfo} from "./type-converter"
+import {VoidTy} from "@server/languages/tolk/types/ty"
 
 export function contractAbi(file: TolkFile): ContractAbi | undefined {
     const getMethods: GetMethod[] = []
@@ -31,10 +32,13 @@ export function contractAbi(file: TolkFile): ContractAbi | undefined {
 
     for (const currentFile of filesToProcess) {
         for (const method of currentFile.getGetMethods()) {
+            const returnType = method.returnType()
+            const returnTy = returnType ? typeOf(returnType.node, file) : null
             getMethods.push({
                 name: method.name(),
                 id: method.computeMethodId(),
                 pos: method.nameIdentifier()?.startPosition,
+                returnType: convertTyToTypeInfo(returnTy ?? VoidTy.VOID),
             })
         }
 

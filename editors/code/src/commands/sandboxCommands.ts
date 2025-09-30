@@ -7,6 +7,10 @@ import {StatesWebviewProvider} from "../providers/StatesWebviewProvider"
 import {MessageTemplate} from "../webview-ui/src/types"
 import {DeployedContract} from "../providers/lib/contract"
 import {SourceMap} from "ton-source-map"
+import {Cell, parseTuple, TupleItem, TupleReader} from "@ton/core"
+import {ContractAbi, TypeAbi} from "@shared/abi"
+import * as binary from "../providers/binary"
+import {formatParsedObject, ParsedObject} from "../providers/binary"
 
 export function registerSandboxCommands(
     treeProvider: SandboxTreeProvider,
@@ -50,8 +54,8 @@ export function registerSandboxCommands(
         ),
         vscode.commands.registerCommand(
             "ton.sandbox.callGetMethodFromCodeLens",
-            async (address: string, methodName: string, methodId: number) => {
-                await callGetMethodDirectly(address, methodName, methodId)
+            async (contract: DeployedContract, methodId: number) => {
+                await callGetMethodDirectly(contract, methodId)
             },
         ),
         vscode.commands.registerCommand("ton.sandbox.states.refresh", () => {
@@ -192,15 +196,17 @@ export async function sendInternalMessage(
     return (await response.json()) as SendMessageResponse
 }
 
+export interface CallGetMethodResponse {
+    readonly success: boolean
+    readonly result?: TupleItem[]
+    readonly logs?: string
+    readonly error?: string
+}
+
 export async function callGetMethod(
     address: string,
     methodId: number,
-): Promise<{
-    success: boolean
-    result?: string
-    logs?: string
-    error?: string
-}> {
+): Promise<CallGetMethodResponse> {
     const config = vscode.workspace.getConfiguration("ton")
     const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
 
@@ -214,11 +220,63 @@ export async function callGetMethod(
         throw new Error(`API call failed: ${response.status} ${response.statusText}`)
     }
 
-    return (await response.json()) as {
+    const result = (await response.json()) as {
         success: boolean
         result?: string
         logs?: string
         error?: string
+    }
+    return {
+        ...result,
+        result: result.result ? parseTuple(Cell.fromBase64(result.result)) : undefined,
+    }
+}
+
+export function parseGetMethodResult(
+    contractAbi: ContractAbi | undefined,
+    reader: TupleReader,
+    methodId: number,
+): ParsedObject {
+    if (!contractAbi) {
+        const rawValue = JSON.stringify(reader, (_, value: unknown) =>
+            typeof value === "bigint" ? value.toString() : value,
+        )
+        throw new Error(`Raw result: ${rawValue}\n\nNote: Contract ABI not available`)
+    }
+
+    const getMethod = contractAbi.getMethods.find(method => method.id === methodId)
+
+    if (!getMethod?.returnType) {
+        const rawValue = JSON.stringify(reader, (_, value: unknown) =>
+            typeof value === "bigint" ? value.toString() : value,
+        )
+        throw new Error(`Raw result: ${rawValue}\n\nNote: Return type ABI is not available`)
+    }
+
+    try {
+        const structTypeAbi =
+            getMethod.returnType.name === "struct"
+                ? contractAbi.types.find(type => type.name === getMethod.returnType?.humanReadable)
+                : undefined
+        const typeAbi: TypeAbi = structTypeAbi ?? {
+            name: "getMethodResult",
+            opcode: undefined,
+            opcodeWidth: undefined,
+            fields: [
+                {
+                    name: "value",
+                    type: getMethod.returnType,
+                },
+            ],
+        }
+        return binary.parseTuple(contractAbi, typeAbi, reader)
+    } catch (parseError) {
+        const rawValue = JSON.stringify(reader, (_, value: unknown) =>
+            typeof value === "bigint" ? value.toString() : value,
+        )
+        throw new Error(
+            `Raw result: ${rawValue}\n\nParsing error: ${parseError instanceof Error ? parseError.message : "Unknown parsing error"}`,
+        )
     }
 }
 
@@ -460,26 +518,30 @@ export async function deleteContract(address: string): Promise<{
 }
 
 export async function callGetMethodDirectly(
-    address: string,
-    methodName: string,
+    contract: DeployedContract,
     methodId: number,
 ): Promise<void> {
     try {
-        const result = await callGetMethod(address, methodId)
+        const result = await callGetMethod(contract.address, methodId)
 
         if (result.success) {
-            const message = result.result ?? "null"
-            const details = result.logs ? `Logs:\n${result.logs}` : ""
+            const reader = new TupleReader(result.result ?? [])
+            try {
+                const parsedResult = parseGetMethodResult(contract.abi, reader, methodId)
+                const formattedResult = formatParsedObject(parsedResult)
 
-            void vscode.window.showInformationMessage(message, {detail: details})
+                void vscode.window.showInformationMessage(formattedResult)
+            } catch (error) {
+                void vscode.window.showErrorMessage(
+                    `Failed to parse result: ${error instanceof Error ? error.message : "Unknown error"}`,
+                )
+            }
         } else {
-            void vscode.window.showErrorMessage(
-                `❌ Call failed: ${result.error ?? "Unknown error"}`,
-            )
+            void vscode.window.showErrorMessage(`Call failed: ${result.error ?? "Unknown error"}`)
         }
     } catch (error) {
         void vscode.window.showErrorMessage(
-            `❌ Call failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+            `Call failed: ${error instanceof Error ? error.message : "Unknown error"}`,
         )
     }
 }

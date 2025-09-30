@@ -34,13 +34,15 @@ import {
     getMessageTemplate,
     updateMessageTemplate,
     deleteMessageTemplate,
+    parseGetMethodResult,
 } from "../commands/sandboxCommands"
 import {compileAndDeployFromEditor, loadContractInfo, loadAndValidateAbiForDeploy} from "./methods"
-import {Cell} from "@ton/core"
+import {Cell, TupleReader} from "@ton/core"
 import {decompileCell} from "ton-assembly/dist/runtime"
 import {print} from "ton-assembly/dist/text"
 import {DeployedContract} from "./lib/contract"
 import {SourceMap} from "ton-source-map"
+import {formatParsedObject} from "./binary"
 
 export interface TransactionInfo {
     readonly vmLogs: string
@@ -482,11 +484,25 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
             return
         }
 
+        const contract = this.deployedContracts.find(c => c.address === command.contractAddress)
+        const contractAbi = contract?.abi
+
         try {
             const result = await callGetMethod(command.contractAddress, methodId)
 
-            if (result.success) {
-                const message = `Method called successfully!\nResult: ${result.result ?? "No result"}`
+            if (result.success && result.result) {
+                const reader = new TupleReader(result.result)
+
+                let formattedResult: string
+                try {
+                    const parsedResult = parseGetMethodResult(contractAbi, reader, methodId)
+                    formattedResult = formatParsedObject(parsedResult)
+                } catch (parseError) {
+                    formattedResult =
+                        parseError instanceof Error ? parseError.message : "Unknown error"
+                }
+
+                const message = `Result:\n${formattedResult}`
 
                 this.showResult(
                     {

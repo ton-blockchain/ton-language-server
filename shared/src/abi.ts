@@ -1,4 +1,5 @@
 export type BaseTypeInfo =
+    | {readonly name: "void"}
     | {readonly name: "int"; readonly width: number}
     | {readonly name: "uint"; readonly width: number}
     | {readonly name: "coins"}
@@ -52,6 +53,7 @@ export interface GetMethod {
     readonly name: string
     readonly id: number
     readonly pos: Pos | undefined
+    readonly returnType?: TypeInfo
 }
 
 export interface Pos {

@@ -12,6 +12,7 @@ import {
     TypeAliasTy,
     UnionTy,
     VarIntNTy,
+    VoidTy,
 } from "@server/languages/tolk/types/ty"
 import {BaseTypeInfo, TypeInfo} from "@shared/abi"
 
@@ -107,6 +108,13 @@ function convertTyToBaseTypeInfo(ty: Ty): BaseTypeInfo & {humanReadable: string}
     if (ty instanceof BoolTy) {
         return {
             name: "bool",
+            humanReadable,
+        }
+    }
+
+    if (ty instanceof VoidTy) {
+        return {
+            name: "void",
             humanReadable,
         }
     }

@@ -19,48 +19,6 @@ export class AddressNone {
     }
 }
 
-export function formatParsedSlice(value: ParsedSlice | undefined): string | undefined {
-    if (value === undefined || value === null) {
-        return undefined
-    }
-
-    if (typeof value === "boolean") {
-        return value ? "true" : "false"
-    }
-
-    if (typeof value === "bigint") {
-        return value.toString()
-    }
-
-    if (typeof value === "object") {
-        if ("$" in value) {
-            return `${value.name}: ${JSON.stringify(value.value)}`
-        }
-
-        if (value instanceof AddressNone) {
-            return value.toString()
-        }
-
-        if (value instanceof Address) {
-            return value.toString()
-        }
-
-        if (value instanceof ExternalAddress) {
-            return value.toString()
-        }
-
-        if (value instanceof Cell) {
-            return value.toBoc().toString("base64")
-        }
-
-        if (value instanceof Slice) {
-            return value.toString()
-        }
-    }
-
-    return ""
-}
-
 export function convertBinSliceToHex(binSlice: string): string {
     const binBits = binSlice.slice(2, -1)
     let hexBits = "x{"
