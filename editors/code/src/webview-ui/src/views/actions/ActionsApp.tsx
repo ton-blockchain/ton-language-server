@@ -1,24 +1,12 @@
-import React, {JSX, useEffect, useState, useCallback} from "react"
-
-import {ContractAbi} from "@shared/abi"
-
-import {DeployedContract} from "../../../../common/types/contract"
-
-import {DeployState} from "../../../../providers/sandbox/methods"
+import React, {JSX} from "react"
 
 import {CompileDeploy} from "./components/CompileDeploy/CompileDeploy"
 import {SendMessage} from "./components/SendMessage/SendMessage"
 import {GetMethod} from "./components/GetMethod/GetMethod"
 import {NoOperation} from "./components/NoOperation/NoOperation"
-import {
-  ResultData,
-  Operation,
-  VSCodeAPI,
-  VSCodeMessage,
-  ContractInfoData,
-  MessageTemplate,
-} from "./sandbox-actions-types"
 import {ContractInfo} from "./components/ContractInfo/ContractInfo"
+import {VSCodeAPI} from "./sandbox-actions-types"
+import {useActionsApp} from "./hooks/useActionsApp"
 
 import styles from "./ActionsApp.module.css"
 
@@ -27,143 +15,26 @@ interface Props {
 }
 
 export default function ActionsApp({vscode}: Props): JSX.Element {
-  const [activeOperation, setActiveOperation] = useState<Operation>(null)
-  const [contracts, setContracts] = useState<DeployedContract[]>([])
-  const [results, setResults] = useState<
-    Record<
-      | "compile-deploy-result"
-      | "send-internal-message-result"
-      | "send-external-message-result"
-      | "get-method-result",
-      ResultData | undefined
-    >
-  >({
-    "compile-deploy-result": undefined,
-    "get-method-result": undefined,
-    "send-external-message-result": undefined,
-    "send-internal-message-result": undefined,
-  })
-  const [contractAbi, setContractAbi] = useState<ContractAbi | undefined>()
-  const [contractInfo, setContractInfo] = useState<ContractInfoData | undefined>()
+  const {
+    // Contract selection
+    contracts,
+    selectedContract,
+    setSelectedContract,
 
-  const [selectedSendContract, setSelectedSendContract] = useState<string>("")
-  const [selectedGetContract, setSelectedGetContract] = useState<string>("")
-  const [selectedInfoContract, setSelectedInfoContract] = useState<string>("")
-  const [loadedTemplate, setLoadedTemplate] = useState<MessageTemplate | null>(null)
-  const [messageTemplates, setMessageTemplates] = useState<MessageTemplate[]>([])
-  const [deployState, setDeployState] = useState<DeployState | null>(null)
+    // Operations
+    activeOperation,
+    setActiveOperation,
+    results,
 
-  const clearSendResults = useCallback(() => {
-    setResults(prev => ({
-      ...prev,
-      "send-external-message-result": undefined,
-      "send-internal-message-result": undefined,
-    }))
-  }, [])
+    // Contract data
+    contractAbi,
+    contractInfo,
+    deployState,
 
-  const handleMessage = useCallback(
-    (event: MessageEvent<VSCodeMessage>): void => {
-      const message: VSCodeMessage = event.data
-
-      switch (message.type) {
-        case "updateContracts": {
-          setContracts(message.contracts)
-          break
-        }
-        case "showResult": {
-          const resultId = message.resultId ?? "default"
-          setResults(prev => ({
-            ...prev,
-            [resultId]: message.result,
-          }))
-          break
-        }
-        case "openOperation": {
-          setActiveOperation(message.operation)
-          if (message.contractAddress) {
-            switch (message.operation) {
-              case "send-message": {
-                setSelectedSendContract(message.contractAddress)
-                break
-              }
-              case "get-method": {
-                setSelectedGetContract(message.contractAddress)
-                break
-              }
-              case "contract-info": {
-                setSelectedInfoContract(message.contractAddress)
-                break
-              }
-              case "compile-deploy":
-              case null: {
-                break
-              }
-            }
-          }
-          break
-        }
-        case "updateContractAbi": {
-          setContractAbi(message.abi)
-          break
-        }
-        case "updateDeployState": {
-          setDeployState(message.state)
-          if (message.abi) {
-            setContractAbi(message.abi)
-          }
-          break
-        }
-        case "updateContractInfo": {
-          setContractInfo(message.info)
-          break
-        }
-        case "updateActiveEditor": {
-          vscode.postMessage({
-            type: "loadAbiForDeploy",
-          })
-          break
-        }
-        case "messageTemplate": {
-          setLoadedTemplate(message.template)
-          setActiveOperation("send-message")
-          break
-        }
-        case "templateCreated": {
-          vscode.postMessage({type: "getMessageTemplates"})
-          break
-        }
-        case "templateUpdated": {
-          vscode.postMessage({type: "getMessageTemplates"})
-          break
-        }
-        case "templateDeleted": {
-          vscode.postMessage({type: "getMessageTemplates"})
-          break
-        }
-        case "messageTemplates": {
-          setMessageTemplates(message.templates)
-          break
-        }
-      }
-    },
-    [vscode],
-  )
-
-  useEffect(() => {
-    vscode.postMessage({
-      type: "webviewReady",
-    })
-    vscode.postMessage({
-      type: "getMessageTemplates",
-    })
-  }, [vscode])
-
-  useEffect(() => {
-    window.addEventListener("message", handleMessage)
-    return () => {
-      window.removeEventListener("message", handleMessage)
-    }
-  }, [handleMessage])
+    // Message templates
+    loadedTemplate,
+    messageTemplates,
+  } = useActionsApp({vscode})
 
   const renderActiveOperation = (): JSX.Element => {
     if (!activeOperation) return <NoOperation />
@@ -173,14 +44,12 @@ export default function ActionsApp({vscode}: Props): JSX.Element {
         return (
           <ContractInfo
             info={contractInfo}
-            contractAddress={selectedInfoContract}
+            contractAddress={selectedContract}
             contracts={contracts}
             onSendMessage={() => {
-              setSelectedSendContract(selectedInfoContract)
               setActiveOperation("send-message")
             }}
             onCallGetMethod={() => {
-              setSelectedGetContract(selectedInfoContract)
               setActiveOperation("get-method")
             }}
             vscode={vscode}
@@ -210,12 +79,12 @@ export default function ActionsApp({vscode}: Props): JSX.Element {
         return (
           <SendMessage
             contracts={contracts}
-            selectedContract={selectedSendContract}
-            onContractChange={setSelectedSendContract}
+            selectedContract={selectedContract}
+            onContractChange={setSelectedContract}
             onSendMessage={messageData => {
               vscode.postMessage({
                 type: "sendExternalMessage",
-                contractAddress: selectedSendContract,
+                contractAddress: selectedContract,
                 selectedMessage: messageData.selectedMessage,
                 messageBody: messageData.messageBody,
                 autoDebug: messageData.autoDebug,
@@ -225,7 +94,7 @@ export default function ActionsApp({vscode}: Props): JSX.Element {
               vscode.postMessage({
                 type: "sendInternalMessage",
                 fromAddress: messageData.fromAddress,
-                toAddress: selectedSendContract,
+                toAddress: selectedContract,
                 selectedMessage: messageData.selectedMessage,
                 messageBody: messageData.messageBody,
                 sendMode: messageData.sendMode ?? 0,
@@ -245,7 +114,6 @@ export default function ActionsApp({vscode}: Props): JSX.Element {
             result={
               results["send-internal-message-result"] ?? results["send-external-message-result"]
             }
-            onClearResult={clearSendResults}
             loadedTemplate={loadedTemplate ?? undefined}
             messageTemplates={messageTemplates}
             vscode={vscode}
@@ -256,12 +124,12 @@ export default function ActionsApp({vscode}: Props): JSX.Element {
         return (
           <GetMethod
             contracts={contracts}
-            selectedContract={selectedGetContract}
-            onContractChange={setSelectedGetContract}
+            selectedContract={selectedContract}
+            onContractChange={setSelectedContract}
             onCallGetMethod={methodData => {
               vscode.postMessage({
                 type: "callGetMethod",
-                contractAddress: selectedGetContract,
+                contractAddress: selectedContract,
                 selectedMethod: methodData.selectedMethod,
                 methodId: methodData.methodId,
                 parameters: methodData.parameters,
@@ -276,19 +144,6 @@ export default function ActionsApp({vscode}: Props): JSX.Element {
       }
     }
   }
-
-  useEffect(() => {
-    if (activeOperation === "compile-deploy") {
-      vscode.postMessage({type: "loadAbiForDeploy"})
-    }
-    if (activeOperation === "contract-info" && selectedInfoContract) {
-      setContractInfo(undefined)
-      vscode.postMessage({
-        type: "loadContractInfo",
-        contractAddress: selectedInfoContract,
-      })
-    }
-  }, [activeOperation, selectedInfoContract, vscode])
 
   return <div className={styles.container}>{renderActiveOperation()}</div>
 }
