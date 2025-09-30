@@ -25,6 +25,7 @@ import {
 } from "@shared/shared-msgtypes"
 
 import type {ClientOptions} from "@shared/config-scheme"
+import {ContractAbi} from "@shared/abi"
 
 import {ToolchainConfig} from "@server/settings/settings"
 
@@ -49,6 +50,7 @@ import {SandboxCodeLensProvider} from "./providers/sandbox/SandboxCodeLensProvid
 
 import {configureDebugging} from "./debugging"
 import {loadContractInfo, loadLatestOperationResult} from "./providers/sandbox/methods"
+import {HexString} from "./common/hex-string"
 
 let client: LanguageClient | null = null
 let cachedToolchainInfo: SetToolchainVersionParams | null = null
@@ -885,9 +887,9 @@ function registerTransactionDetailsCommand(disposables: vscode.Disposable[]): vo
 
                 const deployedContracts = globalSandboxTreeProvider?.getDeployedContracts() ?? []
 
-                let account: string | undefined
-                let stateInit: {code: string; data: string} | undefined
-                let abi: object | undefined
+                let account: HexString | undefined
+                let stateInit: {code: Base64URLString; data: Base64URLString} | undefined
+                let abi: ContractAbi | undefined
                 let resultString = args.resultString
 
                 try {

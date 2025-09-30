@@ -2,7 +2,10 @@
 //  Copyright © 2025 TON Core
 import * as vscode from "vscode"
 
+import {ContractAbi} from "@shared/abi"
+
 import {DeployedContract} from "../../common/types/contract"
+import {HexString} from "../../common/hex-string"
 
 export interface TransactionDetails {
     readonly contractAddress: string
@@ -12,12 +15,12 @@ export interface TransactionDetails {
     readonly status: "success" | "pending" | "failed"
     readonly resultString?: string
     readonly deployedContracts?: readonly DeployedContract[]
-    readonly account?: string
+    readonly account?: HexString
     readonly stateInit?: {
-        readonly code: string
-        readonly data: string
+        readonly code: Base64URLString
+        readonly data: Base64URLString
     }
-    readonly abi?: object
+    readonly abi?: ContractAbi
 }
 
 export class TransactionDetailsProvider {

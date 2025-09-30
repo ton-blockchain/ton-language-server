@@ -6,7 +6,7 @@ import {execFile} from "node:child_process"
 
 import vscode, {Uri} from "vscode"
 
-import {Cell, runtime as i, text} from "ton-assembly"
+import {Cell} from "ton-assembly"
 
 import {SourceMap} from "ton-source-map"
 
@@ -202,16 +202,4 @@ export async function compilerSupportsSourceMaps(cmd: string, cwd?: string): Pro
     } catch {
         return false
     }
-}
-
-const recompileCell = (cell: Cell): [Cell, i.Mapping] => {
-    const instructionsWithoutPositions = i.decompileCell(cell)
-    const assemblyForPositions = text.print(instructionsWithoutPositions)
-
-    const parseResult = text.parse("out.tasm", assemblyForPositions)
-    if (parseResult.$ === "ParseFailure") {
-        throw new Error("Cannot parse resulting text Assembly")
-    }
-
-    return i.compileCellWithMapping(parseResult.instructions)
 }
