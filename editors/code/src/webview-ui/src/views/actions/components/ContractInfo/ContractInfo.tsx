@@ -1,10 +1,10 @@
 import React, {useMemo, useState, useEffect} from "react"
 import styles from "./ContractInfo.module.css"
 import {Cell, loadShardAccount} from "@ton/core"
-import {ContractInfoData, VSCodeAPI} from "../sandbox-actions-types"
+import {ContractInfoData, VSCodeAPI} from "../../sandbox-actions-types"
 import {VscEdit, VscFileCode, VscTrash, VscCopy, VscCheck} from "react-icons/vsc"
-import {DeployedContract} from "../../../../../providers/lib/contract"
-import * as binary from "../../../../../providers/binary"
+import {DeployedContract} from "../../../../../../providers/lib/contract"
+import * as binary from "../../../../../../providers/binary"
 
 interface Props {
     readonly info: ContractInfoData | undefined

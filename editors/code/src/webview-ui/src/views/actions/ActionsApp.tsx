@@ -1,8 +1,8 @@
 import React, {JSX, useEffect, useState, useCallback} from "react"
-import {CompileDeploy} from "./components/CompileDeploy"
-import {SendMessage} from "./components/SendMessage"
-import {GetMethod} from "./components/GetMethod"
-import {NoOperation} from "./components/NoOperation"
+import {CompileDeploy} from "./components/CompileDeploy/CompileDeploy"
+import {SendMessage} from "./components/SendMessage/SendMessage"
+import {GetMethod} from "./components/GetMethod/GetMethod"
+import {NoOperation} from "./components/NoOperation/NoOperation"
 import {
     ResultData,
     Operation,
@@ -12,7 +12,7 @@ import {
     MessageTemplate,
 } from "./sandbox-actions-types"
 import {ContractAbi} from "@shared/abi"
-import {ContractInfo} from "./components/ContractInfo"
+import {ContractInfo} from "./components/ContractInfo/ContractInfo"
 import {DeployedContract} from "../../../../providers/lib/contract"
 import {DeployState} from "../../../../providers/methods"
 

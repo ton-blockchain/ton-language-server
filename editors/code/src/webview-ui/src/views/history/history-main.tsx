@@ -11,7 +11,11 @@ const vscode = acquireVsCodeApi()
 const container = document.querySelector("#root")
 if (container) {
     const root = createRoot(container)
-    root.render(<HistoryApp vscode={vscode} />)
+    root.render(
+        <React.StrictMode>
+            <HistoryApp vscode={vscode} />
+        </React.StrictMode>,
+    )
 } else {
     console.error("Root element not found")
 }

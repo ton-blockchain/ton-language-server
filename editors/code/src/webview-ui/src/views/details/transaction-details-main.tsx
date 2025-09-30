@@ -16,5 +16,11 @@ const vscode = acquireVsCodeApi()
 const container = document.querySelector("#transaction-details-root")
 if (container) {
     const root = createRoot(container)
-    root.render(<TransactionDetails vscode={vscode} />)
+    root.render(
+        <React.StrictMode>
+            <TransactionDetails vscode={vscode} />
+        </React.StrictMode>,
+    )
+} else {
+    console.error("Root element not found")
 }

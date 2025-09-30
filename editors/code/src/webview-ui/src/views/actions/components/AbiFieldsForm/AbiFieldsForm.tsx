@@ -1,10 +1,10 @@
 import React, {useEffect, useMemo} from "react"
 import {ContractAbi, Field, TypeAbi, TypeInfo} from "@shared/abi"
-import {FieldInput, AddressInput} from "../../../components/common"
+import {FieldInput, AddressInput} from "../../../../components/common"
 import styles from "./AbiFieldsForm.module.css"
-import * as binary from "../../../../../providers/binary"
-import {formatParsedSlice} from "../../../../../providers/binary"
-import {DeployedContract} from "../../../../../providers/lib/contract"
+import * as binary from "../../../../../../providers/binary"
+import {formatParsedSlice} from "../../../../../../providers/binary"
+import {DeployedContract} from "../../../../../../providers/lib/contract"
 
 interface Props {
     readonly abi: TypeAbi | undefined

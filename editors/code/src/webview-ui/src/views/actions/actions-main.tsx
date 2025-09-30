@@ -11,9 +11,14 @@ declare function acquireVsCodeApi(): {
 
 const vscode = acquireVsCodeApi()
 
-// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-createRoot(document.querySelector("#root")!).render(
-    <React.StrictMode>
-        <ActionsApp vscode={vscode} />
-    </React.StrictMode>,
-)
+const container = document.querySelector("#root")
+if (container) {
+    const root = createRoot(container)
+    root.render(
+        <React.StrictMode>
+            <ActionsApp vscode={vscode} />
+        </React.StrictMode>,
+    )
+} else {
+    console.error("Root element not found")
+}
