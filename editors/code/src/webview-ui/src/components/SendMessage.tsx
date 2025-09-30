@@ -72,6 +72,7 @@ export const SendMessage: React.FC<Props> = ({
 
     const contract = contracts.find(c => c.address === selectedContract)
     const message = contract?.abi?.messages.find(m => m.name === selectedMessage)
+    const hasExternalEntryPoint = contract?.abi?.externalEntryPoint !== undefined
 
     const availableTemplates = useMemo(() => {
         if (!message) return []
@@ -203,6 +204,10 @@ export const SendMessage: React.FC<Props> = ({
         }
 
         if (!isMessageFieldsValid) {
+            return false
+        }
+
+        if (messageMode === "external" && !hasExternalEntryPoint) {
             return false
         }
 
@@ -412,6 +417,19 @@ export const SendMessage: React.FC<Props> = ({
 
             {!contract?.abi?.messages && selectedContract && (
                 <div className={styles.noMessages}>No messages available for this contract</div>
+            )}
+
+            {messageMode === "external" && selectedContract && !hasExternalEntryPoint && (
+                <div className={styles.externalMessageError}>
+                    <div className={styles.errorTitle}>
+                        <span className={styles.errorIcon}>⚠</span>
+                        External messages not supported
+                    </div>
+                    <div className={styles.errorMessage}>
+                        This contract doesn't have an external message handler (onExternalMessage
+                        function). External messages cannot be sent to this contract.
+                    </div>
+                </div>
             )}
 
             {messageMode === "internal" && (

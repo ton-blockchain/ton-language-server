@@ -95,6 +95,37 @@
     font-style: italic;
 }
 
+.externalMessageError {
+    margin-top: 6px;
+    margin-bottom: 6px;
+    padding: 12px;
+    border-radius: 4px;
+    background-color: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: var(--vscode-foreground);
+}
+
+.externalMessageError .errorTitle {
+    font-size: 13px;
+    font-weight: 500;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+}
+
+.externalMessageError .errorIcon {
+    display: inline-block;
+    margin-right: 6px;
+    font-weight: bold;
+    color: rgba(239, 68, 68, 0.8);
+}
+
+.externalMessageError .errorMessage {
+    font-size: 12px;
+    line-height: 1.4;
+    opacity: 0.9;
+}
+
 .button {
     width: 100%;
     background-color: var(--vscode-button-background);
