@@ -6,6 +6,20 @@ import {SandboxTreeProvider} from "./SandboxTreeProvider"
 import {ContractInfoData} from "../webview-ui/src/types"
 import {SourceMap} from "ton-source-map"
 
+export interface OperationNode {
+    readonly id: string
+    readonly type: "deploy" | "send-internal" | "send-external"
+    readonly timestamp: string
+    readonly contractName?: string
+    readonly contractAddress?: string
+    readonly success: boolean
+    readonly details?: string
+    readonly fromContract?: string
+    readonly toContract?: string
+    readonly resultString?: string
+    readonly opcode?: number
+}
+
 export interface DeployState {
     readonly isValidFile: boolean
     readonly hasRequiredFunctions: boolean
@@ -250,6 +264,48 @@ async function deployContract(
         }
 
         return (await response.json()) as {success: boolean; address?: string; error?: string}
+    } catch (error) {
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "Unknown error",
+        }
+    }
+}
+
+export async function loadLatestOperationResult(): Promise<{
+    success: boolean
+    resultString?: string
+    operationData?: OperationNode
+    error?: string
+}> {
+    try {
+        const config = vscode.workspace.getConfiguration("ton")
+        const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
+
+        const response = await fetch(`${sandboxUrl}/operations/latest/result`, {
+            method: "GET",
+            headers: {"Content-Type": "application/json"},
+        })
+
+        if (!response.ok) {
+            if (response.status === 404) {
+                return {
+                    success: false,
+                    error: "No operations found",
+                }
+            }
+            throw new Error(`API call failed: ${response.status} ${response.statusText}`)
+        }
+
+        const data = (await response.json()) as {
+            operation: OperationNode
+        }
+
+        return {
+            success: true,
+            resultString: data.operation.resultString,
+            operationData: data.operation,
+        }
     } catch (error) {
         return {
             success: false,

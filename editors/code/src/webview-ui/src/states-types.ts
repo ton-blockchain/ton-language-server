@@ -1,5 +1,5 @@
-import {OperationNode} from "./components/StatesView"
 import {DeployedContract} from "../../providers/lib/contract"
+import {OperationNode} from "../../providers/methods"
 
 export interface UpdateOperationsMessage {
     readonly type: "updateOperations"

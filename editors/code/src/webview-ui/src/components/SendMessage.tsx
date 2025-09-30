@@ -2,7 +2,7 @@ import React, {useState, useEffect, useMemo} from "react"
 import {Button, Input, Select} from "./ui"
 import {SendModeSelector} from "./SendModeSelector"
 import {MessageTemplate, VSCodeAPI} from "../types"
-import {VscSave} from "react-icons/vsc"
+import {VscSave, VscCheck, VscError, VscListSelection} from "react-icons/vsc"
 import styles from "./SendMessage.module.css"
 import {DeployedContract} from "../../../providers/lib/contract"
 import * as binary from "../../../providers/binary"
@@ -97,7 +97,7 @@ export const SendMessage: React.FC<Props> = ({
         if (result && onClearResult) {
             const timer = setTimeout(() => {
                 onClearResult()
-            }, 5000)
+            }, 10000)
 
             return () => {
                 clearTimeout(timer)
@@ -485,6 +485,43 @@ export const SendMessage: React.FC<Props> = ({
                 </label>
             </div>
 
+            {result && (
+                <div className={styles.resultContainer}>
+                    <div
+                        className={`${styles.result} ${result.success ? styles.success : styles.error}`}
+                    >
+                        <div className={styles.resultHeader}>
+                            <div className={styles.resultIcon}>
+                                {result.success ? <VscCheck /> : <VscError />}
+                            </div>
+                            <div className={styles.resultTitle}>
+                                {result.success
+                                    ? "Message sent successfully"
+                                    : "Failed to send message"}
+                            </div>
+                        </div>
+                        <div className={styles.resultMessage}>{result.message}</div>
+                        {result.details && (
+                            <div className={styles.resultDetails}>{result.details}</div>
+                        )}
+                        {result.success && lastTransaction && (
+                            <div className={styles.resultActions}>
+                                <button
+                                    onClick={() => {
+                                        handleShowTransactionDetails(lastTransaction)
+                                    }}
+                                    className={styles.transactionDetailsButton}
+                                    type="button"
+                                >
+                                    <VscListSelection />
+                                    Show Transaction Details
+                                </button>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            )}
+
             <div className={styles.buttonRow}>
                 <Button onClick={handleSendMessage} disabled={!isFormValid()}>
                     Send Message
@@ -503,29 +540,6 @@ export const SendMessage: React.FC<Props> = ({
                     Save as Template
                 </Button>
             </div>
-
-            {result && (
-                <div className={styles.resultContainer}>
-                    <div
-                        className={`${styles.result} ${result.success ? styles.success : styles.error}`}
-                    >
-                        {result.message}
-                        {result.details && `\n\n${result.details}`}
-                    </div>
-                    {result.success && lastTransaction && (
-                        <Button
-                            variant="secondary"
-                            size="small"
-                            onClick={() => {
-                                handleShowTransactionDetails(lastTransaction)
-                            }}
-                            className={styles.transactionDetailsButton}
-                        >
-                            Show Transaction Details
-                        </Button>
-                    )}
-                </div>
-            )}
         </div>
     )
 }

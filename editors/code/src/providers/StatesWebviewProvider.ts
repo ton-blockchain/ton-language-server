@@ -1,12 +1,12 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Studio
 import * as vscode from "vscode"
-import {OperationNode} from "../webview-ui/src/components/StatesView"
 import {StatesCommand, StatesMessage} from "../webview-ui/src/states-types"
 import {getOperations, restoreBlockchainState, getContracts} from "../commands/sandboxCommands"
 import {processRawTransactions, RawTransactionInfo, RawTransactions} from "./lib/raw-transaction"
 import {Cell, loadTransaction} from "@ton/core"
 import {DeployedContract} from "./lib/contract"
+import {OperationNode} from "./methods"
 
 export class StatesWebviewProvider implements vscode.WebviewViewProvider {
     public static readonly viewType: string = "tonSandboxHistory"

@@ -41,7 +41,7 @@ import {
 import {SandboxCodeLensProvider} from "./providers/SandboxCodeLensProvider"
 import {ToolchainConfig} from "@server/settings/settings"
 import {configureDebugging} from "./debugging"
-import {loadContractInfo} from "./providers/methods"
+import {loadContractInfo, loadLatestOperationResult} from "./providers/methods"
 
 let client: LanguageClient | null = null
 let cachedToolchainInfo: SetToolchainVersionParams | null = null
@@ -881,6 +881,7 @@ function registerTransactionDetailsCommand(disposables: vscode.Disposable[]): vo
                 let account: string | undefined
                 let stateInit: {code: string; data: string} | undefined
                 let abi: object | undefined
+                let resultString = args.resultString
 
                 try {
                     const contractInfo = await loadContractInfo(args.contractAddress)
@@ -893,13 +894,29 @@ function registerTransactionDetailsCommand(disposables: vscode.Disposable[]): vo
                     console.warn("Failed to fetch contract info from server:", error)
                 }
 
+                if (!resultString) {
+                    try {
+                        const latestOperationResult = await loadLatestOperationResult()
+                        console.log("latestOperationResult", latestOperationResult)
+                        if (latestOperationResult.success && latestOperationResult.resultString) {
+                            resultString = latestOperationResult.resultString
+                        } else {
+                            console.warn(
+                                `Failed to load latest operation result: ${latestOperationResult.error}`,
+                            )
+                        }
+                    } catch (error) {
+                        console.warn("Failed to fetch latest operation result from daemon:", error)
+                    }
+                }
+
                 const transaction: TransactionDetails = {
                     contractAddress: args.contractAddress,
                     methodName: args.methodName,
                     transactionId: args.transactionId,
                     timestamp: args.timestamp ?? new Date().toISOString(),
                     status: "success",
-                    resultString: args.resultString,
+                    resultString,
                     deployedContracts,
                     account,
                     stateInit,

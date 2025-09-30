@@ -1,7 +1,8 @@
 import React, {useEffect, useState, useCallback} from "react"
-import {StatesView, OperationNode} from "./components/StatesView"
+import {StatesView} from "./components/StatesView"
 import {StatesVSCodeAPI, UpdateOperationsMessage} from "./states-types"
 import {DeployedContract} from "../../providers/lib/contract"
+import {OperationNode} from "../../providers/methods"
 
 interface Props {
     readonly vscode: StatesVSCodeAPI

@@ -11,6 +11,7 @@ import {Cell, parseTuple, serializeTuple, TupleItem, TupleReader} from "@ton/cor
 import {ContractAbi, TypeAbi} from "@shared/abi"
 import * as binary from "../providers/binary"
 import {formatParsedObject, ParsedObject} from "../providers/binary"
+import {OperationNode} from "../providers/methods"
 
 export function registerSandboxCommands(
     treeProvider: SandboxTreeProvider,
@@ -550,7 +551,7 @@ export async function callGetMethodDirectly(
 
 export async function getOperations(): Promise<{
     success: boolean
-    operations?: import("../webview-ui/src/components/StatesView").OperationNode[]
+    operations?: OperationNode[]
     error?: string
 }> {
     try {
@@ -572,7 +573,7 @@ export async function getOperations(): Promise<{
         }
 
         const data = (await response.json()) as {
-            operations: import("../webview-ui/src/components/StatesView").OperationNode[]
+            operations: OperationNode[]
         }
         return {
             success: true,

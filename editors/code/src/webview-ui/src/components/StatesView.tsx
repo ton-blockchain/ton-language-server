@@ -9,20 +9,7 @@ import {
 } from "../../../providers/lib/raw-transaction"
 import {Cell, loadTransaction} from "@ton/core"
 import {DeployedContract} from "../../../providers/lib/contract"
-
-export interface OperationNode {
-    readonly id: string
-    readonly type: "deploy" | "send-internal" | "send-external"
-    readonly timestamp: string
-    readonly contractName?: string
-    readonly contractAddress?: string
-    readonly success: boolean
-    readonly details?: string
-    readonly fromContract?: string
-    readonly toContract?: string
-    readonly resultString?: string
-    readonly opcode?: number
-}
+import {OperationNode} from "../../../providers/methods"
 
 interface Props {
     readonly operations: OperationNode[]

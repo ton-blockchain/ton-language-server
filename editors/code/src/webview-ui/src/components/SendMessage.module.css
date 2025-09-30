@@ -149,41 +149,163 @@
     cursor: not-allowed;
 }
 
-.result {
+.resultContainer {
     margin-top: 12px;
-    padding: 8px;
-    border-radius: 3px;
+    margin-bottom: 12px;
+}
+
+.result {
+    padding: 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    line-height: 1.4;
+    max-width: 100%;
+    border: 1px solid transparent;
+    position: relative;
+    overflow: hidden;
+}
+
+.resultHeader {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    margin-bottom: 8px;
+}
+
+.resultIcon {
+    flex-shrink: 0;
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    font-size: 10px;
+    font-weight: bold;
+    margin-top: 1px;
+}
+
+.resultTitle {
+    font-weight: 500;
+    font-size: 12px;
+    margin: 0;
+    line-height: 1.45;
+}
+
+.resultMessage {
+    font-family: var(--vscode-editor-font-family);
     font-size: 11px;
+    line-height: 1.4;
     white-space: pre-wrap;
     word-wrap: break-word;
     overflow-wrap: break-word;
-    word-break: break-all;
-    max-width: 100%;
+    margin: 0;
+    color: var(--vscode-foreground);
+}
+
+.resultDetails {
+    margin-top: 8px;
+    padding: 8px;
+    background-color: var(--vscode-editor-background);
+    border: 1px solid var(--vscode-input-border);
+    border-radius: 3px;
     font-family: var(--vscode-editor-font-family);
+    font-size: 11px;
+    line-height: 1.4;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow-wrap: break-word;
 }
 
 .result.success {
     background-color: rgba(22, 163, 74, 0.1);
-    border: 1px solid rgba(22, 163, 74, 0.3);
-    color: var(--vscode-foreground);
+    border-color: rgba(22, 163, 74, 0.3);
+}
+
+.result.success .resultIcon {
+    background-color: var(--vscode-testing-iconPassed, #73b631);
+    color: var(--vscode-editor-background, white);
+}
+
+.result.success .resultTitle {
+    color: var(--vscode-testing-iconPassed, #73b631);
 }
 
 .result.error {
     background-color: rgba(239, 68, 68, 0.1);
-    border: 1px solid rgba(239, 68, 68, 0.3);
-    color: var(--vscode-foreground);
+    border-color: rgba(239, 68, 68, 0.3);
 }
 
-.resultContainer {
-    margin-top: 12px;
+.result.error .resultIcon {
+    background-color: var(--vscode-testing-iconFailed, #e53e3e);
+    color: var(--vscode-editor-background, white);
+}
+
+.result.error .resultTitle {
+    color: var(--vscode-testing-iconFailed, #e53e3e);
+}
+
+.resultActions {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid var(--vscode-input-border);
+    display: flex;
+    gap: 8px;
+    align-items: center;
 }
 
 .transactionDetailsButton {
-    margin-top: 8px;
-    width: auto;
-    align-self: flex-start;
     font-size: 11px;
-    padding: 4px 8px;
+    padding: 6px 10px;
+    background-color: var(--vscode-button-secondaryBackground);
+    color: var(--vscode-button-secondaryForeground);
+    border: 1px solid var(--vscode-button-border);
+    border-radius: 3px;
+    cursor: pointer;
+    font-family: inherit;
+    font-weight: 500;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.transactionDetailsButton:hover {
+    background-color: var(--vscode-button-secondaryHoverBackground);
+}
+
+.transactionDetailsButton:focus {
+    outline: 1px solid var(--vscode-focusBorder);
+    outline-offset: 1px;
+}
+
+.resultLoadingState {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px;
+    background-color: var(--vscode-notifications-background);
+    border: 1px solid var(--vscode-notifications-border);
+    border-radius: 4px;
+    color: var(--vscode-notifications-foreground);
+}
+
+.resultLoadingSpinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid var(--vscode-progressBar-background);
+    border-top: 2px solid var(--vscode-progressBar-background);
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
 }
 
 .checkboxLabel {
