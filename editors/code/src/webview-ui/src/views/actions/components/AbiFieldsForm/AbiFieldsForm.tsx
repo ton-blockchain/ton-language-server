@@ -175,8 +175,11 @@ export const AbiFieldsForm: React.FC<Props> = ({
       return
     }
 
-    const allFieldsFilled = Object.values(rawFields).every(value => value.trim() !== "")
-    setIsFormValid(allFieldsFilled)
+    setIsFormValid(true)
+    // TODO
+    // console.log(Object.values(rawFields))
+    // const allFieldsFilled = Object.values(rawFields).every(value => value.trim() !== "")
+    // setIsFormValid(allFieldsFilled)
   }, [abi?.fields, fieldErrors, rawFields])
 
   useEffect(() => {
@@ -211,6 +214,27 @@ export const AbiFieldsForm: React.FC<Props> = ({
           )
         }
       }
+
+      if (field.type.name === "cell" && field.type.innerType && contractAbi) {
+        const innerType = field.type.innerType
+        if (innerType.name === "struct") {
+          const structType = contractAbi.types.find(t => t.name === innerType.humanReadable)
+          if (structType) {
+            return (
+              <div key={fieldPath} className={styles.nestedFieldGroup}>
+                <div className={styles.structLabel}>
+                  <span className={styles.fieldName}>{field.name}</span>
+                  <span className={styles.fieldType}>Cell&lt;{innerType.humanReadable}&gt;</span>
+                </div>
+                <div className={styles.nestedFields}>
+                  {renderFields(structType.fields, fieldPath, depth + 1)}
+                </div>
+              </div>
+            )
+          }
+        }
+      }
+      // TODO: Cell<int32>
 
       if (field.type.name === "anon-struct") {
         const anonStructFields = field.type.fields.map((fieldType: TypeInfo, index: number) => ({

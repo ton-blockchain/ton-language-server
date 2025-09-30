@@ -12,7 +12,6 @@ import * as binary from "../../../../../../common/binary"
 import {MessageTemplate, VSCodeAPI} from "../../sandbox-actions-types"
 import {SendModeSelector} from "../SendModeSelector/SendModeSelector"
 import {Button, Input, Select, ResultDisplay} from "../../../../components/common"
-import {formatParsedSlice} from "../../../../../../common/binary"
 import {AbiFieldsForm} from "../AbiFieldsForm/AbiFieldsForm"
 import {Base64String} from "../../../../../../common/base64-string"
 
@@ -238,18 +237,6 @@ export const SendMessage: React.FC<Props> = ({
       const numericValue = Number.parseFloat(value)
       if (Number.isNaN(numericValue) || numericValue <= 0) {
         return false
-      }
-    }
-
-    if (message?.fields) {
-      for (const field of message.fields) {
-        const fieldValue = messageFields[field.name] as string | undefined
-        if (fieldValue === undefined) {
-          return false
-        }
-        if (!formatParsedSlice(fieldValue)?.trim()) {
-          return false
-        }
       }
     }
 

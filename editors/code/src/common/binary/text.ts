@@ -1,4 +1,4 @@
-import {Address, beginCell, Cell, ExternalAddress, Slice} from "@ton/core"
+import {Address, beginCell, Cell, ExternalAddress, Slice, toNano} from "@ton/core"
 
 import {TypeInfo} from "@shared/abi"
 
@@ -36,12 +36,18 @@ export function parseStringFieldValue(
     switch (fieldType.name) {
         case "int":
         case "uint":
-        case "coins":
         case "varint16":
         case "varint32":
         case "varuint16":
         case "varuint32": {
             return BigInt(fieldValue)
+        }
+
+        case "coins": {
+            if (fieldValue.trim() === "") {
+                return 0
+            }
+            return toNano(fieldValue)
         }
 
         case "bool": {

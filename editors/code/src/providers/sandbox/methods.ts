@@ -2,7 +2,7 @@ import vscode from "vscode"
 
 import {SourceMap} from "ton-source-map"
 
-import {Cell, parseTuple, serializeTuple, TupleItem, TupleReader} from "@ton/core"
+import {Cell, parseTuple, serializeTuple, toNano, TupleItem, TupleReader} from "@ton/core"
 
 import {GetContractAbiParams, GetContractAbiResponse} from "@shared/shared-msgtypes"
 
@@ -283,7 +283,7 @@ async function deployContract(
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({
                 stateInit,
-                value,
+                value: toNano(value).toString(),
                 name,
                 sourceMap,
                 abi,
@@ -396,7 +396,13 @@ export async function sendInternalMessage(
     const response = await fetch(`${sandboxUrl}/send-internal`, {
         method: "POST",
         headers: {"Content-Type": "application/json"},
-        body: JSON.stringify({fromAddress, toAddress, message, sendMode, value}),
+        body: JSON.stringify({
+            fromAddress,
+            toAddress,
+            message,
+            sendMode,
+            value: toNano(value).toString(),
+        }),
     })
 
     if (!response.ok) {
