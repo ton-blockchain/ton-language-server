@@ -20,6 +20,8 @@ import {
 } from "./sandbox-actions-types"
 import {ContractInfo} from "./components/ContractInfo/ContractInfo"
 
+import styles from "./ActionsApp.module.css"
+
 interface Props {
   readonly vscode: VSCodeAPI
 }
@@ -275,18 +277,5 @@ export default function ActionsApp({vscode}: Props): JSX.Element {
     }
   }, [activeOperation, selectedInfoContract, vscode])
 
-  return (
-    <div
-      style={{
-        fontFamily: "var(--vscode-font-family)",
-        fontSize: "var(--vscode-font-size)",
-        color: "var(--vscode-foreground)",
-        backgroundColor: "var(--vscode-sideBar-background)",
-        height: "100vh",
-        overflow: "auto",
-      }}
-    >
-      {renderActiveOperation()}
-    </div>
-  )
+  return <div className={styles.container}>{renderActiveOperation()}</div>
 }

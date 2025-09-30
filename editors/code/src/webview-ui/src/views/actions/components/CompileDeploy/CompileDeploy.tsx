@@ -151,7 +151,7 @@ export const CompileDeploy: React.FC<Props> = ({
         <div className={`${styles.result} ${styles.error}`}>
           <span className={styles.errorIcon}>⚠</span>
           ABI Loading Failed
-          <div style={{marginTop: "6px", opacity: 0.9}}>{deployState.errorMessage}</div>
+          <div className={styles.errorDetails}>{deployState.errorMessage}</div>
         </div>
       ) : (
         <>

@@ -550,14 +550,9 @@ export const SendMessage: React.FC<Props> = ({
         <Button
           onClick={handleSaveAsTemplate}
           disabled={contracts.length === 0 || !selectedContract || !selectedMessage}
-          style={{
-            backgroundColor: "var(--vscode-button-secondaryBackground)",
-            color: "var(--vscode-button-secondaryForeground)",
-            border: "1px solid var(--vscode-button-border)",
-            marginRight: "8px",
-          }}
+          className={styles.saveTemplateButton}
         >
-          <VscSave size={14} style={{marginRight: "4px"}} />
+          <VscSave size={14} className={styles.saveIcon} />
           Save as Template
         </Button>
       </div>

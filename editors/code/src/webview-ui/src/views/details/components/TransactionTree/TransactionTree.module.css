@@ -62,6 +62,7 @@
 
 .treeWrapper {
   height: 100%;
+  width: var(--tree-wrapper-width, 100%);
   position: relative;
 }
 
@@ -282,4 +283,29 @@
   border-left: 6px solid var(--color-text-accent);
   border-top: 4px solid transparent;
   border-bottom: 4px solid transparent;
+}
+
+.externalOutNodeContainer {
+  width: 30px;
+  height: 30px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.externalOutArrowContainer {
+  position: relative;
+}
+
+.nodeCircle {
+  cursor: pointer;
+}
+
+.nodeCircleDefault {
+  cursor: default;
+}
+
+.nodeText {
+  pointer-events: none;
 }

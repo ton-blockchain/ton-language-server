@@ -208,3 +208,8 @@
   font-weight: bold;
   color: rgba(239, 68, 68, 0.8);
 }
+
+.errorDetails {
+  margin-top: 6px;
+  opacity: 0.9;
+}

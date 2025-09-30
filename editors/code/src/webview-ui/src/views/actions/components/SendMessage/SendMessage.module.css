@@ -463,3 +463,14 @@
   gap: 8px;
   align-items: center;
 }
+
+.saveTemplateButton {
+  background-color: var(--vscode-button-secondaryBackground);
+  color: var(--vscode-button-secondaryForeground);
+  border: 1px solid var(--vscode-button-border);
+  margin-right: 8px;
+}
+
+.saveIcon {
+  margin-right: 4px;
+}

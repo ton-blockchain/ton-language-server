@@ -444,27 +444,12 @@ export function TransactionTree({testData}: TransactionTreeProps): React.JSX.Ele
             fill="transparent"
             stroke="var(--color-border)"
             strokeWidth={1}
-            style={{cursor: "default"}}
+            className={styles.nodeCircleDefault}
           />
 
           <foreignObject width="30" height="30" x="-15" y="-15">
-            <div
-              className={styles.externalOutNode}
-              style={{
-                width: "30px",
-                height: "30px",
-                position: "relative",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <div
-                style={{
-                  position: "relative",
-                }}
-                className={styles.externalOutArrow}
-              />
+            <div className={`${styles.externalOutNode} ${styles.externalOutNodeContainer}`}>
+              <div className={`${styles.externalOutArrow} ${styles.externalOutArrowContainer}`} />
             </div>
           </foreignObject>
 
@@ -528,7 +513,7 @@ export function TransactionTree({testData}: TransactionTreeProps): React.JSX.Ele
           onMouseLeave={() => {
             hideTooltip()
           }}
-          style={{cursor: "pointer"}}
+          className={styles.nodeCircle}
         />
 
         <text
@@ -539,7 +524,7 @@ export function TransactionTree({testData}: TransactionTreeProps): React.JSX.Ele
           fontSize="14"
           fontWeight="bold"
           textAnchor="middle"
-          style={{pointerEvents: "none"}}
+          className={styles.nodeText}
         >
           {nodeDatum.attributes?.contractLetter}
         </text>
