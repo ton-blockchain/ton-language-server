@@ -2,6 +2,8 @@ import React, {JSX, useEffect, useMemo, useState} from "react"
 
 import {Address, Cell, loadTransaction, loadShardAccount} from "@ton/core"
 
+import {ContractAbi} from "@shared/abi"
+
 import {TransactionInfo} from "../../../../common/types/transaction"
 import {
   processRawTransactions,
@@ -30,7 +32,7 @@ interface LocalTransactionDetails {
     readonly code: Base64String
     readonly data: Base64String
   }
-  readonly abi?: object
+  readonly abi?: ContractAbi
 }
 
 interface Message {

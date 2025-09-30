@@ -1,4 +1,5 @@
 import {type Address, Cell, type OutAction, type Transaction} from "@ton/core"
+import {SourceMap} from "ton-source-map"
 
 /**
  * Processed transaction info with all necessary transport.
@@ -15,7 +16,7 @@ export interface TransactionInfo {
     readonly c5: Cell | undefined
     readonly data: TransactionInfoData
     readonly code: Cell | undefined
-    readonly sourceMap: object | undefined
+    readonly sourceMap: SourceMap | undefined
     readonly contractName: string | undefined
     readonly parent: TransactionInfo | undefined
     readonly children: readonly TransactionInfo[]

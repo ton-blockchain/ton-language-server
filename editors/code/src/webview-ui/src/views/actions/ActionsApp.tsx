@@ -29,7 +29,20 @@ interface Props {
 export default function ActionsApp({vscode}: Props): JSX.Element {
   const [activeOperation, setActiveOperation] = useState<Operation>(null)
   const [contracts, setContracts] = useState<DeployedContract[]>([])
-  const [results, setResults] = useState<Record<string, ResultData | undefined>>({})
+  const [results, setResults] = useState<
+    Record<
+      | "compile-deploy-result"
+      | "send-internal-message-result"
+      | "send-external-message-result"
+      | "get-method-result",
+      ResultData | undefined
+    >
+  >({
+    "compile-deploy-result": undefined,
+    "get-method-result": undefined,
+    "send-external-message-result": undefined,
+    "send-internal-message-result": undefined,
+  })
   const [contractAbi, setContractAbi] = useState<ContractAbi | undefined>()
   const [contractInfo, setContractInfo] = useState<ContractInfoData | undefined>()
 

@@ -9,6 +9,8 @@ import {
     type Transaction,
 } from "@ton/core"
 
+import {SourceMap} from "ton-source-map"
+
 import type {
     ComputeInfo,
     ExternalTransactionInfoData,
@@ -33,7 +35,7 @@ export interface RawTransactionInfo {
     readonly parsedTransaction: Transaction | undefined // filled later
     readonly fields: Record<string, unknown>
     readonly code: string | undefined
-    readonly sourceMap: object | undefined
+    readonly sourceMap: SourceMap | undefined
     readonly contractName: string | undefined
     readonly parentId: string
     readonly childrenIds: string[]
@@ -53,7 +55,7 @@ interface MutableTransactionInfo {
     readonly c5: Cell | undefined
     readonly data: TransactionInfoData
     readonly code: Cell | undefined
-    readonly sourceMap: object | undefined
+    readonly sourceMap: SourceMap | undefined
     readonly contractName: string | undefined
     parent: TransactionInfo | undefined
     children: TransactionInfo[]

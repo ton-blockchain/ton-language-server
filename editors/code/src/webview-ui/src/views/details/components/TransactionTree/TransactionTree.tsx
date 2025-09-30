@@ -175,26 +175,19 @@ export function TransactionTree({testData}: TransactionTreeProps): React.JSX.Ele
     setSelectedContract(null)
   }
 
-  const calculateTreeDimensions = (data: {
-    children?: unknown[]
-  }): {height: number; width: number} => {
-    const getDepth = (node: {children?: unknown[]}, currentDepth = 0): number => {
+  const calculateTreeDimensions = (data: RawNodeDatum): {height: number; width: number} => {
+    const getDepth = (node: RawNodeDatum, currentDepth = 0): number => {
       if (!node.children || node.children.length === 0) {
         return currentDepth
       }
-      return Math.max(
-        ...node.children.map(child => getDepth(child as {children?: unknown[]}, currentDepth + 1)),
-      )
+      return Math.max(...node.children.map(child => getDepth(child, currentDepth + 1)))
     }
 
-    const countNodes = (node: {children?: unknown[]}): number => {
+    const countNodes = (node: RawNodeDatum): number => {
       if (!node.children || node.children.length === 0) {
         return 1
       }
-      return node.children.reduce(
-        (sum: number, child) => sum + countNodes(child as {children?: unknown[]}),
-        0,
-      ) as number
+      return node.children.reduce((sum: number, child) => sum + countNodes(child), 0)
     }
 
     const totalNodes = countNodes(data)
@@ -274,7 +267,7 @@ export function TransactionTree({testData}: TransactionTreeProps): React.JSX.Ele
     })
   }
 
-  const treeData = useMemo(() => {
+  const treeData: RawNodeDatum = useMemo(() => {
     const displayedRoots = selectedRootLt
       ? rootTransactions.filter(tx => tx.transaction.lt.toString() === selectedRootLt)
       : rootTransactions
@@ -354,7 +347,7 @@ export function TransactionTree({testData}: TransactionTreeProps): React.JSX.Ele
           isSelected,
         },
         children: [...tx.children.map(it => convertTransactionToNode(it)), ...externalOutChildren],
-      }
+      } satisfies RawNodeDatum
     }
 
     if (displayedRoots.length > 0) {
@@ -369,7 +362,9 @@ export function TransactionTree({testData}: TransactionTreeProps): React.JSX.Ele
 
     return {
       name: "No transactions",
-      attributes: {},
+      attributes: {
+        isRoot: false,
+      },
       children: [],
     }
   }, [rootTransactions, contracts, selectedTransaction, selectedRootLt])
@@ -602,7 +597,6 @@ export function TransactionTree({testData}: TransactionTreeProps): React.JSX.Ele
       <div className={styles.treeContainer} style={{height: `${treeDimensions.height}px`}}>
         <div className={styles.treeWrapper} style={{width: `${treeDimensions.width}px`}}>
           <Tree
-            // @ts-expect-error todo
             data={treeData}
             orientation="horizontal"
             pathFunc={e => {
@@ -635,7 +629,6 @@ export function TransactionTree({testData}: TransactionTreeProps): React.JSX.Ele
             collapsible={false}
             zoomable={false}
             draggable={false}
-            pannable={false}
             scaleExtent={{min: 1, max: 1}}
           />
           {tooltip && triggerRectRef.current && (

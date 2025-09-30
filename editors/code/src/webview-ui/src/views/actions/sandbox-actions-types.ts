@@ -146,7 +146,7 @@ export interface ShowTransactionDetailsCommand {
     readonly code: Base64String
     readonly data: Base64String
   }
-  readonly abi?: object
+  readonly abi?: ContractAbi
 }
 
 export interface OpenContractSourceCommand {
