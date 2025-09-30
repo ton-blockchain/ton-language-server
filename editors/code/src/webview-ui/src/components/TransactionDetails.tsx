@@ -10,6 +10,8 @@ import {TransactionTree} from "./info"
 import {Address, Cell, loadTransaction, loadShardAccount} from "@ton/core"
 
 import {ContractData, DeployedContract} from "../../../providers/lib/contract"
+import {Base64String} from "../../../common/base64-string"
+import {HexString} from "../../../common/hex-string"
 
 interface LocalTransactionDetails {
     readonly contractAddress: string
@@ -19,10 +21,10 @@ interface LocalTransactionDetails {
     readonly status: "success" | "pending" | "failed"
     readonly resultString?: string
     readonly deployedContracts?: DeployedContract[]
-    readonly account?: string // hex string for shardAccount
+    readonly account?: HexString
     readonly stateInit?: {
-        readonly code: string // base64 string
-        readonly data: string // base64 string
+        readonly code: Base64String
+        readonly data: Base64String
     }
     readonly abi?: object
 }

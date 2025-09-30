@@ -7,10 +7,11 @@ import {Cell, runtime as i, text} from "ton-assembly"
 import {promisify} from "node:util"
 import {execFile} from "node:child_process"
 import {SourceMap} from "ton-source-map"
+import {Base64String} from "../common/base64-string"
 
 export interface CompilationResult {
     readonly success: boolean
-    readonly code?: string
+    readonly code?: Base64String
     readonly error?: string
     readonly output?: string
     readonly sourceMap?: SourceMap
@@ -20,12 +21,12 @@ interface TolkCompilerOutput {
     readonly artifactVersion: number
     readonly tolkVersion: string
     readonly fiftCode: string
-    readonly codeBoc64: string
-    readonly debugCodeBoc64?: string
+    readonly codeBoc64: Base64String
+    readonly debugCodeBoc64?: Base64String
     readonly codeHashHex: string
     readonly fiftSourceMapCode?: string
-    readonly sourceMapCodeRecompiledBoc64?: string
-    readonly sourceMapCodeBoc64?: string
+    readonly sourceMapCodeRecompiledBoc64?: Base64String
+    readonly sourceMapCodeBoc64?: Base64String
     readonly sourceMap?: SourceMap
     readonly sourcesSnapshot: {
         readonly filename: string
@@ -75,7 +76,7 @@ export class TolkCompilerProvider {
             return {
                 success: true,
                 output: "",
-                code: cell.toBoc().toString("base64"),
+                code: cell.toBoc().toString("base64") as Base64String,
                 sourceMap,
             }
         } catch (error) {

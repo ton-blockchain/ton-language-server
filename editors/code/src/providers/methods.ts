@@ -5,6 +5,7 @@ import {ContractAbi} from "@shared/abi"
 import {SandboxTreeProvider} from "./SandboxTreeProvider"
 import {ContractInfoData} from "../webview-ui/src/types"
 import {SourceMap} from "ton-source-map"
+import {Base64String} from "../common/base64-string"
 
 export interface OperationNode {
     readonly id: string
@@ -133,7 +134,7 @@ export async function loadContractInfo(address: string): Promise<{
 
 export async function compileAndDeployFromEditor(
     name: string,
-    stateInit: string, // Base64 encoded Cell
+    stateData: Base64String,
     treeProvider: SandboxTreeProvider | undefined,
     value: string,
     storageType?: string,
@@ -190,7 +191,7 @@ export async function compileAndDeployFromEditor(
         const deployResult = await deployContract(
             {
                 code: result.code,
-                data: stateInit,
+                data: stateData,
             },
             name,
             value,
@@ -228,8 +229,8 @@ export async function compileAndDeployFromEditor(
 
 async function deployContract(
     stateInit: {
-        code: string
-        data: string
+        code: Base64String
+        data: Base64String
     },
     name: string,
     value: string,

@@ -1,5 +1,7 @@
 import {ContractAbi} from "@shared/abi"
 import {DeployedContract} from "../../providers/lib/contract"
+import {Base64String} from "../../common/base64-string"
+import {HexString} from "../../common/hex-string"
 
 export interface ResultData {
     readonly success: boolean
@@ -44,10 +46,10 @@ export interface UpdateDeployStateMessage {
 }
 
 export interface ContractInfoData {
-    readonly account: string
+    readonly account: HexString
     readonly stateInit?: {
-        readonly code: string
-        readonly data: string
+        readonly code: Base64String
+        readonly data: Base64String
     }
     readonly abi?: ContractAbi
     readonly sourceUri?: string
@@ -92,7 +94,7 @@ export interface CallGetMethodCommand {
     readonly contractAddress: string
     readonly selectedMethod: string
     readonly methodId: string
-    readonly parameters: string // Base64 encoded cell
+    readonly parameters: Base64String
 }
 
 export interface LoadAbiForDeployCommand {
@@ -106,7 +108,7 @@ export interface LoadContractInfoCommand {
 
 export interface CompileAndDeployCommand {
     readonly type: "compileAndDeploy"
-    readonly stateInit: string
+    readonly stateData: Base64String
     readonly value: string
     readonly name: string
     readonly storageType?: string
@@ -138,10 +140,10 @@ export interface ShowTransactionDetailsCommand {
     readonly transactionId?: string
     readonly timestamp?: string
     readonly resultString?: string
-    readonly account?: string // hex string for shardAccount
+    readonly account?: HexString
     readonly stateInit?: {
-        readonly code: string // base64 string
-        readonly data: string // base64 string
+        readonly code: Base64String
+        readonly data: Base64String
     }
     readonly abi?: object
 }
@@ -155,7 +157,7 @@ export interface CreateMessageTemplateCommand {
     readonly type: "createMessageTemplate"
     readonly name: string
     readonly opcode: number
-    readonly messageBody: string // Base64 encoded BoC
+    readonly messageBody: Base64String
     readonly sendMode: number
     readonly value: string
     readonly description?: string
@@ -186,7 +188,7 @@ export interface SaveMessageAsTemplateCommand {
     readonly type: "saveMessageAsTemplate"
     readonly contractAddress: string
     readonly messageName: string
-    readonly messageBody: string // Base64 encoded BoC
+    readonly messageBody: Base64String
     readonly sendMode: number
     readonly value: string
 }
@@ -200,7 +202,7 @@ export interface MessageTemplate {
     readonly id: string
     readonly name: string
     readonly opcode: number
-    readonly messageBody: string // Base64 encoded BoC
+    readonly messageBody: Base64String
     readonly sendMode: number
     readonly value: string
     readonly createdAt: string

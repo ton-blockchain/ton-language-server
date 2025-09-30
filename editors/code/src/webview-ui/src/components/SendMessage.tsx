@@ -10,10 +10,11 @@ import {ContractAbi, TypeAbi} from "@shared/abi"
 import {Cell} from "@ton/core"
 import {formatParsedSlice} from "../../../providers/binary"
 import {AbiFieldsForm} from "./AbiFieldsForm"
+import {Base64String} from "../../../common/base64-string"
 
 interface MessageData {
     readonly selectedMessage: string
-    readonly messageBody: string // Base64 encoded BOC
+    readonly messageBody: Base64String
     readonly value?: string
     readonly sendMode?: number
     readonly autoDebug?: boolean
@@ -237,14 +238,14 @@ export const SendMessage: React.FC<Props> = ({
         return true
     }
 
-    const createMessageBody = (): string => {
+    const createMessageBody = (): Base64String => {
         if (!message || !contract?.abi) {
             throw new Error("Message ABI not found")
         }
 
         try {
             const encodedCell = binary.encodeData(contract.abi, message, messageFields)
-            return encodedCell.toBoc().toString("base64")
+            return encodedCell.toBoc().toString("base64") as Base64String
         } catch (error) {
             throw new Error(
                 `Failed to encode message: ${error instanceof Error ? error.message : "Unknown error"}`,

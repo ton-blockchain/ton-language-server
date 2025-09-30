@@ -12,6 +12,7 @@ import {ContractAbi, TypeAbi} from "@shared/abi"
 import * as binary from "../providers/binary"
 import {formatParsedObject, ParsedObject} from "../providers/binary"
 import {OperationNode} from "../providers/methods"
+import {HexString} from "../common/hex-string"
 
 export function registerSandboxCommands(
     treeProvider: SandboxTreeProvider,
@@ -149,7 +150,7 @@ interface SendMessageResponse {
     readonly txs: readonly {
         readonly addr: string
         readonly vmLogs: string
-        readonly code: string
+        readonly code: HexString
         readonly sourceMap?: SourceMap
     }[]
 }

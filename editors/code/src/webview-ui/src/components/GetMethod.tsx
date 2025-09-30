@@ -7,11 +7,12 @@ import * as binary from "../../../providers/binary"
 import {TypeAbi} from "@shared/abi"
 import {encodeTuple} from "../../../providers/binary"
 import {serializeTuple} from "@ton/core"
+import {Base64String} from "../../../common/base64-string"
 
 interface MethodData {
     readonly selectedMethod: string
     readonly methodId: string
-    readonly parameters: string // Base64 encoded BOC
+    readonly parameters: Base64String
 }
 
 interface Props {
@@ -72,7 +73,7 @@ export const GetMethod: React.FC<Props> = ({
         onCallGetMethod({
             selectedMethod,
             methodId,
-            parameters: encodedParametersCell.toBoc().toString("base64"),
+            parameters: encodedParametersCell.toBoc().toString("base64") as Base64String,
         })
     }
 

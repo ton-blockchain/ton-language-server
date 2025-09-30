@@ -44,10 +44,12 @@ import {print} from "ton-assembly/dist/text"
 import {DeployedContract} from "./lib/contract"
 import {SourceMap} from "ton-source-map"
 import {formatParsedObject} from "./binary"
+import {HexString} from "../common/hex-string"
+import {Base64String} from "../common/base64-string"
 
 export interface TransactionInfo {
     readonly vmLogs: string
-    readonly code: string
+    readonly code: HexString
     readonly contractName?: string
     readonly sourceMap?: SourceMap
 }
@@ -112,7 +114,7 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
                 case "compileAndDeploy": {
                     void this.handleCompileAndDeploy(
                         command.name,
-                        command.stateInit,
+                        command.stateData,
                         command.value,
                         command.storageType,
                     )
@@ -650,13 +652,13 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
 
     private async handleCompileAndDeploy(
         name: string,
-        stateInit: string,
+        stateData: Base64String,
         value: string,
         storageType?: string,
     ): Promise<void> {
         await compileAndDeployFromEditor(
             name,
-            stateInit,
+            stateData,
             this._treeProvider?.(),
             value,
             storageType,

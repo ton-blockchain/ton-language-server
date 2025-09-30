@@ -169,11 +169,11 @@ export default function App({vscode}: Props): JSX.Element {
                 return (
                     <CompileDeploy
                         contracts={contracts}
-                        onCompileAndDeploy={(stateInit, value, contractName, storageType) => {
+                        onCompileAndDeploy={(stateData, value, name, storageType) => {
                             vscode.postMessage({
                                 type: "compileAndDeploy",
-                                name: contractName ?? contractAbi?.name ?? "UnknownContract",
-                                stateInit,
+                                name,
+                                stateData,
                                 value,
                                 storageType,
                             })

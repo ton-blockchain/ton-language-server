@@ -6,12 +6,13 @@ import * as binary from "../../../providers/binary"
 import {AbiFieldsForm} from "./AbiFieldsForm"
 import {DeployedContract} from "../../../providers/lib/contract"
 import {DeployState} from "../../../providers/methods"
+import {Base64String} from "../../../common/base64-string"
 
 interface Props {
     readonly onCompileAndDeploy: (
-        stateInit: string, // Base64 encoded Cell
+        stateData: Base64String,
         value: string,
-        contractName?: string,
+        contractName: string,
         storageType?: string,
     ) => void
     readonly result?: {success: boolean; message: string; details?: string}
@@ -72,7 +73,7 @@ export const CompileDeploy: React.FC<Props> = ({
         setStorageFields({})
     }, [selectedStorageType])
 
-    const createStateInit = (): string => {
+    const createStateData = (): Base64String => {
         if (!contractAbi) {
             throw new Error("Contract ABI not found")
         }
@@ -82,7 +83,7 @@ export const CompileDeploy: React.FC<Props> = ({
 
         try {
             const encodedCell = binary.encodeData(contractAbi, storageAbi, storageFields)
-            return encodedCell.toBoc().toString("base64")
+            return encodedCell.toBoc().toString("base64") as Base64String
         } catch (error) {
             throw new Error(
                 `Failed to encode storage: ${error instanceof Error ? error.message : "Unknown error"}`,
@@ -106,7 +107,7 @@ export const CompileDeploy: React.FC<Props> = ({
     const handleCompileAndDeploy = (): void => {
         const storageTypeToPass =
             !contractAbi?.storage && selectedStorageType ? selectedStorageType : undefined
-        onCompileAndDeploy(createStateInit(), value, contractName, storageTypeToPass)
+        onCompileAndDeploy(createStateData(), value, contractName, storageTypeToPass)
     }
 
     const getErrorTitle = (deployState?: DeployState | null): string => {
