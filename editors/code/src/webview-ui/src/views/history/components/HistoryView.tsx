@@ -1,15 +1,20 @@
 import React, {useState, useEffect} from "react"
-import styles from "./HistoryView.module.css"
-import {StatesVSCodeAPI} from "../sandbox-history-types"
+
 import {VscDebugAlt, VscInfo, VscDebugStepInto} from "react-icons/vsc"
+
+import {Cell, loadTransaction} from "@ton/core"
+
+import {StatesVSCodeAPI} from "../sandbox-history-types"
 import {
   processRawTransactions,
   RawTransactionInfo,
   RawTransactions,
 } from "../../../../../providers/lib/raw-transaction"
-import {Cell, loadTransaction} from "@ton/core"
+
 import {DeployedContract} from "../../../../../providers/lib/contract"
 import {OperationNode} from "../../../../../providers/methods"
+
+import styles from "./HistoryView.module.css"
 
 interface Props {
   readonly operations: OperationNode[]
@@ -113,6 +118,7 @@ export const HistoryView: React.FC<Props> = ({
             toggleDetails(node.id)
           }}
           tabIndex={0}
+          role="button"
           onKeyDown={e => {
             if (e.key === "Enter" || e.key === " ") {
               e.preventDefault()

@@ -1,8 +1,12 @@
+import {Address, beginCell, Cell, ExternalAddress, Slice} from "@ton/core"
+
+import {ContractAbi, Field, TypeAbi, TypeInfo} from "@shared/abi"
+
 import {parseData} from "./decode"
 import {encodeData} from "./encode"
-import {ContractAbi, Field, TypeAbi, TypeInfo} from "@shared/abi"
-import {Address, beginCell, Cell, ExternalAddress, Slice} from "@ton/core"
+
 import {AddressNone, ParsedObject} from "./types"
+
 import {makeSlice} from "./index"
 
 function int(width: number): TypeInfo {

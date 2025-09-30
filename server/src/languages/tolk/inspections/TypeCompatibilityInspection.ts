@@ -1,12 +1,16 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
 import * as lsp from "vscode-languageserver"
+
+import type {Node as SyntaxNode} from "web-tree-sitter"
+
 import type {TolkFile} from "@server/languages/tolk/psi/TolkFile"
 import {asLspRange} from "@server/utils/position"
 import {RecursiveVisitor} from "@server/visitor/visitor"
-import type {Node as SyntaxNode} from "web-tree-sitter"
-import {Inspection, InspectionIds} from "./Inspection"
+
 import {typeOf, inferenceOf} from "@server/languages/tolk/type-inference"
+
+import {Inspection, InspectionIds} from "./Inspection"
 
 export class TypeCompatibilityInspection implements Inspection {
     public readonly id: "type-compatibility" = InspectionIds.TYPE_COMPATIBILITY

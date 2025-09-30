@@ -1,5 +1,6 @@
 import * as lsp from "vscode-languageserver"
 import type {Node as SyntaxNode} from "web-tree-sitter"
+
 import {asLspRange} from "@server/utils/position"
 import {FuncFile} from "@server/languages/func/psi/FuncFile"
 import {Reference} from "@server/languages/func/psi/Reference"

@@ -1,9 +1,12 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Studio
 import type * as lsp from "vscode-languageserver"
+
 import type {FuncFile} from "@server/languages/func/psi/FuncFile"
-import {UnusedInspection} from "./UnusedInspection"
+
 import {RecursiveVisitor} from "@server/visitor/visitor"
+
+import {UnusedInspection} from "./UnusedInspection"
 import {Inspection, InspectionIds} from "./Inspection"
 
 export class UnusedVariableInspection extends UnusedInspection implements Inspection {

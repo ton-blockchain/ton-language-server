@@ -1,6 +1,7 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Studio
 import * as lsp from "vscode-languageserver"
+
 import {TolkFile} from "@server/languages/tolk/psi/TolkFile"
 
 export const InspectionIds = {

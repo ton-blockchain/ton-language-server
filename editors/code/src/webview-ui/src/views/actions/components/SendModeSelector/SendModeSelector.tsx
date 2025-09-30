@@ -1,4 +1,5 @@
 import React, {useState, useRef, useEffect} from "react"
+
 import styles from "./SendModeSelector.module.css"
 
 interface SendModeOption {
@@ -94,8 +95,10 @@ export const SendModeSelector: React.FC<Props> = ({sendMode, onSendModeChange}) 
 
   return (
     <div className={styles.container} ref={dropdownRef}>
-      <label className={styles.label}>Send Mode:</label>
-      <div className={styles.selector}>
+      <label htmlFor="mode-selector" className={styles.label}>
+        Send Mode:
+      </label>
+      <div id="mode-selector" className={styles.selector}>
         <div className={styles.activeModes}>
           {activeModes.map(mode => (
             <div key={mode.value} className={styles.modeTag}>

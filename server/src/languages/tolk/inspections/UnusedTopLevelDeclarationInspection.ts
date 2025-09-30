@@ -1,9 +1,9 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
 import type * as lsp from "vscode-languageserver"
+
 import type {TolkFile} from "@server/languages/tolk/psi/TolkFile"
-import {UnusedInspection} from "./UnusedInspection"
-import {Inspection, InspectionIds} from "./Inspection"
+
 import {
     Constant,
     Enum,
@@ -17,6 +17,9 @@ import {
 } from "@server/languages/tolk/psi/Decls"
 import {inferenceOf} from "@server/languages/tolk/type-inference"
 import {FuncTy, TypeAliasTy} from "@server/languages/tolk/types/ty"
+
+import {Inspection, InspectionIds} from "./Inspection"
+import {UnusedInspection} from "./UnusedInspection"
 
 const IMPLICITLY_USED_FUNCTIONS: Set<string> = new Set([
     "onInternalMessage",

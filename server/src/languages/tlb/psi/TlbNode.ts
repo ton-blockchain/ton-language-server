@@ -1,4 +1,5 @@
 import type {Node, Node as SyntaxNode} from "web-tree-sitter"
+
 import {TlbFile} from "@server/languages/tlb/psi/TlbFile"
 import {BaseNode} from "@server/psi/BaseNode"
 import {RecursiveVisitor} from "@server/visitor/visitor"

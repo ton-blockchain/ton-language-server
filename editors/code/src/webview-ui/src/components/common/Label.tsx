@@ -1,4 +1,5 @@
 import React from "react"
+
 import styles from "./Label.module.css"
 
 // eslint-disable-next-line functional/type-declaration-immutability

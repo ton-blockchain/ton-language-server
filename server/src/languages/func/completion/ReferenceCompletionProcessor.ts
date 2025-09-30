@@ -2,6 +2,7 @@
 //  Copyright © 2025 TON Core
 import type {Node as SyntaxNode} from "web-tree-sitter"
 import {CompletionItem, InsertTextFormat, CompletionItemKind} from "vscode-languageserver-types"
+
 import {ScopeProcessor} from "@server/languages/func/psi/Reference"
 import {NamedNode, FuncNode} from "@server/languages/func/psi/FuncNode"
 import {
@@ -11,10 +12,12 @@ import {
     Parameter,
     TypeParameter,
 } from "@server/languages/func/psi/Decls"
-import {CompletionContext} from "./CompletionContext"
+
 import {CompletionWeight, WeightedCompletionItem} from "@server/completion/WeightedCompletionItem"
 import {ResolveState} from "@server/psi/ResolveState"
 import {CompletionItemAdditionalInformation} from "@server/completion/CompletionItemAdditionalInformation"
+
+import {CompletionContext} from "./CompletionContext"
 
 export class ReferenceCompletionProcessor implements ScopeProcessor {
     public constructor(private readonly ctx: CompletionContext) {}

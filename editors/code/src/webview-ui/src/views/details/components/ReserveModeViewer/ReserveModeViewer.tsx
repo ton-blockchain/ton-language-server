@@ -1,7 +1,9 @@
-import styles from "./ReserveModeViewer.module.css"
 import React from "react"
+
 import {parseReserveMode} from "../../../../../../providers/lib/transaction"
 import {Tooltip} from "../../../../components/common/Tooltip"
+
+import styles from "./ReserveModeViewer.module.css"
 
 interface ReserveModeViewerProps {
   readonly mode: number | undefined

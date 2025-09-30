@@ -1,10 +1,11 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Studio
 
+import {CompletionItemKind} from "vscode-languageserver-types"
+
 import {CompletionProvider} from "@server/completion/CompletionProvider"
 import {CompletionContext} from "@server/languages/tlb/completion/CompletionContext"
 import {CompletionResult, CompletionWeight} from "@server/completion/WeightedCompletionItem"
-import {CompletionItemKind} from "vscode-languageserver-types"
 
 export const BUILTIN_TYPES: Map<string, string> = new Map([
     ["#", "Nat, 32-bit unsigned integer"],

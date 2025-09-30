@@ -1,10 +1,14 @@
 import React, {useMemo, useState, useEffect} from "react"
-import styles from "./ContractInfo.module.css"
+
 import {Cell, loadShardAccount} from "@ton/core"
-import {ContractInfoData, VSCodeAPI} from "../../sandbox-actions-types"
+
 import {VscEdit, VscFileCode, VscTrash, VscCopy, VscCheck} from "react-icons/vsc"
+
+import {ContractInfoData, VSCodeAPI} from "../../sandbox-actions-types"
 import {DeployedContract} from "../../../../../../providers/lib/contract"
 import * as binary from "../../../../../../providers/binary"
+
+import styles from "./ContractInfo.module.css"
 
 interface Props {
   readonly info: ContractInfoData | undefined
@@ -153,10 +157,18 @@ export const ContractInfo: React.FC<Props> = ({
               <span className={styles.contractName}>{contractName ?? "Unknown Contract"}</span>
               {contractAddress && (
                 <span
+                  aria-label="Copy contract address"
+                  role="button"
+                  tabIndex={0}
                   className={styles.contractNameValue}
                   title={contractAddress}
                   onClick={() => {
                     navigator.clipboard.writeText(contractAddress).catch(console.error)
+                  }}
+                  onKeyDown={e => {
+                    if (e.key === "Enter") {
+                      navigator.clipboard.writeText(contractAddress).catch(console.error)
+                    }
                   }}
                 >
                   {formatAddress(contractAddress)}

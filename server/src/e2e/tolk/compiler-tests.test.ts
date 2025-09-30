@@ -1,10 +1,13 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
-import * as vscode from "vscode"
 import * as assert from "node:assert"
-import {BaseTestSuite} from "./BaseTestSuite"
+
 import * as path from "node:path"
+
+import * as vscode from "vscode"
 import {glob} from "glob"
+
+import {BaseTestSuite} from "./BaseTestSuite"
 
 interface UnresolvedIdentifier {
     readonly name: string

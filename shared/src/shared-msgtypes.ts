@@ -1,6 +1,7 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Studio
 import type * as lsp from "vscode-languageserver"
+
 import {ContractAbi} from "@shared/abi"
 
 export const TypeAtPositionRequest = "tolk.getTypeAtPosition"

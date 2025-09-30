@@ -1,12 +1,16 @@
 import React, {useEffect, useMemo, useState} from "react"
+
 import {ContractAbi} from "@shared/abi"
+
 import {Button, Input, Label, Select} from "../../../../components/common"
-import styles from "./CompileDeploy.module.css"
+
 import * as binary from "../../../../../../providers/binary"
 import {AbiFieldsForm} from "../AbiFieldsForm/AbiFieldsForm"
 import {DeployedContract} from "../../../../../../providers/lib/contract"
 import {DeployState} from "../../../../../../providers/methods"
 import {Base64String} from "../../../../../../common/base64-string"
+
+import styles from "./CompileDeploy.module.css"
 
 interface Props {
   readonly onCompileAndDeploy: (

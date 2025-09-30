@@ -5,13 +5,14 @@ import {Address} from "@ton/core"
 
 import {TransactionShortInfo} from "../index"
 
+import {formatCurrency} from "../../../../components/format/format"
+import {ContractData} from "../../../../../../providers/lib/contract"
+import {TransactionInfo} from "../../../../../../providers/lib/transaction"
+
 import {useTooltip} from "./useTooltip"
 import {SmartTooltip} from "./SmartTooltip"
 
 import styles from "./TransactionTree.module.css"
-import {formatCurrency} from "../../../../components/format/format"
-import {ContractData} from "../../../../../../providers/lib/contract"
-import {TransactionInfo} from "../../../../../../providers/lib/transaction"
 
 interface TransactionTooltipData {
   readonly fromAddress: string
@@ -128,8 +129,9 @@ export function TransactionTree({testData}: TransactionTreeProps): React.JSX.Ele
   const [selectedRootLt, setSelectedRootLt] = useState<string | null>(null)
   const triggerRectRef = useRef<DOMRect | null>(null)
 
-  const contracts: Map<string, ContractData> = new Map(
-    testData.contracts.map(it => [it.address.toString(), it]),
+  const contracts: Map<string, ContractData> = useMemo(
+    () => new Map(testData.contracts.map(it => [it.address.toString(), it])),
+    [testData.contracts],
   )
 
   const rootTransactions = useMemo(() => {

@@ -1,12 +1,17 @@
 import * as lsp from "vscode-languageserver"
-import {TolkFile} from "@server/languages/tolk/psi/TolkFile"
+
 import {DocumentUri, TextEdit, WorkspaceEdit} from "vscode-languageserver-types"
+
+import type {Node as SyntaxNode} from "web-tree-sitter"
+
+import type {Position} from "vscode-languageclient"
+
+import {TolkFile} from "@server/languages/tolk/psi/TolkFile"
 import {Referent} from "@server/languages/tolk/psi/Referent"
 import {asLspRange, asParserPoint} from "@server/utils/position"
 import {NamedNode} from "@server/languages/tolk/psi/TolkNode"
 import {Reference} from "@server/languages/tolk/psi/Reference"
-import type {Node as SyntaxNode} from "web-tree-sitter"
-import type {Position} from "vscode-languageclient"
+
 import {KEYWORDS} from "@server/languages/tolk/lang/names-util"
 
 export function provideTolkRename(params: lsp.RenameParams, file: TolkFile): WorkspaceEdit | null {

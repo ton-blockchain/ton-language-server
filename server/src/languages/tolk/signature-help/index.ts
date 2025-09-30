@@ -1,6 +1,8 @@
 import type {Node as SyntaxNode, Point} from "web-tree-sitter"
-import {TolkFile} from "@server/languages/tolk/psi/TolkFile"
+
 import * as lsp from "vscode-languageserver"
+
+import {TolkFile} from "@server/languages/tolk/psi/TolkFile"
 import {CallLike, NamedNode, TolkNode} from "@server/languages/tolk/psi/TolkNode"
 import {FunctionBase} from "@server/languages/tolk/psi/Decls"
 import {parentOfType} from "@server/psi/utils"

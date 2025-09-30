@@ -1,8 +1,11 @@
 import React, {useEffect, useState, useCallback} from "react"
+
+import {DeployedContract} from "../../../../providers/lib/contract"
+
+import {OperationNode} from "../../../../providers/methods"
+
 import {HistoryView} from "./components/HistoryView"
 import {StatesVSCodeAPI, UpdateOperationsMessage} from "./sandbox-history-types"
-import {DeployedContract} from "../../../../providers/lib/contract"
-import {OperationNode} from "../../../../providers/methods"
 
 interface Props {
   readonly vscode: StatesVSCodeAPI

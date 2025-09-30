@@ -1,9 +1,11 @@
 import React, {useState, useMemo, useEffect} from "react"
+
+import {DeployedContract} from "../../../../providers/lib/contract"
+
 import {Select} from "./Select"
 import {Input} from "./Input"
 import {Label} from "./Label"
 import styles from "./AddressInput.module.css"
-import {DeployedContract} from "../../../../providers/lib/contract"
 
 interface AddressInputProps {
   readonly label?: string

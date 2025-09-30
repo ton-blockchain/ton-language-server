@@ -1,5 +1,6 @@
 import React from "react"
 import {createRoot} from "react-dom/client"
+
 import HistoryApp from "./HistoryApp"
 import {StatesVSCodeAPI} from "./sandbox-history-types"
 import "../../main.css"

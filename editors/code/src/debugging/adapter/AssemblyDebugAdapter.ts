@@ -1,3 +1,5 @@
+import * as path from "node:path"
+
 import {
     Breakpoint,
     InitializedEvent,
@@ -11,10 +13,11 @@ import {
     Source,
 } from "@vscode/debugadapter"
 import {DebugProtocol} from "@vscode/debugprotocol"
-import * as path from "node:path"
+
+import {StackElement, TraceInfo} from "ton-assembly/dist/trace"
+
 import {LaunchRequestArguments} from "./types"
 import {createTraceInfoFromVmLogs} from "./trace-utils"
-import {StackElement, TraceInfo} from "ton-assembly/dist/trace"
 
 export class AssemblyDebugAdapter extends LoggingDebugSession {
     private static readonly THREAD_ID: number = 1

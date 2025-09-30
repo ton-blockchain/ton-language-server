@@ -1,5 +1,7 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
+import type {Node as SyntaxNode} from "web-tree-sitter"
+
 import {NamedNode} from "@server/languages/tolk/psi/TolkNode"
 import {
     Constant,
@@ -17,7 +19,6 @@ import {
 import {parentOfType} from "@server/psi/utils"
 import {bitTypeName} from "@server/languages/tolk/lang/types-util"
 import {generateTlBTypeDoc} from "@server/languages/tolk/documentation/tlb-type-documentation"
-import type {Node as SyntaxNode} from "web-tree-sitter"
 import {functionTypeOf, typeOf} from "@server/languages/tolk/type-inference"
 import {StructTy, UnionTy, UnknownTy} from "@server/languages/tolk/types/ty"
 import {EstimateContext, sizeOfPresentation} from "@server/languages/tolk/types/size-of"

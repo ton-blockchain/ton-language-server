@@ -2,9 +2,11 @@
 //  Copyright © 2025 TON Core
 import {RenameFilesParams} from "vscode-languageserver"
 import * as lsp from "vscode-languageserver"
+
+import {TextEdit} from "vscode-languageserver-types"
+
 import {ImportResolver} from "@server/languages/func/psi/ImportResolver"
 import {asLspRange} from "@server/utils/position"
-import {TextEdit} from "vscode-languageserver-types"
 import {index} from "@server/languages/func/indexes"
 import {filePathToUri, findFuncFile, FUNC_PARSED_FILES_CACHE} from "@server/files"
 import {FuncFile} from "@server/languages/func/psi/FuncFile"

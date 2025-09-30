@@ -1,12 +1,14 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
 import type {Node as SyntaxNode} from "web-tree-sitter"
-import {TolkFile} from "./TolkFile"
+
 import {BaseNode} from "@server/psi/BaseNode"
 import {TensorTy, TupleTy, Ty} from "@server/languages/tolk/types/ty"
 import {parentOfType} from "@server/psi/utils"
 import {extractCommentsDoc} from "@server/psi/comments"
 import {typeOf} from "@server/languages/tolk/type-inference"
+
+import {TolkFile} from "./TolkFile"
 
 export class TolkNode extends BaseNode {
     public node: SyntaxNode

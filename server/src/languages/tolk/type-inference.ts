@@ -1,5 +1,7 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
+import {Node as SyntaxNode} from "web-tree-sitter"
+
 import {
     BitsNTy,
     BoolTy,
@@ -26,7 +28,6 @@ import {
     VarIntNTy,
     VoidTy,
 } from "@server/languages/tolk/types/ty"
-import {Node as SyntaxNode} from "web-tree-sitter"
 import {
     Constant,
     Enum,

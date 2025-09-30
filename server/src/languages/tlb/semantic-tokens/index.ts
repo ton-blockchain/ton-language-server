@@ -2,6 +2,7 @@
 //  Copyright © 2025 TON Studio
 import {SemanticTokens} from "vscode-languageserver"
 import {SemanticTokenTypes} from "vscode-languageserver-protocol"
+
 import {RecursiveVisitor} from "@server/visitor/visitor"
 import {Reference} from "@server/languages/tlb/psi/Reference"
 import {TlbFile} from "@server/languages/tlb/psi/TlbFile"

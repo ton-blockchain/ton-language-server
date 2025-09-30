@@ -1,12 +1,18 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Studio
+import {promisify} from "node:util"
+
+import {execFile} from "node:child_process"
+
 import vscode, {Uri} from "vscode"
+
+import {Cell, runtime as i, text} from "ton-assembly"
+
+import {SourceMap} from "ton-source-map"
+
 import {ToolchainConfig} from "@server/settings/settings"
 import {Toolchain} from "@server/languages/tolk/toolchain/toolchain"
-import {Cell, runtime as i, text} from "ton-assembly"
-import {promisify} from "node:util"
-import {execFile} from "node:child_process"
-import {SourceMap} from "ton-source-map"
+
 import {Base64String} from "../common/base64-string"
 
 export interface CompilationResult {

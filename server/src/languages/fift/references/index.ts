@@ -1,6 +1,8 @@
 import type {Node as SyntaxNode} from "web-tree-sitter"
-import {FiftFile} from "@server/languages/fift/psi/FiftFile"
+
 import * as lsp from "vscode-languageserver"
+
+import {FiftFile} from "@server/languages/fift/psi/FiftFile"
 import {FiftReferent} from "@server/languages/fift/psi/FiftReferent"
 import {asLspRange} from "@server/utils/position"
 

@@ -1,16 +1,22 @@
 import React, {useState, useEffect, useMemo} from "react"
-import {Button, Input, Select} from "../../../../components/common"
-import {SendModeSelector} from "../SendModeSelector/SendModeSelector"
-import {MessageTemplate, VSCodeAPI} from "../../sandbox-actions-types"
+
 import {VscSave, VscCheck, VscError, VscListSelection} from "react-icons/vsc"
-import styles from "./SendMessage.module.css"
+
+import {Cell} from "@ton/core"
+
+import {ContractAbi, TypeAbi} from "@shared/abi"
+
 import {DeployedContract} from "../../../../../../providers/lib/contract"
 import * as binary from "../../../../../../providers/binary"
-import {ContractAbi, TypeAbi} from "@shared/abi"
-import {Cell} from "@ton/core"
+
+import {MessageTemplate, VSCodeAPI} from "../../sandbox-actions-types"
+import {SendModeSelector} from "../SendModeSelector/SendModeSelector"
+import {Button, Input, Select} from "../../../../components/common"
 import {formatParsedSlice} from "../../../../../../providers/binary"
 import {AbiFieldsForm} from "../AbiFieldsForm/AbiFieldsForm"
 import {Base64String} from "../../../../../../common/base64-string"
+
+import styles from "./SendMessage.module.css"
 
 interface MessageData {
   readonly selectedMessage: string
@@ -138,7 +144,7 @@ export const SendMessage: React.FC<Props> = ({
         parseMessageBodyToParsedObject(loadedTemplate.messageBody, message, contract?.abi),
       )
     }
-  }, [loadedTemplate, selectedContract, selectedMessage, contracts])
+  }, [loadedTemplate, selectedContract, selectedMessage, contracts, message, contract?.abi])
 
   useEffect(() => {
     if (selectedTemplate && localMessageTemplates.length > 0) {
@@ -152,7 +158,15 @@ export const SendMessage: React.FC<Props> = ({
         )
       }
     }
-  }, [selectedTemplate, localMessageTemplates, selectedContract, selectedMessage, contracts])
+  }, [
+    selectedTemplate,
+    localMessageTemplates,
+    selectedContract,
+    selectedMessage,
+    contracts,
+    message,
+    contract?.abi,
+  ])
 
   useEffect(() => {
     setSelectedTemplate("")
@@ -308,6 +322,14 @@ export const SendMessage: React.FC<Props> = ({
             onClick={() => {
               setMessageMode("internal")
             }}
+            onKeyDown={e => {
+              if (e.key === "Enter") {
+                setMessageMode("internal")
+              }
+            }}
+            tabIndex={0}
+            role="button"
+            aria-label="Internal Message"
           >
             Internal Message
           </div>
@@ -317,6 +339,15 @@ export const SendMessage: React.FC<Props> = ({
               setMessageMode("external")
               setSelectedFromContract("")
             }}
+            onKeyDown={e => {
+              if (e.key === "Enter") {
+                setMessageMode("external")
+                setSelectedFromContract("")
+              }
+            }}
+            tabIndex={0}
+            role="button"
+            aria-label="External Message"
           >
             External Message
           </div>
@@ -425,8 +456,8 @@ export const SendMessage: React.FC<Props> = ({
             External messages not supported
           </div>
           <div className={styles.errorMessage}>
-            This contract doesn't have an external message handler (onExternalMessage function).
-            External messages cannot be sent to this contract.
+            This contract doesn&apos;t have an external message handler (onExternalMessage
+            function). External messages cannot be sent to this contract.
           </div>
         </div>
       )}

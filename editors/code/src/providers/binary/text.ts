@@ -1,6 +1,8 @@
-import {TypeInfo} from "@shared/abi"
-import * as binary from "./index"
 import {Address, Cell, ExternalAddress, Slice} from "@ton/core"
+
+import {TypeInfo} from "@shared/abi"
+
+import * as binary from "./index"
 import {AddressNone, ParsedObject, ParsedSlice} from "./index"
 
 export function parseStringFieldValue(fieldValue: string, fieldType: TypeInfo): binary.ParsedSlice {

@@ -1,5 +1,6 @@
 import * as lsp from "vscode-languageserver"
 import type {Node as SyntaxNode} from "web-tree-sitter"
+
 import {TolkFile} from "@server/languages/tolk/psi/TolkFile"
 import {Referent} from "@server/languages/tolk/psi/Referent"
 import {getDocumentSettings} from "@server/settings/settings"

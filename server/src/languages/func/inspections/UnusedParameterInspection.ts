@@ -1,10 +1,13 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
 import type * as lsp from "vscode-languageserver"
+
 import type {FuncFile} from "@server/languages/func/psi/FuncFile"
+
+import {Func} from "@server/languages/func/psi/Decls"
+
 import {UnusedInspection} from "./UnusedInspection"
 import {Inspection, InspectionIds} from "./Inspection"
-import {Func} from "@server/languages/func/psi/Decls"
 
 export class UnusedParameterInspection extends UnusedInspection implements Inspection {
     public readonly id: "unused-parameter" = InspectionIds.UNUSED_PARAMETER

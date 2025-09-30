@@ -1,10 +1,13 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Studio
 import * as vscode from "vscode"
+
+import {Event} from "vscode"
+
 import {GetMethod, EntryPoint} from "@shared/abi"
 import {GetContractAbiParams, GetContractAbiResponse} from "@shared/shared-msgtypes"
+
 import {SandboxTreeProvider} from "./SandboxTreeProvider"
-import {Event} from "vscode"
 import {DeployedContract} from "./lib/contract"
 
 export class SandboxCodeLensProvider implements vscode.CodeLensProvider {

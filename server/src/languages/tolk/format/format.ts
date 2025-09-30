@@ -1,7 +1,9 @@
 import {Range} from "vscode-languageserver-textdocument"
 import * as lsp from "vscode-languageserver"
-import {findTolkFile} from "@server/files"
+
 import {format} from "tolkfmt-test-dev/dist/src"
+
+import {findTolkFile} from "@server/files"
 import {createTolkParser} from "@server/parser"
 
 export async function formatTolkFile(

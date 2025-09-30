@@ -1,5 +1,6 @@
 import * as lsp from "vscode-languageserver"
 import {SymbolKind} from "vscode-languageserver"
+
 import {NamedNode, FuncNode} from "@server/languages/func/psi/FuncNode"
 import {Constant, Func, GlobalVariable} from "@server/languages/func/psi/Decls"
 import {asLspRange, asNullableLspRange} from "@server/utils/position"

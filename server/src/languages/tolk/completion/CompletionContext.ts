@@ -1,6 +1,7 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
 import type * as lsp from "vscode-languageserver/node"
+
 import {TolkNode} from "@server/languages/tolk/psi/TolkNode"
 import {parentOfType} from "@server/psi/utils"
 

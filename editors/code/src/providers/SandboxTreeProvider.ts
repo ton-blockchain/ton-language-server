@@ -1,12 +1,15 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Studio
 import * as vscode from "vscode"
-import {SandboxActionsProvider} from "./SandboxActionsProvider"
+
+import {SourceMap} from "ton-source-map"
+
 import {ContractAbi} from "@shared/abi"
+
+import {SandboxActionsProvider} from "./SandboxActionsProvider"
 import type {SandboxCodeLensProvider} from "./SandboxCodeLensProvider"
 import {formatAddress} from "./methods"
 import {DeployedContract} from "./lib/contract"
-import {SourceMap} from "ton-source-map"
 
 interface SandboxTreeItem {
     readonly id: string

@@ -1,7 +1,17 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Studio
 import * as vscode from "vscode"
+
+import {Cell, TupleReader} from "@ton/core"
+
+import {decompileCell} from "ton-assembly/dist/runtime"
+
+import {print} from "ton-assembly/dist/text"
+
+import {SourceMap} from "ton-source-map"
+
 import {ContractAbi} from "@shared/abi"
+
 import {
     VSCodeCommand,
     UpdateContractsMessage,
@@ -37,15 +47,17 @@ import {
     parseGetMethodResult,
     MessageTemplateData,
 } from "../commands/sandboxCommands"
-import {compileAndDeployFromEditor, loadContractInfo, loadAndValidateAbiForDeploy} from "./methods"
-import {Cell, TupleReader} from "@ton/core"
-import {decompileCell} from "ton-assembly/dist/runtime"
-import {print} from "ton-assembly/dist/text"
-import {DeployedContract} from "./lib/contract"
-import {SourceMap} from "ton-source-map"
-import {formatParsedObject} from "./binary"
+
 import {HexString} from "../common/hex-string"
+
 import {Base64String} from "../common/base64-string"
+
+import {compileAndDeployFromEditor, loadContractInfo, loadAndValidateAbiForDeploy} from "./methods"
+
+import {DeployedContract} from "./lib/contract"
+
+import {formatParsedObject} from "./binary"
+
 import {SandboxTreeProvider} from "./SandboxTreeProvider"
 import {HistoryWebviewProvider} from "./HistoryWebviewProvider"
 

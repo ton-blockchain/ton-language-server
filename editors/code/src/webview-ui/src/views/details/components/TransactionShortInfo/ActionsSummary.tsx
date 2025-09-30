@@ -1,13 +1,15 @@
 import React, {useState} from "react"
 
-import styles from "./ActionsSummary.module.css"
 import {OutAction} from "@ton/core"
+
 import {formatAddress, formatCurrency} from "../../../../components/format/format"
 import {ContractData} from "../../../../../../providers/lib/contract"
 import {SendModeViewer} from "../SendModeViewer"
 import {ContractChip} from "../ContractChip/ContractChip"
 import {CodeBlock} from "../CodeBlock"
 import {ReserveModeViewer} from "../ReserveModeViewer"
+
+import styles from "./ActionsSummary.module.css"
 
 interface ActionsSummaryProps {
   readonly actions: readonly OutAction[]
@@ -351,7 +353,7 @@ export function ActionsSummary({
   )
 }
 
-export const getActionSummary = (
+const getActionSummary = (
   action: OutAction,
 ): {title: string; icon: string; description: string; value: string} => {
   switch (action.type) {

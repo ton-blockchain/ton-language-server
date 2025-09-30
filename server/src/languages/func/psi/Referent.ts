@@ -1,14 +1,17 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Studio
 import type {Node as SyntaxNode} from "web-tree-sitter"
+
 import {RecursiveVisitor} from "@server/visitor/visitor"
-import {NamedNode, FuncNode} from "./FuncNode"
-import {Reference} from "./Reference"
-import type {FuncFile} from "./FuncFile"
+
 import {parentOfType} from "@server/psi/utils"
 import {BaseReferent, GlobalSearchScope, LocalSearchScope} from "@server/references/referent"
 import {File} from "@server/psi/File"
 import {FUNC_PARSED_FILES_CACHE} from "@server/files"
+
+import type {FuncFile} from "./FuncFile"
+import {Reference} from "./Reference"
+import {NamedNode, FuncNode} from "./FuncNode"
 
 class FuncGlobalSearchScope extends GlobalSearchScope<File> {
     public static allFiles(): GlobalSearchScope<File> {

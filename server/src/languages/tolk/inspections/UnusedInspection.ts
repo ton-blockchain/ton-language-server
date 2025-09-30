@@ -1,10 +1,12 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Studio
 import * as lsp from "vscode-languageserver"
+
+import type {Node as SyntaxNode} from "web-tree-sitter"
+
 import type {TolkFile} from "@server/languages/tolk/psi/TolkFile"
 import {asLspRange} from "@server/utils/position"
 import {Referent} from "@server/languages/tolk/psi/Referent"
-import type {Node as SyntaxNode} from "web-tree-sitter"
 
 export abstract class UnusedInspection {
     public inspect(file: TolkFile): lsp.Diagnostic[] {

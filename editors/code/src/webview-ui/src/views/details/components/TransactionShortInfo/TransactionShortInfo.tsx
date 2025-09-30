@@ -11,11 +11,13 @@ import {computeSendMode, type TransactionInfo} from "../../../../../../providers
 import {SendModeViewer} from "../SendModeViewer"
 import {ExitCodeChip} from "../ExitCodeChip/ExitCodeChip"
 
+import {ContractData} from "../../../../../../providers/lib/contract"
+
+import {formatCurrency, formatNumber} from "../../../../components/format/format"
+
 import {ActionsSummary} from "./ActionsSummary"
 
 import styles from "./TransactionShortInfo.module.css"
-import {ContractData} from "../../../../../../providers/lib/contract"
-import {formatCurrency, formatNumber} from "../../../../components/format/format"
 
 const formatAddress = (
   address: Address | Maybe<ExternalAddress> | undefined,

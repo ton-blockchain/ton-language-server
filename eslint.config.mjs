@@ -4,6 +4,12 @@ import url from "node:url"
 import unusedImports from "eslint-plugin-unused-imports"
 import unicornPlugin from "eslint-plugin-unicorn"
 import functional from "eslint-plugin-functional"
+import {importX} from "eslint-plugin-import-x"
+import reactPlugin from "eslint-plugin-react"
+import reactHooks from "eslint-plugin-react-hooks"
+import reactRefresh from "eslint-plugin-react-refresh"
+import eslintPluginJsxA11y from "eslint-plugin-jsx-a11y"
+import * as tsResolver from "eslint-import-resolver-typescript"
 
 const __dirname = path.dirname(url.fileURLToPath(import.meta.url))
 
@@ -14,6 +20,11 @@ export default tseslint.config(
             ["@typescript-eslint"]: tseslint.plugin,
             ["@unused-imports"]: unusedImports,
             functional: functional,
+            "import-x": importX,
+            react: reactPlugin,
+            "react-hooks": reactHooks,
+            "react-refresh": reactRefresh,
+            "jsx-a11y": eslintPluginJsxA11y,
         },
     },
 
@@ -38,6 +49,8 @@ export default tseslint.config(
 
     tseslint.configs.all,
     unicornPlugin.configs["flat/all"],
+    importX.flatConfigs.recommended,
+    importX.flatConfigs.typescript,
 
     {
         languageOptions: {
@@ -48,6 +61,25 @@ export default tseslint.config(
         },
 
         rules: {
+            ...reactPlugin.configs.recommended.rules,
+            ...reactPlugin.configs["jsx-runtime"].rules,
+            ...reactHooks.configs.recommended.rules,
+            "react-refresh/only-export-components": ["warn", {allowConstantExport: true}],
+
+            ...eslintPluginJsxA11y.configs.recommended.rules,
+            "import-x/order": [
+                "warn",
+                {
+                    groups: ["builtin", "external", "internal", "parent", "sibling", "index"],
+                    "newlines-between": "always-and-inside-groups",
+                },
+            ],
+            "import-x/no-unresolved": "off",
+            "import-x/named": "off",
+            "import-x/namespace": "error",
+            "import-x/default": "error",
+            "import-x/export": "error",
+
             // override typescript-eslint
             "@typescript-eslint/no-empty-function": "off",
             "@typescript-eslint/prefer-literal-enum-member": "off",
@@ -123,6 +155,15 @@ export default tseslint.config(
             "unicorn/no-useless-undefined": "off",
             "unicorn/require-post-message-target-origin": "off",
             "unicorn/numeric-separators-style": "off",
+        },
+        settings: {
+            react: {
+                version: "detect",
+            },
+            "import-x/resolver": {
+                name: "tsResolver",
+                resolver: tsResolver,
+            },
         },
     },
 )

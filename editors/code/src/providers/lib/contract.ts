@@ -1,6 +1,8 @@
 import {Address, ShardAccount, StateInit} from "@ton/core"
-import {ContractAbi} from "@shared/abi"
+
 import {SourceMap} from "ton-source-map"
+
+import {ContractAbi} from "@shared/abi"
 
 export interface ContractData {
     readonly address: Address

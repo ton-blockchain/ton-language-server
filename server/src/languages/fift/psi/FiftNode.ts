@@ -1,4 +1,5 @@
 import type {Node as SyntaxNode} from "web-tree-sitter"
+
 import {FiftFile} from "@server/languages/fift/psi/FiftFile"
 
 export class FiftNode {

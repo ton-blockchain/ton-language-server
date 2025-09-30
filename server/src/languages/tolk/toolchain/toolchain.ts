@@ -5,11 +5,13 @@ import * as cp from "node:child_process"
 import {SpawnSyncReturns} from "node:child_process"
 import * as console from "node:console"
 import * as os from "node:os"
+
+import * as process from "node:process"
+
 import {EnvironmentInfo, ToolchainInfo} from "@shared/shared-msgtypes"
 import {existsVFS, globalVFS} from "@server/vfs/files-adapter"
 import {filePathToUri} from "@server/files"
 import {trimPrefix} from "@server/utils/strings"
-import * as process from "node:process"
 
 export class InvalidToolchainError extends Error {
     public constructor(message: string) {

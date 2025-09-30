@@ -1,9 +1,11 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
-import {Expression, NamedNode} from "./FuncNode"
 import type {Node as SyntaxNode} from "web-tree-sitter"
+
 import {crc16} from "@server/utils/crc16"
 import {parentOfType} from "@server/psi/utils"
+
+import {Expression, NamedNode} from "./FuncNode"
 
 export class GlobalVariable extends NamedNode {
     public override kindName(): string {

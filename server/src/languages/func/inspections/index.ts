@@ -1,4 +1,5 @@
 import * as lsp from "vscode-languageserver"
+
 import {connection} from "@server/connection"
 import {getDocumentSettings} from "@server/settings/settings"
 import {FuncFile} from "@server/languages/func/psi/FuncFile"

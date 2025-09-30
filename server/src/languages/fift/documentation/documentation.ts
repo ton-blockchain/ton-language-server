@@ -1,6 +1,7 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Studio
 import type {Node as SyntaxNode} from "web-tree-sitter"
+
 import {FiftReference} from "@server/languages/fift/psi/FiftReference"
 import {FiftFile} from "@server/languages/fift/psi/FiftFile"
 import {findInstruction} from "@server/languages/fift/asm/types"

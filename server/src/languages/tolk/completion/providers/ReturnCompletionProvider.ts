@@ -1,6 +1,7 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
 import {CompletionItemKind, InsertTextFormat} from "vscode-languageserver-types"
+
 import type {CompletionProvider} from "@server/completion/CompletionProvider"
 import type {CompletionContext} from "@server/languages/tolk/completion/CompletionContext"
 import {Func} from "@server/languages/tolk/psi/Decls"

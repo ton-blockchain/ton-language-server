@@ -1,11 +1,15 @@
+import {pathToFileURL} from "node:url"
+
 import * as lsp from "vscode-languageserver"
 import {TextDocument} from "vscode-languageserver-textdocument"
-import {pathToFileURL} from "node:url"
+
+import {URI} from "vscode-uri"
+
 import {createFiftParser, createFuncParser, createTlbParser, createTolkParser} from "@server/parser"
 import {readFileVFS, globalVFS} from "@server/vfs/files-adapter"
 import {FiftFile} from "@server/languages/fift/psi/FiftFile"
 import {TlbFile} from "@server/languages/tlb/psi/TlbFile"
-import {URI} from "vscode-uri"
+
 import {TolkFile} from "@server/languages/tolk/psi/TolkFile"
 import {measureTime} from "@server/psi/utils"
 import {FuncFile} from "@server/languages/func/psi/FuncFile"

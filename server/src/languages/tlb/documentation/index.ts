@@ -1,5 +1,6 @@
 import * as lsp from "vscode-languageserver"
 import type {Node as SyntaxNode} from "web-tree-sitter"
+
 import {TlbFile} from "@server/languages/tlb/psi/TlbFile"
 import {asLspRange} from "@server/utils/position"
 import {DeclarationNode, NamedNode} from "@server/languages/tlb/psi/TlbNode"

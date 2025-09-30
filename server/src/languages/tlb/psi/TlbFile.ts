@@ -1,5 +1,6 @@
-import {File} from "@server/psi/File"
 import type {Node as SyntaxNode} from "web-tree-sitter"
+
+import {File} from "@server/psi/File"
 import {DeclarationNode} from "@server/languages/tlb/psi/TlbNode"
 
 export class TlbFile extends File {

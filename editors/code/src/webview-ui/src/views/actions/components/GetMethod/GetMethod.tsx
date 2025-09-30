@@ -1,13 +1,19 @@
 import React, {useState} from "react"
+
+import {serializeTuple} from "@ton/core"
+
+import {TypeAbi} from "@shared/abi"
+
 import {Button, Input, Select} from "../../../../components/common"
-import styles from "./GetMethod.module.css"
+
 import {DeployedContract} from "../../../../../../providers/lib/contract"
 import {AbiFieldsForm} from "../AbiFieldsForm/AbiFieldsForm"
 import * as binary from "../../../../../../providers/binary"
-import {TypeAbi} from "@shared/abi"
 import {encodeTuple} from "../../../../../../providers/binary"
-import {serializeTuple} from "@ton/core"
+
 import {Base64String} from "../../../../../../common/base64-string"
+
+import styles from "./GetMethod.module.css"
 
 interface MethodData {
   readonly selectedMethod: string

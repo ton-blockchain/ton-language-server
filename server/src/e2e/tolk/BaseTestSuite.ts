@@ -1,12 +1,15 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Studio
-import * as vscode from "vscode"
 import * as path from "node:path"
 import * as fs from "node:fs"
-import * as glob from "glob"
-import {TestCase, TestParser} from "../common/TestParser"
+
 import {existsSync} from "node:fs"
+
+import * as glob from "glob"
+import * as vscode from "vscode"
 import {Position, TextDocument, Uri} from "vscode"
+
+import {TestCase, TestParser} from "../common/TestParser"
 
 export interface TestUpdate {
     readonly filePath: string

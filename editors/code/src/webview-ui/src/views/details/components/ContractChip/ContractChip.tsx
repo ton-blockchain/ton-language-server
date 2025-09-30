@@ -1,7 +1,8 @@
 import React, {useState, useCallback, useEffect} from "react"
 
-import styles from "./ContractChip.module.css"
 import {ContractData} from "../../../../../../providers/lib/contract"
+
+import styles from "./ContractChip.module.css"
 
 interface ContractChipProps {
   readonly address: string | undefined

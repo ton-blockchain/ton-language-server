@@ -1,6 +1,7 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
 import * as lsp from "vscode-languageserver-types"
+
 import {RecursiveVisitor} from "@server/visitor/visitor"
 import {getMethodId} from "@server/languages/func/inlays/get-method-id"
 import {FuncFile} from "@server/languages/func/psi/FuncFile"

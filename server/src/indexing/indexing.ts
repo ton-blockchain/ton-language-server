@@ -1,6 +1,9 @@
 import {fileURLToPath} from "node:url"
-import {glob} from "glob"
+
 import * as path from "node:path"
+
+import {glob} from "glob"
+
 import {filePathToUri} from "@server/files"
 
 export enum IndexingRootKind {

@@ -1,13 +1,18 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Studio
-import type {Intention, IntentionContext} from "@server/languages/tolk/intentions/Intention"
 import type {WorkspaceEdit} from "vscode-languageserver"
+
+import type {Position} from "vscode-languageclient"
+
+import type {Node as SyntaxNode} from "web-tree-sitter"
+
+import type {Intention, IntentionContext} from "@server/languages/tolk/intentions/Intention"
 import type {TolkFile} from "@server/languages/tolk/psi/TolkFile"
 import {asParserPoint} from "@server/utils/position"
-import type {Position} from "vscode-languageclient"
+
 import {NamedNode} from "@server/languages/tolk/psi/TolkNode"
 import {FileDiff} from "@server/utils/FileDiff"
-import type {Node as SyntaxNode} from "web-tree-sitter"
+
 import {index, IndexKey} from "@server/languages/tolk/indexes"
 
 export class AddImport implements Intention {

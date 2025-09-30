@@ -1,12 +1,18 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Studio
-import * as vscode from "vscode"
 import * as assert from "node:assert"
-import {BaseTestSuite} from "./BaseTestSuite"
-import type * as lsp from "vscode-languageserver"
-import type {GetTypeAtPositionParams} from "./types.test"
-import type {TestCase} from "../common/TestParser"
+
 import * as path from "node:path"
+
+import * as vscode from "vscode"
+
+import type * as lsp from "vscode-languageserver"
+
+import type {TestCase} from "../common/TestParser"
+
+import {BaseTestSuite} from "./BaseTestSuite"
+
+import type {GetTypeAtPositionParams} from "./types.test"
 
 suite("Documentation Test Suite", () => {
     const testSuite = new (class extends BaseTestSuite {

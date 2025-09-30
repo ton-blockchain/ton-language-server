@@ -1,5 +1,11 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
+import * as path from "node:path"
+
+import type {Node as SyntaxNode} from "web-tree-sitter"
+
+import type {Position} from "vscode-languageclient"
+
 import {File} from "@server/psi/File"
 import {
     Constant,
@@ -13,11 +19,10 @@ import {
     TypeAlias,
 } from "@server/languages/tolk/psi/Decls"
 import {NamedNode} from "@server/languages/tolk/psi/TolkNode"
-import type {Node as SyntaxNode} from "web-tree-sitter"
-import type {Position} from "vscode-languageclient"
+
 import {ImportResolver} from "@server/languages/tolk/psi/ImportResolver"
 import {trimSuffix} from "@server/utils/strings"
-import * as path from "node:path"
+
 import {TOLK_CACHE} from "@server/languages/tolk/cache"
 import {TOLK_PARSED_FILES_CACHE} from "@server/files"
 

@@ -1,12 +1,16 @@
 import * as lsp from "vscode-languageserver"
-import {FuncFile} from "@server/languages/func/psi/FuncFile"
+
 import {DocumentUri, TextEdit, WorkspaceEdit} from "vscode-languageserver-types"
+
+import type {Node as SyntaxNode} from "web-tree-sitter"
+
+import type {Position} from "vscode-languageclient"
+
+import {FuncFile} from "@server/languages/func/psi/FuncFile"
 import {Referent} from "@server/languages/func/psi/Referent"
 import {asLspRange, asParserPoint} from "@server/utils/position"
 import {NamedNode} from "@server/languages/func/psi/FuncNode"
 import {Reference} from "@server/languages/func/psi/Reference"
-import type {Node as SyntaxNode} from "web-tree-sitter"
-import type {Position} from "vscode-languageclient"
 
 export function provideFuncRename(params: lsp.RenameParams, file: FuncFile): WorkspaceEdit | null {
     const renameNode = findRenameTarget(params, file)

@@ -1,12 +1,15 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
 import * as lsp from "vscode-languageserver"
+
 import type {TolkFile} from "@server/languages/tolk/psi/TolkFile"
-import {Inspection, InspectionIds} from "./Inspection"
+
 import {RecursiveVisitor} from "@server/visitor/visitor"
 import {Reference} from "@server/languages/tolk/psi/Reference"
 import {NamedNode, VarDeclaration} from "@server/languages/tolk/psi/TolkNode"
 import {asLspRange} from "@server/utils/position"
+
+import {Inspection, InspectionIds} from "./Inspection"
 
 export class CannotReassignInspection implements Inspection {
     public readonly id: "cannot-reassign" = InspectionIds.CANNOT_REASSIGN

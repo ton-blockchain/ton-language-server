@@ -1,11 +1,12 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
+import {CompletionItemKind, InsertTextFormat} from "vscode-languageserver-types"
+
 import type {CompletionProvider} from "@server/completion/CompletionProvider"
 import type {CompletionContext} from "@server/languages/tolk/completion/CompletionContext"
 import {CompletionResult, CompletionWeight} from "@server/completion/WeightedCompletionItem"
 import {typeOf} from "@server/languages/tolk/type-inference"
 import {TensorTy, TupleTy} from "@server/languages/tolk/types/ty"
-import {CompletionItemKind, InsertTextFormat} from "vscode-languageserver-types"
 
 export class IndexAccessCompletionProvider implements CompletionProvider<CompletionContext> {
     public isAvailable(ctx: CompletionContext): boolean {

@@ -1,6 +1,7 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Studio
 import * as vscode from "vscode"
+
 import {defaultConfig, TonPluginConfigScheme} from "@shared/config-scheme"
 
 let cachedClientConfig: TonPluginConfigScheme | null = null

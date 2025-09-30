@@ -2,8 +2,10 @@ import {TolkFile} from "@server/languages/tolk/psi/TolkFile"
 import {ContractAbi, EntryPoint, Field, GetMethod, TypeAbi} from "@shared/abi"
 import {ImportResolver} from "@server/languages/tolk/psi/ImportResolver"
 import {typeOf} from "@server/languages/tolk/type-inference"
-import {convertTyToTypeInfo} from "./type-converter"
+
 import {VoidTy} from "@server/languages/tolk/types/ty"
+
+import {convertTyToTypeInfo} from "./type-converter"
 
 export function contractAbi(file: TolkFile): ContractAbi | undefined {
     const getMethods: GetMethod[] = []

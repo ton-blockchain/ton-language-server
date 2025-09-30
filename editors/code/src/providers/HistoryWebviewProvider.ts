@@ -1,10 +1,13 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Studio
 import * as vscode from "vscode"
+
+import {Cell, loadTransaction} from "@ton/core"
+
 import {StatesCommand, StatesMessage} from "../webview-ui/src/views/history/sandbox-history-types"
 import {getOperations, restoreBlockchainState, getContracts} from "../commands/sandboxCommands"
+
 import {processRawTransactions, RawTransactionInfo, RawTransactions} from "./lib/raw-transaction"
-import {Cell, loadTransaction} from "@ton/core"
 import {DeployedContract} from "./lib/contract"
 import {OperationNode} from "./methods"
 

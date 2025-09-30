@@ -1,4 +1,11 @@
 import React, {JSX, useEffect, useState, useCallback} from "react"
+
+import {ContractAbi} from "@shared/abi"
+
+import {DeployedContract} from "../../../../providers/lib/contract"
+
+import {DeployState} from "../../../../providers/methods"
+
 import {CompileDeploy} from "./components/CompileDeploy/CompileDeploy"
 import {SendMessage} from "./components/SendMessage/SendMessage"
 import {GetMethod} from "./components/GetMethod/GetMethod"
@@ -11,10 +18,7 @@ import {
   ContractInfoData,
   MessageTemplate,
 } from "./sandbox-actions-types"
-import {ContractAbi} from "@shared/abi"
 import {ContractInfo} from "./components/ContractInfo/ContractInfo"
-import {DeployedContract} from "../../../../providers/lib/contract"
-import {DeployState} from "../../../../providers/methods"
 
 interface Props {
   readonly vscode: VSCodeAPI
@@ -42,90 +46,93 @@ export default function ActionsApp({vscode}: Props): JSX.Element {
     }))
   }, [])
 
-  const handleMessage = useCallback((event: MessageEvent<VSCodeMessage>): void => {
-    const message: VSCodeMessage = event.data
+  const handleMessage = useCallback(
+    (event: MessageEvent<VSCodeMessage>): void => {
+      const message: VSCodeMessage = event.data
 
-    switch (message.type) {
-      case "updateContracts": {
-        setContracts(message.contracts)
-        break
-      }
-      case "showResult": {
-        const resultId = message.resultId ?? "default"
-        setResults(prev => ({
-          ...prev,
-          [resultId]: message.result,
-        }))
-        break
-      }
-      case "openOperation": {
-        setActiveOperation(message.operation)
-        if (message.contractAddress) {
-          switch (message.operation) {
-            case "send-message": {
-              setSelectedSendContract(message.contractAddress)
-              break
-            }
-            case "get-method": {
-              setSelectedGetContract(message.contractAddress)
-              break
-            }
-            case "contract-info": {
-              setSelectedInfoContract(message.contractAddress)
-              break
-            }
-            case "compile-deploy":
-            case null: {
-              break
+      switch (message.type) {
+        case "updateContracts": {
+          setContracts(message.contracts)
+          break
+        }
+        case "showResult": {
+          const resultId = message.resultId ?? "default"
+          setResults(prev => ({
+            ...prev,
+            [resultId]: message.result,
+          }))
+          break
+        }
+        case "openOperation": {
+          setActiveOperation(message.operation)
+          if (message.contractAddress) {
+            switch (message.operation) {
+              case "send-message": {
+                setSelectedSendContract(message.contractAddress)
+                break
+              }
+              case "get-method": {
+                setSelectedGetContract(message.contractAddress)
+                break
+              }
+              case "contract-info": {
+                setSelectedInfoContract(message.contractAddress)
+                break
+              }
+              case "compile-deploy":
+              case null: {
+                break
+              }
             }
           }
+          break
         }
-        break
-      }
-      case "updateContractAbi": {
-        setContractAbi(message.abi)
-        break
-      }
-      case "updateDeployState": {
-        setDeployState(message.state)
-        if (message.abi) {
+        case "updateContractAbi": {
           setContractAbi(message.abi)
+          break
         }
-        break
+        case "updateDeployState": {
+          setDeployState(message.state)
+          if (message.abi) {
+            setContractAbi(message.abi)
+          }
+          break
+        }
+        case "updateContractInfo": {
+          setContractInfo(message.info)
+          break
+        }
+        case "updateActiveEditor": {
+          vscode.postMessage({
+            type: "loadAbiForDeploy",
+          })
+          break
+        }
+        case "messageTemplate": {
+          setLoadedTemplate(message.template)
+          setActiveOperation("send-message")
+          break
+        }
+        case "templateCreated": {
+          vscode.postMessage({type: "getMessageTemplates"})
+          break
+        }
+        case "templateUpdated": {
+          vscode.postMessage({type: "getMessageTemplates"})
+          break
+        }
+        case "templateDeleted": {
+          vscode.postMessage({type: "getMessageTemplates"})
+          break
+        }
+        case "messageTemplates": {
+          setMessageTemplates(message.templates)
+          break
+        }
       }
-      case "updateContractInfo": {
-        setContractInfo(message.info)
-        break
-      }
-      case "updateActiveEditor": {
-        vscode.postMessage({
-          type: "loadAbiForDeploy",
-        })
-        break
-      }
-      case "messageTemplate": {
-        setLoadedTemplate(message.template)
-        setActiveOperation("send-message")
-        break
-      }
-      case "templateCreated": {
-        vscode.postMessage({type: "getMessageTemplates"})
-        break
-      }
-      case "templateUpdated": {
-        vscode.postMessage({type: "getMessageTemplates"})
-        break
-      }
-      case "templateDeleted": {
-        vscode.postMessage({type: "getMessageTemplates"})
-        break
-      }
-      case "messageTemplates": {
-        setMessageTemplates(message.templates)
-        break
-      }
-    }
-  }, [])
+    },
+    [vscode],
+  )
 
   useEffect(() => {
     vscode.postMessage({

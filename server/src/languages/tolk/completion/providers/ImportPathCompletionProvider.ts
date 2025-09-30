@@ -1,10 +1,13 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
-import {AsyncCompletionProvider} from "@server/completion/CompletionProvider"
+import * as path from "node:path"
+
 import {CompletionItemKind} from "vscode-languageserver-types"
+
+import {AsyncCompletionProvider} from "@server/completion/CompletionProvider"
 import type {CompletionContext} from "@server/languages/tolk/completion/CompletionContext"
 import {CompletionResult, CompletionWeight} from "@server/completion/WeightedCompletionItem"
-import * as path from "node:path"
+
 import {globalVFS} from "@server/vfs/global"
 import {listDirs, listFiles} from "@server/vfs/vfs"
 import {filePathToUri} from "@server/files"

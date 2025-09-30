@@ -1,9 +1,12 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Studio
 import * as path from "node:path"
-import {Node as SyntaxNode} from "web-tree-sitter"
-import {globalVFS, readFileVFS} from "@server/vfs/files-adapter"
+
 import {pathToFileURL} from "node:url"
+
+import {Node as SyntaxNode} from "web-tree-sitter"
+
+import {globalVFS, readFileVFS} from "@server/vfs/files-adapter"
 
 export interface AsmInstruction {
     readonly mnemonic: string

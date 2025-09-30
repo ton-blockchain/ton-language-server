@@ -1,4 +1,5 @@
 import React from "react"
+
 import styles from "./NoOperation.module.css"
 
 export const NoOperation: React.FC = () => {

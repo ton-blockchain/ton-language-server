@@ -1,10 +1,14 @@
-import React, {useEffect, useMemo} from "react"
+import React, {useCallback, useEffect, useMemo} from "react"
+
 import {ContractAbi, Field, TypeAbi, TypeInfo} from "@shared/abi"
+
 import {FieldInput, AddressInput} from "../../../../components/common"
-import styles from "./AbiFieldsForm.module.css"
+
 import * as binary from "../../../../../../providers/binary"
 import {formatParsedSlice} from "../../../../../../providers/binary"
 import {DeployedContract} from "../../../../../../providers/lib/contract"
+
+import styles from "./AbiFieldsForm.module.css"
 
 interface Props {
   readonly abi: TypeAbi | undefined
@@ -143,55 +147,58 @@ export const AbiFieldsForm: React.FC<Props> = ({
     }
   }
 
-  const validateFields = (
-    fieldsToValidate: readonly Field[],
-    currentFields: binary.ParsedObject,
-    pathPrefix: string = "",
-  ): boolean => {
-    for (const field of fieldsToValidate) {
-      // const fieldPath = pathPrefix ? `${pathPrefix}.${field.name}` : field.name
-      // const pathParts = fieldPath.split(".")
-      // const fieldValue = getNestedValue(currentFields, pathParts)
+  const validateFields = useCallback(
+    (
+      fieldsToValidate: readonly Field[],
+      currentFields: binary.ParsedObject,
+      pathPrefix: string = "",
+    ): boolean => {
+      for (const field of fieldsToValidate) {
+        // const fieldPath = pathPrefix ? `${pathPrefix}.${field.name}` : field.name
+        // const pathParts = fieldPath.split(".")
+        // const fieldValue = getNestedValue(currentFields, pathParts)
 
-      if (field.type.name === "struct") {
-        // const structType = contractAbi.types.find(t => t.name === field.type.humanReadable)
-        // if (structType) {
-        //     if (!validateFields(structType.fields, currentFields, fieldPath)) {
-        //         return false
-        //     }
-        // }
-        return true // TODO: validate nested fields
+        if (field.type.name === "struct") {
+          // const structType = contractAbi.types.find(t => t.name === field.type.humanReadable)
+          // if (structType) {
+          //     if (!validateFields(structType.fields, currentFields, fieldPath)) {
+          //         return false
+          //     }
+          // }
+          return true // TODO: validate nested fields
+        }
+
+        if (field.type.name === "anon-struct") {
+          // const anonStructFields = field.type.fields.map(
+          //     (fieldType: TypeInfo, index: number) => ({
+          //         name: `field_${index}`,
+          //         type: fieldType,
+          //     }),
+          // )
+          // if (!validateFields(anonStructFields, currentFields, fieldPath)) {
+          //     return false
+          // }
+          return true // TODO: validate nested fields
+        }
+
+        const fieldValue = fields[field.name]
+        if (fieldValue === undefined) {
+          return false
+        }
+        if (!formatParsedSlice(fieldValue)?.trim()) {
+          return false
+        }
       }
 
-      if (field.type.name === "anon-struct") {
-        // const anonStructFields = field.type.fields.map(
-        //     (fieldType: TypeInfo, index: number) => ({
-        //         name: `field_${index}`,
-        //         type: fieldType,
-        //     }),
-        // )
-        // if (!validateFields(anonStructFields, currentFields, fieldPath)) {
-        //     return false
-        // }
-        return true // TODO: validate nested fields
-      }
-
-      const fieldValue = fields[field.name]
-      if (fieldValue === undefined) {
-        return false
-      }
-      if (!formatParsedSlice(fieldValue)?.trim()) {
-        return false
-      }
-    }
-
-    return true
-  }
+      return true
+    },
+    [fields],
+  )
 
   const isFormValid = useMemo((): boolean => {
     if (!abi?.fields) return false
     return validateFields(abi.fields, fields)
-  }, [abi, fields, contractAbi])
+  }, [abi?.fields, validateFields, fields])
 
   useEffect(() => {
     onValidationChange(isFormValid)

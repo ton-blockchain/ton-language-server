@@ -1,17 +1,21 @@
 import React, {JSX, useEffect, useMemo, useState} from "react"
-import styles from "./TransactionDetails.module.css"
+
+import {Address, Cell, loadTransaction, loadShardAccount} from "@ton/core"
+
+import {TransactionInfo} from "../../../../providers/lib/transaction"
 import {
   processRawTransactions,
   RawTransactionInfo,
   RawTransactions,
 } from "../../../../providers/lib/raw-transaction"
-import {TransactionInfo} from "../../../../providers/lib/transaction"
-import {TransactionTree} from "./components"
-import {Address, Cell, loadTransaction, loadShardAccount} from "@ton/core"
 
 import {ContractData, DeployedContract} from "../../../../providers/lib/contract"
 import {Base64String} from "../../../../common/base64-string"
 import {HexString} from "../../../../common/hex-string"
+
+import {TransactionTree} from "./components"
+
+import styles from "./TransactionDetails.module.css"
 
 interface LocalTransactionDetails {
   readonly contractAddress: string
@@ -129,7 +133,7 @@ export default function TransactionDetails({vscode}: Props): JSX.Element {
         abi: it.abi,
       } satisfies ContractData
     })
-  }, [transaction?.deployedContracts, parsedStateInit, parsedAccount])
+  }, [transaction, parsedAccount, parsedStateInit])
 
   if (!transaction) {
     return (

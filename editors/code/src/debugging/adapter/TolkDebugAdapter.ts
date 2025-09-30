@@ -1,3 +1,5 @@
+import * as path from "node:path"
+
 import {
     InitializedEvent,
     LoggingDebugSession,
@@ -10,10 +12,11 @@ import {
     Scope,
 } from "@vscode/debugadapter"
 import {DebugProtocol} from "@vscode/debugprotocol"
-import * as path from "node:path"
-import {LaunchRequestArguments} from "./types"
+
 import {StackElement, TraceInfo, createTraceInfoPerTransaction} from "ton-assembly/dist/trace"
 import {HighLevelSourceMapVariable} from "ton-source-map"
+
+import {LaunchRequestArguments} from "./types"
 
 // eslint-disable-next-line functional/type-declaration-immutability
 interface NestedVariable {

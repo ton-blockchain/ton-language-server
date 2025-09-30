@@ -1,10 +1,13 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
 import type * as lsp from "vscode-languageserver"
+
 import type {TolkFile} from "@server/languages/tolk/psi/TolkFile"
+
+import {Func, FunctionKind} from "@server/languages/tolk/psi/Decls"
+
 import {UnusedInspection} from "./UnusedInspection"
 import {Inspection, InspectionIds} from "./Inspection"
-import {Func, FunctionKind} from "@server/languages/tolk/psi/Decls"
 
 export class UnusedParameterInspection extends UnusedInspection implements Inspection {
     public readonly id: "unused-parameter" = InspectionIds.UNUSED_PARAMETER

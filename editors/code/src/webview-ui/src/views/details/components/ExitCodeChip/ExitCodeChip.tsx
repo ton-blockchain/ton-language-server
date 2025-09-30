@@ -1,9 +1,10 @@
 import type {ContractABI} from "@ton/core"
 
+import React from "react"
+
 import {Tooltip} from "../../../../components/common/Tooltip"
 
 import styles from "./ExitCodeViewer.module.css"
-import React from "react"
 import {EXIT_CODE_DESCRIPTIONS} from "./error-codes"
 
 interface ExitCodeViewerProps {

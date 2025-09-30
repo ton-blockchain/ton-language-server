@@ -1,8 +1,9 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Studio
+import * as path from "node:path"
+
 import * as vscode from "vscode"
 import {FileSystemWatcher, Position, Range} from "vscode"
-import * as path from "node:path"
 import {Utils as vscode_uri} from "vscode-uri"
 import {
     LanguageClient,
@@ -11,8 +12,7 @@ import {
     ServerOptions,
     TransportKind,
 } from "vscode-languageclient/node"
-import {consoleError, createClientLog} from "./client-log"
-import {getClientConfiguration} from "./client-config"
+
 import {
     DocumentationAtPositionRequest,
     GetContractAbiParams,
@@ -23,7 +23,14 @@ import {
     TypeAtPositionRequest,
     TypeAtPositionResponse,
 } from "@shared/shared-msgtypes"
+
 import type {ClientOptions} from "@shared/config-scheme"
+
+import {ToolchainConfig} from "@server/settings/settings"
+
+import {consoleError, createClientLog} from "./client-log"
+import {getClientConfiguration} from "./client-config"
+
 import {registerBuildTasks} from "./build-system"
 import {registerOpenBocCommand} from "./commands/openBocCommand"
 import {BocEditorProvider} from "./providers/BocEditorProvider"
@@ -39,7 +46,7 @@ import {
     TransactionDetails,
 } from "./providers/TransactionDetailsProvider"
 import {SandboxCodeLensProvider} from "./providers/SandboxCodeLensProvider"
-import {ToolchainConfig} from "@server/settings/settings"
+
 import {configureDebugging} from "./debugging"
 import {loadContractInfo, loadLatestOperationResult} from "./providers/methods"
 
