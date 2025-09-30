@@ -18,6 +18,7 @@ interface UseActionsAppReturn {
   readonly setSelectedContract: (address: string) => void
   readonly activeOperation: ReturnType<typeof useOperations>["activeOperation"]
   readonly results: ReturnType<typeof useOperations>["results"]
+  readonly updateResult: ReturnType<typeof useOperations>["updateResult"]
   readonly setActiveOperation: (operation: Operation) => void
   readonly contractAbi: ReturnType<typeof useContractData>["contractAbi"]
   readonly contractInfo: ReturnType<typeof useContractData>["contractInfo"]
@@ -51,13 +52,12 @@ export function useActionsApp({vscode}: UseActionsAppParams): UseActionsAppRetur
       vscode.postMessage({type: "loadAbiForDeploy"})
     }
     if (operations.activeOperation === "contract-info" && contractSelection.selectedContract) {
-      contractData.setContractInfo(undefined)
       vscode.postMessage({
         type: "loadContractInfo",
         contractAddress: contractSelection.selectedContract,
       })
     }
-  }, [operations.activeOperation, contractSelection.selectedContract, vscode, contractData])
+  }, [operations.activeOperation, contractSelection.selectedContract, vscode])
 
   return {
     // Contract selection
@@ -68,6 +68,7 @@ export function useActionsApp({vscode}: UseActionsAppParams): UseActionsAppRetur
     // Operations
     activeOperation: operations.activeOperation,
     results: operations.results,
+    updateResult: operations.updateResult,
     setActiveOperation: operations.setActiveOperation,
 
     // Contract data

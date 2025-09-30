@@ -153,16 +153,20 @@ export async function compileAndDeployFromEditor(
     treeProvider: SandboxTreeProvider | undefined,
     value: string,
     storageType?: string,
-): Promise<void> {
+): Promise<{success: boolean; message: string; details?: string}> {
     const editor = vscode.window.activeTextEditor
     if (!editor) {
-        void vscode.window.showErrorMessage("No active editor with contract code")
-        return
+        return {
+            success: false,
+            message: "No active editor with contract code",
+        }
     }
 
     if (editor.document.languageId !== "tolk") {
-        void vscode.window.showErrorMessage("Active file is not a Tolk contract")
-        return
+        return {
+            success: false,
+            message: "Active file is not a Tolk contract",
+        }
     }
 
     const sourceUri = editor.document.uri.toString()
@@ -194,13 +198,17 @@ export async function compileAndDeployFromEditor(
         const result = await compiler.compileContract(editor.document.uri)
 
         if (!result.success) {
-            void vscode.window.showErrorMessage(`Compilation failed: ${result.error}`)
-            return
+            return {
+                success: false,
+                message: `Compilation failed: ${result.error}`,
+            }
         }
 
         if (!result.code) {
-            void vscode.window.showErrorMessage("Compilation succeeded but no code generated")
-            return
+            return {
+                success: false,
+                message: "Compilation succeeded but no code generated",
+            }
         }
 
         const deployResult = await deployContract(
@@ -214,6 +222,7 @@ export async function compileAndDeployFromEditor(
             result.sourceMap,
             contractAbi,
         )
+
         if (deployResult.success && deployResult.address) {
             const isRedeploy = treeProvider?.isContractDeployed(deployResult.address) ?? false
 
@@ -228,17 +237,25 @@ export async function compileAndDeployFromEditor(
             void vscode.commands.executeCommand("ton.sandbox.states.refresh")
 
             const message = isRedeploy
-                ? `Contract redeployed successfully! Address: ${formatAddress(deployResult.address)}`
-                : `Contract deployed successfully! Address: ${formatAddress(deployResult.address)}`
+                ? `Contract redeployed successfully!`
+                : `Contract deployed successfully!`
 
-            void vscode.window.showInformationMessage(message)
+            return {
+                success: true,
+                message,
+                details: deployResult.address,
+            }
         } else {
-            void vscode.window.showErrorMessage(`Deploy failed: ${deployResult.error}`)
+            return {
+                success: false,
+                message: `Deploy failed: ${deployResult.error}`,
+            }
         }
     } catch (error) {
-        void vscode.window.showErrorMessage(
-            `Operation failed: ${error instanceof Error ? error.message : "Unknown error"}`,
-        )
+        return {
+            success: false,
+            message: `Operation failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+        }
     }
 }
 

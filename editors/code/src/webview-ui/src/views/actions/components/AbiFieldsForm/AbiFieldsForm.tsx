@@ -1,11 +1,10 @@
-import React, {useCallback, useEffect, useMemo} from "react"
+import React, {useEffect, useState} from "react"
 
 import {ContractAbi, Field, TypeAbi, TypeInfo} from "@shared/abi"
 
 import {FieldInput, AddressInput} from "../../../../components/common"
 
 import * as binary from "../../../../../../common/binary"
-import {formatParsedSlice} from "../../../../../../common/binary"
 import {DeployedContract} from "../../../../../../common/types/contract"
 
 import styles from "./AbiFieldsForm.module.css"
@@ -17,6 +16,7 @@ interface Props {
   readonly fields: binary.ParsedObject
   readonly onFieldsChange: (fields: binary.ParsedObject) => void
   readonly onValidationChange: (isValid: boolean) => void
+  readonly onClearResult?: () => void
 }
 
 export const AbiFieldsForm: React.FC<Props> = ({
@@ -26,6 +26,7 @@ export const AbiFieldsForm: React.FC<Props> = ({
   fields,
   onFieldsChange,
   onValidationChange,
+  onClearResult,
 }) => {
   const isAddressField = (fieldType: TypeInfo): boolean => {
     const containsAddress = (type: TypeInfo): boolean => {
@@ -50,16 +51,26 @@ export const AbiFieldsForm: React.FC<Props> = ({
   const handleFieldChange = (fieldPath: string, fieldValue: string, fieldType: TypeInfo): void => {
     const pathParts = fieldPath.split(".")
     let parsedValue: binary.ParsedSlice
+    let errorMessage: string | undefined
 
     try {
       parsedValue = binary.parseStringFieldValue(fieldValue, fieldType)
-    } catch {
+    } catch (error) {
       parsedValue = fieldValue
+      errorMessage = error instanceof Error ? error.message : "Invalid value"
     }
 
     const newFields = {...fields}
     setNestedValue(newFields, pathParts, parsedValue, fieldPath)
     onFieldsChange(newFields)
+
+    onClearResult?.()
+
+    setFieldErrors(prev => ({...prev, [fieldPath]: errorMessage}))
+  }
+
+  const handleFieldErrorReset = (fieldPath: string): void => {
+    setFieldErrors(prev => ({...prev, [fieldPath]: undefined}))
   }
 
   const setNestedValue = (
@@ -147,58 +158,26 @@ export const AbiFieldsForm: React.FC<Props> = ({
     }
   }
 
-  const validateFields = useCallback(
-    (
-      fieldsToValidate: readonly Field[],
-      currentFields: binary.ParsedObject,
-      pathPrefix: string = "",
-    ): boolean => {
-      for (const field of fieldsToValidate) {
-        // const fieldPath = pathPrefix ? `${pathPrefix}.${field.name}` : field.name
-        // const pathParts = fieldPath.split(".")
-        // const fieldValue = getNestedValue(currentFields, pathParts)
+  const [rawFields, setRawFields] = useState<Record<string, string>>({})
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string | undefined>>({})
 
-        if (field.type.name === "struct") {
-          // const structType = contractAbi.types.find(t => t.name === field.type.humanReadable)
-          // if (structType) {
-          //     if (!validateFields(structType.fields, currentFields, fieldPath)) {
-          //         return false
-          //     }
-          // }
-          return true // TODO: validate nested fields
-        }
+  const [isFormValid, setIsFormValid] = useState<boolean>(true)
 
-        if (field.type.name === "anon-struct") {
-          // const anonStructFields = field.type.fields.map(
-          //     (fieldType: TypeInfo, index: number) => ({
-          //         name: `field_${index}`,
-          //         type: fieldType,
-          //     }),
-          // )
-          // if (!validateFields(anonStructFields, currentFields, fieldPath)) {
-          //     return false
-          // }
-          return true // TODO: validate nested fields
-        }
+  useEffect(() => {
+    if (!abi?.fields) {
+      setIsFormValid(false)
+      return
+    }
 
-        const fieldValue = fields[field.name]
-        if (fieldValue === undefined) {
-          return false
-        }
-        if (!formatParsedSlice(fieldValue)?.trim()) {
-          return false
-        }
-      }
+    const hasErrors = Object.values(fieldErrors).some(error => error !== undefined)
+    if (hasErrors) {
+      setIsFormValid(false)
+      return
+    }
 
-      return true
-    },
-    [fields],
-  )
-
-  const isFormValid = useMemo((): boolean => {
-    if (!abi?.fields) return false
-    return validateFields(abi.fields, fields)
-  }, [abi?.fields, validateFields, fields])
+    const allFieldsFilled = Object.values(rawFields).every(value => value.trim() !== "")
+    setIsFormValid(allFieldsFilled)
+  }, [abi?.fields, fieldErrors, rawFields])
 
   useEffect(() => {
     onValidationChange(isFormValid)
@@ -211,8 +190,10 @@ export const AbiFieldsForm: React.FC<Props> = ({
   ): React.ReactNode => {
     return fieldsToRender.map(field => {
       const fieldPath = pathPrefix ? `${pathPrefix}.${field.name}` : field.name
-      const pathParts = fieldPath.split(".")
-      const fieldValue = getNestedValue(fields, pathParts)
+
+      if (!(fieldPath in rawFields)) {
+        setRawFields(prev => ({...prev, [fieldPath]: ""}))
+      }
 
       if (field.type.name === "struct" && contractAbi) {
         const structType = contractAbi.types.find(t => t.name === field.type.humanReadable)
@@ -258,12 +239,17 @@ export const AbiFieldsForm: React.FC<Props> = ({
             </div>
             <AddressInput
               contracts={contracts}
-              value={formatParsedSlice(fieldValue) ?? ""}
+              value={rawFields[fieldPath]}
               onChange={value => {
+                setRawFields(prev => ({...prev, [fieldPath]: value}))
                 handleFieldChange(fieldPath, value, field.type)
               }}
               placeholder={`Enter ${field.type.humanReadable}`}
               className={styles.addressInput}
+              error={fieldErrors[fieldPath]}
+              onErrorChange={error => {
+                handleFieldErrorReset(fieldPath)
+              }}
             />
           </div>
         )
@@ -274,10 +260,12 @@ export const AbiFieldsForm: React.FC<Props> = ({
           key={fieldPath}
           name={field.name}
           type={field.type.humanReadable}
-          value={formatParsedSlice(fieldValue) ?? ""}
+          value={rawFields[fieldPath]}
           onChange={value => {
+            setRawFields(prev => ({...prev, [fieldPath]: value}))
             handleFieldChange(fieldPath, value, field.type)
           }}
+          error={fieldErrors[fieldPath]}
         />
       )
     })

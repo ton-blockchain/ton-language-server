@@ -2,7 +2,7 @@ import React, {useEffect, useMemo, useState} from "react"
 
 import {ContractAbi} from "@shared/abi"
 
-import {Button, Input, Label, Select} from "../../../../components/common"
+import {Button, Input, Label, Select, ResultDisplay} from "../../../../components/common"
 
 import * as binary from "../../../../../../common/binary"
 import {AbiFieldsForm} from "../AbiFieldsForm/AbiFieldsForm"
@@ -23,6 +23,9 @@ interface Props {
   readonly contractAbi?: ContractAbi
   readonly contracts: readonly DeployedContract[]
   readonly deployState?: DeployState | null
+  readonly onResultUpdate?: (
+    result: {success: boolean; message: string; details?: string} | undefined,
+  ) => void
 }
 
 export const CompileDeploy: React.FC<Props> = ({
@@ -31,6 +34,7 @@ export const CompileDeploy: React.FC<Props> = ({
   contractAbi,
   contracts,
   deployState,
+  onResultUpdate,
 }) => {
   const [storageFields, setStorageFields] = useState<binary.ParsedObject>({})
   const [value, setValue] = useState<string>("1.0")
@@ -109,9 +113,18 @@ export const CompileDeploy: React.FC<Props> = ({
   }
 
   const handleCompileAndDeploy = (): void => {
-    const storageTypeToPass =
-      !contractAbi?.storage && selectedStorageType ? selectedStorageType : undefined
-    onCompileAndDeploy(createStateData(), value, contractName, storageTypeToPass)
+    try {
+      const storageTypeToPass =
+        !contractAbi?.storage && selectedStorageType ? selectedStorageType : undefined
+      onCompileAndDeploy(createStateData(), value, contractName, storageTypeToPass)
+    } catch (error) {
+      const errorResult = {
+        success: false,
+        message: "Failed to prepare contract data",
+        details: error instanceof Error ? error.message : "Unknown error",
+      }
+      onResultUpdate?.(errorResult)
+    }
   }
 
   const getErrorTitle = (deployState?: DeployState | null): string => {
@@ -193,6 +206,7 @@ export const CompileDeploy: React.FC<Props> = ({
             fields={storageFields}
             onFieldsChange={setStorageFields}
             onValidationChange={setStorageFieldsValid}
+            onClearResult={() => onResultUpdate?.(undefined)}
           />
 
           <div className={styles.formGroup}>
@@ -214,17 +228,12 @@ export const CompileDeploy: React.FC<Props> = ({
             />
           </div>
 
+          {result && <ResultDisplay result={result} onClose={() => onResultUpdate?.(undefined)} />}
+
           <Button onClick={handleCompileAndDeploy} disabled={!isFormValid()}>
             Compile & Deploy from Editor
           </Button>
         </>
-      )}
-
-      {result && (
-        <div className={`${styles.result} ${result.success ? styles.success : styles.error}`}>
-          {result.message}
-          {result.details && `\n\n${result.details}`}
-        </div>
       )}
     </div>
   )

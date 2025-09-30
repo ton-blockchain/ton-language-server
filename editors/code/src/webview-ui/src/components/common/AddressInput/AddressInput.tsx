@@ -16,6 +16,8 @@ interface AddressInputProps {
   readonly placeholder?: string
   readonly required?: boolean
   readonly className?: string
+  readonly error?: string
+  readonly onErrorChange?: (error: string | undefined) => void
 }
 
 type InputMode = "select" | "custom"
@@ -28,6 +30,8 @@ export const AddressInput: React.FC<AddressInputProps> = ({
   placeholder = "Enter contract address",
   required = false,
   className,
+  error,
+  onErrorChange,
 }) => {
   const [mode, setMode] = useState<InputMode>("select")
 
@@ -42,10 +46,10 @@ export const AddressInput: React.FC<AddressInputProps> = ({
   }, [value, selectedContract])
 
   useEffect(() => {
-    if (!value && contracts.length > 0) {
+    if (value === "" && contracts.length > 0 && mode === "select") {
       onChange(contracts[0].address)
     }
-  }, [value, contracts, onChange])
+  }, [value, contracts, onChange, mode])
 
   const handleSelectChange = (event: React.ChangeEvent<HTMLSelectElement>): void => {
     const selectedAddress = event.target.value
@@ -74,6 +78,7 @@ export const AddressInput: React.FC<AddressInputProps> = ({
         value={selectedContract ? value : ""}
         onChange={handleSelectChange}
         required={required}
+        variant={error ? "error" : "default"}
       >
         {contracts.map(contract => (
           <option key={contract.address} value={contract.address}>
@@ -91,12 +96,14 @@ export const AddressInput: React.FC<AddressInputProps> = ({
           placeholder={placeholder}
           required={required}
           className={`${styles.customInput} ${className ?? ""}`}
+          variant={error ? "error" : "default"}
         />
         <button
           type="button"
           className={styles.arrowButton}
           onClick={() => {
             setMode("select")
+            onErrorChange?.(undefined)
           }}
           title="Select from deployed contracts"
         >
@@ -105,14 +112,21 @@ export const AddressInput: React.FC<AddressInputProps> = ({
       </div>
     )
 
+  const inputWithError = (
+    <>
+      {inputElement}
+      {error && <div className={styles.errorMessage}>{error}</div>}
+    </>
+  )
+
   if (label) {
     return (
       <div className={styles.container}>
         <Label>{label}</Label>
-        {inputElement}
+        {inputWithError}
       </div>
     )
   }
 
-  return inputElement
+  return inputWithError
 }

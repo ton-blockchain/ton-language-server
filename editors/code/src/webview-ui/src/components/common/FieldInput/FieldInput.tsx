@@ -12,6 +12,7 @@ interface FieldInputProps {
   readonly onChange: (value: string) => void
   readonly disabled?: boolean
   readonly className?: string
+  readonly error?: string
 }
 
 export const FieldInput: React.FC<FieldInputProps> = ({
@@ -22,6 +23,7 @@ export const FieldInput: React.FC<FieldInputProps> = ({
   onChange,
   disabled = false,
   className,
+  error,
 }) => {
   return (
     <div className={`${styles.fieldContainer} ${className ?? ""}`}>
@@ -38,7 +40,9 @@ export const FieldInput: React.FC<FieldInputProps> = ({
         placeholder={placeholder ?? `Enter ${name} (${type})`}
         disabled={disabled}
         className={styles.fullWidth}
+        variant={error ? "error" : "default"}
       />
+      {error && <div className={styles.errorMessage}>{error}</div>}
     </div>
   )
 }

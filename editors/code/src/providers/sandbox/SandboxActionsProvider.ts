@@ -688,13 +688,14 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
         value: string,
         storageType?: string,
     ): Promise<void> {
-        await compileAndDeployFromEditor(
+        const result = await compileAndDeployFromEditor(
             name,
             stateData,
             this._treeProvider?.(),
             value,
             storageType,
         )
+        this.showResult(result, "compile-deploy-result")
     }
 
     public startSequentialDebugging(transactions: TransactionInfo[]): void {

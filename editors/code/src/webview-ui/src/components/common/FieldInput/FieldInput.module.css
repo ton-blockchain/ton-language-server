@@ -28,3 +28,10 @@
 .fullWidth {
   width: calc(100% - 18px);
 }
+
+.errorMessage {
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--vscode-errorForeground);
+  line-height: 1.3;
+}

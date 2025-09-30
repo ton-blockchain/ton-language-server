@@ -12,7 +12,7 @@ interface UseOperationsReturn {
   readonly activeOperation: Operation
   readonly results: Record<ResultKeys, ResultData | undefined>
   readonly setActiveOperation: (operation: Operation) => void
-  readonly updateResult: (resultId: string, result: ResultData) => void
+  readonly updateResult: (resultId: string, result: ResultData | undefined) => void
 }
 
 export function useOperations(): UseOperationsReturn {

@@ -1,14 +1,37 @@
-import {Address, Cell, ExternalAddress, Slice} from "@ton/core"
+import {Address, beginCell, Cell, ExternalAddress, Slice} from "@ton/core"
 
 import {TypeInfo} from "@shared/abi"
 
 import * as binary from "./index"
 import {AddressNone, ParsedObject, ParsedSlice} from "./index"
 
-export function parseStringFieldValue(fieldValue: string, fieldType: TypeInfo): binary.ParsedSlice {
-    if (!fieldValue.trim()) {
+function parseSliceLiteral(fieldValue: string, fieldType: TypeInfo): Slice {
+    if (fieldValue.startsWith("te6")) {
+        return Cell.fromBase64(fieldValue).asSlice()
+    }
+    if (fieldValue.startsWith("b5e")) {
+        return Cell.fromHex(fieldValue).asSlice()
+    }
+    if ((fieldValue.startsWith("x{") || fieldValue.startsWith("b{")) && fieldValue.endsWith("}")) {
+        return binary.makeSlice(fieldValue)
+    }
+    if (fieldValue.startsWith('"') && fieldValue.endsWith('"')) {
+        const stringContent = fieldValue.slice(1, -1)
+        return beginCell().storeBuffer(Buffer.from(stringContent, "utf8")).asSlice()
+    }
+
+    throw new Error(`Invalid '${fieldType.humanReadable}' literal`)
+}
+
+export function parseStringFieldValue(
+    rawFieldValue: string,
+    fieldType: TypeInfo,
+): binary.ParsedSlice {
+    if (!rawFieldValue.trim()) {
         return null
     }
+
+    const fieldValue = rawFieldValue.trim()
 
     switch (fieldType.name) {
         case "int":
@@ -22,30 +45,27 @@ export function parseStringFieldValue(fieldValue: string, fieldType: TypeInfo): 
         }
 
         case "bool": {
-            return fieldValue.toLowerCase() === "true" || fieldValue === "1"
+            return fieldValue.toLowerCase() === "true"
         }
 
         case "address": {
-            if (fieldValue === "null" || fieldValue === "") {
+            if (fieldValue === "null" || fieldValue === "none" || fieldValue === "") {
                 return new binary.AddressNone()
             }
             try {
                 return Address.parse(fieldValue)
             } catch {
-                return new binary.AddressNone()
+                throw new Error(`Invalid address value`)
             }
         }
 
         case "bits":
         case "slice": {
-            return binary.makeSlice(fieldValue)
+            return parseSliceLiteral(fieldValue, fieldType)
         }
 
         case "cell": {
-            if (fieldValue.startsWith("x{") || fieldValue.startsWith("b{")) {
-                return binary.makeSlice(fieldValue).asCell()
-            }
-            return Cell.fromBase64(fieldValue)
+            return parseSliceLiteral(fieldValue, fieldType).asCell()
         }
 
         case "option": {

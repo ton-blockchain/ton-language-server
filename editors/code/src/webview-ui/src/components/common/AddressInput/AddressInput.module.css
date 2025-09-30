@@ -44,3 +44,10 @@
   outline: 1px solid var(--vscode-focusBorder);
   outline-offset: -1px;
 }
+
+.errorMessage {
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--vscode-errorForeground);
+  line-height: 1.3;
+}

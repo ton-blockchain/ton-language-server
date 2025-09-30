@@ -1,6 +1,6 @@
 import React, {useState, useEffect, useMemo} from "react"
 
-import {VscSave, VscCheck, VscError, VscListSelection} from "react-icons/vsc"
+import {VscSave} from "react-icons/vsc"
 
 import {Cell} from "@ton/core"
 
@@ -11,7 +11,7 @@ import * as binary from "../../../../../../common/binary"
 
 import {MessageTemplate, VSCodeAPI} from "../../sandbox-actions-types"
 import {SendModeSelector} from "../SendModeSelector/SendModeSelector"
-import {Button, Input, Select} from "../../../../components/common"
+import {Button, Input, Select, ResultDisplay} from "../../../../components/common"
 import {formatParsedSlice} from "../../../../../../common/binary"
 import {AbiFieldsForm} from "../AbiFieldsForm/AbiFieldsForm"
 import {Base64String} from "../../../../../../common/base64-string"
@@ -39,6 +39,9 @@ interface Props {
   readonly handleShowTransactionDetails: (tx: LastTransaction) => void
   readonly result?: {success: boolean; message: string; details?: string}
   readonly onClearResult?: () => void
+  readonly onResultUpdate?: (
+    result: {success: boolean; message: string; details?: string} | undefined,
+  ) => void
   readonly loadedTemplate?: MessageTemplate
   readonly messageTemplates: MessageTemplate[]
   readonly vscode: VSCodeAPI
@@ -60,6 +63,7 @@ export const SendMessage: React.FC<Props> = ({
   handleShowTransactionDetails,
   result,
   onClearResult,
+  onResultUpdate,
   loadedTemplate,
   messageTemplates,
   vscode,
@@ -513,34 +517,15 @@ export const SendMessage: React.FC<Props> = ({
       </div>
 
       {result && (
-        <div className={styles.resultContainer}>
-          <div className={`${styles.result} ${result.success ? styles.success : styles.error}`}>
-            <div className={styles.resultHeader}>
-              <div className={styles.resultIcon}>
-                {result.success ? <VscCheck /> : <VscError />}
-              </div>
-              <div className={styles.resultTitle}>
-                {result.success ? "Message sent successfully" : "Failed to send message"}
-              </div>
-            </div>
-            <div className={styles.resultMessage}>{result.message}</div>
-            {result.details && <div className={styles.resultDetails}>{result.details}</div>}
-            {result.success && lastTransaction && (
-              <div className={styles.resultActions}>
-                <button
-                  onClick={() => {
-                    handleShowTransactionDetails(lastTransaction)
-                  }}
-                  className={styles.transactionDetailsButton}
-                  type="button"
-                >
-                  <VscListSelection />
-                  Show Transaction Details
-                </button>
-              </div>
-            )}
-          </div>
-        </div>
+        <ResultDisplay
+          result={result}
+          lastTransaction={lastTransaction}
+          onShowTransactionDetails={handleShowTransactionDetails}
+          onClose={() => {
+            setLastTransaction(null)
+            onResultUpdate?.(undefined)
+          }}
+        />
       )}
 
       <div className={styles.buttonRow}>

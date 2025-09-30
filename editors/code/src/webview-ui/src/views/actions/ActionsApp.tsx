@@ -25,6 +25,7 @@ export default function ActionsApp({vscode}: Props): JSX.Element {
     activeOperation,
     setActiveOperation,
     results,
+    updateResult,
 
     // Contract data
     contractAbi, // for deployment
@@ -72,6 +73,9 @@ export default function ActionsApp({vscode}: Props): JSX.Element {
             result={results["compile-deploy-result"]}
             contractAbi={contractAbi}
             deployState={deployState}
+            onResultUpdate={result => {
+              updateResult("compile-deploy-result", result)
+            }}
           />
         )
       }
@@ -114,6 +118,11 @@ export default function ActionsApp({vscode}: Props): JSX.Element {
             result={
               results["send-internal-message-result"] ?? results["send-external-message-result"]
             }
+            onResultUpdate={result => {
+              // Clear both possible results
+              updateResult("send-internal-message-result", result)
+              updateResult("send-external-message-result", result)
+            }}
             loadedTemplate={loadedTemplate}
             messageTemplates={messageTemplates}
             vscode={vscode}
