@@ -43,7 +43,7 @@ function parseTypedCell(slice: Slice, typeInfo: TypeInfo, abi: ContractAbi): Par
     }
 }
 
-function parseFieldValue(slice: Slice, typeInfo: TypeInfo, abi: ContractAbi): ParsedSlice {
+export function parseFieldValue(slice: Slice, typeInfo: TypeInfo, abi: ContractAbi): ParsedSlice {
     if (typeInfo.name === "option") {
         const hasValue = slice.loadBoolean()
         if (!hasValue) {
@@ -134,6 +134,9 @@ function parseFieldValue(slice: Slice, typeInfo: TypeInfo, abi: ContractAbi): Pa
         }
         case "anon-struct": {
             throw new Error("Anonymous struct should be handled earlier")
+        }
+        case "void": {
+            throw new Error("Void type cannot be parsed")
         }
     }
 

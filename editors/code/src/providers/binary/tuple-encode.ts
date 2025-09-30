@@ -1,35 +1,30 @@
-import {Address, beginCell, Builder, Cell, ExternalAddress, Slice} from "@ton/core"
+import {Address, beginCell, Cell, Slice, TupleBuilder, TupleItem} from "@ton/core"
 import {ContractAbi, TypeAbi, TypeInfo} from "@shared/abi"
-import {NestedObject, ParsedObject, ParsedSlice} from "./types"
+import {AddressNone, NestedObject, ParsedObject, ParsedSlice} from "./types"
+import {encodeData, encodeFieldValue} from "./encode"
 
 /**
- * Encode a parsed object back to a slice using ABI type definition
+ * Encode a parsed object to a tuple using ABI type definition
  *
  * @param abi     Contract ABI contains type definitions for resolving nested types
  * @param typeAbi Type definition containing the fields to encode
  * @param data    Parsed object with field values to encode
  */
-export function encodeData(abi: ContractAbi, typeAbi: TypeAbi, data: ParsedObject): Cell {
-    const builder = beginCell()
-
-    if (typeAbi.opcode !== undefined && typeAbi.opcodeWidth !== undefined) {
-        builder.storeUint(typeAbi.opcode, typeAbi.opcodeWidth)
-    }
+export function encodeTuple(abi: ContractAbi, typeAbi: TypeAbi, data: ParsedObject): TupleItem[] {
+    const builder = new TupleBuilder()
 
     for (const field of typeAbi.fields) {
         const value = data[field.name]
         if (value === undefined) {
             throw new Error(`Missing field '${field.name}' in data`)
         }
-        encodeFieldValue(builder, field.type, value, abi)
+        encodeTupleFieldValue(builder, field.type, value, abi)
     }
 
-    return builder.endCell()
+    return builder.build()
 }
 
-function encodeTypedCell(abi: ContractAbi, typeInfo: TypeInfo, value: ParsedObject): Cell {
-    const builder = beginCell()
-
+function encodeTupleTypedData(abi: ContractAbi, typeInfo: TypeInfo, value: ParsedObject): Cell {
     if (typeInfo.name === "struct") {
         const structTypeAbi = abi.types.find(t => t.name === typeInfo.structName)
         if (!structTypeAbi) {
@@ -40,31 +35,31 @@ function encodeTypedCell(abi: ContractAbi, typeInfo: TypeInfo, value: ParsedObje
 
     if (typeInfo.name === "anon-struct") {
         const innerType = typeInfo.fields[0]
-        encodeFieldValue(builder, innerType, value.value as ParsedSlice, abi)
-        return builder.endCell()
+        const b = beginCell()
+        encodeFieldValue(b, innerType, value.value as ParsedSlice, abi)
+        return b.endCell()
     }
 
     throw new Error(`cannot encode Cell<${typeInfo.humanReadable}>`)
 }
 
-export function encodeFieldValue(
-    builder: Builder,
+function encodeTupleFieldValue(
+    builder: TupleBuilder,
     typeInfo: TypeInfo,
     value: ParsedSlice,
     abi: ContractAbi,
 ): void {
     if (typeInfo.name === "option") {
         if (value === null) {
-            builder.storeBit(0)
+            builder.writeNumber(null)
             return
         }
-        builder.storeBit(1)
-        encodeFieldValue(builder, typeInfo.innerType, value, abi)
+        encodeTupleFieldValue(builder, typeInfo.innerType, value, abi)
         return
     }
 
     if (typeInfo.name === "type-alias") {
-        encodeFieldValue(builder, typeInfo.innerType, value, abi)
+        encodeTupleFieldValue(builder, typeInfo.innerType, value, abi)
         return
     }
 
@@ -73,7 +68,7 @@ export function encodeFieldValue(
             if (typeof value !== "bigint") {
                 throw new TypeError(`Expected bigint for int type, got ${typeof value}`)
             }
-            builder.storeInt(value, typeInfo.width)
+            builder.writeNumber(value)
             break
         }
 
@@ -81,7 +76,10 @@ export function encodeFieldValue(
             if (typeof value !== "bigint") {
                 throw new TypeError(`Expected bigint for uint type, got ${typeof value}`)
             }
-            builder.storeUint(value, typeInfo.width)
+            if (value < 0) {
+                throw new Error(`Unsigned integer cannot be negative: ${value}`)
+            }
+            builder.writeNumber(value)
             break
         }
 
@@ -89,7 +87,7 @@ export function encodeFieldValue(
             if (typeof value !== "bigint") {
                 throw new TypeError(`Expected bigint for coins type, got ${typeof value}`)
             }
-            builder.storeCoins(value)
+            builder.writeNumber(value)
             break
         }
 
@@ -97,15 +95,17 @@ export function encodeFieldValue(
             if (typeof value !== "boolean") {
                 throw new TypeError(`Expected boolean for bool type, got ${typeof value}`)
             }
-            builder.storeBit(value ? 1 : 0)
+            builder.writeBoolean(value)
             break
         }
 
         case "address": {
-            if (value instanceof Address || value instanceof ExternalAddress) {
-                builder.storeAddress(value)
+            if (value instanceof Address) {
+                builder.writeAddress(value)
+            } else if (value instanceof AddressNone) {
+                builder.writeSlice(beginCell().storeUint(0, 2).asSlice())
             } else {
-                builder.storeUint(0, 2)
+                builder.writeAddress(null)
             }
             break
         }
@@ -114,22 +114,18 @@ export function encodeFieldValue(
             if (!(value instanceof Slice)) {
                 throw new TypeError(`Expected Slice for bits type, got ${typeof value}`)
             }
-            const bits = value.clone().loadBits(value.remainingBits)
-            if (bits.length !== typeInfo.width) {
-                throw new Error(`Invalid data bits length ${bits.length} for bits${typeInfo.width}`)
-            }
-            builder.storeBits(bits)
+            builder.writeSlice(value.asCell())
             break
         }
 
         case "cell": {
             if (value instanceof Cell) {
-                builder.storeRef(value)
+                builder.writeCell(value)
             } else if (value && typeof value === "object" && "$" in value) {
                 const nestedObj = value as NestedObject
                 if (typeInfo.innerType && nestedObj.value !== undefined) {
-                    const innerCell = encodeTypedCell(abi, typeInfo.innerType, nestedObj.value)
-                    builder.storeRef(innerCell)
+                    const innerCell = encodeTupleTypedData(abi, typeInfo.innerType, nestedObj.value)
+                    builder.writeCell(innerCell)
                 } else {
                     throw new Error(`Invalid nested object for typed cell`)
                 }
@@ -143,7 +139,7 @@ export function encodeFieldValue(
             if (!(value instanceof Slice)) {
                 throw new TypeError(`Expected Slice for slice type, got ${typeof value}`)
             }
-            builder.storeSlice(value)
+            builder.writeSlice(value.asCell())
             break
         }
 
@@ -151,7 +147,7 @@ export function encodeFieldValue(
             if (typeof value !== "bigint") {
                 throw new TypeError(`Expected bigint for varint16 type, got ${typeof value}`)
             }
-            builder.storeVarInt(value, 4)
+            builder.writeNumber(value)
             break
         }
 
@@ -159,7 +155,7 @@ export function encodeFieldValue(
             if (typeof value !== "bigint") {
                 throw new TypeError(`Expected bigint for varint32 type, got ${typeof value}`)
             }
-            builder.storeVarInt(value, 5)
+            builder.writeNumber(value)
             break
         }
 
@@ -167,7 +163,10 @@ export function encodeFieldValue(
             if (typeof value !== "bigint") {
                 throw new TypeError(`Expected bigint for varuint16 type, got ${typeof value}`)
             }
-            builder.storeVarUint(value, 4)
+            if (value < 0) {
+                throw new Error(`Unsigned varint cannot be negative: ${value}`)
+            }
+            builder.writeNumber(value)
             break
         }
 
@@ -175,7 +174,10 @@ export function encodeFieldValue(
             if (typeof value !== "bigint") {
                 throw new TypeError(`Expected bigint for varuint32 type, got ${typeof value}`)
             }
-            builder.storeVarUint(value, 5)
+            if (value < 0) {
+                throw new Error(`Unsigned varint cannot be negative: ${value}`)
+            }
+            builder.writeNumber(value)
             break
         }
 
@@ -183,7 +185,7 @@ export function encodeFieldValue(
             if (!value || typeof value !== "object" || !("$" in value)) {
                 throw new TypeError(`Expected NestedObject for struct type, got ${typeof value}`)
             }
-            const nestedObj = value
+            const nestedObj = value as NestedObject
             if (nestedObj.name !== typeInfo.structName) {
                 throw new TypeError(
                     `Expected NestedObject with name '${typeInfo.structName}', got '${nestedObj.name}'`,
@@ -198,15 +200,21 @@ export function encodeFieldValue(
             if (!structTypeAbi) {
                 throw new Error(`Struct type '${typeInfo.structName}' not found in ABI`)
             }
-            const structCell = encodeData(abi, structTypeAbi, nestedObj.value)
-            builder.storeSlice(structCell.beginParse())
+            const structTuple = encodeTuple(abi, structTypeAbi, nestedObj.value)
+            builder.writeTuple(structTuple)
             break
         }
+
         case "anon-struct": {
             throw new Error('Not implemented yet: "anon-struct" case')
         }
+
         case "void": {
-            throw new Error("Void type cannot be encoded")
+            // do nothing, void type is not encoded in tuples
+            break
+        }
+        default: {
+            throw new Error(`Unexpected type in tuple encoding`)
         }
     }
 }
