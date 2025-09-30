@@ -40,53 +40,6 @@
   background-color: var(--vscode-input-background);
 }
 
-.messageFieldsContainer {
-  margin-bottom: 12px;
-}
-
-.messageField {
-  margin-bottom: 10px;
-  padding: 8px;
-  border: 1px solid var(--vscode-input-border);
-  border-radius: 3px;
-  background-color: var(--vscode-editor-background);
-}
-
-.messageFieldHeader {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 6px;
-}
-
-.messageFieldName {
-  font-weight: 500;
-  font-size: 12px;
-}
-
-.messageFieldType {
-  font-size: 11px;
-  color: var(--vscode-descriptionForeground);
-  font-family: var(--vscode-editor-font-family);
-}
-
-.messageFieldInput {
-  width: calc(100% - 16px);
-  padding: 6px 8px;
-  background-color: var(--vscode-input-background);
-  color: var(--vscode-input-foreground);
-  border: 1px solid var(--vscode-input-border);
-  border-radius: 2px;
-  font-family: inherit;
-  font-size: 12px;
-  margin-bottom: 0;
-}
-
-.messageFieldInput:focus {
-  outline: none;
-  border-color: var(--vscode-focusBorder);
-}
-
 .noMessages {
   font-size: 11px;
   color: var(--vscode-descriptionForeground);
@@ -100,8 +53,8 @@
   margin-bottom: 6px;
   padding: 12px;
   border-radius: 4px;
-  background-color: rgba(239, 68, 68, 0.1);
-  border: 1px solid rgba(239, 68, 68, 0.3);
+  background-color: rgb(239 68 68 / 10%);
+  border: 1px solid rgb(239 68 68 / 30%);
   color: var(--vscode-foreground);
 }
 
@@ -117,7 +70,7 @@
   display: inline-block;
   margin-right: 6px;
   font-weight: bold;
-  color: rgba(239, 68, 68, 0.8);
+  color: rgb(239 68 68 / 80%);
 }
 
 .externalMessageError .errorMessage {
@@ -193,7 +146,7 @@
 }
 
 .resultMessage {
-  font-family: var(--vscode-editor-font-family);
+  font-family: var(--vscode-editor-font-family), monospace;
   font-size: 11px;
   line-height: 1.4;
   white-space: pre-wrap;
@@ -209,7 +162,7 @@
   background-color: var(--vscode-editor-background);
   border: 1px solid var(--vscode-input-border);
   border-radius: 3px;
-  font-family: var(--vscode-editor-font-family);
+  font-family: var(--vscode-editor-font-family), monospace;
   font-size: 11px;
   line-height: 1.4;
   white-space: pre-wrap;
@@ -218,8 +171,8 @@
 }
 
 .result.success {
-  background-color: rgba(22, 163, 74, 0.1);
-  border-color: rgba(22, 163, 74, 0.3);
+  background-color: rgb(22 163 74 / 10%);
+  border-color: rgb(22 163 74 / 30%);
 }
 
 .result.success .resultIcon {
@@ -232,8 +185,8 @@
 }
 
 .result.error {
-  background-color: rgba(239, 68, 68, 0.1);
-  border-color: rgba(239, 68, 68, 0.3);
+  background-color: rgb(239 68 68 / 10%);
+  border-color: rgb(239 68 68 / 30%);
 }
 
 .result.error .resultIcon {
@@ -277,35 +230,6 @@
 .transactionDetailsButton:focus {
   outline: 1px solid var(--vscode-focusBorder);
   outline-offset: 1px;
-}
-
-.resultLoadingState {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 12px;
-  background-color: var(--vscode-notifications-background);
-  border: 1px solid var(--vscode-notifications-border);
-  border-radius: 4px;
-  color: var(--vscode-notifications-foreground);
-}
-
-.resultLoadingSpinner {
-  width: 16px;
-  height: 16px;
-  border: 2px solid var(--vscode-progressBar-background);
-  border-top: 2px solid var(--vscode-progressBar-background);
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-
-@keyframes spin {
-  0% {
-    transform: rotate(0deg);
-  }
-  100% {
-    transform: rotate(360deg);
-  }
 }
 
 .checkboxLabel {
@@ -399,14 +323,6 @@
   color: var(--vscode-settings-textInputForeground, var(--vscode-input-foreground));
   cursor: pointer;
   align-self: center;
-}
-
-.radioGroupLabel {
-  display: block;
-  margin-bottom: 8px;
-  font-size: 12px;
-  font-weight: 500;
-  color: var(--vscode-input-foreground);
 }
 
 .radioGroup {

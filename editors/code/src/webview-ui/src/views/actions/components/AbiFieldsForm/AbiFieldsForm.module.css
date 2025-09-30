@@ -4,12 +4,6 @@
   gap: 16px;
 }
 
-.formGroup {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
 .fieldsContainer {
   display: flex;
   flex-direction: column;
@@ -59,7 +53,7 @@
 .structLabel .fieldType {
   font-size: 11px;
   color: var(--vscode-descriptionForeground);
-  font-family: var(--vscode-editor-font-family);
+  font-family: var(--vscode-editor-font-family), monospace;
 }
 
 .nestedFields {
@@ -96,5 +90,5 @@
 .fieldType {
   font-size: 11px;
   color: var(--vscode-descriptionForeground);
-  font-family: var(--vscode-editor-font-family);
+  font-family: var(--vscode-editor-font-family), monospace;
 }

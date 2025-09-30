@@ -44,10 +44,7 @@ export class TolkCompilerProvider {
     private static instance: TolkCompilerProvider | undefined
 
     public static getInstance(): TolkCompilerProvider {
-        if (!TolkCompilerProvider.instance) {
-            TolkCompilerProvider.instance = new TolkCompilerProvider()
-        }
-
+        TolkCompilerProvider.instance ??= new TolkCompilerProvider()
         return TolkCompilerProvider.instance
     }
 

@@ -31,9 +31,6 @@
   background-color: var(--color-background-secondary);
 }
 
-.contractChip.clickable:active {
-}
-
 .contractLetter {
   display: inline-flex;
   align-items: center;
@@ -51,7 +48,6 @@
 .contractName {
   font-weight: var(--font-weight-medium);
   color: var(--table-td-text-color);
-
   margin-top: -3px; /* compensate */
 }
 
@@ -94,5 +90,5 @@
   width: 14px;
   height: 14px;
   display: block;
-  stroke: currentColor;
+  stroke: currentcolor;
 }

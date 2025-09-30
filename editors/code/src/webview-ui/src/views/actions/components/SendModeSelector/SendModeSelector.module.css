@@ -104,7 +104,7 @@
   background-color: var(--vscode-quickInput-background);
   border: 1px solid var(--vscode-widget-border);
   border-radius: 3px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 30%);
   max-height: 300px;
   overflow-y: auto;
   z-index: 1000;

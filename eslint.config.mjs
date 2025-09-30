@@ -33,6 +33,7 @@ export default tseslint.config(
         ignores: [
             "**/*.js",
             "eslint.config.mjs",
+            "stylelint.config.mjs",
             ".github/*",
             ".yarn/*",
             ".vscode-test/*",

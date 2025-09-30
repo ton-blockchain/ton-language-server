@@ -92,44 +92,12 @@
   overflow-y: auto;
 }
 
-.inlineContainer {
-  display: inline-flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  position: relative;
-}
-
-.inlineContainer:hover .inlineCopyButton {
-  opacity: 1;
-  visibility: visible;
-}
-
-.contentInline {
-  background: var(--color-background-secondary);
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--border-radius-md);
-  font-size: var(--font-size-xs);
-  color: var(--color-text-secondary);
-}
-
-.inlineCopyButton {
-  padding: calc(var(--spacing-xs) * 0.5);
-  min-width: 20px;
-  min-height: 20px;
-  opacity: 0;
-  visibility: hidden;
-}
-
-.inlineCopyButton.copied {
-  opacity: 1;
-  visibility: visible;
-}
-
 @keyframes popIn {
   0% {
     transform: scale(0.7);
     opacity: 0.5;
   }
+
   100% {
     transform: scale(1);
     opacity: 1;

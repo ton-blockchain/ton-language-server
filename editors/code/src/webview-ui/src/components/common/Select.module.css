@@ -1,6 +1,6 @@
 .select {
   width: 100%;
-  padding: 6px 8px;
+  padding: 6px 32px 6px 8px;
   background-color: var(--vscode-dropdown-background);
   color: var(--vscode-dropdown-foreground);
   border: 1px solid var(--vscode-dropdown-border);
@@ -14,7 +14,6 @@
   background-position: right 8px center;
   background-repeat: no-repeat;
   background-size: 16px;
-  padding-right: 32px;
 }
 
 .select:focus {

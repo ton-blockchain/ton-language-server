@@ -37,7 +37,7 @@
 }
 
 .arrowButton:hover {
-  background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+  background-color: var(--vscode-toolbar-hoverBackground, rgb(255 255 255 / 10%));
 }
 
 .arrowButton:focus {

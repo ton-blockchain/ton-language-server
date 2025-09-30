@@ -1,14 +1,12 @@
-/* Main container */
 .container {
   padding: 20px;
   background-color: var(--vscode-editor-background);
-  font-family: var(--vscode-font-family);
+  font-family: var(--vscode-font-family), sans-serif;
   color: var(--vscode-foreground);
   height: 100vh;
   overflow: auto;
 }
 
-/* Loading state */
 .loading {
   padding: 20px;
   text-align: center;
@@ -20,7 +18,6 @@
   margin-bottom: 10px;
 }
 
-/* Header */
 .header {
   margin-bottom: 20px;
   border-bottom: 1px solid var(--vscode-panel-border);
@@ -28,7 +25,7 @@
 }
 
 .title {
-  margin: 0 0 10px 0;
+  margin: 0 0 10px;
   color: var(--vscode-foreground);
   font-size: 1.4em;
 }
@@ -40,41 +37,13 @@
   gap: 8px;
 }
 
-/* Information cards */
-.card {
-  background-color: var(--vscode-editorWidget-background);
-  border: 1px solid var(--vscode-panel-border);
-  border-radius: 4px;
-  padding: 15px;
-  margin-bottom: 15px;
-}
-
-.cardHeader {
-  margin-bottom: 12px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
 .label {
   font-weight: bold;
   color: var(--vscode-foreground);
 }
 
-/* Code blocks */
-.codeBlock {
-  font-family: var(--vscode-editor-font-family, "Fira Code", monospace);
-  background-color: var(--vscode-textCodeBlock-background);
-  padding: 8px;
-  border-radius: 3px;
-  border: 1px solid var(--vscode-textBlockQuote-border);
-  word-break: break-all;
-  font-size: 0.9em;
-}
-
-/* Specific code blocks */
 .contractAddress {
-  font-family: var(--vscode-editor-font-family, "Fira Code", monospace);
+  font-family: var(--vscode-editor-font-family, "Fira Code", monospace), monospace;
   background-color: var(--vscode-textCodeBlock-background);
   padding: 8px;
   border-radius: 3px;
@@ -88,7 +57,7 @@
   padding: 8px;
   border-radius: 3px;
   border: 1px solid var(--vscode-textBlockQuote-border);
-  font-family: var(--vscode-editor-font-family, "Fira Code", monospace);
+  font-family: var(--vscode-editor-font-family, "Fira Code", monospace), monospace;
   font-size: 0.9em;
 }
 
@@ -97,7 +66,7 @@
   padding: 8px;
   border-radius: 3px;
   border: 1px solid var(--vscode-textBlockQuote-border);
-  font-family: var(--vscode-editor-font-family, "Fira Code", monospace);
+  font-family: var(--vscode-editor-font-family, "Fira Code", monospace), monospace;
   word-break: break-all;
   font-size: 0.9em;
 }
@@ -108,33 +77,4 @@
   border-radius: 3px;
   border: 1px solid var(--vscode-textBlockQuote-border);
   font-size: 0.9em;
-}
-
-.resultString {
-  background-color: var(--vscode-textCodeBlock-background);
-  padding: 8px;
-  border-radius: 3px;
-  border: 1px solid var(--vscode-textBlockQuote-border);
-  font-family: var(--vscode-editor-font-family, "Fira Code", monospace);
-  font-size: 0.8em;
-  overflow-x: auto;
-}
-
-.resultString pre {
-  margin: 0;
-  white-space: pre-wrap;
-  word-break: break-all;
-}
-
-/* Statuses */
-.statusSuccess {
-  color: var(--vscode-charts-green);
-}
-
-.statusPending {
-  color: var(--vscode-charts-yellow);
-}
-
-.statusFailed {
-  color: var(--vscode-errorForeground);
 }

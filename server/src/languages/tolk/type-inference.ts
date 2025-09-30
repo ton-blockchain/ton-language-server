@@ -1301,9 +1301,7 @@ class InferenceWalker {
                 ).outFlow
             }
 
-            if (armFlow === null) {
-                armFlow = armsEntryFlow.clone()
-            }
+            armFlow ??= armsEntryFlow.clone()
 
             if (armPatternType) {
                 let armType =

@@ -447,12 +447,6 @@ export function TransactionTree({testData}: TransactionTreeProps): React.JSX.Ele
             className={styles.nodeCircleDefault}
           />
 
-          <foreignObject width="30" height="30" x="-15" y="-15">
-            <div className={`${styles.externalOutNode} ${styles.externalOutNodeContainer}`}>
-              <div className={`${styles.externalOutArrow} ${styles.externalOutArrowContainer}`} />
-            </div>
-          </foreignObject>
-
           <foreignObject width="150" height="100" x="-180" y="-40">
             <div className={styles.edgeText}>
               <div className={styles.topText}>

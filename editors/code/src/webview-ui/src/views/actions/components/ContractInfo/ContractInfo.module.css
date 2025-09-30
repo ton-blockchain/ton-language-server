@@ -1,12 +1,12 @@
 .container {
-  font-family: var(--vscode-font-family), "sans-serif";
+  font-family: var(--vscode-font-family), sans-serif;
   color: var(--vscode-foreground);
   background-color: var(--vscode-sideBar-background);
   max-width: 500px;
 }
 
 .header {
-  margin: 16px 16px 10px 16px;
+  margin: 16px 16px 10px;
   display: flex;
   justify-content: space-between;
   align-items: flex-start;
@@ -39,7 +39,7 @@
 }
 
 .headerActionButton:hover {
-  background-color: var(--vscode-toolbar-hoverBackground, rgba(255, 255, 255, 0.1));
+  background-color: var(--vscode-toolbar-hoverBackground, rgb(255 255 255 / 10%));
 }
 
 .copySuccess {
@@ -49,8 +49,7 @@
 .contractTitle {
   display: flex;
   align-items: center;
-  column-gap: 8px;
-  row-gap: 4px;
+  gap: 4px 8px;
   flex-wrap: wrap;
 }
 
@@ -91,7 +90,7 @@
 }
 
 .contractNameValue {
-  font-family: var(--vscode-editor-font-family);
+  font-family: var(--vscode-editor-font-family), monospace;
   background-color: var(--vscode-textCodeBlock-background);
   color: var(--vscode-textPreformat-foreground);
   padding: 2px 6px;
@@ -105,19 +104,6 @@
 
 .contractNameValue:hover {
   opacity: 1;
-}
-
-.infoGrid {
-  display: grid;
-  gap: 6px;
-  margin-bottom: 16px;
-}
-
-.infoItem {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 4px 0;
 }
 
 .label {
@@ -152,20 +138,20 @@
 }
 
 .balance {
-  font-family: var(--vscode-editor-font-family);
+  font-family: var(--vscode-editor-font-family), monospace;
   font-weight: 600;
   color: var(--vscode-charts-green);
   font-size: 12px;
 }
 
 .storageSection {
-  margin: 12px 0 0 0;
+  margin: 12px 0 0;
   padding: 0;
   border-top: 1px solid var(--vscode-panel-border);
 }
 
 .sectionTitle {
-  margin: 0 16px 0 16px;
+  margin: 0 16px;
   font-weight: 600;
   color: var(--vscode-foreground);
   font-size: 11px;
@@ -177,7 +163,7 @@
 .storageGrid {
   display: grid;
   gap: 4px;
-  margin: 0 16px 0 16px;
+  margin: 0 16px;
 }
 
 .storageItem {
@@ -196,7 +182,7 @@
 }
 
 .fieldValue {
-  font-family: var(--vscode-editor-font-family);
+  font-family: var(--vscode-editor-font-family), monospace;
   background-color: var(--vscode-textCodeBlock-background);
   color: var(--vscode-textPreformat-foreground);
   padding: 1px 4px;
@@ -233,7 +219,7 @@
 .structFieldType {
   font-size: 10px;
   color: var(--vscode-descriptionForeground);
-  font-family: var(--vscode-editor-font-family);
+  font-family: var(--vscode-editor-font-family), monospace;
 }
 
 .nestedStorageContent {
@@ -245,7 +231,7 @@
   display: flex;
   gap: 6px;
   justify-content: flex-start;
-  margin: 20px 16px 0 16px;
+  margin: 20px 16px 0;
   padding-top: 8px;
 }
 
@@ -302,6 +288,7 @@
   0% {
     transform: rotate(0deg);
   }
+
   100% {
     transform: rotate(360deg);
   }
@@ -337,7 +324,7 @@
 .errorDetails {
   color: var(--vscode-descriptionForeground);
   font-size: 12px;
-  font-family: var(--vscode-editor-font-family);
+  font-family: var(--vscode-editor-font-family), monospace;
   background-color: var(--vscode-textCodeBlock-background);
   border: 1px solid var(--vscode-textBlockQuote-border);
   padding: 6px 10px;

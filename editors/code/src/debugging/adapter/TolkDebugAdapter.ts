@@ -325,9 +325,7 @@ export class TolkDebugAdapter extends LoggingDebugSession {
                 if (!parent) {
                     continue
                 }
-                if (!parent.children) {
-                    parent.children = []
-                }
+                parent.children ??= []
 
                 parent.children.push({
                     $: "nested-variable",
