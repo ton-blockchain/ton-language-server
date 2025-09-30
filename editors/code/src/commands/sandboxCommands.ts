@@ -8,15 +8,15 @@ import {Cell, parseTuple, serializeTuple, TupleItem, TupleReader} from "@ton/cor
 
 import {ContractAbi, TypeAbi} from "@shared/abi"
 
-import {SandboxTreeProvider} from "../providers/SandboxTreeProvider"
-import {SandboxActionsProvider} from "../providers/SandboxActionsProvider"
-import {HistoryWebviewProvider} from "../providers/HistoryWebviewProvider"
+import {SandboxTreeProvider} from "../providers/sandbox/SandboxTreeProvider"
+import {SandboxActionsProvider} from "../providers/sandbox/SandboxActionsProvider"
+import {HistoryWebviewProvider} from "../providers/sandbox/HistoryWebviewProvider"
 import {MessageTemplate} from "../webview-ui/src/views/actions/sandbox-actions-types"
-import {DeployedContract} from "../providers/lib/contract"
+import {DeployedContract} from "../common/types/contract"
 
-import * as binary from "../providers/binary"
-import {formatParsedObject, ParsedObject} from "../providers/binary"
-import {OperationNode} from "../providers/methods"
+import * as binary from "../common/binary"
+import {formatParsedObject, ParsedObject} from "../common/binary"
+import {OperationNode} from "../providers/sandbox/methods"
 import {HexString} from "../common/hex-string"
 
 export function registerSandboxCommands(
@@ -73,7 +73,9 @@ export function registerSandboxCommands(
         }),
         vscode.commands.registerCommand(
             "ton.sandbox.startDebugSequence",
-            (transactions: import("../providers/SandboxActionsProvider").TransactionInfo[]) => {
+            (
+                transactions: import("../providers/sandbox/SandboxActionsProvider").TransactionInfo[],
+            ) => {
                 formProvider.startSequentialDebugging(transactions)
             },
         ),

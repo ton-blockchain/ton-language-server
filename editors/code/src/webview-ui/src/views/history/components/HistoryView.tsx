@@ -9,10 +9,10 @@ import {
   processRawTransactions,
   RawTransactionInfo,
   RawTransactions,
-} from "../../../../../providers/lib/raw-transaction"
+} from "../../../../../common/types/raw-transaction"
 
-import {DeployedContract} from "../../../../../providers/lib/contract"
-import {OperationNode} from "../../../../../providers/methods"
+import {DeployedContract} from "../../../../../common/types/contract"
+import {OperationNode} from "../../../../../providers/sandbox/methods"
 
 import styles from "./HistoryView.module.css"
 

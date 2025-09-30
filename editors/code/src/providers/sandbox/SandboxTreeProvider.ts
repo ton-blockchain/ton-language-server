@@ -6,10 +6,11 @@ import {SourceMap} from "ton-source-map"
 
 import {ContractAbi} from "@shared/abi"
 
+import {DeployedContract} from "../../common/types/contract"
+
 import {SandboxActionsProvider} from "./SandboxActionsProvider"
 import type {SandboxCodeLensProvider} from "./SandboxCodeLensProvider"
 import {formatAddress} from "./methods"
-import {DeployedContract} from "./lib/contract"
 
 interface SandboxTreeItem {
     readonly id: string

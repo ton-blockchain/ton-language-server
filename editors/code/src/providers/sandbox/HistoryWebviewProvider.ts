@@ -4,11 +4,19 @@ import * as vscode from "vscode"
 
 import {Cell, loadTransaction} from "@ton/core"
 
-import {StatesCommand, StatesMessage} from "../webview-ui/src/views/history/sandbox-history-types"
-import {getOperations, restoreBlockchainState, getContracts} from "../commands/sandboxCommands"
+import {
+    StatesCommand,
+    StatesMessage,
+} from "../../webview-ui/src/views/history/sandbox-history-types"
+import {getOperations, restoreBlockchainState, getContracts} from "../../commands/sandboxCommands"
 
-import {processRawTransactions, RawTransactionInfo, RawTransactions} from "./lib/raw-transaction"
-import {DeployedContract} from "./lib/contract"
+import {
+    processRawTransactions,
+    RawTransactionInfo,
+    RawTransactions,
+} from "../../common/types/raw-transaction"
+import {DeployedContract} from "../../common/types/contract"
+
 import {OperationNode} from "./methods"
 
 export class HistoryWebviewProvider implements vscode.WebviewViewProvider {

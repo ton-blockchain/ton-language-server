@@ -33,22 +33,22 @@ import {getClientConfiguration} from "./client-config"
 
 import {registerBuildTasks} from "./build-system"
 import {registerOpenBocCommand} from "./commands/openBocCommand"
-import {BocEditorProvider} from "./providers/BocEditorProvider"
-import {BocFileSystemProvider} from "./providers/BocFileSystemProvider"
-import {BocDecompilerProvider} from "./providers/BocDecompilerProvider"
+import {BocEditorProvider} from "./providers/boc/BocEditorProvider"
+import {BocFileSystemProvider} from "./providers/boc/BocFileSystemProvider"
+import {BocDecompilerProvider} from "./providers/boc/BocDecompilerProvider"
 import {registerSaveBocDecompiledCommand} from "./commands/saveBocDecompiledCommand"
 import {registerSandboxCommands} from "./commands/sandboxCommands"
-import {SandboxTreeProvider} from "./providers/SandboxTreeProvider"
-import {SandboxActionsProvider} from "./providers/SandboxActionsProvider"
-import {HistoryWebviewProvider} from "./providers/HistoryWebviewProvider"
+import {SandboxTreeProvider} from "./providers/sandbox/SandboxTreeProvider"
+import {SandboxActionsProvider} from "./providers/sandbox/SandboxActionsProvider"
+import {HistoryWebviewProvider} from "./providers/sandbox/HistoryWebviewProvider"
 import {
     TransactionDetailsProvider,
     TransactionDetails,
-} from "./providers/TransactionDetailsProvider"
-import {SandboxCodeLensProvider} from "./providers/SandboxCodeLensProvider"
+} from "./providers/sandbox/TransactionDetailsProvider"
+import {SandboxCodeLensProvider} from "./providers/sandbox/SandboxCodeLensProvider"
 
 import {configureDebugging} from "./debugging"
-import {loadContractInfo, loadLatestOperationResult} from "./providers/methods"
+import {loadContractInfo, loadLatestOperationResult} from "./providers/sandbox/methods"
 
 let client: LanguageClient | null = null
 let cachedToolchainInfo: SetToolchainVersionParams | null = null

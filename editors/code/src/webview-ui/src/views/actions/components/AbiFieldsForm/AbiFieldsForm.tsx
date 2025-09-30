@@ -4,9 +4,9 @@ import {ContractAbi, Field, TypeAbi, TypeInfo} from "@shared/abi"
 
 import {FieldInput, AddressInput} from "../../../../components/common"
 
-import * as binary from "../../../../../../providers/binary"
-import {formatParsedSlice} from "../../../../../../providers/binary"
-import {DeployedContract} from "../../../../../../providers/lib/contract"
+import * as binary from "../../../../../../common/binary"
+import {formatParsedSlice} from "../../../../../../common/binary"
+import {DeployedContract} from "../../../../../../common/types/contract"
 
 import styles from "./AbiFieldsForm.module.css"
 

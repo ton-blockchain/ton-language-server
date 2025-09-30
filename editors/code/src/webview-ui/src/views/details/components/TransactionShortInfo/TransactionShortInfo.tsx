@@ -6,12 +6,12 @@ import {FiChevronDown, FiChevronUp} from "react-icons/fi"
 
 import {ContractChip} from "../ContractChip/ContractChip"
 import {OpcodeChip} from "../OpcodeChip/OpcodeChip"
-import {computeSendMode, type TransactionInfo} from "../../../../../../providers/lib/transaction"
+import {computeSendMode, type TransactionInfo} from "../../../../../../common/types/transaction"
 
 import {SendModeViewer} from "../SendModeViewer"
 import {ExitCodeChip} from "../ExitCodeChip/ExitCodeChip"
 
-import {ContractData} from "../../../../../../providers/lib/contract"
+import {ContractData} from "../../../../../../common/types/contract"
 
 import {formatCurrency, formatNumber} from "../../../../components/format/format"
 

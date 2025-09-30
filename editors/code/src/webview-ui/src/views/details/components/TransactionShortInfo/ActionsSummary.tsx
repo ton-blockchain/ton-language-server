@@ -3,7 +3,7 @@ import React, {useState} from "react"
 import {OutAction} from "@ton/core"
 
 import {formatAddress, formatCurrency} from "../../../../components/format/format"
-import {ContractData} from "../../../../../../providers/lib/contract"
+import {ContractData} from "../../../../../../common/types/contract"
 import {SendModeViewer} from "../SendModeViewer"
 import {ContractChip} from "../ContractChip/ContractChip"
 import {CodeBlock} from "../CodeBlock"

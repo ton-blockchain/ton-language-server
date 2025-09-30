@@ -5,8 +5,8 @@ import {Cell, loadShardAccount} from "@ton/core"
 import {VscEdit, VscFileCode, VscTrash, VscCopy, VscCheck} from "react-icons/vsc"
 
 import {ContractInfoData, VSCodeAPI} from "../../sandbox-actions-types"
-import {DeployedContract} from "../../../../../../providers/lib/contract"
-import * as binary from "../../../../../../providers/binary"
+import {DeployedContract} from "../../../../../../common/types/contract"
+import * as binary from "../../../../../../common/binary"
 
 import styles from "./ContractInfo.module.css"
 

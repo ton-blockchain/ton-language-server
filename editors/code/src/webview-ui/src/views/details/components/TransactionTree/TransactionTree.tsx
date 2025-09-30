@@ -6,8 +6,8 @@ import {Address} from "@ton/core"
 import {TransactionShortInfo} from "../index"
 
 import {formatCurrency} from "../../../../components/format/format"
-import {ContractData} from "../../../../../../providers/lib/contract"
-import {TransactionInfo} from "../../../../../../providers/lib/transaction"
+import {ContractData} from "../../../../../../common/types/contract"
+import {TransactionInfo} from "../../../../../../common/types/transaction"
 
 import {useTooltip} from "./useTooltip"
 import {SmartTooltip} from "./SmartTooltip"

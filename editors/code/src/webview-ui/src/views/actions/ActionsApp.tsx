@@ -2,9 +2,9 @@ import React, {JSX, useEffect, useState, useCallback} from "react"
 
 import {ContractAbi} from "@shared/abi"
 
-import {DeployedContract} from "../../../../providers/lib/contract"
+import {DeployedContract} from "../../../../common/types/contract"
 
-import {DeployState} from "../../../../providers/methods"
+import {DeployState} from "../../../../providers/sandbox/methods"
 
 import {CompileDeploy} from "./components/CompileDeploy/CompileDeploy"
 import {SendMessage} from "./components/SendMessage/SendMessage"

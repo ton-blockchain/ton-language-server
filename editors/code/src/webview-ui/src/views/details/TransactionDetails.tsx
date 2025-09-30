@@ -2,14 +2,14 @@ import React, {JSX, useEffect, useMemo, useState} from "react"
 
 import {Address, Cell, loadTransaction, loadShardAccount} from "@ton/core"
 
-import {TransactionInfo} from "../../../../providers/lib/transaction"
+import {TransactionInfo} from "../../../../common/types/transaction"
 import {
   processRawTransactions,
   RawTransactionInfo,
   RawTransactions,
-} from "../../../../providers/lib/raw-transaction"
+} from "../../../../common/types/raw-transaction"
 
-import {ContractData, DeployedContract} from "../../../../providers/lib/contract"
+import {ContractData, DeployedContract} from "../../../../common/types/contract"
 import {Base64String} from "../../../../common/base64-string"
 import {HexString} from "../../../../common/hex-string"
 

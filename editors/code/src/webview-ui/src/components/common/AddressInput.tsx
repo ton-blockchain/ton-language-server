@@ -1,6 +1,6 @@
 import React, {useState, useMemo, useEffect} from "react"
 
-import {DeployedContract} from "../../../../providers/lib/contract"
+import {DeployedContract} from "../../../../common/types/contract"
 
 import {Select} from "./Select"
 import {Input} from "./Input"

@@ -6,10 +6,10 @@ import {TypeAbi} from "@shared/abi"
 
 import {Button, Input, Select} from "../../../../components/common"
 
-import {DeployedContract} from "../../../../../../providers/lib/contract"
+import {DeployedContract} from "../../../../../../common/types/contract"
 import {AbiFieldsForm} from "../AbiFieldsForm/AbiFieldsForm"
-import * as binary from "../../../../../../providers/binary"
-import {encodeTuple} from "../../../../../../providers/binary"
+import * as binary from "../../../../../../common/binary"
+import {encodeTuple} from "../../../../../../common/binary"
 
 import {Base64String} from "../../../../../../common/base64-string"
 

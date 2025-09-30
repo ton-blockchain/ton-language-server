@@ -1,6 +1,6 @@
 import React, {useState, useCallback, useEffect} from "react"
 
-import {ContractData} from "../../../../../../providers/lib/contract"
+import {ContractData} from "../../../../../../common/types/contract"
 
 import styles from "./ContractChip.module.css"
 

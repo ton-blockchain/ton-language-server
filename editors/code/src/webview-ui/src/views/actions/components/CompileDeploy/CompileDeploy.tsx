@@ -4,10 +4,10 @@ import {ContractAbi} from "@shared/abi"
 
 import {Button, Input, Label, Select} from "../../../../components/common"
 
-import * as binary from "../../../../../../providers/binary"
+import * as binary from "../../../../../../common/binary"
 import {AbiFieldsForm} from "../AbiFieldsForm/AbiFieldsForm"
-import {DeployedContract} from "../../../../../../providers/lib/contract"
-import {DeployState} from "../../../../../../providers/methods"
+import {DeployedContract} from "../../../../../../common/types/contract"
+import {DeployState} from "../../../../../../providers/sandbox/methods"
 import {Base64String} from "../../../../../../common/base64-string"
 
 import styles from "./CompileDeploy.module.css"

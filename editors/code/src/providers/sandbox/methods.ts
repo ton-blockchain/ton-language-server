@@ -6,8 +6,8 @@ import {GetContractAbiParams, GetContractAbiResponse} from "@shared/shared-msgty
 
 import {ContractAbi} from "@shared/abi"
 
-import {ContractInfoData} from "../webview-ui/src/views/actions/sandbox-actions-types"
-import {Base64String} from "../common/base64-string"
+import {ContractInfoData} from "../../webview-ui/src/views/actions/sandbox-actions-types"
+import {Base64String} from "../../common/base64-string"
 
 import {SandboxTreeProvider} from "./SandboxTreeProvider"
 import {TolkCompilerProvider} from "./TolkCompilerProvider"

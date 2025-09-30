@@ -1,6 +1,6 @@
 import {ContractAbi} from "@shared/abi"
 
-import {DeployedContract} from "../../../../providers/lib/contract"
+import {DeployedContract} from "../../../../common/types/contract"
 import {Base64String} from "../../../../common/base64-string"
 import {HexString} from "../../../../common/hex-string"
 

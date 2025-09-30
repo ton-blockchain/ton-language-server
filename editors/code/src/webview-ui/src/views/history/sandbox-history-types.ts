@@ -1,5 +1,5 @@
-import {DeployedContract} from "../../../../providers/lib/contract"
-import {OperationNode} from "../../../../providers/methods"
+import {DeployedContract} from "../../../../common/types/contract"
+import {OperationNode} from "../../../../providers/sandbox/methods"
 
 export interface UpdateOperationsMessage {
   readonly type: "updateOperations"

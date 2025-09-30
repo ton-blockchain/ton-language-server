@@ -7,8 +7,9 @@ import {Event} from "vscode"
 import {GetMethod, EntryPoint} from "@shared/abi"
 import {GetContractAbiParams, GetContractAbiResponse} from "@shared/shared-msgtypes"
 
+import {DeployedContract} from "../../common/types/contract"
+
 import {SandboxTreeProvider} from "./SandboxTreeProvider"
-import {DeployedContract} from "./lib/contract"
 
 export class SandboxCodeLensProvider implements vscode.CodeLensProvider {
     private readonly _onDidChangeCodeLenses: vscode.EventEmitter<void> =

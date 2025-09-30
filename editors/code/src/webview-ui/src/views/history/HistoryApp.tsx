@@ -1,8 +1,8 @@
 import React, {useEffect, useState, useCallback} from "react"
 
-import {DeployedContract} from "../../../../providers/lib/contract"
+import {DeployedContract} from "../../../../common/types/contract"
 
-import {OperationNode} from "../../../../providers/methods"
+import {OperationNode} from "../../../../providers/sandbox/methods"
 
 import {HistoryView} from "./components/HistoryView"
 import {StatesVSCodeAPI, UpdateOperationsMessage} from "./sandbox-history-types"

@@ -2,7 +2,7 @@
 //  Copyright © 2025 TON Core
 import * as vscode from "vscode"
 
-import {DeployedContract} from "./lib/contract"
+import {DeployedContract} from "../../common/types/contract"
 
 export interface TransactionDetails {
     readonly contractAddress: string

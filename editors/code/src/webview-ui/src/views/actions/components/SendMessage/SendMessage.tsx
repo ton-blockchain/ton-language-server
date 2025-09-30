@@ -6,13 +6,13 @@ import {Cell} from "@ton/core"
 
 import {ContractAbi, TypeAbi} from "@shared/abi"
 
-import {DeployedContract} from "../../../../../../providers/lib/contract"
-import * as binary from "../../../../../../providers/binary"
+import {DeployedContract} from "../../../../../../common/types/contract"
+import * as binary from "../../../../../../common/binary"
 
 import {MessageTemplate, VSCodeAPI} from "../../sandbox-actions-types"
 import {SendModeSelector} from "../SendModeSelector/SendModeSelector"
 import {Button, Input, Select} from "../../../../components/common"
-import {formatParsedSlice} from "../../../../../../providers/binary"
+import {formatParsedSlice} from "../../../../../../common/binary"
 import {AbiFieldsForm} from "../AbiFieldsForm/AbiFieldsForm"
 import {Base64String} from "../../../../../../common/base64-string"
 

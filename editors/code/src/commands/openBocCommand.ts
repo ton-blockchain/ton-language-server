@@ -4,7 +4,7 @@ import * as vscode from "vscode"
 
 import {Disposable} from "vscode"
 
-import {BocDecompilerProvider} from "../providers/BocDecompilerProvider"
+import {BocDecompilerProvider} from "../providers/boc/BocDecompilerProvider"
 
 import {openBocFilePicker} from "./saveBocDecompiledCommand"
 

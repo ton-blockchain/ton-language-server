@@ -1,6 +1,6 @@
 import React from "react"
 
-import {parseSendMode} from "../../../../../../providers/lib/transaction"
+import {parseSendMode} from "../../../../../../common/types/transaction"
 import {Tooltip} from "../../../../components/common/Tooltip"
 
 import styles from "./SendModeViewer.module.css"

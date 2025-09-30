@@ -13,7 +13,7 @@ import {SourceMap} from "ton-source-map"
 import {ToolchainConfig} from "@server/settings/settings"
 import {Toolchain} from "@server/languages/tolk/toolchain/toolchain"
 
-import {Base64String} from "../common/base64-string"
+import {Base64String} from "../../common/base64-string"
 
 export interface CompilationResult {
     readonly success: boolean

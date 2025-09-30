@@ -33,7 +33,7 @@ import {
     DeleteMessageTemplateCommand,
     UpdateMessageTemplateCommand,
     CreateMessageTemplateCommand,
-} from "../webview-ui/src/views/actions/sandbox-actions-types"
+} from "../../webview-ui/src/views/actions/sandbox-actions-types"
 import {
     sendExternalMessage,
     sendInternalMessage,
@@ -46,17 +46,17 @@ import {
     deleteMessageTemplate,
     parseGetMethodResult,
     MessageTemplateData,
-} from "../commands/sandboxCommands"
+} from "../../commands/sandboxCommands"
 
-import {HexString} from "../common/hex-string"
+import {HexString} from "../../common/hex-string"
 
-import {Base64String} from "../common/base64-string"
+import {Base64String} from "../../common/base64-string"
+
+import {DeployedContract} from "../../common/types/contract"
+
+import {formatParsedObject} from "../../common/binary"
 
 import {compileAndDeployFromEditor, loadContractInfo, loadAndValidateAbiForDeploy} from "./methods"
-
-import {DeployedContract} from "./lib/contract"
-
-import {formatParsedObject} from "./binary"
 
 import {SandboxTreeProvider} from "./SandboxTreeProvider"
 import {HistoryWebviewProvider} from "./HistoryWebviewProvider"
