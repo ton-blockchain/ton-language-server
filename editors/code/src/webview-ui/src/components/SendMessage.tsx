@@ -130,7 +130,7 @@ export const SendMessage: React.FC<Props> = ({
 
     useEffect(() => {
         if (loadedTemplate) {
-            setValue(loadedTemplate.value ?? "1.0")
+            setValue(loadedTemplate.value)
             setSendMode(loadedTemplate.sendMode)
 
             setMessageFields(
@@ -143,7 +143,7 @@ export const SendMessage: React.FC<Props> = ({
         if (selectedTemplate && localMessageTemplates.length > 0) {
             const template = localMessageTemplates.find(t => t.id === selectedTemplate)
             if (template) {
-                setValue(template.value ?? "1.0")
+                setValue(template.value)
                 setSendMode(template.sendMode)
 
                 setMessageFields(

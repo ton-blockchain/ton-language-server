@@ -82,8 +82,7 @@ export class SandboxCodeLensProvider implements vscode.CodeLensProvider {
 
         const codeLenses: vscode.CodeLens[] = []
 
-        const contractName = this.getContractNameFromDocument(document)
-        const deployedContract = this.findDeployedContract(contractName)
+        const deployedContract = this.findDeployedContract(document)
 
         if (deployedContract) {
             const statusLens = new vscode.CodeLens(range, {
@@ -123,8 +122,7 @@ export class SandboxCodeLensProvider implements vscode.CodeLensProvider {
         const position = new vscode.Position(getMethod.pos.row, getMethod.pos.column)
         const range = new vscode.Range(position, position)
 
-        const contractName = this.getContractNameFromDocument(document)
-        const deployedContract = this.findDeployedContract(contractName)
+        const deployedContract = this.findDeployedContract(document)
 
         if (deployedContract) {
             return new vscode.CodeLens(range, {
@@ -137,15 +135,9 @@ export class SandboxCodeLensProvider implements vscode.CodeLensProvider {
         return null
     }
 
-    private getContractNameFromDocument(document: vscode.TextDocument): string {
-        const fileName = document.fileName
-        const baseName = fileName.split("/").pop() ?? "Unknown"
-        return baseName.replace(/\.(tolk|fc|func)$/, "")
-    }
-
-    private findDeployedContract(contractName: string): DeployedContract | undefined {
+    private findDeployedContract(document: vscode.TextDocument): DeployedContract | undefined {
         const deployedContracts = this.treeProvider.getDeployedContracts()
-        return deployedContracts.find(c => c.name === contractName)
+        return deployedContracts.find(c => c.sourceUri === document.uri.toString())
     }
 
     private formatAddress(address: string): string {

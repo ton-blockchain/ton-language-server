@@ -10,7 +10,7 @@ import {DeployState} from "../../../providers/methods"
 interface Props {
     readonly onCompileAndDeploy: (
         stateInit: string, // Base64 encoded Cell
-        value?: string,
+        value: string,
         contractName?: string,
         storageType?: string,
     ) => void

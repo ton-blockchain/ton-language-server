@@ -35,6 +35,7 @@ import {
     updateMessageTemplate,
     deleteMessageTemplate,
     parseGetMethodResult,
+    MessageTemplateData,
 } from "../commands/sandboxCommands"
 import {compileAndDeployFromEditor, loadContractInfo, loadAndValidateAbiForDeploy} from "./methods"
 import {Cell, TupleReader} from "@ton/core"
@@ -650,7 +651,7 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
     private async handleCompileAndDeploy(
         name: string,
         stateInit: string,
-        value?: string,
+        value: string,
         storageType?: string,
     ): Promise<void> {
         await compileAndDeployFromEditor(
@@ -995,7 +996,7 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
             const message = contract?.abi?.messages.find(m => m.name === command.messageName)
             const opcode = message?.opcode ?? 0
 
-            const templateData = {
+            const templateData: MessageTemplateData = {
                 name: templateName,
                 opcode,
                 messageBody: command.messageBody,

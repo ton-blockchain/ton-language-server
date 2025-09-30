@@ -179,7 +179,7 @@ export async function sendInternalMessage(
     toAddress: string,
     message: string,
     sendMode: number,
-    value?: string,
+    value: string,
 ): Promise<SendMessageResponse> {
     const config = vscode.workspace.getConfiguration("ton")
     const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
@@ -282,14 +282,16 @@ export function parseGetMethodResult(
     }
 }
 
-export async function createMessageTemplate(templateData: {
-    name: string
-    opcode: number
-    messageBody: string
-    sendMode: number
-    value?: string
-    description?: string
-}): Promise<{
+export interface MessageTemplateData {
+    readonly name: string
+    readonly opcode: number
+    readonly messageBody: string
+    readonly sendMode: number
+    readonly value: string
+    readonly description?: string
+}
+
+export async function createMessageTemplate(templateData: MessageTemplateData): Promise<{
     success: boolean
     template?: MessageTemplate
     error?: string

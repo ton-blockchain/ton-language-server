@@ -17,7 +17,6 @@ export interface OperationNode {
     readonly fromContract?: string
     readonly toContract?: string
     readonly resultString?: string
-    readonly opcode?: number
 }
 
 export interface DeployState {
@@ -136,7 +135,7 @@ export async function compileAndDeployFromEditor(
     name: string,
     stateInit: string, // Base64 encoded Cell
     treeProvider: SandboxTreeProvider | undefined,
-    value?: string,
+    value: string,
     storageType?: string,
 ): Promise<void> {
     const editor = vscode.window.activeTextEditor
@@ -195,9 +194,9 @@ export async function compileAndDeployFromEditor(
             },
             name,
             value,
+            sourceUri,
             result.sourceMap,
             contractAbi,
-            sourceUri,
         )
         if (deployResult.success && deployResult.address) {
             const isRedeploy = treeProvider?.isContractDeployed(deployResult.address) ?? false
@@ -233,10 +232,10 @@ async function deployContract(
         data: string
     },
     name: string,
-    value?: string,
-    sourceMap?: SourceMap,
-    abi?: ContractAbi,
-    sourceUri?: string,
+    value: string,
+    sourceUri: string,
+    sourceMap: SourceMap | undefined,
+    abi: ContractAbi | undefined,
 ): Promise<{
     success: boolean
     address?: string

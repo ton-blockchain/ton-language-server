@@ -107,7 +107,7 @@ export interface LoadContractInfoCommand {
 export interface CompileAndDeployCommand {
     readonly type: "compileAndDeploy"
     readonly stateInit: string
-    readonly value?: string
+    readonly value: string
     readonly name: string
     readonly storageType?: string
 }
@@ -157,7 +157,7 @@ export interface CreateMessageTemplateCommand {
     readonly opcode: number
     readonly messageBody: string // Base64 encoded BoC
     readonly sendMode: number
-    readonly value?: string
+    readonly value: string
     readonly description?: string
 }
 
@@ -202,7 +202,7 @@ export interface MessageTemplate {
     readonly opcode: number
     readonly messageBody: string // Base64 encoded BoC
     readonly sendMode: number
-    readonly value?: string
+    readonly value: string
     readonly createdAt: string
     readonly description?: string
 }

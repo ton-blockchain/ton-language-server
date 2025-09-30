@@ -103,6 +103,8 @@ export const StatesView: React.FC<Props> = ({
         const contract = contracts.find(c => c.address === node.toContract)
         const hasSourceMap = contract?.sourceMap !== undefined
 
+        const opcode = transactionInfos[0]?.opcode
+
         return (
             <div key={node.id} className={styles.nodeContainer}>
                 <div
@@ -125,8 +127,8 @@ export const StatesView: React.FC<Props> = ({
                                     {formatContractName(node.fromContract ?? "")}
                                 </span>
                                 <span className={styles.label}>
-                                    {getMessageName(node.toContract, node.opcode) ??
-                                        "0x" + node.opcode?.toString(16)}{" "}
+                                    {getMessageName(node.toContract, opcode) ??
+                                        (opcode ? "0x" + opcode.toString(16) : "unknown")}{" "}
                                     →
                                 </span>
                                 <span className={styles.contractName}>
@@ -137,10 +139,8 @@ export const StatesView: React.FC<Props> = ({
                             <>
                                 <span className={styles.label}>
                                     →{" "}
-                                    {getMessageName(node.contractAddress, node.opcode) ??
-                                        (node.opcode
-                                            ? "0x" + node.opcode.toString(16)
-                                            : "external")}{" "}
+                                    {getMessageName(node.contractAddress, opcode) ??
+                                        (opcode ? "0x" + opcode.toString(16) : "external")}{" "}
                                 </span>
                                 <span className={styles.contractName}>
                                     {formatContractName(node.contractAddress)}

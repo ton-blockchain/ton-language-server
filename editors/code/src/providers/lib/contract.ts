@@ -18,6 +18,6 @@ export interface DeployedContract {
     readonly address: string
     readonly deployTime?: Date
     readonly abi?: ContractAbi
-    readonly sourceUri?: string
+    readonly sourceUri: string
     readonly sourceMap?: SourceMap
 }
