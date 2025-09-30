@@ -1,10 +1,11 @@
 import React, {useState, useMemo, useEffect} from "react"
 
-import {DeployedContract} from "../../../../common/types/contract"
+import {DeployedContract} from "../../../../../common/types/contract"
 
-import {Select} from "./Select"
-import {Input} from "./Input"
-import {Label} from "./Label"
+import {Select} from "../Select/Select"
+import {Input} from "../Input/Input"
+import {Label} from "../Label/Label"
+
 import styles from "./AddressInput.module.css"
 
 interface AddressInputProps {
