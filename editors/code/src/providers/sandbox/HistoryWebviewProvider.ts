@@ -8,7 +8,6 @@ import {
     StatesCommand,
     StatesMessage,
 } from "../../webview-ui/src/views/history/sandbox-history-types"
-import {getOperations, restoreBlockchainState, getContracts} from "../../commands/sandboxCommands"
 
 import {
     processRawTransactions,
@@ -17,7 +16,7 @@ import {
 } from "../../common/types/raw-transaction"
 import {DeployedContract} from "../../common/types/contract"
 
-import {OperationNode} from "./methods"
+import {getContracts, getOperations, OperationNode, restoreBlockchainState} from "./methods"
 
 export class HistoryWebviewProvider implements vscode.WebviewViewProvider {
     public static readonly viewType: string = "tonSandboxHistory"

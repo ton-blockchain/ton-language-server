@@ -2,15 +2,25 @@ import vscode from "vscode"
 
 import {SourceMap} from "ton-source-map"
 
+import {Cell, parseTuple, serializeTuple, TupleItem, TupleReader} from "@ton/core"
+
 import {GetContractAbiParams, GetContractAbiResponse} from "@shared/shared-msgtypes"
 
-import {ContractAbi} from "@shared/abi"
+import {ContractAbi, TypeAbi} from "@shared/abi"
 
-import {ContractInfoData} from "../../webview-ui/src/views/actions/sandbox-actions-types"
+import {
+    ContractInfoData,
+    MessageTemplate,
+} from "../../webview-ui/src/views/actions/sandbox-actions-types"
 import {Base64String} from "../../common/base64-string"
 
-import {SandboxTreeProvider} from "./SandboxTreeProvider"
+import {DeployedContract} from "../../common/types/contract"
+import * as binary from "../../common/binary"
+import {formatParsedObject, ParsedObject} from "../../common/binary"
+import {HexString} from "../../common/hex-string"
+
 import {TolkCompilerProvider} from "./TolkCompilerProvider"
+import {SandboxTreeProvider} from "./SandboxTreeProvider"
 
 export interface OperationNode {
     readonly id: string
@@ -310,6 +320,486 @@ export async function loadLatestOperationResult(): Promise<{
             success: true,
             resultString: data.operation.resultString,
             operationData: data.operation,
+        }
+    } catch (error) {
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "Unknown error",
+        }
+    }
+}
+
+interface ApiResponse<T = void> {
+    readonly success: boolean
+    readonly error?: string
+    readonly data?: T
+}
+
+interface SendMessageResponse {
+    readonly success: boolean
+    readonly error?: string
+    readonly txs: readonly {
+        readonly addr: string
+        readonly vmLogs: string
+        readonly code: HexString
+        readonly sourceMap?: SourceMap
+    }[]
+}
+
+export async function sendExternalMessage(
+    address: string,
+    message: string,
+): Promise<SendMessageResponse> {
+    const config = vscode.workspace.getConfiguration("ton")
+    const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
+
+    const response = await fetch(`${sandboxUrl}/send-external`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({address, message}),
+    })
+
+    if (!response.ok) {
+        throw new Error(`API call failed: ${response.status} ${response.statusText}`)
+    }
+
+    return (await response.json()) as SendMessageResponse
+}
+
+export async function sendInternalMessage(
+    fromAddress: string,
+    toAddress: string,
+    message: string,
+    sendMode: number,
+    value: string,
+): Promise<SendMessageResponse> {
+    const config = vscode.workspace.getConfiguration("ton")
+    const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
+
+    const response = await fetch(`${sandboxUrl}/send-internal`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({fromAddress, toAddress, message, sendMode, value}),
+    })
+
+    if (!response.ok) {
+        throw new Error(`API call failed: ${response.status} ${response.statusText}`)
+    }
+
+    return (await response.json()) as SendMessageResponse
+}
+
+export interface CallGetMethodResponse {
+    readonly success: boolean
+    readonly result?: TupleItem[]
+    readonly logs?: string
+    readonly error?: string
+}
+
+export async function callGetMethod(
+    address: string,
+    methodId: number,
+    parametersBase64: string,
+): Promise<CallGetMethodResponse> {
+    const config = vscode.workspace.getConfiguration("ton")
+    const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
+
+    const response = await fetch(`${sandboxUrl}/get`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({address, parameters: parametersBase64, methodId}),
+    })
+
+    if (!response.ok) {
+        throw new Error(`API call failed: ${response.status} ${response.statusText}`)
+    }
+
+    const result = (await response.json()) as {
+        success: boolean
+        result?: string
+        logs?: string
+        error?: string
+    }
+    return {
+        ...result,
+        result: result.result ? parseTuple(Cell.fromBase64(result.result)) : undefined,
+    }
+}
+
+export function parseGetMethodResult(
+    contractAbi: ContractAbi | undefined,
+    reader: TupleReader,
+    methodId: number,
+): ParsedObject {
+    if (!contractAbi) {
+        const rawValue = JSON.stringify(reader, (_, value: unknown) =>
+            typeof value === "bigint" ? value.toString() : value,
+        )
+        throw new Error(`Raw result: ${rawValue}\n\nNote: Contract ABI not available`)
+    }
+
+    const getMethod = contractAbi.getMethods.find(method => method.id === methodId)
+
+    if (!getMethod?.returnType) {
+        const rawValue = JSON.stringify(reader, (_, value: unknown) =>
+            typeof value === "bigint" ? value.toString() : value,
+        )
+        throw new Error(`Raw result: ${rawValue}\n\nNote: Return type ABI is not available`)
+    }
+
+    try {
+        const structTypeAbi =
+            getMethod.returnType.name === "struct"
+                ? contractAbi.types.find(type => type.name === getMethod.returnType?.humanReadable)
+                : undefined
+        const typeAbi: TypeAbi = structTypeAbi ?? {
+            name: "getMethodResult",
+            opcode: undefined,
+            opcodeWidth: undefined,
+            fields: [
+                {
+                    name: "value",
+                    type: getMethod.returnType,
+                },
+            ],
+        }
+        return binary.parseTuple(contractAbi, typeAbi, reader)
+    } catch (parseError) {
+        const rawValue = JSON.stringify(reader, (_, value: unknown) =>
+            typeof value === "bigint" ? value.toString() : value,
+        )
+        throw new Error(
+            `Raw result: ${rawValue}\n\nParsing error: ${parseError instanceof Error ? parseError.message : "Unknown parsing error"}`,
+        )
+    }
+}
+
+export interface MessageTemplateData {
+    readonly name: string
+    readonly opcode: number
+    readonly messageBody: string
+    readonly sendMode: number
+    readonly value: string
+    readonly description?: string
+}
+
+export async function createMessageTemplate(templateData: MessageTemplateData): Promise<{
+    success: boolean
+    template?: MessageTemplate
+    error?: string
+}> {
+    const config = vscode.workspace.getConfiguration("ton")
+    const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
+
+    const response = await fetch(`${sandboxUrl}/message-templates`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(templateData),
+    })
+
+    if (!response.ok) {
+        return {
+            success: false,
+            error: `HTTP ${response.status}: ${response.statusText}`,
+        }
+    }
+
+    const template = (await response.json()) as MessageTemplate
+    return {
+        success: true,
+        template,
+    }
+}
+
+export async function getMessageTemplates(): Promise<{
+    success: boolean
+    templates?: MessageTemplate[]
+    error?: string
+}> {
+    const config = vscode.workspace.getConfiguration("ton")
+    const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
+
+    const response = await fetch(`${sandboxUrl}/message-templates`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+        },
+    })
+
+    if (!response.ok) {
+        return {
+            success: false,
+            error: `HTTP ${response.status}: ${response.statusText}`,
+        }
+    }
+
+    const data = (await response.json()) as {templates: MessageTemplate[]}
+    return {
+        success: true,
+        templates: data.templates,
+    }
+}
+
+export async function getMessageTemplate(id: string): Promise<{
+    success: boolean
+    template?: MessageTemplate
+    error?: string
+}> {
+    const config = vscode.workspace.getConfiguration("ton")
+    const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
+
+    const response = await fetch(`${sandboxUrl}/message-templates/${id}`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+        },
+    })
+
+    if (!response.ok) {
+        return {
+            success: false,
+            error: `HTTP ${response.status}: ${response.statusText}`,
+        }
+    }
+
+    const template = (await response.json()) as MessageTemplate
+    return {
+        success: true,
+        template,
+    }
+}
+
+export async function updateMessageTemplate(
+    id: string,
+    updates: {
+        name?: string
+        description?: string
+    },
+): Promise<{
+    success: boolean
+    error?: string
+}> {
+    const config = vscode.workspace.getConfiguration("ton")
+    const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
+
+    const response = await fetch(`${sandboxUrl}/message-templates/${id}`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(updates),
+    })
+
+    if (!response.ok) {
+        return {
+            success: false,
+            error: `HTTP ${response.status}: ${response.statusText}`,
+        }
+    }
+
+    return {
+        success: true,
+    }
+}
+
+export async function deleteMessageTemplate(id: string): Promise<{
+    success: boolean
+    error?: string
+}> {
+    const config = vscode.workspace.getConfiguration("ton")
+    const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
+
+    const response = await fetch(`${sandboxUrl}/message-templates/${id}`, {
+        method: "DELETE",
+        headers: {
+            "Content-Type": "application/json",
+        },
+    })
+
+    if (!response.ok) {
+        return {
+            success: false,
+            error: `HTTP ${response.status}: ${response.statusText}`,
+        }
+    }
+
+    return {
+        success: true,
+    }
+}
+
+export async function renameContract(
+    address: string,
+    newName: string,
+): Promise<{
+    success: boolean
+    error?: string
+}> {
+    const config = vscode.workspace.getConfiguration("ton")
+    const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
+
+    const response = await fetch(`${sandboxUrl}/rename-contract`, {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify({address, newName}),
+    })
+
+    if (!response.ok) {
+        throw new Error(`API call failed: ${response.status} ${response.statusText}`)
+    }
+
+    return (await response.json()) as {
+        success: boolean
+        error?: string
+    }
+}
+
+export async function getContracts(): Promise<{
+    success: boolean
+    contracts?: DeployedContract[]
+    error?: string
+}> {
+    const config = vscode.workspace.getConfiguration("ton")
+    const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
+
+    const response = await fetch(`${sandboxUrl}/contracts`, {
+        method: "GET",
+        headers: {
+            "Content-Type": "application/json",
+        },
+    })
+
+    if (!response.ok) {
+        return {
+            success: false,
+            error: `HTTP ${response.status}: ${response.statusText}`,
+        }
+    }
+
+    const data = (await response.json()) as {
+        contracts: DeployedContract[]
+    }
+    return {
+        success: true,
+        contracts: data.contracts,
+    }
+}
+
+export async function deleteContract(address: string): Promise<{
+    success: boolean
+    error?: string
+}> {
+    const config = vscode.workspace.getConfiguration("ton")
+    const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
+
+    const response = await fetch(`${sandboxUrl}/contracts/${address}`, {
+        method: "DELETE",
+        headers: {
+            "Content-Type": "application/json",
+        },
+    })
+
+    if (!response.ok) {
+        return {
+            success: false,
+            error: `HTTP ${response.status}: ${response.statusText}`,
+        }
+    }
+
+    return {
+        success: true,
+    }
+}
+
+export async function callGetMethodDirectly(
+    contract: DeployedContract,
+    methodId: number,
+): Promise<void> {
+    try {
+        const emptyParameters = serializeTuple([]).toBoc().toString("base64")
+        const result = await callGetMethod(contract.address, methodId, emptyParameters)
+
+        if (result.success) {
+            const reader = new TupleReader(result.result ?? [])
+            try {
+                const parsedResult = parseGetMethodResult(contract.abi, reader, methodId)
+                const formattedResult = formatParsedObject(parsedResult)
+
+                void vscode.window.showInformationMessage(formattedResult)
+            } catch (error) {
+                void vscode.window.showErrorMessage(
+                    `Failed to parse result: ${error instanceof Error ? error.message : "Unknown error"}`,
+                )
+            }
+        } else {
+            void vscode.window.showErrorMessage(`Call failed: ${result.error ?? "Unknown error"}`)
+        }
+    } catch (error) {
+        void vscode.window.showErrorMessage(
+            `Call failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+        )
+    }
+}
+
+export async function getOperations(): Promise<{
+    success: boolean
+    operations?: OperationNode[]
+    error?: string
+}> {
+    try {
+        const config = vscode.workspace.getConfiguration("ton")
+        const serverUrl = config.get<string>("sandboxServerUrl") ?? "http://localhost:3000"
+
+        const response = await fetch(`${serverUrl}/operations`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+            },
+        })
+
+        if (!response.ok) {
+            return {
+                success: false,
+                error: `HTTP ${response.status}: ${response.statusText}`,
+            }
+        }
+
+        const data = (await response.json()) as {
+            operations: OperationNode[]
+        }
+        return {
+            success: true,
+            operations: data.operations,
+        }
+    } catch (error) {
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "Unknown error",
+        }
+    }
+}
+
+export async function restoreBlockchainState(eventId: string): Promise<ApiResponse> {
+    try {
+        const config = vscode.workspace.getConfiguration("ton")
+        const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
+
+        const response = await fetch(`${sandboxUrl}/restore-state`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({eventId}),
+        })
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+        }
+
+        return {
+            success: true,
         }
     } catch (error) {
         return {
