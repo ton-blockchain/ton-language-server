@@ -70,6 +70,23 @@ export interface UpdateActiveEditorMessage {
   } | null
 }
 
+export interface SandboxPersistedState {
+  readonly contracts?: DeployedContract[]
+  readonly currentOperation?: Operation
+  readonly selectedContractAddress?: string
+  readonly deployAbi?: ContractAbi
+}
+
+export interface RestoreStateMessage {
+  readonly type: "restoreState"
+  readonly state: SandboxPersistedState
+}
+
+export interface PersistStateMessage {
+  readonly type: "persistState"
+  readonly state: SandboxPersistedState
+}
+
 // Messages from Webview to Extension
 export interface SendExternalMessageCommand {
   readonly type: "sendExternalMessage"
@@ -238,6 +255,8 @@ export type VSCodeMessage =
   | UpdateDeployStateMessage
   | UpdateContractInfoMessage
   | UpdateActiveEditorMessage
+  | RestoreStateMessage
+  | PersistStateMessage
   | MessageTemplatesMessage
   | MessageTemplateMessage
   | TemplateCreatedMessage

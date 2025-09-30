@@ -21,6 +21,9 @@ import {
     UpdateDeployStateMessage,
     UpdateContractInfoMessage,
     UpdateActiveEditorMessage,
+    RestoreStateMessage,
+    PersistStateMessage,
+    SandboxPersistedState,
     MessageTemplatesMessage,
     MessageTemplateMessage,
     TemplateCreatedMessage,
@@ -75,6 +78,9 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
 
     private view?: vscode.WebviewView
     public deployedContracts: DeployedContract[] = []
+    private currentOperation?: Operation
+    private selectedContractAddress?: string
+    private deployAbi?: ContractAbi
 
     private sequentialDebugQueue: TransactionInfo[] = []
     private isSequentialDebugRunning: boolean = false
@@ -93,7 +99,7 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
 
     public resolveWebviewView(
         webviewView: vscode.WebviewView,
-        _context: vscode.WebviewViewResolveContext,
+        context: vscode.WebviewViewResolveContext<SandboxPersistedState>,
         _token: vscode.CancellationToken,
     ): void {
         this.view = webviewView
@@ -104,6 +110,10 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
         }
 
         webviewView.webview.html = this.getHtmlForWebview(webviewView.webview)
+
+        if (context.state) {
+            this.restoreState(context.state)
+        }
 
         webviewView.webview.onDidReceiveMessage((command: VSCodeCommand) => {
             switch (command.type) {
@@ -207,6 +217,7 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
             }
             void this.view.webview.postMessage(message)
         }
+        this.persistState()
     }
 
     public showResult(
@@ -228,6 +239,8 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
     }
 
     public openOperation(operation: string, contractAddress?: string): void {
+        this.currentOperation = operation as Operation
+        this.selectedContractAddress = contractAddress
         if (this.view) {
             const message: OpenOperationMessage = {
                 type: "openOperation",
@@ -236,9 +249,11 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
             }
             void this.view.webview.postMessage(message)
         }
+        this.persistState()
     }
 
     public updateContractAbi(abi: ContractAbi): void {
+        this.deployAbi = abi
         if (this.view) {
             const message: UpdateContractAbiMessage = {
                 type: "updateContractAbi",
@@ -246,6 +261,7 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
             }
             void this.view.webview.postMessage(message)
         }
+        this.persistState()
     }
 
     public updateContractInfo(info: ContractInfoData): void {
@@ -828,6 +844,50 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
                 `Error in debug session ${sessionNumber}: ${error instanceof Error ? error.message : String(error)}`,
             )
             void this.processNextDebugSession()
+        }
+    }
+
+    private restoreState(state: SandboxPersistedState): void {
+        if (state.contracts) {
+            this.deployedContracts = state.contracts
+        }
+        if (state.currentOperation) {
+            this.currentOperation = state.currentOperation
+        }
+        if (state.selectedContractAddress) {
+            this.selectedContractAddress = state.selectedContractAddress
+        }
+        if (state.deployAbi) {
+            this.deployAbi = state.deployAbi
+        }
+
+        if (this.view) {
+            setTimeout(() => {
+                if (this.view) {
+                    const message: RestoreStateMessage = {
+                        type: "restoreState",
+                        state,
+                    }
+                    void this.view.webview.postMessage(message)
+                }
+            }, 100)
+        }
+    }
+
+    private persistState(): void {
+        if (this.view) {
+            const state: SandboxPersistedState = {
+                contracts: this.deployedContracts.length > 0 ? this.deployedContracts : undefined,
+                currentOperation: this.currentOperation,
+                selectedContractAddress: this.selectedContractAddress,
+                deployAbi: this.deployAbi,
+            }
+
+            const message: PersistStateMessage = {
+                type: "persistState",
+                state,
+            }
+            void this.view.webview.postMessage(message)
         }
     }
 

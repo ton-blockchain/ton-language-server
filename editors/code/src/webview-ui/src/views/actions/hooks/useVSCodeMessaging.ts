@@ -9,6 +9,7 @@ import {
   ResultData,
   ContractInfoData,
   MessageTemplate,
+  SandboxPersistedState,
 } from "../sandbox-actions-types"
 import {DeployState} from "../../../../../providers/sandbox/methods"
 import {DeployedContract} from "../../../../../common/types/contract"
@@ -43,6 +44,24 @@ export function useVSCodeMessaging(params: UseVSCodeMessagingParams): UseVSCodeM
     setLoadedTemplate,
     setMessageTemplates,
   } = params
+
+  const restoreFromState = useCallback(
+    (state: SandboxPersistedState): void => {
+      if (state.contracts) {
+        setContracts(state.contracts)
+      }
+      if (state.currentOperation) {
+        setActiveOperation(state.currentOperation)
+      }
+      if (state.selectedContractAddress) {
+        setSelectedContract(state.selectedContractAddress)
+      }
+      if (state.deployAbi) {
+        setContractAbi(state.deployAbi)
+      }
+    },
+    [setContracts, setActiveOperation, setSelectedContract, setContractAbi],
+  )
 
   const handleMessage = useCallback(
     (event: MessageEvent<VSCodeMessage>): void => {
@@ -107,6 +126,14 @@ export function useVSCodeMessaging(params: UseVSCodeMessagingParams): UseVSCodeM
           setMessageTemplates(message.templates)
           break
         }
+        case "restoreState": {
+          restoreFromState(message.state)
+          break
+        }
+        case "persistState": {
+          vscode.setState(message.state)
+          break
+        }
       }
     },
     [
@@ -120,6 +147,7 @@ export function useVSCodeMessaging(params: UseVSCodeMessagingParams): UseVSCodeM
       setContractInfo,
       setLoadedTemplate,
       setMessageTemplates,
+      restoreFromState,
     ],
   )
 
@@ -131,13 +159,18 @@ export function useVSCodeMessaging(params: UseVSCodeMessagingParams): UseVSCodeM
   }, [handleMessage])
 
   useEffect(() => {
+    const savedState = vscode.getState() as SandboxPersistedState | undefined
+    if (savedState) {
+      restoreFromState(savedState)
+    }
+
     vscode.postMessage({
       type: "webviewReady",
     })
     vscode.postMessage({
       type: "getMessageTemplates",
     })
-  }, [vscode])
+  }, [vscode, restoreFromState])
 
   return {
     handleMessage,
