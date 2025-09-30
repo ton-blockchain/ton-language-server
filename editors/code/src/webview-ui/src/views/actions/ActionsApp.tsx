@@ -27,7 +27,7 @@ export default function ActionsApp({vscode}: Props): JSX.Element {
     results,
 
     // Contract data
-    contractAbi,
+    contractAbi, // for deployment
     contractInfo,
     deployState,
 
@@ -114,7 +114,7 @@ export default function ActionsApp({vscode}: Props): JSX.Element {
             result={
               results["send-internal-message-result"] ?? results["send-external-message-result"]
             }
-            loadedTemplate={loadedTemplate ?? undefined}
+            loadedTemplate={loadedTemplate}
             messageTemplates={messageTemplates}
             vscode={vscode}
           />

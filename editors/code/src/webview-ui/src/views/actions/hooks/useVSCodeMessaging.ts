@@ -20,9 +20,9 @@ interface UseVSCodeMessagingParams {
   readonly setSelectedContract: (address: string) => void
   readonly updateResult: (resultId: string, result: ResultData) => void
   readonly setContractAbi: (abi: ContractAbi | undefined) => void
-  readonly setDeployState: (state: DeployState | null) => void
+  readonly setDeployState: (state: DeployState | undefined) => void
   readonly setContractInfo: (info: ContractInfoData | undefined) => void
-  readonly setLoadedTemplate: (template: MessageTemplate | null) => void
+  readonly setLoadedTemplate: (template: MessageTemplate | undefined) => void
   readonly setMessageTemplates: (templates: MessageTemplate[]) => void
 }
 

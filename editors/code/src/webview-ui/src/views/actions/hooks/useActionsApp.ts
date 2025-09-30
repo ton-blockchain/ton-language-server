@@ -33,7 +33,6 @@ export function useActionsApp({vscode}: UseActionsAppParams): UseActionsAppRetur
   const contractData = useContractData()
   const messageTemplates = useMessageTemplates()
 
-  // Initialize VSCode messaging with all setters
   useVSCodeMessaging({
     vscode,
     setContracts: contractSelection.setContracts,
@@ -47,7 +46,6 @@ export function useActionsApp({vscode}: UseActionsAppParams): UseActionsAppRetur
     setMessageTemplates: messageTemplates.setMessageTemplates,
   })
 
-  // Handle side effects for active operation changes
   useEffect(() => {
     if (operations.activeOperation === "compile-deploy") {
       vscode.postMessage({type: "loadAbiForDeploy"})
