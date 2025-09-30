@@ -14,6 +14,7 @@ import {
 import {ContractAbi} from "@shared/abi"
 import {ContractInfo} from "./components/ContractInfo"
 import {DeployedContract} from "../../providers/lib/contract"
+import {DeployState} from "../../providers/methods"
 
 interface Props {
     readonly vscode: VSCodeAPI
@@ -31,6 +32,7 @@ export default function App({vscode}: Props): JSX.Element {
     const [selectedInfoContract, setSelectedInfoContract] = useState<string>("")
     const [loadedTemplate, setLoadedTemplate] = useState<MessageTemplate | null>(null)
     const [messageTemplates, setMessageTemplates] = useState<MessageTemplate[]>([])
+    const [deployState, setDeployState] = useState<DeployState | null>(null)
 
     const clearSendResults = useCallback(() => {
         setResults(prev => ({
@@ -74,7 +76,6 @@ export default function App({vscode}: Props): JSX.Element {
                         }
                         case "compile-deploy":
                         case null: {
-                            // No contract address needed for these operations
                             break
                         }
                     }
@@ -85,16 +86,21 @@ export default function App({vscode}: Props): JSX.Element {
                 setContractAbi(message.abi)
                 break
             }
+            case "updateDeployState": {
+                setDeployState(message.state)
+                if (message.abi) {
+                    setContractAbi(message.abi)
+                }
+                break
+            }
             case "updateContractInfo": {
                 setContractInfo(message.info)
                 break
             }
             case "updateActiveEditor": {
-                if (message.document && message.document.languageId === "tolk") {
-                    vscode.postMessage({
-                        type: "loadAbiForDeploy",
-                    })
-                }
+                vscode.postMessage({
+                    type: "loadAbiForDeploy",
+                })
                 break
             }
             case "messageTemplate": {
@@ -174,6 +180,7 @@ export default function App({vscode}: Props): JSX.Element {
                         }}
                         result={results["compile-deploy-result"]}
                         contractAbi={contractAbi}
+                        deployState={deployState}
                     />
                 )
             }

@@ -5,6 +5,7 @@ import styles from "./CompileDeploy.module.css"
 import * as binary from "../../../providers/binary"
 import {AbiFieldsForm} from "./AbiFieldsForm"
 import {DeployedContract} from "../../../providers/lib/contract"
+import {DeployState} from "../../../providers/methods"
 
 interface Props {
     readonly onCompileAndDeploy: (
@@ -16,6 +17,7 @@ interface Props {
     readonly result?: {success: boolean; message: string; details?: string}
     readonly contractAbi?: ContractAbi
     readonly contracts: readonly DeployedContract[]
+    readonly deployState?: DeployState | null
 }
 
 export const CompileDeploy: React.FC<Props> = ({
@@ -23,6 +25,7 @@ export const CompileDeploy: React.FC<Props> = ({
     result,
     contractAbi,
     contracts,
+    deployState,
 }) => {
     const [storageFields, setStorageFields] = useState<binary.ParsedObject>({})
     const [value, setValue] = useState<string>("1.0")
@@ -31,7 +34,9 @@ export const CompileDeploy: React.FC<Props> = ({
     const [customContractName, setCustomContractName] = useState<string>(contractAbi?.name ?? "")
     const [selectedStorageType, setSelectedStorageType] = useState<string>("")
 
-    const isAbiLoading = !contractAbi
+    const isAbiLoading = !deployState
+    const hasValidationErrors =
+        deployState && (!deployState.isValidFile || !deployState.hasRequiredFunctions)
     const defaultContractName = contractAbi?.name ?? "UnknownContract"
     const contractName = customContractName.trim() ? customContractName : defaultContractName
 
@@ -104,16 +109,44 @@ export const CompileDeploy: React.FC<Props> = ({
         onCompileAndDeploy(createStateInit(), value, contractName, storageTypeToPass)
     }
 
+    const getErrorTitle = (deployState?: DeployState | null): string => {
+        if (!deployState) return "Unknown validation error"
+        if (!deployState.isValidFile) return "Invalid file type"
+        if (!deployState.hasRequiredFunctions) return "Missing required functions"
+        return "Contract validation failed"
+    }
+
     return (
         <div className={styles.container}>
             <div className={styles.formGroup}>
-                <Label>Deploy contract from active editor</Label>
+                <Label>Deploy contract from the active editor</Label>
             </div>
 
             {isAbiLoading ? (
                 <div className={styles.loading}>
                     <div className={styles.loadingSpinner}></div>
                     <div className={styles.loadingText}>Loading contract ABI...</div>
+                </div>
+            ) : hasValidationErrors ? (
+                <div className={styles.validationError}>
+                    <div className={styles.errorMessage}>
+                        <span className={styles.errorIcon}>⚠</span>
+                        {getErrorTitle(deployState)}
+                    </div>
+                    <div className={styles.errorDetails}>
+                        {deployState.errorMessage ?? "File validation failed"}
+                    </div>
+                    {deployState.fileName && (
+                        <div className={styles.fileInfo}>
+                            Current file: <strong>{deployState.fileName}</strong>
+                        </div>
+                    )}
+                </div>
+            ) : deployState.errorMessage ? (
+                <div className={`${styles.result} ${styles.error}`}>
+                    <span className={styles.errorIcon}>⚠</span>
+                    ABI Loading Failed
+                    <div style={{marginTop: "6px", opacity: 0.9}}>{deployState.errorMessage}</div>
                 </div>
             ) : (
                 <>
@@ -130,7 +163,7 @@ export const CompileDeploy: React.FC<Props> = ({
                         />
                     </div>
 
-                    {!contractAbi.storage && storageTypes.length > 1 && (
+                    {!contractAbi?.storage && storageTypes.length > 1 && (
                         <div className={styles.formGroup}>
                             <Select
                                 label="Storage Type:"

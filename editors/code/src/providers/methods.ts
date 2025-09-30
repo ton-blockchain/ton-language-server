@@ -6,28 +6,82 @@ import {SandboxTreeProvider} from "./SandboxTreeProvider"
 import {ContractInfoData} from "../webview-ui/src/types"
 import {SourceMap} from "ton-source-map"
 
-export async function loadContractAbiForDeploy(): Promise<ContractAbi | undefined> {
+export interface DeployState {
+    readonly isValidFile: boolean
+    readonly hasRequiredFunctions: boolean
+    readonly fileName?: string
+    readonly errorMessage?: string
+}
+
+export type DeployValidationResult = DeployState & {
+    readonly abi?: ContractAbi
+}
+
+function checkRequiredFunctions(content: string): boolean {
+    const hasOnInternalMessage = /fun\s+onInternalMessage\s*\(/.test(content)
+    const hasMain = /fun\s+main\s*\(/.test(content)
+    return hasOnInternalMessage || hasMain
+}
+
+export async function loadAndValidateAbiForDeploy(): Promise<DeployValidationResult> {
     const editor = vscode.window.activeTextEditor
     if (!editor) {
-        void vscode.window.showErrorMessage("No active editor with contract code")
-        return undefined
+        return {
+            isValidFile: false,
+            hasRequiredFunctions: false,
+            errorMessage: "No active editor found. Please open a Tolk contract file first.",
+        }
     }
 
-    if (editor.document.languageId !== "tolk") {
-        void vscode.window.showErrorMessage("Active file is not a Tolk contract")
-        return undefined
+    const fileName = editor.document.fileName.split("/").pop() ?? "unknown"
+    const languageId = editor.document.languageId
+
+    if (languageId !== "tolk") {
+        return {
+            isValidFile: false,
+            hasRequiredFunctions: false,
+            fileName,
+            errorMessage: `Currently opened file is not a Tolk contract file (.tolk extension).`,
+        }
     }
 
-    const abiResult: GetContractAbiResponse = await vscode.commands.executeCommand(
-        "tolk.getContractAbi",
-        {
-            textDocument: {
-                uri: editor.document.uri.toString(),
-            },
-        } satisfies GetContractAbiParams,
-    )
+    const content = editor.document.getText()
+    const hasRequiredFunctions = checkRequiredFunctions(content)
 
-    return abiResult.abi
+    if (!hasRequiredFunctions) {
+        return {
+            isValidFile: true,
+            hasRequiredFunctions: false,
+            fileName,
+            errorMessage:
+                "File is missing required entry points. Please add either 'fun onInternalMessage()' or 'fun main()' or open another file.",
+        }
+    }
+
+    try {
+        const abiResult: GetContractAbiResponse = await vscode.commands.executeCommand(
+            "tolk.getContractAbi",
+            {
+                textDocument: {
+                    uri: editor.document.uri.toString(),
+                },
+            } satisfies GetContractAbiParams,
+        )
+
+        return {
+            isValidFile: true,
+            hasRequiredFunctions: true,
+            fileName,
+            abi: abiResult.abi,
+        }
+    } catch (error) {
+        return {
+            isValidFile: true,
+            hasRequiredFunctions: true,
+            fileName,
+            errorMessage: `Failed to extract contract ABI: ${error instanceof Error ? error.message : "Unknown compilation error"}`,
+        }
+    }
 }
 
 export async function loadContractInfo(address: string): Promise<{

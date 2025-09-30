@@ -32,6 +32,17 @@ export interface UpdateContractAbiMessage {
     readonly abi: ContractAbi
 }
 
+export interface UpdateDeployStateMessage {
+    readonly type: "updateDeployState"
+    readonly state: {
+        readonly isValidFile: boolean
+        readonly hasRequiredFunctions: boolean
+        readonly fileName?: string
+        readonly errorMessage?: string
+    }
+    readonly abi?: ContractAbi
+}
+
 export interface ContractInfoData {
     readonly account: string
     readonly stateInit?: {
@@ -220,6 +231,7 @@ export type VSCodeMessage =
     | ShowResultMessage
     | OpenOperationMessage
     | UpdateContractAbiMessage
+    | UpdateDeployStateMessage
     | UpdateContractInfoMessage
     | UpdateActiveEditorMessage
     | MessageTemplatesMessage

@@ -171,3 +171,40 @@
     color: var(--vscode-descriptionForeground);
     font-size: 13px;
 }
+
+.validationError {
+    margin-top: 12px;
+    padding: 12px;
+    border-radius: 4px;
+    background-color: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: var(--vscode-foreground);
+}
+
+.validationError .errorMessage {
+    font-size: 13px;
+    font-weight: 500;
+    line-height: 1.4;
+    margin-bottom: 6px;
+}
+
+.validationError .errorDetails {
+    font-size: 12px;
+    opacity: 1;
+    color: var(--vscode-descriptionForeground);
+}
+
+.validationError .fileInfo {
+    margin-top: 8px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(239, 68, 68, 0.2);
+    font-size: 11px;
+    line-height: 1;
+}
+
+.validationError .errorIcon {
+    display: inline-block;
+    margin-right: 6px;
+    font-weight: bold;
+    color: rgba(239, 68, 68, 0.8);
+}

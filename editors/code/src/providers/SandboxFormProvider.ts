@@ -8,6 +8,7 @@ import {
     ShowResultMessage,
     OpenOperationMessage,
     UpdateContractAbiMessage,
+    UpdateDeployStateMessage,
     UpdateContractInfoMessage,
     UpdateActiveEditorMessage,
     MessageTemplatesMessage,
@@ -34,7 +35,7 @@ import {
     updateMessageTemplate,
     deleteMessageTemplate,
 } from "../commands/sandboxCommands"
-import {compileAndDeployFromEditor, loadContractAbiForDeploy, loadContractInfo} from "./methods"
+import {compileAndDeployFromEditor, loadContractInfo, loadAndValidateAbiForDeploy} from "./methods"
 import {Cell} from "@ton/core"
 import {decompileCell} from "ton-assembly/dist/runtime"
 import {print} from "ton-assembly/dist/text"
@@ -515,9 +516,24 @@ export class SandboxFormProvider implements vscode.WebviewViewProvider {
     }
 
     private async handleLoadAbiForDeploy(): Promise<void> {
-        const abi = await loadContractAbiForDeploy()
-        if (abi) {
-            this.updateContractAbi(abi)
+        const validation = await loadAndValidateAbiForDeploy()
+
+        if (this.view) {
+            const message: UpdateDeployStateMessage = {
+                type: "updateDeployState",
+                state: {
+                    isValidFile: validation.isValidFile,
+                    hasRequiredFunctions: validation.hasRequiredFunctions,
+                    fileName: validation.fileName,
+                    errorMessage: validation.errorMessage,
+                },
+                abi: validation.abi,
+            }
+            void this.view.webview.postMessage(message)
+        }
+
+        if (validation.abi) {
+            this.updateContractAbi(validation.abi)
         }
     }
 
