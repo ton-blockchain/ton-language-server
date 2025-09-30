@@ -829,6 +829,14 @@
                 "options": {
                     "tabWidth": 2
                 }
+            },
+            {
+                "files": [
+                    "editors/code/src/webview-ui/**/*.*"
+                ],
+                "options": {
+                    "tabWidth": 2
+                }
             }
         ]
     }

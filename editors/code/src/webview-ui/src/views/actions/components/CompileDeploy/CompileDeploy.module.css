@@ -1,210 +1,210 @@
 .container {
-    padding: 12px;
-    background-color: var(--vscode-sideBar-background);
+  padding: 12px;
+  background-color: var(--vscode-sideBar-background);
 }
 
 .formGroup {
-    margin-bottom: 12px;
+  margin-bottom: 12px;
 }
 
 .formGroup label {
-    display: block;
-    margin-bottom: 4px;
-    font-size: 12px;
-    font-weight: 500;
-    color: var(--vscode-input-foreground);
+  display: block;
+  margin-bottom: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--vscode-input-foreground);
 }
 
 .description {
-    font-size: 11px;
-    color: var(--vscode-descriptionForeground);
-    margin-bottom: 8px;
-    margin-top: 0;
+  font-size: 11px;
+  color: var(--vscode-descriptionForeground);
+  margin-bottom: 8px;
+  margin-top: 0;
 }
 
 .storageFields {
-    margin-bottom: 12px;
+  margin-bottom: 12px;
 }
 
 .messageField {
-    margin-bottom: 10px;
-    padding: 8px;
-    border: 1px solid var(--vscode-input-border);
-    border-radius: 3px;
-    background-color: var(--vscode-editor-background);
+  margin-bottom: 10px;
+  padding: 8px;
+  border: 1px solid var(--vscode-input-border);
+  border-radius: 3px;
+  background-color: var(--vscode-editor-background);
 }
 
 .messageFieldHeader {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 6px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
 }
 
 .messageFieldName {
-    font-weight: 500;
-    font-size: 12px;
+  font-weight: 500;
+  font-size: 12px;
 }
 
 .messageFieldType {
-    font-size: 11px;
-    color: var(--vscode-descriptionForeground);
-    font-family: var(--vscode-editor-font-family);
+  font-size: 11px;
+  color: var(--vscode-descriptionForeground);
+  font-family: var(--vscode-editor-font-family);
 }
 
 .messageFieldInput {
-    width: 100%;
-    padding: 6px 8px;
-    background-color: var(--vscode-input-background);
-    color: var(--vscode-input-foreground);
-    border: 1px solid var(--vscode-input-border);
-    border-radius: 2px;
-    font-family: inherit;
-    font-size: 12px;
-    margin-bottom: 0;
+  width: 100%;
+  padding: 6px 8px;
+  background-color: var(--vscode-input-background);
+  color: var(--vscode-input-foreground);
+  border: 1px solid var(--vscode-input-border);
+  border-radius: 2px;
+  font-family: inherit;
+  font-size: 12px;
+  margin-bottom: 0;
 }
 
 .messageFieldInput:focus {
-    outline: none;
-    border-color: var(--vscode-focusBorder);
+  outline: none;
+  border-color: var(--vscode-focusBorder);
 }
 
 .input {
-    width: 100%;
-    padding: 6px 8px;
-    background-color: var(--vscode-input-background);
-    color: var(--vscode-input-foreground);
-    border: 1px solid var(--vscode-input-border);
-    border-radius: 2px;
-    font-family: inherit;
-    font-size: 12px;
+  width: 100%;
+  padding: 6px 8px;
+  background-color: var(--vscode-input-background);
+  color: var(--vscode-input-foreground);
+  border: 1px solid var(--vscode-input-border);
+  border-radius: 2px;
+  font-family: inherit;
+  font-size: 12px;
 }
 
 .input:focus {
-    outline: none;
-    border-color: var(--vscode-focusBorder);
+  outline: none;
+  border-color: var(--vscode-focusBorder);
 }
 
 .input:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    background-color: var(--vscode-input-background);
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: var(--vscode-input-background);
 }
 
 .button {
-    width: 100%;
-    background-color: var(--vscode-button-background);
-    color: var(--vscode-button-foreground);
-    border: none;
-    padding: 8px 12px;
-    border-radius: 2px;
-    cursor: pointer;
-    font-family: inherit;
-    font-size: 12px;
-    font-weight: 500;
-    margin-top: 8px;
+  width: 100%;
+  background-color: var(--vscode-button-background);
+  color: var(--vscode-button-foreground);
+  border: none;
+  padding: 8px 12px;
+  border-radius: 2px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  margin-top: 8px;
 }
 
 .button:hover {
-    background-color: var(--vscode-button-hoverBackground);
+  background-color: var(--vscode-button-hoverBackground);
 }
 
 .button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .result {
-    margin-top: 12px;
-    padding: 8px;
-    border-radius: 3px;
-    font-size: 11px;
-    white-space: pre-wrap;
-    word-wrap: break-word;
-    overflow-wrap: break-word;
-    word-break: break-all;
-    max-width: 100%;
-    font-family: var(--vscode-editor-font-family);
+  margin-top: 12px;
+  padding: 8px;
+  border-radius: 3px;
+  font-size: 11px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-all;
+  max-width: 100%;
+  font-family: var(--vscode-editor-font-family);
 }
 
 .result.success {
-    background-color: rgba(22, 163, 74, 0.1);
-    border: 1px solid rgba(22, 163, 74, 0.3);
-    color: var(--vscode-foreground);
+  background-color: rgba(22, 163, 74, 0.1);
+  border: 1px solid rgba(22, 163, 74, 0.3);
+  color: var(--vscode-foreground);
 }
 
 .result.error {
-    background-color: rgba(239, 68, 68, 0.1);
-    border: 1px solid rgba(239, 68, 68, 0.3);
-    color: var(--vscode-foreground);
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: var(--vscode-foreground);
 }
 
 .loading {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 32px 16px;
-    text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 32px 16px;
+  text-align: center;
 }
 
 .loadingSpinner {
-    width: 24px;
-    height: 24px;
-    border: 2px solid var(--vscode-list-inactiveSelectionBackground);
-    border-top: 2px solid var(--vscode-progressBar-background);
-    border-radius: 50%;
-    animation: spin 1s linear infinite;
-    margin-bottom: 12px;
+  width: 24px;
+  height: 24px;
+  border: 2px solid var(--vscode-list-inactiveSelectionBackground);
+  border-top: 2px solid var(--vscode-progressBar-background);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 12px;
 }
 
 @keyframes spin {
-    0% {
-        transform: rotate(0deg);
-    }
-    100% {
-        transform: rotate(360deg);
-    }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 .loadingText {
-    color: var(--vscode-descriptionForeground);
-    font-size: 13px;
+  color: var(--vscode-descriptionForeground);
+  font-size: 13px;
 }
 
 .validationError {
-    margin-top: 12px;
-    padding: 12px;
-    border-radius: 4px;
-    background-color: rgba(239, 68, 68, 0.1);
-    border: 1px solid rgba(239, 68, 68, 0.3);
-    color: var(--vscode-foreground);
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 4px;
+  background-color: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.3);
+  color: var(--vscode-foreground);
 }
 
 .validationError .errorMessage {
-    font-size: 13px;
-    font-weight: 500;
-    line-height: 1.4;
-    margin-bottom: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+  margin-bottom: 6px;
 }
 
 .validationError .errorDetails {
-    font-size: 12px;
-    opacity: 1;
-    color: var(--vscode-descriptionForeground);
+  font-size: 12px;
+  opacity: 1;
+  color: var(--vscode-descriptionForeground);
 }
 
 .validationError .fileInfo {
-    margin-top: 8px;
-    padding-top: 12px;
-    border-top: 1px solid rgba(239, 68, 68, 0.2);
-    font-size: 11px;
-    line-height: 1;
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(239, 68, 68, 0.2);
+  font-size: 11px;
+  line-height: 1;
 }
 
 .validationError .errorIcon {
-    display: inline-block;
-    margin-right: 6px;
-    font-weight: bold;
-    color: rgba(239, 68, 68, 0.8);
+  display: inline-block;
+  margin-right: 6px;
+  font-weight: bold;
+  color: rgba(239, 68, 68, 0.8);
 }

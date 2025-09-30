@@ -1,45 +1,45 @@
 .input {
-    padding: 6px 8px;
-    background-color: var(--vscode-input-background);
-    color: var(--vscode-input-foreground);
-    border: 1px solid var(--vscode-input-border);
-    border-radius: 2px;
-    font-family: inherit;
-    font-size: 12px;
-    line-height: 1.4;
+  padding: 6px 8px;
+  background-color: var(--vscode-input-background);
+  color: var(--vscode-input-foreground);
+  border: 1px solid var(--vscode-input-border);
+  border-radius: 2px;
+  font-family: inherit;
+  font-size: 12px;
+  line-height: 1.4;
 }
 
 .input:focus {
-    outline: none;
-    border-color: var(--vscode-focusBorder);
+  outline: none;
+  border-color: var(--vscode-focusBorder);
 }
 
 .input:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    background-color: var(--vscode-input-background);
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: var(--vscode-input-background);
 }
 
 .input::placeholder {
-    color: var(--vscode-input-placeholderForeground);
+  color: var(--vscode-input-placeholderForeground);
 }
 
 /* Variants */
 .default {
-    border-color: var(--vscode-input-border);
+  border-color: var(--vscode-input-border);
 }
 
 .error {
-    border-color: var(--vscode-errorForeground);
+  border-color: var(--vscode-errorForeground);
 }
 
 .error:focus {
-    border-color: var(--vscode-errorForeground);
+  border-color: var(--vscode-errorForeground);
 }
 
 /* Input with Label wrapper */
 .inputWithLabel {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }

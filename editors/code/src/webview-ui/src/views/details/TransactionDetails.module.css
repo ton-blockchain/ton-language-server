@@ -1,140 +1,140 @@
 /* Main container */
 .container {
-    padding: 20px;
-    background-color: var(--vscode-editor-background);
-    font-family: var(--vscode-font-family);
-    color: var(--vscode-foreground);
-    height: 100vh;
-    overflow: auto;
+  padding: 20px;
+  background-color: var(--vscode-editor-background);
+  font-family: var(--vscode-font-family);
+  color: var(--vscode-foreground);
+  height: 100vh;
+  overflow: auto;
 }
 
 /* Loading state */
 .loading {
-    padding: 20px;
-    text-align: center;
-    color: var(--vscode-foreground);
+  padding: 20px;
+  text-align: center;
+  color: var(--vscode-foreground);
 }
 
 .loadingIcon {
-    font-size: 1.2em;
-    margin-bottom: 10px;
+  font-size: 1.2em;
+  margin-bottom: 10px;
 }
 
 /* Header */
 .header {
-    margin-bottom: 20px;
-    border-bottom: 1px solid var(--vscode-panel-border);
-    padding-bottom: 15px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--vscode-panel-border);
+  padding-bottom: 15px;
 }
 
 .title {
-    margin: 0 0 10px 0;
-    color: var(--vscode-foreground);
-    font-size: 1.4em;
+  margin: 0 0 10px 0;
+  color: var(--vscode-foreground);
+  font-size: 1.4em;
 }
 
 .status {
-    font-size: 1.1em;
-    display: flex;
-    align-items: center;
-    gap: 8px;
+  font-size: 1.1em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 /* Information cards */
 .card {
-    background-color: var(--vscode-editorWidget-background);
-    border: 1px solid var(--vscode-panel-border);
-    border-radius: 4px;
-    padding: 15px;
-    margin-bottom: 15px;
+  background-color: var(--vscode-editorWidget-background);
+  border: 1px solid var(--vscode-panel-border);
+  border-radius: 4px;
+  padding: 15px;
+  margin-bottom: 15px;
 }
 
 .cardHeader {
-    margin-bottom: 12px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+  margin-bottom: 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .label {
-    font-weight: bold;
-    color: var(--vscode-foreground);
+  font-weight: bold;
+  color: var(--vscode-foreground);
 }
 
 /* Code blocks */
 .codeBlock {
-    font-family: var(--vscode-editor-font-family, "Fira Code", monospace);
-    background-color: var(--vscode-textCodeBlock-background);
-    padding: 8px;
-    border-radius: 3px;
-    border: 1px solid var(--vscode-textBlockQuote-border);
-    word-break: break-all;
-    font-size: 0.9em;
+  font-family: var(--vscode-editor-font-family, "Fira Code", monospace);
+  background-color: var(--vscode-textCodeBlock-background);
+  padding: 8px;
+  border-radius: 3px;
+  border: 1px solid var(--vscode-textBlockQuote-border);
+  word-break: break-all;
+  font-size: 0.9em;
 }
 
 /* Specific code blocks */
 .contractAddress {
-    font-family: var(--vscode-editor-font-family, "Fira Code", monospace);
-    background-color: var(--vscode-textCodeBlock-background);
-    padding: 8px;
-    border-radius: 3px;
-    border: 1px solid var(--vscode-textBlockQuote-border);
-    word-break: break-all;
-    font-size: 0.9em;
+  font-family: var(--vscode-editor-font-family, "Fira Code", monospace);
+  background-color: var(--vscode-textCodeBlock-background);
+  padding: 8px;
+  border-radius: 3px;
+  border: 1px solid var(--vscode-textBlockQuote-border);
+  word-break: break-all;
+  font-size: 0.9em;
 }
 
 .methodName {
-    background-color: var(--vscode-textCodeBlock-background);
-    padding: 8px;
-    border-radius: 3px;
-    border: 1px solid var(--vscode-textBlockQuote-border);
-    font-family: var(--vscode-editor-font-family, "Fira Code", monospace);
-    font-size: 0.9em;
+  background-color: var(--vscode-textCodeBlock-background);
+  padding: 8px;
+  border-radius: 3px;
+  border: 1px solid var(--vscode-textBlockQuote-border);
+  font-family: var(--vscode-editor-font-family, "Fira Code", monospace);
+  font-size: 0.9em;
 }
 
 .transactionId {
-    background-color: var(--vscode-textCodeBlock-background);
-    padding: 8px;
-    border-radius: 3px;
-    border: 1px solid var(--vscode-textBlockQuote-border);
-    font-family: var(--vscode-editor-font-family, "Fira Code", monospace);
-    word-break: break-all;
-    font-size: 0.9em;
+  background-color: var(--vscode-textCodeBlock-background);
+  padding: 8px;
+  border-radius: 3px;
+  border: 1px solid var(--vscode-textBlockQuote-border);
+  font-family: var(--vscode-editor-font-family, "Fira Code", monospace);
+  word-break: break-all;
+  font-size: 0.9em;
 }
 
 .timestamp {
-    background-color: var(--vscode-textCodeBlock-background);
-    padding: 8px;
-    border-radius: 3px;
-    border: 1px solid var(--vscode-textBlockQuote-border);
-    font-size: 0.9em;
+  background-color: var(--vscode-textCodeBlock-background);
+  padding: 8px;
+  border-radius: 3px;
+  border: 1px solid var(--vscode-textBlockQuote-border);
+  font-size: 0.9em;
 }
 
 .resultString {
-    background-color: var(--vscode-textCodeBlock-background);
-    padding: 8px;
-    border-radius: 3px;
-    border: 1px solid var(--vscode-textBlockQuote-border);
-    font-family: var(--vscode-editor-font-family, "Fira Code", monospace);
-    font-size: 0.8em;
-    overflow-x: auto;
+  background-color: var(--vscode-textCodeBlock-background);
+  padding: 8px;
+  border-radius: 3px;
+  border: 1px solid var(--vscode-textBlockQuote-border);
+  font-family: var(--vscode-editor-font-family, "Fira Code", monospace);
+  font-size: 0.8em;
+  overflow-x: auto;
 }
 
 .resultString pre {
-    margin: 0;
-    white-space: pre-wrap;
-    word-break: break-all;
+  margin: 0;
+  white-space: pre-wrap;
+  word-break: break-all;
 }
 
 /* Statuses */
 .statusSuccess {
-    color: var(--vscode-charts-green);
+  color: var(--vscode-charts-green);
 }
 
 .statusPending {
-    color: var(--vscode-charts-yellow);
+  color: var(--vscode-charts-yellow);
 }
 
 .statusFailed {
-    color: var(--vscode-errorForeground);
+  color: var(--vscode-errorForeground);
 }

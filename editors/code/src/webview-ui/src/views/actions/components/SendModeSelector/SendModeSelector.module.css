@@ -1,149 +1,149 @@
 .container {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
 }
 
 .label {
-    font-size: 14px;
-    font-weight: 500;
-    color: var(--vscode-input-foreground);
-    margin: 0;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--vscode-input-foreground);
+  margin: 0;
 }
 
 .selector {
-    position: relative;
-    min-height: 32px;
-    padding: 4px;
-    border: 1px solid var(--vscode-input-border);
-    border-radius: 3px;
-    background-color: var(--vscode-input-background);
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 4px;
+  position: relative;
+  min-height: 32px;
+  padding: 4px;
+  border: 1px solid var(--vscode-input-border);
+  border-radius: 3px;
+  background-color: var(--vscode-input-background);
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
 }
 
 .activeModes {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: 4px;
-    flex: 1;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  flex: 1;
 }
 
 .modeTag {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    padding: 2px 6px;
-    background-color: var(--vscode-badge-background);
-    color: var(--vscode-badge-foreground);
-    border-radius: 3px;
-    font-size: 12px;
-    border: 1px solid var(--vscode-badge-border, transparent);
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px 6px;
+  background-color: var(--vscode-badge-background);
+  color: var(--vscode-badge-foreground);
+  border-radius: 3px;
+  font-size: 12px;
+  border: 1px solid var(--vscode-badge-border, transparent);
 }
 
 .modeLabel {
-    font-weight: 500;
+  font-weight: 500;
 }
 
 .removeButton {
-    background: none;
-    border: none;
-    color: var(--vscode-badge-foreground);
-    cursor: pointer;
-    padding: 0;
-    width: 14px;
-    height: 14px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 2px;
-    font-size: 14px;
-    line-height: 1;
-    transition: background-color 0.1s ease;
+  background: none;
+  border: none;
+  color: var(--vscode-badge-foreground);
+  cursor: pointer;
+  padding: 0;
+  width: 14px;
+  height: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 2px;
+  font-size: 14px;
+  line-height: 1;
+  transition: background-color 0.1s ease;
 }
 
 .removeButton:hover {
-    background-color: var(--vscode-toolbar-hoverBackground);
+  background-color: var(--vscode-toolbar-hoverBackground);
 }
 
 .addButton {
-    width: 24px;
-    height: 24px;
-    border: 1px dashed var(--vscode-input-foreground);
-    background: none;
-    color: var(--vscode-input-foreground);
-    cursor: pointer;
-    border-radius: 3px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 16px;
-    line-height: 1;
-    transition: all 0.1s ease;
+  width: 24px;
+  height: 24px;
+  border: 1px dashed var(--vscode-input-foreground);
+  background: none;
+  color: var(--vscode-input-foreground);
+  cursor: pointer;
+  border-radius: 3px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  line-height: 1;
+  transition: all 0.1s ease;
 }
 
 .addButton:hover:not(:disabled) {
-    border-color: var(--vscode-focusBorder);
-    color: var(--vscode-focusBorder);
-    background-color: var(--vscode-toolbar-hoverBackground);
+  border-color: var(--vscode-focusBorder);
+  color: var(--vscode-focusBorder);
+  background-color: var(--vscode-toolbar-hoverBackground);
 }
 
 .addButton:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .dropdown {
-    position: absolute;
-    bottom: 100%;
-    left: 0;
-    right: 0;
-    background-color: var(--vscode-quickInput-background);
-    border: 1px solid var(--vscode-widget-border);
-    border-radius: 3px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-    max-height: 300px;
-    overflow-y: auto;
-    z-index: 1000;
-    margin-bottom: 2px;
+  position: absolute;
+  bottom: 100%;
+  left: 0;
+  right: 0;
+  background-color: var(--vscode-quickInput-background);
+  border: 1px solid var(--vscode-widget-border);
+  border-radius: 3px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  max-height: 300px;
+  overflow-y: auto;
+  z-index: 1000;
+  margin-bottom: 2px;
 }
 
 .dropdownItem {
-    width: 100%;
-    padding: 8px 12px;
-    background: none;
-    border: none;
-    text-align: left;
-    cursor: pointer;
-    border-bottom: 1px solid var(--vscode-list-inactiveSelectionBackground);
-    transition: background-color 0.1s ease;
+  width: 100%;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  text-align: left;
+  cursor: pointer;
+  border-bottom: 1px solid var(--vscode-list-inactiveSelectionBackground);
+  transition: background-color 0.1s ease;
 }
 
 .dropdownItem:last-child {
-    border-bottom: none;
+  border-bottom: none;
 }
 
 .dropdownItem:hover {
-    background-color: var(--vscode-list-hoverBackground);
+  background-color: var(--vscode-list-hoverBackground);
 }
 
 .optionLabel {
-    font-weight: 500;
-    color: var(--vscode-foreground);
-    margin-bottom: 2px;
+  font-weight: 500;
+  color: var(--vscode-foreground);
+  margin-bottom: 2px;
 }
 
 .optionDescription {
-    font-size: 12px;
-    color: var(--vscode-descriptionForeground);
-    line-height: 1.3;
+  font-size: 12px;
+  color: var(--vscode-descriptionForeground);
+  line-height: 1.3;
 }
 
 .modeValue {
-    font-size: 12px;
-    color: var(--vscode-foreground);
-    margin-top: 4px;
+  font-size: 12px;
+  color: var(--vscode-foreground);
+  margin-top: 4px;
 }

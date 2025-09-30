@@ -1,369 +1,369 @@
 /* Codicon icons support */
 .codicon {
-    font-family: "codicon";
-    font-display: block;
-    text-rendering: auto;
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
+  font-family: "codicon";
+  font-display: block;
+  text-rendering: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 .container {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-    background-color: var(--vscode-sideBar-background);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--vscode-sideBar-background);
 }
 
 .header {
-    display: flex;
-    align-items: center;
-    padding: 4px 12px;
-    border-bottom: 1px solid var(--vscode-panel-border);
-    background-color: var(--vscode-sideBar-background);
-    font-size: 11px;
-    color: var(--vscode-descriptionForeground);
+  display: flex;
+  align-items: center;
+  padding: 4px 12px;
+  border-bottom: 1px solid var(--vscode-panel-border);
+  background-color: var(--vscode-sideBar-background);
+  font-size: 11px;
+  color: var(--vscode-descriptionForeground);
 }
 
 .headerText {
-    font-weight: 600;
-    color: var(--vscode-foreground);
-    margin-right: 8px;
+  font-weight: 600;
+  color: var(--vscode-foreground);
+  margin-right: 8px;
 }
 
 .arrow {
-    font-size: 14px;
-    color: var(--vscode-descriptionForeground);
-    opacity: 0;
+  font-size: 14px;
+  color: var(--vscode-descriptionForeground);
+  opacity: 0;
 }
 
 .headerSubtext {
-    font-size: 10px;
+  font-size: 10px;
 }
 
 .timeline {
-    display: flex;
-    flex: 1;
-    min-height: 0;
-    overflow-y: auto;
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
 }
 
 .timelineLine {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: flex-start;
-    padding: 2px 0;
-    position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 2px 0;
+  position: relative;
 }
 
 .timelineLine::before {
-    content: "";
-    position: absolute;
-    left: 50%;
-    top: 0;
-    bottom: 0;
-    width: 1px;
-    background-color: var(--vscode-descriptionForeground);
-    transform: translateX(-50%);
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background-color: var(--vscode-descriptionForeground);
+  transform: translateX(-50%);
 }
 
 .arrow {
-    font-size: 18px;
-    color: var(--vscode-descriptionForeground);
-    z-index: 1;
+  font-size: 18px;
+  color: var(--vscode-descriptionForeground);
+  z-index: 1;
 }
 
 .operations {
-    flex: 1;
-    padding-left: 4px;
+  flex: 1;
+  padding-left: 4px;
 }
 
 .nodeContainer {
-    position: relative;
+  position: relative;
 }
 
 .node {
-    display: flex;
-    align-items: center;
-    padding: 6px 8px;
-    margin: 0;
-    border-radius: 3px;
-    border: 1px solid transparent;
-    transition: background-color 0.1s ease;
-    min-height: 40px;
+  display: flex;
+  align-items: center;
+  padding: 6px 8px;
+  margin: 0;
+  border-radius: 3px;
+  border: 1px solid transparent;
+  transition: background-color 0.1s ease;
+  min-height: 40px;
 }
 
 .node.compact {
-    cursor: pointer;
-    min-height: 32px;
-    padding: 0 8px 0 4px;
+  cursor: pointer;
+  min-height: 32px;
+  padding: 0 8px 0 4px;
 }
 
 .node:focus {
-    outline: 2px solid var(--vscode-focusBorder);
-    outline-offset: -2px;
-    background-color: var(--vscode-list-activeSelectionBackground);
+  outline: 2px solid var(--vscode-focusBorder);
+  outline-offset: -2px;
+  background-color: var(--vscode-list-activeSelectionBackground);
 }
 
 .node:focus:not(:focus-visible) {
-    outline: none;
-    background-color: var(--vscode-list-hoverBackground);
+  outline: none;
+  background-color: var(--vscode-list-hoverBackground);
 }
 
 .node:hover::after {
-    border: 2px solid var(--vscode-descriptionForeground);
+  border: 2px solid var(--vscode-descriptionForeground);
 }
 
 .node.failed:hover::after {
-    border: 2px solid var(--vscode-errorForeground);
+  border: 2px solid var(--vscode-errorForeground);
 }
 
 .node::after {
-    content: "";
-    position: absolute;
-    left: -17px;
-    top: 10px;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background-color: var(--vscode-descriptionForeground);
-    border: 2px solid var(--vscode-sideBar-background);
-    z-index: 2;
+  content: "";
+  position: absolute;
+  left: -17px;
+  top: 10px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background-color: var(--vscode-descriptionForeground);
+  border: 2px solid var(--vscode-sideBar-background);
+  z-index: 2;
 }
 
 .node.failed::after {
-    background-color: var(--vscode-errorForeground);
+  background-color: var(--vscode-errorForeground);
 }
 
 .node.failed::before {
-    content: "";
-    position: absolute;
-    left: -11px;
-    top: -10px;
-    bottom: -10px;
-    width: 2px;
-    background: linear-gradient(
-        to bottom,
-        transparent 0%,
-        var(--vscode-errorForeground) 20%,
-        var(--vscode-errorForeground) 80%,
-        transparent 100%
-    );
-    z-index: 1;
+  content: "";
+  position: absolute;
+  left: -11px;
+  top: -10px;
+  bottom: -10px;
+  width: 2px;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    var(--vscode-errorForeground) 20%,
+    var(--vscode-errorForeground) 80%,
+    transparent 100%
+  );
+  z-index: 1;
 }
 
 .expandButton {
-    background: none;
-    border: none;
-    color: var(--vscode-foreground);
-    cursor: pointer;
-    font-size: 12px;
-    width: 20px;
-    height: 20px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin-right: 4px;
+  background: none;
+  border: none;
+  color: var(--vscode-foreground);
+  cursor: pointer;
+  font-size: 12px;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 4px;
 }
 
 .placeholder {
-    width: 24px;
-    height: 20px;
-    margin-right: 4px;
+  width: 24px;
+  height: 20px;
+  margin-right: 4px;
 }
 
 .icon {
-    font-size: 12px;
-    margin-right: 6px;
-    width: 16px;
-    text-align: center;
-    opacity: 0.7;
+  font-size: 12px;
+  margin-right: 6px;
+  width: 16px;
+  text-align: center;
+  opacity: 0.7;
 }
 
 .nodeContent {
-    flex: 1;
-    min-width: 0;
+  flex: 1;
+  min-width: 0;
 }
 
 .compactContent {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    min-width: 0;
-    overflow: hidden;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  overflow: hidden;
 }
 
 .nodeHeader {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 2px;
-    flex-wrap: wrap;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 2px;
+  flex-wrap: wrap;
 }
 
 .contractName {
-    font-weight: 500;
-    color: var(--vscode-textLink-foreground);
-    font-size: 11px;
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  font-weight: 500;
+  color: var(--vscode-textLink-foreground);
+  font-size: 11px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .label {
-    color: var(--vscode-foreground);
-    font-size: 11px;
-    flex-shrink: 0;
+  color: var(--vscode-foreground);
+  font-size: 11px;
+  flex-shrink: 0;
 }
 
 .arrow {
-    color: var(--vscode-foreground);
-    font-size: 11px;
-    flex-shrink: 0;
-    margin: 0 2px;
+  color: var(--vscode-foreground);
+  font-size: 11px;
+  flex-shrink: 0;
+  margin: 0 2px;
 }
 
 .restoreButton {
-    font-size: 20px;
-    background: none;
-    border: none;
-    color: var(--vscode-foreground);
-    cursor: pointer;
-    padding: 3px 4px 4px 4px;
-    margin-left: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0.7;
-    transition: opacity 0.1s ease;
-    flex-shrink: 0;
+  font-size: 20px;
+  background: none;
+  border: none;
+  color: var(--vscode-foreground);
+  cursor: pointer;
+  padding: 3px 4px 4px 4px;
+  margin-left: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.7;
+  transition: opacity 0.1s ease;
+  flex-shrink: 0;
 }
 
 .restoreButton:hover {
-    opacity: 1;
+  opacity: 1;
 }
 
 .detailsButton {
-    background: transparent;
-    border: none;
-    color: var(--vscode-badge-foreground);
-    cursor: pointer;
-    padding: 2px 4px;
-    margin-right: 4px;
-    border-radius: 3px;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    opacity: 0.7;
-    transition: opacity 0.1s ease;
+  background: transparent;
+  border: none;
+  color: var(--vscode-badge-foreground);
+  cursor: pointer;
+  padding: 2px 4px;
+  margin-right: 4px;
+  border-radius: 3px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  opacity: 0.7;
+  transition: opacity 0.1s ease;
 }
 
 .node:hover .detailsButton {
-    display: flex;
+  display: flex;
 }
 
 .detailsButton:hover {
-    opacity: 1;
-    cursor: pointer;
+  opacity: 1;
+  cursor: pointer;
 }
 
 .debugButton {
-    background: transparent;
-    border: none;
-    color: var(--vscode-badge-foreground);
-    cursor: pointer;
-    padding: 2px 4px;
-    margin-right: 2px;
-    border-radius: 3px;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    opacity: 0.7;
-    transition: opacity 0.1s ease;
+  background: transparent;
+  border: none;
+  color: var(--vscode-badge-foreground);
+  cursor: pointer;
+  padding: 2px 4px;
+  margin-right: 2px;
+  border-radius: 3px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  opacity: 0.7;
+  transition: opacity 0.1s ease;
 }
 
 .node:hover .debugButton {
-    display: flex;
+  display: flex;
 }
 
 .debugButton:hover {
-    opacity: 1;
-    cursor: pointer;
+  opacity: 1;
+  cursor: pointer;
 }
 
 .timestamp {
-    color: var(--vscode-descriptionForeground);
-    font-size: 10px;
-    flex-shrink: 0;
-    margin-left: auto;
-    display: flex;
-    align-items: center;
+  color: var(--vscode-descriptionForeground);
+  font-size: 10px;
+  flex-shrink: 0;
+  margin-left: auto;
+  display: flex;
+  align-items: center;
 }
 
 .details {
-    color: var(--vscode-foreground);
-    font-size: 12px;
-    line-height: 1.4;
-    word-break: break-word;
+  color: var(--vscode-foreground);
+  font-size: 12px;
+  line-height: 1.4;
+  word-break: break-word;
 }
 
 .address {
-    font-family: var(--vscode-editor-font-family, "SF Mono", Monaco, "Cascadia Code", monospace);
-    font-size: 11px;
-    color: var(--vscode-descriptionForeground);
-    background-color: var(--vscode-textCodeBlock-background, rgba(0, 0, 0, 0.1));
-    padding: 2px 4px;
-    border-radius: 2px;
-    border: 1px solid var(--vscode-textBlockQuote-border, var(--vscode-widget-border));
-    margin-top: 2px;
-    word-break: break-all;
+  font-family: var(--vscode-editor-font-family, "SF Mono", Monaco, "Cascadia Code", monospace);
+  font-size: 11px;
+  color: var(--vscode-descriptionForeground);
+  background-color: var(--vscode-textCodeBlock-background, rgba(0, 0, 0, 0.1));
+  padding: 2px 4px;
+  border-radius: 2px;
+  border: 1px solid var(--vscode-textBlockQuote-border, var(--vscode-widget-border));
+  margin-top: 2px;
+  word-break: break-all;
 }
 
 .detailsExpanded {
-    padding: 8px 12px;
-    margin-left: 32px;
-    margin-right: 8px;
-    background-color: var(--vscode-textBlockQuote-background, rgba(127, 127, 127, 0.1));
-    border-left: 2px solid var(--vscode-textBlockQuote-border, var(--vscode-widget-border));
-    border-radius: 3px;
-    margin-top: 2px;
-    margin-bottom: 4px;
+  padding: 8px 12px;
+  margin-left: 32px;
+  margin-right: 8px;
+  background-color: var(--vscode-textBlockQuote-background, rgba(127, 127, 127, 0.1));
+  border-left: 2px solid var(--vscode-textBlockQuote-border, var(--vscode-widget-border));
+  border-radius: 3px;
+  margin-top: 2px;
+  margin-bottom: 4px;
 }
 
 .children {
-    position: relative;
+  position: relative;
 }
 
 .loading {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    color: var(--vscode-descriptionForeground);
-    font-size: 13px;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: var(--vscode-descriptionForeground);
+  font-size: 13px;
 }
 
 .empty {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    text-align: center;
-    color: var(--vscode-descriptionForeground);
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: var(--vscode-descriptionForeground);
 }
 
 .empty p {
-    margin: 8px 0;
-    font-size: 13px;
+  margin: 8px 0;
+  font-size: 13px;
 }
 
 .empty p:first-child {
-    font-size: 14px;
-    color: var(--vscode-foreground);
+  font-size: 14px;
+  color: var(--vscode-foreground);
 }
