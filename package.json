@@ -405,7 +405,7 @@
                     "when": "true"
                 },
                 {
-                    "id": "tonSandboxForm",
+                    "id": "tonSandboxActions",
                     "type": "webview",
                     "name": "Operations",
                     "when": "true"

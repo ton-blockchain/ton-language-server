@@ -121,9 +121,10 @@ const webviewConfig = {
     mode: "development",
     target: "web",
     entry: {
-        main: "./editors/code/src/webview-ui/src/main.tsx",
-        "transaction-details": "./editors/code/src/webview-ui/src/transaction-details.tsx",
-        "states/main": "./editors/code/src/webview-ui/src/states-main.tsx",
+        actions: "./editors/code/src/webview-ui/src/views/actions/actions-main.tsx",
+        "transaction-details":
+            "./editors/code/src/webview-ui/src/views/details/transaction-details-main.tsx",
+        history: "./editors/code/src/webview-ui/src/views/history/history-main.tsx",
     },
     output: {
         path: path.join(distDir, "webview-ui"),

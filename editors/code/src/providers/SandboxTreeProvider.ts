@@ -1,7 +1,7 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Studio
 import * as vscode from "vscode"
-import {SandboxFormProvider} from "./SandboxFormProvider"
+import {SandboxActionsProvider} from "./SandboxActionsProvider"
 import {ContractAbi} from "@shared/abi"
 import type {SandboxCodeLensProvider} from "./SandboxCodeLensProvider"
 import {formatAddress} from "./methods"
@@ -26,14 +26,14 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
 
     private deployedContracts: DeployedContract[] = []
     private sandboxStatus: "disconnected" | "connected" | "error" = "disconnected"
-    private formProvider?: SandboxFormProvider
+    private formProvider?: SandboxActionsProvider
     private codeLensProvider?: SandboxCodeLensProvider
 
     public constructor() {
         void this.checkSandboxStatus(true)
     }
 
-    public setFormProvider(formProvider: SandboxFormProvider): void {
+    public setFormProvider(formProvider: SandboxActionsProvider): void {
         this.formProvider = formProvider
         this.updateFormContracts()
     }

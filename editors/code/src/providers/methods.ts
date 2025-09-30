@@ -3,7 +3,7 @@ import {GetContractAbiParams, GetContractAbiResponse} from "@shared/shared-msgty
 import {TolkCompilerProvider} from "./TolkCompilerProvider"
 import {ContractAbi} from "@shared/abi"
 import {SandboxTreeProvider} from "./SandboxTreeProvider"
-import {ContractInfoData} from "../webview-ui/src/types"
+import {ContractInfoData} from "../webview-ui/src/views/actions/sandbox-actions-types"
 import {SourceMap} from "ton-source-map"
 import {Base64String} from "../common/base64-string"
 

@@ -2,9 +2,9 @@
 //  Copyright © 2025 TON Studio
 import * as vscode from "vscode"
 import {SandboxTreeProvider} from "../providers/SandboxTreeProvider"
-import {SandboxFormProvider} from "../providers/SandboxFormProvider"
-import {StatesWebviewProvider} from "../providers/StatesWebviewProvider"
-import {MessageTemplate} from "../webview-ui/src/types"
+import {SandboxActionsProvider} from "../providers/SandboxActionsProvider"
+import {HistoryWebviewProvider} from "../providers/HistoryWebviewProvider"
+import {MessageTemplate} from "../webview-ui/src/views/actions/sandbox-actions-types"
 import {DeployedContract} from "../providers/lib/contract"
 import {SourceMap} from "ton-source-map"
 import {Cell, parseTuple, serializeTuple, TupleItem, TupleReader} from "@ton/core"
@@ -16,8 +16,8 @@ import {HexString} from "../common/hex-string"
 
 export function registerSandboxCommands(
     treeProvider: SandboxTreeProvider,
-    formProvider: SandboxFormProvider,
-    statesProvider: StatesWebviewProvider,
+    formProvider: SandboxActionsProvider,
+    statesProvider: HistoryWebviewProvider,
 ): vscode.Disposable[] {
     const disposables: vscode.Disposable[] = []
 
@@ -68,7 +68,7 @@ export function registerSandboxCommands(
         }),
         vscode.commands.registerCommand(
             "ton.sandbox.startDebugSequence",
-            (transactions: import("../providers/SandboxFormProvider").TransactionInfo[]) => {
+            (transactions: import("../providers/SandboxActionsProvider").TransactionInfo[]) => {
                 formProvider.startSequentialDebugging(transactions)
             },
         ),
