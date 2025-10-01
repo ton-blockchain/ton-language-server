@@ -8,9 +8,10 @@ import {ContractAbi} from "@shared/abi"
 
 import {DeployedContract} from "../../common/types/contract"
 
+import {formatAddress} from "../../common/format"
+
 import {SandboxActionsProvider} from "./SandboxActionsProvider"
 import type {SandboxCodeLensProvider} from "./SandboxCodeLensProvider"
-import {formatAddress} from "./methods"
 
 interface SandboxTreeItem {
     readonly id: string
@@ -287,18 +288,17 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
 
     public addDeployedContract(
         address: string,
-        name: string | undefined,
+        name: string,
         abi: ContractAbi | undefined,
-        sourceUri: string,
         sourceMap: SourceMap | undefined,
+        sourceUri: string,
     ): void {
         const existingIndex = this.deployedContracts.findIndex(c => c.address === address)
 
         if (existingIndex === -1) {
-            const contractName = name ?? `Contract ${this.deployedContracts.length + 1}`
             this.deployedContracts.push({
                 address,
-                name: contractName,
+                name,
                 deployTime: new Date(),
                 abi,
                 sourceUri,
@@ -308,7 +308,7 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
             const existingContract = this.deployedContracts[existingIndex]
             this.deployedContracts[existingIndex] = {
                 ...existingContract,
-                name: name ?? existingContract.name,
+                name,
                 deployTime: new Date(),
                 abi: abi ?? existingContract.abi,
             }

@@ -16,16 +16,19 @@ export const formatCurrency = (value: bigint | undefined): string => {
   return `${formatted} TON`
 }
 
-export const formatAddress = (
+export function formatAddress(address: string): string {
+  if (address.length <= 12) {
+    return address
+  }
+  return `${address.slice(0, 6)}...${address.slice(Math.max(0, address.length - 6))}`
+}
+
+export const formatAnyAddress = (
   address: Address | ExternalAddress | string | undefined | null,
 ): string => {
   if (!address) return "—"
   if (address === "external") return "External"
   return String(address)
-}
-
-export const formatBoolean = (v: boolean): React.JSX.Element => {
-  return <span className={v ? "booleanTrue" : "booleanFalse"}>{v ? "Yes" : "No"}</span>
 }
 
 export const formatNumber = (v: number | bigint | undefined | null): React.JSX.Element => {

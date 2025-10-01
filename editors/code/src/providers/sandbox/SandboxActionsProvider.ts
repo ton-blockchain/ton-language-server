@@ -34,11 +34,13 @@ import {
     CreateMessageTemplateCommand,
     ResultData,
     ResultKeys,
+    SendExternalMessageCommand,
+    SendInternalMessageCommand,
+    CallGetMethodCommand,
+    CompileAndDeployCommand,
 } from "../../webview-ui/src/views/actions/sandbox-actions-types"
 
 import {HexString} from "../../common/hex-string"
-
-import {Base64String} from "../../common/base64-string"
 
 import {DeployedContract} from "../../common/types/contract"
 
@@ -134,12 +136,7 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
                     break
                 }
                 case "compileAndDeploy": {
-                    void this.handleCompileAndDeploy(
-                        command.name,
-                        command.stateData,
-                        command.value,
-                        command.storageType,
-                    )
+                    void this.handleCompileAndDeploy(command)
                     break
                 }
                 case "renameContract": {
@@ -161,12 +158,10 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
                     break
                 }
                 case "showTransactionDetails": {
-                    void vscode.commands.executeCommand("ton.sandbox.showTransactionDetails", {
-                        contractAddress: command.contractAddress,
-                        methodName: command.methodName,
-                        transactionId: command.transactionId,
-                        timestamp: command.timestamp ?? new Date().toISOString(),
-                    })
+                    void vscode.commands.executeCommand(
+                        "ton.sandbox.showTransactionDetails",
+                        command,
+                    )
                     break
                 }
                 case "openContractSource": {
@@ -272,12 +267,7 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
         }
     }
 
-    private async handleSendExternalMessage(command: {
-        contractAddress: string
-        selectedMessage: string
-        messageBody: string
-        debug: boolean
-    }): Promise<void> {
+    private async handleSendExternalMessage(command: SendExternalMessageCommand): Promise<void> {
         this.sequentialDebugQueue = []
         this.isSequentialDebugRunning = false
         if (!command.contractAddress) {
@@ -352,15 +342,7 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
         }
     }
 
-    private async handleSendInternalMessage(command: {
-        fromAddress: string
-        toAddress: string
-        selectedMessage: string
-        messageBody: string
-        sendMode: number
-        value: string
-        debug: boolean
-    }): Promise<void> {
+    private async handleSendInternalMessage(command: SendInternalMessageCommand): Promise<void> {
         this.sequentialDebugQueue = []
         this.isSequentialDebugRunning = false
 
@@ -466,12 +448,7 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
         }
     }
 
-    private async handleCallGetMethod(command: {
-        contractAddress: string
-        selectedMethod: string
-        methodId: string
-        parameters: string
-    }): Promise<void> {
+    private async handleCallGetMethod(command: CallGetMethodCommand): Promise<void> {
         if (!command.contractAddress) {
             this.showResult(
                 {
@@ -668,18 +645,13 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
         }
     }
 
-    private async handleCompileAndDeploy(
-        name: string,
-        stateData: Base64String,
-        value: string,
-        storageType?: string,
-    ): Promise<void> {
+    private async handleCompileAndDeploy(command: CompileAndDeployCommand): Promise<void> {
         const result = await compileAndDeployFromEditor(
-            name,
-            stateData,
+            command.name,
+            command.stateData,
             this._treeProvider?.(),
-            value,
-            storageType,
+            command.value,
+            command.storageType,
         )
         this.showResult(result, "compile-deploy-result")
     }
@@ -1026,6 +998,7 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
             const result = await createMessageTemplate(templateData)
 
             if (result.success && result.template && this.view) {
+                // Notify view about a new template
                 const message: TemplateCreatedMessage = {
                     type: "templateCreated",
                     template: result.template,

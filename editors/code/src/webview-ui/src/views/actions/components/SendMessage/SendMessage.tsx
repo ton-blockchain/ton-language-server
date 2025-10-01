@@ -13,6 +13,8 @@ import {Base64String} from "../../../../../../common/base64-string"
 
 import {RawStringObject, rawStringObjectToParsedObject} from "../../../../../../common/binary"
 
+import {formatAddress} from "../../../../components/format/format"
+
 import styles from "./SendMessage.module.css"
 
 interface MessageData {
@@ -251,11 +253,6 @@ export const SendMessage: React.FC<Props> = ({
         debug,
       })
     }
-  }
-
-  const formatAddress = (address: string): string => {
-    if (address.length <= 12) return address
-    return `${address.slice(0, 6)}...${address.slice(Math.max(0, address.length - 6))}`
   }
 
   const hasSourceMap = contract?.sourceMap !== undefined

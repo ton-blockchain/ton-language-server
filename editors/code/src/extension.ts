@@ -51,6 +51,7 @@ import {SandboxCodeLensProvider} from "./providers/sandbox/SandboxCodeLensProvid
 import {configureDebugging} from "./debugging"
 import {loadContractInfo, loadLatestOperationResult} from "./providers/sandbox/methods"
 import {HexString} from "./common/hex-string"
+import {ShowTransactionDetailsCommand} from "./webview-ui/src/views/actions/sandbox-actions-types"
 
 let client: LanguageClient | null = null
 let cachedToolchainInfo: SetToolchainVersionParams | null = null
@@ -867,73 +868,68 @@ export function setSandboxTreeProvider(provider: SandboxTreeProvider): void {
 }
 
 function registerTransactionDetailsCommand(disposables: vscode.Disposable[]): void {
-    disposables.push(
-        vscode.commands.registerCommand(
-            "ton.sandbox.showTransactionDetails",
-            async (args?: {
-                contractAddress: string
-                methodName: string
-                transactionId?: string
-                timestamp?: string
-                resultString?: string
-            }) => {
-                if (!args || !globalTransactionDetailsProvider) {
-                    console.log("Missing args or provider:", {
-                        args: !!args,
-                        provider: !!globalTransactionDetailsProvider,
-                    })
-                    return
+    const cmd = async (args?: ShowTransactionDetailsCommand): Promise<void> => {
+        if (!args) {
+            vscode.window.showErrorMessage(`Missing arguments for showTransactionDetails command`)
+            return
+        }
+        if (!globalTransactionDetailsProvider) {
+            vscode.window.showErrorMessage(`Transaction details provider is not set`)
+            return
+        }
+
+        const deployedContracts = globalSandboxTreeProvider?.getDeployedContracts() ?? []
+
+        let account: HexString | undefined
+        let stateInit: {code: Base64URLString; data: Base64URLString} | undefined
+        let abi: ContractAbi | undefined
+        let resultString = args.resultString
+
+        try {
+            const contractInfo = await loadContractInfo(args.contractAddress)
+            if (contractInfo.success && contractInfo.result) {
+                account = contractInfo.result.account
+                stateInit = contractInfo.result.stateInit
+                abi = contractInfo.result.abi
+            }
+        } catch (error) {
+            vscode.window.showErrorMessage(`Failed to fetch contract info from server: ${error}`)
+            console.warn("Failed to fetch contract info from server:", error)
+        }
+
+        if (!resultString) {
+            try {
+                const latestOperationResult = await loadLatestOperationResult()
+                if (latestOperationResult.success && latestOperationResult.resultString) {
+                    resultString = latestOperationResult.resultString
+                } else {
+                    const message = `Failed to load latest operation result: ${latestOperationResult.error}`
+                    vscode.window.showErrorMessage(message)
+                    console.warn(message)
                 }
+            } catch (error) {
+                vscode.window.showErrorMessage(
+                    `Failed to fetch latest operation result from daemon: ${error}`,
+                )
+                console.warn("Failed to fetch latest operation result from daemon:", error)
+            }
+        }
 
-                const deployedContracts = globalSandboxTreeProvider?.getDeployedContracts() ?? []
+        const transaction: TransactionDetails = {
+            contractAddress: args.contractAddress,
+            methodName: args.methodName,
+            transactionId: args.transactionId,
+            timestamp: args.timestamp,
+            status: "success",
+            resultString,
+            deployedContracts,
+            account,
+            stateInit,
+            abi,
+        }
 
-                let account: HexString | undefined
-                let stateInit: {code: Base64URLString; data: Base64URLString} | undefined
-                let abi: ContractAbi | undefined
-                let resultString = args.resultString
-
-                try {
-                    const contractInfo = await loadContractInfo(args.contractAddress)
-                    if (contractInfo.success && contractInfo.result) {
-                        account = contractInfo.result.account
-                        stateInit = contractInfo.result.stateInit
-                        abi = contractInfo.result.abi
-                    }
-                } catch (error) {
-                    console.warn("Failed to fetch contract info from server:", error)
-                }
-
-                if (!resultString) {
-                    try {
-                        const latestOperationResult = await loadLatestOperationResult()
-                        console.log("latestOperationResult", latestOperationResult)
-                        if (latestOperationResult.success && latestOperationResult.resultString) {
-                            resultString = latestOperationResult.resultString
-                        } else {
-                            console.warn(
-                                `Failed to load latest operation result: ${latestOperationResult.error}`,
-                            )
-                        }
-                    } catch (error) {
-                        console.warn("Failed to fetch latest operation result from daemon:", error)
-                    }
-                }
-
-                const transaction: TransactionDetails = {
-                    contractAddress: args.contractAddress,
-                    methodName: args.methodName,
-                    transactionId: args.transactionId,
-                    timestamp: args.timestamp ?? new Date().toISOString(),
-                    status: "success",
-                    resultString,
-                    deployedContracts,
-                    account,
-                    stateInit,
-                    abi,
-                }
-
-                globalTransactionDetailsProvider.showTransactionDetails(transaction)
-            },
-        ),
-    )
+        globalTransactionDetailsProvider.showTransactionDetails(transaction)
+    }
+    const disposable = vscode.commands.registerCommand("ton.sandbox.showTransactionDetails", cmd)
+    disposables.push(disposable)
 }

@@ -164,7 +164,7 @@ export interface ShowTransactionDetailsCommand {
   readonly contractAddress: string
   readonly methodName: string
   readonly transactionId?: string
-  readonly timestamp?: string
+  readonly timestamp: string
   readonly resultString?: string
   readonly account?: HexString
   readonly stateInit?: {

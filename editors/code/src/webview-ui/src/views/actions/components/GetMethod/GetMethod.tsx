@@ -18,6 +18,8 @@ import {Base64String} from "../../../../../../common/base64-string"
 
 import {ResultData} from "../../sandbox-actions-types"
 
+import {formatAddress} from "../../../../components/format/format"
+
 import styles from "./GetMethod.module.css"
 
 interface MethodData {
@@ -92,11 +94,6 @@ export const GetMethod: React.FC<Props> = ({
       methodId,
       parameters: encodedParametersCell.toBoc().toString("base64") as Base64String,
     })
-  }
-
-  const formatAddress = (address: string): string => {
-    if (address.length <= 12) return address
-    return `${address.slice(0, 6)}...${address.slice(Math.max(0, address.length - 6))}`
   }
 
   const isMethodIdReadonly = Boolean(method)

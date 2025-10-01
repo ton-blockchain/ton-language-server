@@ -231,8 +231,8 @@ export async function compileAndDeployFromEditor(
                 deployResult.address,
                 name,
                 contractAbi,
-                sourceUri,
                 result.sourceMap,
+                sourceUri,
             )
 
             void vscode.commands.executeCommand("ton.sandbox.states.refresh")
@@ -769,11 +769,4 @@ export async function restoreBlockchainState(eventId: string): Promise<ApiRespon
             error: error instanceof Error ? error.message : "Unknown error",
         }
     }
-}
-
-export function formatAddress(address: string): string {
-    if (address.length <= 12) {
-        return address
-    }
-    return `${address.slice(0, 6)}...${address.slice(Math.max(0, address.length - 6))}`
 }

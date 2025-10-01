@@ -8,6 +8,8 @@ import {ContractInfoData, VSCodeAPI} from "../../sandbox-actions-types"
 import {DeployedContract} from "../../../../../../common/types/contract"
 import * as binary from "../../../../../../common/binary"
 
+import {formatAddress} from "../../../../components/format/format"
+
 import styles from "./ContractInfo.module.css"
 
 interface Props {
@@ -103,11 +105,6 @@ export const ContractInfo: React.FC<Props> = ({
     const stateType = account.account?.storage.state.type
     const isActive = stateType === "active"
     const isFrozen = stateType === "frozen"
-
-    const formatAddress = (address: string): string => {
-      if (address.length <= 12) return address
-      return `${address.slice(0, 6)}...${address.slice(-6)}`
-    }
 
     const formatBalance = (coins: string): string => {
       const tonAmount = Number(coins) / 1e9

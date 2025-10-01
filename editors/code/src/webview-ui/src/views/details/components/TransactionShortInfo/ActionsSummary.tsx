@@ -2,7 +2,7 @@ import React, {useState} from "react"
 
 import {OutAction} from "@ton/core"
 
-import {formatAddress, formatCurrency} from "../../../../components/format/format"
+import {formatAnyAddress, formatCurrency} from "../../../../components/format/format"
 import {ContractData} from "../../../../../../common/types/contract"
 import {SendModeViewer} from "../SendModeViewer"
 import {ContractChip} from "../ContractChip/ContractChip"
@@ -131,7 +131,7 @@ const renderActionDetails = (
                   <span className={styles.detailLabel}>To:</span>
                   <div className={styles.detailValue}>
                     <ContractChip
-                      address={formatAddress(info.dest)}
+                      address={formatAnyAddress(info.dest)}
                       contracts={contracts}
                       trimSoloAddress={false}
                       onContractClick={onContractClick}
@@ -170,7 +170,7 @@ const renderActionDetails = (
                   <div className={styles.detailValue}>
                     {info.dest ? (
                       <ContractChip
-                        address={formatAddress(info.dest)}
+                        address={formatAnyAddress(info.dest)}
                         contracts={contracts}
                         trimSoloAddress={false}
                         onContractClick={onContractClick}
@@ -293,7 +293,7 @@ export function ActionsSummary({
             if (action.type === "sendMsg") {
               const info = action.outMsg.info
               if (info.type === "internal") {
-                const destAddress = formatAddress(info.dest)
+                const destAddress = formatAnyAddress(info.dest)
                 enhancedDescription = (
                   <div className={styles.actionDescriptionWithChip}>
                     <span>Internal → </span>
@@ -361,7 +361,7 @@ const getActionSummary = (
       const msg = action.outMsg
       const msgType = msg.info.type === "internal" ? "Internal" : "External"
       const rawDest = msg.info.type === "internal" ? msg.info.dest : msg.info.dest
-      const dest = formatAddress(rawDest)
+      const dest = formatAnyAddress(rawDest)
       const value = msg.info.type === "internal" ? formatCurrency(msg.info.value.coins) : ""
       return {
         title: "Send Message",

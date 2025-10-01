@@ -9,6 +9,8 @@ import {GetContractAbiParams, GetContractAbiResponse} from "@shared/shared-msgty
 
 import {DeployedContract} from "../../common/types/contract"
 
+import {formatAddress} from "../../common/format"
+
 import {SandboxTreeProvider} from "./SandboxTreeProvider"
 
 export class SandboxCodeLensProvider implements vscode.CodeLensProvider {
@@ -90,7 +92,7 @@ export class SandboxCodeLensProvider implements vscode.CodeLensProvider {
 
         if (deployedContract) {
             const statusLens = new vscode.CodeLens(range, {
-                title: `Deployed: ${this.formatAddress(deployedContract.address)}`,
+                title: `Deployed: ${formatAddress(deployedContract.address)}`,
                 command: "ton.sandbox.copyContractAddress",
                 arguments: [deployedContract.address],
             })
@@ -142,12 +144,5 @@ export class SandboxCodeLensProvider implements vscode.CodeLensProvider {
     private findDeployedContract(document: vscode.TextDocument): DeployedContract | undefined {
         const deployedContracts = this.treeProvider.getDeployedContracts()
         return deployedContracts.find(c => c.sourceUri === document.uri.toString())
-    }
-
-    private formatAddress(address: string): string {
-        if (address.length <= 12) {
-            return address
-        }
-        return `${address.slice(0, 6)}...${address.slice(Math.max(0, address.length - 6))}`
     }
 }

@@ -60,12 +60,9 @@ export class HistoryWebviewProvider implements vscode.WebviewViewProvider {
                     break
                 }
                 case "showTransactionDetails": {
-                    void this.handleShowTransactionDetails(
-                        command.contractAddress,
-                        command.methodName,
-                        command.transactionId,
-                        command.timestamp,
-                        command.resultString,
+                    void vscode.commands.executeCommand(
+                        "ton.sandbox.showTransactionDetails",
+                        command,
                     )
                     break
                 }
@@ -199,27 +196,6 @@ export class HistoryWebviewProvider implements vscode.WebviewViewProvider {
         } catch (error) {
             console.error("Failed to debug transaction:", error)
             void vscode.window.showErrorMessage("Failed to start debugging transaction")
-        }
-    }
-
-    private async handleShowTransactionDetails(
-        contractAddress: string,
-        methodName: string,
-        transactionId?: string,
-        timestamp?: string,
-        resultString?: string,
-    ): Promise<void> {
-        try {
-            await vscode.commands.executeCommand("ton.sandbox.showTransactionDetails", {
-                contractAddress,
-                methodName,
-                transactionId,
-                timestamp,
-                resultString,
-            })
-        } catch (error) {
-            console.error("Failed to show transaction details:", error)
-            void vscode.window.showErrorMessage("Failed to show transaction details")
         }
     }
 

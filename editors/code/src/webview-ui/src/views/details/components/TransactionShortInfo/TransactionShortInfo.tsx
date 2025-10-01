@@ -19,7 +19,7 @@ import {ActionsSummary} from "./ActionsSummary"
 
 import styles from "./TransactionShortInfo.module.css"
 
-const formatAddress = (
+const formatAddressAsChip = (
   address: Address | Maybe<ExternalAddress> | undefined,
   contracts: Map<string, ContractData>,
   onContractClick?: (address: string) => void,
@@ -129,9 +129,9 @@ export function TransactionShortInfo({
         <div className={styles.detailRow}>
           <div className={styles.detailLabel}>Message Route</div>
           <div className={styles.detailValue}>
-            {formatAddress(tx.transaction.inMessage?.info.src, contracts, onContractClick)}
+            {formatAddressAsChip(tx.transaction.inMessage?.info.src, contracts, onContractClick)}
             {" → "}
-            {formatAddress(tx.transaction.inMessage?.info.dest, contracts, onContractClick)}
+            {formatAddressAsChip(tx.transaction.inMessage?.info.dest, contracts, onContractClick)}
           </div>
         </div>
 
