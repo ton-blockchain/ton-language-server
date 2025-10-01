@@ -37,6 +37,7 @@ export interface OpenOperationMessage {
   readonly type: "openOperation"
   readonly operation: Operation
   readonly contractAddress?: string
+  readonly methodId?: number
 }
 
 export interface UpdateContractAbiMessage {

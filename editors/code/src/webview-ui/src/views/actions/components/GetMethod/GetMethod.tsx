@@ -1,4 +1,4 @@
-import React, {useState} from "react"
+import React, {useState, useEffect, useCallback} from "react"
 
 import {serializeTuple} from "@ton/core"
 
@@ -31,6 +31,7 @@ interface MethodData {
 interface Props {
   readonly contracts: DeployedContract[]
   readonly selectedContract?: string
+  readonly methodId?: number
   readonly onContractChange: (address: string) => void
   readonly onCallGetMethod: (methodData: MethodData) => void
   readonly result?: ResultData
@@ -40,6 +41,7 @@ interface Props {
 export const GetMethod: React.FC<Props> = ({
   contracts,
   selectedContract,
+  methodId: initialMethodId,
   onContractChange,
   onCallGetMethod,
   result,
@@ -61,6 +63,16 @@ export const GetMethod: React.FC<Props> = ({
         fields: method.parameters,
       }
     : undefined
+
+  useEffect(() => {
+    if (initialMethodId !== undefined) {
+      setMethodId(initialMethodId.toString())
+      const method = contract?.abi?.getMethods.find(method => method.name)
+      if (method) {
+        setSelectedMethod(method.name)
+      }
+    }
+  }, [contract?.abi?.getMethods, initialMethodId])
 
   const handleMethodChange = (methodName: string): void => {
     setSelectedMethod(methodName)
@@ -97,6 +109,24 @@ export const GetMethod: React.FC<Props> = ({
   }
 
   const isMethodIdReadonly = Boolean(method)
+
+  const isFormValid = useCallback(() => {
+    if (contracts.length === 0) return false
+    if (!selectedMethod) return false
+    if (!isParametersValid) return false
+
+    if (method?.parameters?.length === 0) return true
+
+    // Check if all parameters are filled
+    const parameters = method?.parameters ?? []
+    for (const parameter of parameters) {
+      const value = methodParameters[parameter.name]
+      if (!value) return false
+      if (value.value.trim() === "") return false
+    }
+
+    return true
+  }, [contracts.length, isParametersValid, method, methodParameters, selectedMethod])
 
   return (
     <div className={styles.container}>
@@ -166,7 +196,7 @@ export const GetMethod: React.FC<Props> = ({
         </div>
       )}
 
-      <Button onClick={handleCallGetMethod} disabled={contracts.length === 0 || !isParametersValid}>
+      <Button onClick={handleCallGetMethod} disabled={!isFormValid()}>
         Call Get Method
       </Button>
 

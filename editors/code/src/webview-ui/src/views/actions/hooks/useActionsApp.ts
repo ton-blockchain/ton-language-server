@@ -17,6 +17,7 @@ interface UseActionsAppReturn {
   readonly selectedContract: string
   readonly setSelectedContract: (address: string) => void
   readonly activeOperation: ReturnType<typeof useOperations>["activeOperation"]
+  readonly methodId: ReturnType<typeof useOperations>["methodId"]
   readonly results: ReturnType<typeof useOperations>["results"]
   readonly updateResult: ReturnType<typeof useOperations>["updateResult"]
   readonly setActiveOperation: (operation: Operation) => void
@@ -37,6 +38,7 @@ export function useActionsApp({vscode}: UseActionsAppParams): UseActionsAppRetur
     vscode,
     setContracts: contractSelection.setContracts,
     setActiveOperation: operations.setActiveOperation,
+    setMethodId: operations.setMethodId,
     setSelectedContract: contractSelection.setSelectedContract,
     updateResult: operations.updateResult,
     setContractAbi: contractData.setContractAbi,
@@ -65,6 +67,7 @@ export function useActionsApp({vscode}: UseActionsAppParams): UseActionsAppRetur
 
     // Operations
     activeOperation: operations.activeOperation,
+    methodId: operations.methodId,
     results: operations.results,
     updateResult: operations.updateResult,
     setActiveOperation: operations.setActiveOperation,

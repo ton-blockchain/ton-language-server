@@ -23,6 +23,7 @@ export default function ActionsApp({vscode}: Props): JSX.Element {
 
     // Operations
     activeOperation,
+    methodId,
     setActiveOperation,
     results,
     updateResult,
@@ -132,6 +133,7 @@ export default function ActionsApp({vscode}: Props): JSX.Element {
           <GetMethod
             contracts={contracts}
             selectedContract={selectedContract}
+            methodId={methodId}
             onContractChange={setSelectedContract}
             onCallGetMethod={methodData => {
               vscode.postMessage({

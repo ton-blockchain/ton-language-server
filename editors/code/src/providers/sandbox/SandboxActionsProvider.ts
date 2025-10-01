@@ -214,7 +214,7 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
         }
     }
 
-    public openOperation(operation: Operation, contractAddress?: string): void {
+    public openOperation(operation: Operation, contractAddress?: string, methodId?: number): void {
         this.showResult(undefined, "compile-deploy-result")
         this.showResult(undefined, "send-internal-message-result")
         this.showResult(undefined, "send-external-message-result")
@@ -227,6 +227,7 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
                 type: "openOperation",
                 operation: operation,
                 contractAddress,
+                methodId,
             }
             void this.view.webview.postMessage(message)
         }

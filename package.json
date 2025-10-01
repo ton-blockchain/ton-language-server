@@ -366,6 +366,11 @@
                 "category": "TON"
             },
             {
+                "command": "ton.sandbox.openContractGetMethodSend",
+                "title": "Open Contract Get Method Send",
+                "category": "TON"
+            },
+            {
                 "command": "ton.sandbox.callGetMethodFromCodeLens",
                 "title": "Call Get Method from CodeLens",
                 "category": "TON"

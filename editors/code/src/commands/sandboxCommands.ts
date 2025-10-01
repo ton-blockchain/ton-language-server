@@ -62,6 +62,16 @@ export function registerSandboxCommands(
             },
         ),
         vscode.commands.registerCommand(
+            "ton.sandbox.openContractGetMethodSend",
+            (address: string, methodId: number) => {
+                vscode.commands
+                    .executeCommand("workbench.view.extension.tonSandboxContainer")
+                    .then(() => {
+                        formProvider.openOperation("get-method", address, methodId)
+                    })
+            },
+        ),
+        vscode.commands.registerCommand(
             "ton.sandbox.callGetMethodFromCodeLens",
             async (contract: DeployedContract, methodId: number) => {
                 await callGetMethodDirectly(contract, methodId)

@@ -120,7 +120,12 @@ export const HistoryView: React.FC<Props> = ({
       if (it.computeInfo === "skipped") return false
       return it.computeInfo.exitCode !== 0
     })
-    const exitCode = nonZeroExitCode === undefined ? 0 : nonZeroExitCode.code
+    const exitCode =
+      nonZeroExitCode === undefined
+        ? 0
+        : nonZeroExitCode.computeInfo === "skipped"
+          ? 0
+          : nonZeroExitCode.computeInfo.exitCode
 
     const failedClassName = exitCode === 0 ? "" : styles.failed
 
@@ -245,9 +250,9 @@ export const HistoryView: React.FC<Props> = ({
             <div className={styles.detailItem}>
               <span className={styles.detailLabel}>Status:</span>
               <span
-                className={`${styles.detailValue} ${node.success ? styles.successStatus : styles.errorStatus}`}
+                className={`${styles.detailValue} ${exitCode === 0 ? styles.successStatus : styles.errorStatus}`}
               >
-                {node.success ? "Success" : "Failed"}
+                {exitCode === 0 ? "Success" : "Failed"}
               </span>
             </div>
             {(node.type === "send-internal" || node.type === "send-external") && (

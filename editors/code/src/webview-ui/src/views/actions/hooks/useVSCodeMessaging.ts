@@ -19,6 +19,7 @@ interface UseVSCodeMessagingParams {
   readonly vscode: VSCodeAPI
   readonly setContracts: (contracts: DeployedContract[]) => void
   readonly setActiveOperation: (operation: Operation) => void
+  readonly setMethodId: (methodId: number | undefined) => void
   readonly setSelectedContract: (address: string) => void
   readonly updateResult: (resultId: ResultKeys, result: ResultData | undefined) => void
   readonly setContractAbi: (abi: ContractAbi | undefined) => void
@@ -36,6 +37,7 @@ export function useVSCodeMessaging(params: UseVSCodeMessagingParams): UseVSCodeM
     vscode,
     setContracts,
     setActiveOperation,
+    setMethodId,
     setSelectedContract,
     updateResult,
     setContractAbi,
@@ -78,6 +80,7 @@ export function useVSCodeMessaging(params: UseVSCodeMessagingParams): UseVSCodeM
         }
         case "openOperation": {
           setActiveOperation(message.operation)
+          setMethodId(message.methodId)
           if (message.contractAddress) {
             setSelectedContract(message.contractAddress)
           }
@@ -131,14 +134,15 @@ export function useVSCodeMessaging(params: UseVSCodeMessagingParams): UseVSCodeM
       }
     },
     [
-      vscode,
       setContracts,
-      setActiveOperation,
-      setSelectedContract,
       updateResult,
+      setActiveOperation,
+      setMethodId,
+      setSelectedContract,
       setContractAbi,
       setDeployState,
       setContractInfo,
+      vscode,
       setMessageTemplates,
       restoreFromState,
     ],

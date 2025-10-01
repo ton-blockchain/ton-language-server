@@ -683,6 +683,17 @@ export async function callGetMethodDirectly(
     contract: DeployedContract,
     methodId: number,
 ): Promise<void> {
+    const getMethod = contract.abi?.getMethods.find(method => method.id === methodId)
+    if (getMethod?.parameters?.length !== 0) {
+        // For get methods with parameters open sidebar with filled contract and method id
+        void vscode.commands.executeCommand(
+            "ton.sandbox.openContractGetMethodSend",
+            contract.address,
+            methodId,
+        )
+        return
+    }
+
     try {
         const emptyParameters = serializeTuple([]).toBoc().toString("base64")
         const result = await callGetMethod(contract.address, methodId, emptyParameters)

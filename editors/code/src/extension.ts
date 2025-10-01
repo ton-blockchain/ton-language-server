@@ -919,7 +919,7 @@ function registerTransactionDetailsCommand(disposables: vscode.Disposable[]): vo
             methodName: args.methodName,
             transactionId: args.transactionId,
             timestamp: args.timestamp,
-            status: "success",
+            status: args.status,
             resultString,
             deployedContracts,
             account,
