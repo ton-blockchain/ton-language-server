@@ -1,5 +1,5 @@
 .container {
-  background-color: var(--color-background-secondary);
+  background-color: var(--color-background-primary);
   border-radius: var(--border-radius-sm);
   padding: var(--spacing-sm);
   overflow: auto;
@@ -73,7 +73,7 @@
 }
 
 .content {
-  font-family: var(--font-family-mono), monospace;
+  font-family: var(--vscode-editor-font-family), monospace;
   font-size: var(--font-size-xs);
   line-height: 1.4;
 }

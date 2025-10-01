@@ -11,5 +11,6 @@ export default {
         "selector-pseudo-class-no-unknown": null, // :global()
         "custom-property-empty-line-before": null,
         "declaration-empty-line-before": null,
+        "comment-empty-line-before": null,
     },
 }

@@ -54,13 +54,13 @@
 .contractAddress {
   color: var(--color-text-secondary);
   font-size: var(--font-size-xs);
-  font-family: var(--font-family-mono), monospace;
+  font-family: var(--vscode-editor-font-family), monospace;
 }
 
 .singleContractAddress {
   color: var(--color-text-secondary);
   font-size: var(--font-size-sm);
-  font-family: var(--font-family-mono), monospace;
+  font-family: var(--vscode-editor-font-family), monospace;
 }
 
 .contractChipCopyButton {

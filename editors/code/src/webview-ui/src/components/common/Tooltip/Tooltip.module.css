@@ -140,7 +140,7 @@
 }
 
 .link {
-  color: var(--color-primary);
+  color: var(--vscode-textLink-foreground);
   text-decoration: underline;
   transition: color 0.2s ease;
 }

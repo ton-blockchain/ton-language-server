@@ -7,7 +7,7 @@
 
 .constant {
   padding: var(--spacing-xs) var(--spacing-sm);
-  background-color: var(--color-background-secondary);
+  background-color: var(--color-background-primary);
   border-radius: var(--border-radius-sm);
   font-size: var(--font-size-sm);
   color: var(--color-text-primary);
@@ -18,7 +18,7 @@
 }
 
 .constant:hover {
-  background-color: var(--color-background-tertiary);
+  background-color: var(--color-background-primary);
 }
 
 .plus {

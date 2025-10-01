@@ -1,6 +1,6 @@
 .transactionDetailsContainer {
   border-radius: var(--border-radius-md);
-  background-color: var(--color-background-primary);
+  background-color: var(--color-background-secondary);
   margin-bottom: var(--spacing-md);
   border: 1px solid var(--table-border-color);
   position: relative;

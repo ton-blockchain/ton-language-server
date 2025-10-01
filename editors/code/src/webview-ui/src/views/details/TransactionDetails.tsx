@@ -147,7 +147,7 @@ export default function TransactionDetails({vscode}: Props): JSX.Element {
   }
 
   return (
-    <div className={styles.container + " dark-theme"}>
+    <div className={styles.container}>
       {transactionInfos && (
         <div className={styles.transactionsSection}>
           <div className={styles.sectionTitle}>Transaction Details</div>
