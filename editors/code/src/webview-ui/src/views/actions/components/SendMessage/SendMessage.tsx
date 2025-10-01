@@ -484,7 +484,12 @@ export const SendMessage: React.FC<Props> = ({
         </Button>
         <Button
           onClick={handleSaveAsTemplate}
-          disabled={contracts.length === 0 || !selectedContract || !selectedMessage}
+          disabled={
+            contracts.length === 0 ||
+            !selectedContract ||
+            !selectedMessage ||
+            (messageMode === "external" && !hasExternalEntryPoint)
+          }
           className={styles.saveTemplateButton}
         >
           <VscSave size={14} className={styles.saveIcon} />
