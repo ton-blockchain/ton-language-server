@@ -12,6 +12,7 @@ import {formatAddress} from "../../common/format"
 
 import {SandboxActionsProvider} from "./SandboxActionsProvider"
 import type {SandboxCodeLensProvider} from "./SandboxCodeLensProvider"
+import {ApiResponse, GetContractsData} from "./methods"
 
 interface SandboxTreeItem {
     readonly id: string
@@ -259,21 +260,25 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
                 return
             }
 
-            const data = (await response.json()) as {
-                contracts: DeployedContract[]
+            const data = (await response.json()) as ApiResponse<GetContractsData>
+            if (!data.success) {
+                console.warn("Failed to load contracts from server:", data.error)
+                return
             }
 
-            const serverAddresses = new Set(data.contracts.map(c => c.address))
+            const serverAddresses = new Set(data.data.contracts.map(c => c.address))
             const existingContracts = this.deployedContracts.filter(
                 c => !serverAddresses.has(c.address),
             )
 
-            const serverContracts: DeployedContract[] = data.contracts.map(c => ({
+            const serverContracts: DeployedContract[] = data.data.contracts.map(c => ({
                 ...c,
                 deployTime: new Date(),
             }))
 
             this.deployedContracts = [...existingContracts, ...serverContracts]
+
+            console.log("this.deployedContracts", this.deployedContracts)
 
             this.refresh()
             this.updateFormContracts()

@@ -53,13 +53,12 @@ function checkRequiredFunctions(content: string): boolean {
     return hasOnInternalMessage || hasMain
 }
 
-export async function loadAndValidateAbiForDeploy(): Promise<DeployValidationResult> {
+export async function loadAndValidateAbiForDeploy(): Promise<ApiResponse<DeployValidationResult>> {
     const editor = vscode.window.activeTextEditor
     if (!editor) {
         return {
-            isValidFile: false,
-            hasRequiredFunctions: false,
-            errorMessage: "No active editor found. Please open a Tolk contract file first.",
+            success: false,
+            error: "No active editor found. Please open a Tolk contract file first.",
         }
     }
 
@@ -68,10 +67,8 @@ export async function loadAndValidateAbiForDeploy(): Promise<DeployValidationRes
 
     if (languageId !== "tolk") {
         return {
-            isValidFile: false,
-            hasRequiredFunctions: false,
-            fileName,
-            errorMessage: `Currently opened file is not a Tolk contract file (.tolk extension).`,
+            success: false,
+            error: `Currently opened file is not a Tolk contract file (.tolk extension).`,
         }
     }
 
@@ -80,11 +77,8 @@ export async function loadAndValidateAbiForDeploy(): Promise<DeployValidationRes
 
     if (!hasRequiredFunctions) {
         return {
-            isValidFile: true,
-            hasRequiredFunctions: false,
-            fileName,
-            errorMessage:
-                "File is missing required entry points. Please add either 'fun onInternalMessage()' or 'fun main()' or open another file.",
+            success: false,
+            error: "File is missing required entry points. Please add either 'fun onInternalMessage()' or 'fun main()' or open another file.",
         }
     }
 
@@ -99,26 +93,23 @@ export async function loadAndValidateAbiForDeploy(): Promise<DeployValidationRes
         )
 
         return {
-            isValidFile: true,
-            hasRequiredFunctions: true,
-            fileName,
-            abi: abiResult.abi,
+            success: true,
+            data: {
+                isValidFile: true,
+                hasRequiredFunctions: true,
+                fileName,
+                abi: abiResult.abi,
+            },
         }
     } catch (error) {
         return {
-            isValidFile: true,
-            hasRequiredFunctions: true,
-            fileName,
-            errorMessage: `Failed to extract contract ABI: ${error instanceof Error ? error.message : "Unknown compilation error"}`,
+            success: false,
+            error: `Failed to extract contract ABI: ${error instanceof Error ? error.message : "Unknown compilation error"}`,
         }
     }
 }
 
-export async function loadContractInfo(address: string): Promise<{
-    success: boolean
-    result?: ContractInfoData
-    error?: string
-}> {
+export async function loadContractInfo(address: string): Promise<ApiResponse<ContractInfoData>> {
     try {
         const config = vscode.workspace.getConfiguration("ton")
         const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
@@ -135,11 +126,7 @@ export async function loadContractInfo(address: string): Promise<{
             throw new Error(`API call failed: ${response.status} ${response.statusText}`)
         }
 
-        return (await response.json()) as {
-            success: boolean
-            result?: ContractInfoData
-            error?: string
-        }
+        return (await response.json()) as ApiResponse<ContractInfoData>
     } catch (error) {
         return {
             success: false,
@@ -154,19 +141,19 @@ export async function compileAndDeployFromEditor(
     treeProvider: SandboxTreeProvider | undefined,
     value: string,
     storageType?: string,
-): Promise<ResultData> {
+): Promise<ApiResponse<ResultData>> {
     const editor = vscode.window.activeTextEditor
     if (!editor) {
         return {
             success: false,
-            message: "No active editor with contract code",
+            error: "No active editor with contract code",
         }
     }
 
     if (editor.document.languageId !== "tolk") {
         return {
             success: false,
-            message: "Active file is not a Tolk contract",
+            error: "Active file is not a Tolk contract",
         }
     }
 
@@ -201,14 +188,14 @@ export async function compileAndDeployFromEditor(
         if (!result.success) {
             return {
                 success: false,
-                message: `Compilation failed: ${result.error}`,
+                error: `Compilation failed: ${result.error}`,
             }
         }
 
         if (!result.code) {
             return {
                 success: false,
-                message: "Compilation succeeded but no code generated",
+                error: "Compilation succeeded but no code generated",
             }
         }
 
@@ -224,11 +211,11 @@ export async function compileAndDeployFromEditor(
             contractAbi,
         )
 
-        if (deployResult.success && deployResult.address) {
-            const isRedeploy = treeProvider?.isContractDeployed(deployResult.address) ?? false
+        if (deployResult.success) {
+            const isRedeploy = treeProvider?.isContractDeployed(deployResult.data.address) ?? false
 
             treeProvider?.addDeployedContract(
-                deployResult.address,
+                deployResult.data.address,
                 name,
                 contractAbi,
                 result.sourceMap,
@@ -243,19 +230,22 @@ export async function compileAndDeployFromEditor(
 
             return {
                 success: true,
-                message,
-                details: deployResult.address,
+                data: {
+                    success: true,
+                    message,
+                    details: deployResult.data.address,
+                },
             }
         } else {
             return {
                 success: false,
-                message: `Deploy failed: ${deployResult.error}`,
+                error: `Deploy failed: ${deployResult.error}`,
             }
         }
     } catch (error) {
         return {
             success: false,
-            message: `Operation failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+            error: `Operation failed: ${error instanceof Error ? error.message : "Unknown error"}`,
         }
     }
 }
@@ -270,11 +260,7 @@ async function deployContract(
     sourceUri: string,
     sourceMap: SourceMap | undefined,
     abi: ContractAbi | undefined,
-): Promise<{
-    success: boolean
-    address?: string
-    error?: string
-}> {
+): Promise<ApiResponse<DeployContractData>> {
     try {
         const config = vscode.workspace.getConfiguration("ton")
         const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
@@ -296,7 +282,7 @@ async function deployContract(
             throw new Error(`API call failed: ${response.status} ${response.statusText}`)
         }
 
-        return (await response.json()) as {success: boolean; address?: string; error?: string}
+        return (await response.json()) as ApiResponse<DeployContractData>
     } catch (error) {
         return {
             success: false,
@@ -305,12 +291,9 @@ async function deployContract(
     }
 }
 
-export async function loadLatestOperationResult(): Promise<{
-    success: boolean
-    resultString?: string
-    operationData?: OperationNode
-    error?: string
-}> {
+export async function loadLatestOperationResult(): Promise<
+    ApiResponse<LoadLatestOperationResultData>
+> {
     try {
         const config = vscode.workspace.getConfiguration("ton")
         const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
@@ -336,8 +319,10 @@ export async function loadLatestOperationResult(): Promise<{
 
         return {
             success: true,
-            resultString: data.operation.resultString,
-            operationData: data.operation,
+            data: {
+                resultString: data.operation.resultString,
+                operationData: data.operation,
+            },
         }
     } catch (error) {
         return {
@@ -347,15 +332,12 @@ export async function loadLatestOperationResult(): Promise<{
     }
 }
 
-interface ApiResponse<T = void> {
-    readonly success: boolean
-    readonly error?: string
-    readonly data?: T
+// Data types for API responses
+export interface DeployContractData {
+    readonly address: string
 }
 
-interface SendMessageResponse {
-    readonly success: boolean
-    readonly error?: string
+export interface SendMessageData {
     readonly txs: readonly {
         readonly addr: string
         readonly vmLogs: string
@@ -364,10 +346,48 @@ interface SendMessageResponse {
     }[]
 }
 
+export interface CallGetMethodData {
+    readonly result: TupleItem[]
+    readonly logs?: string
+}
+
+export interface CreateMessageTemplateData {
+    readonly template: MessageTemplate
+}
+
+export interface GetMessageTemplatesData {
+    readonly templates: MessageTemplate[]
+}
+
+export interface GetContractsData {
+    readonly contracts: DeployedContract[]
+}
+
+export interface GetOperationsData {
+    readonly operations: OperationNode[]
+}
+
+export interface LoadLatestOperationResultData {
+    readonly resultString?: string
+    readonly operationData?: OperationNode
+}
+
+export type ApiResponse<T = object> = ApiResponseOk<T> | ApiResponseError
+
+interface ApiResponseOk<T = object> {
+    readonly success: true
+    readonly data: T
+}
+
+interface ApiResponseError {
+    readonly success: false
+    readonly error: string
+}
+
 export async function sendExternalMessage(
     address: string,
     message: string,
-): Promise<SendMessageResponse> {
+): Promise<ApiResponse<SendMessageData>> {
     const config = vscode.workspace.getConfiguration("ton")
     const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
 
@@ -381,7 +401,7 @@ export async function sendExternalMessage(
         throw new Error(`API call failed: ${response.status} ${response.statusText}`)
     }
 
-    return (await response.json()) as SendMessageResponse
+    return (await response.json()) as ApiResponse<SendMessageData>
 }
 
 export async function sendInternalMessage(
@@ -390,7 +410,7 @@ export async function sendInternalMessage(
     message: string,
     sendMode: number,
     value: string,
-): Promise<SendMessageResponse> {
+): Promise<ApiResponse<SendMessageData>> {
     const config = vscode.workspace.getConfiguration("ton")
     const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
 
@@ -410,7 +430,7 @@ export async function sendInternalMessage(
         throw new Error(`API call failed: ${response.status} ${response.statusText}`)
     }
 
-    return (await response.json()) as SendMessageResponse
+    return (await response.json()) as ApiResponse<SendMessageData>
 }
 
 export interface CallGetMethodResponse {
@@ -424,7 +444,7 @@ export async function callGetMethod(
     address: string,
     methodId: number,
     parametersBase64: string,
-): Promise<CallGetMethodResponse> {
+): Promise<ApiResponse<CallGetMethodData>> {
     const config = vscode.workspace.getConfiguration("ton")
     const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
 
@@ -438,16 +458,24 @@ export async function callGetMethod(
         throw new Error(`API call failed: ${response.status} ${response.statusText}`)
     }
 
-    const result = (await response.json()) as {
-        success: boolean
+    const apiResult = (await response.json()) as ApiResponse<{
         result?: string
         logs?: string
-        error?: string
+    }>
+
+    if (apiResult.success) {
+        return {
+            success: true,
+            data: {
+                result: apiResult.data.result
+                    ? parseTuple(Cell.fromBase64(apiResult.data.result))
+                    : [],
+                logs: apiResult.data.logs,
+            },
+        }
     }
-    return {
-        ...result,
-        result: result.result ? parseTuple(Cell.fromBase64(result.result)) : undefined,
-    }
+
+    return apiResult
 }
 
 export function parseGetMethodResult(
@@ -507,11 +535,9 @@ export interface MessageTemplateData {
     readonly description?: string
 }
 
-export async function createMessageTemplate(templateData: MessageTemplateData): Promise<{
-    success: boolean
-    template?: MessageTemplate
-    error?: string
-}> {
+export async function createMessageTemplate(
+    templateData: MessageTemplateData,
+): Promise<ApiResponse<CreateMessageTemplateData>> {
     const config = vscode.workspace.getConfiguration("ton")
     const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
 
@@ -530,18 +556,20 @@ export async function createMessageTemplate(templateData: MessageTemplateData): 
         }
     }
 
-    const template = (await response.json()) as MessageTemplate
+    const template = (await response.json()) as ApiResponse<MessageTemplate>
+    if (!template.success) {
+        return template
+    }
+
     return {
         success: true,
-        template,
+        data: {
+            template: template.data,
+        },
     }
 }
 
-export async function getMessageTemplates(): Promise<{
-    success: boolean
-    templates?: MessageTemplate[]
-    error?: string
-}> {
+export async function getMessageTemplates(): Promise<ApiResponse<GetMessageTemplatesData>> {
     const config = vscode.workspace.getConfiguration("ton")
     const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
 
@@ -559,17 +587,10 @@ export async function getMessageTemplates(): Promise<{
         }
     }
 
-    const data = (await response.json()) as {templates: MessageTemplate[]}
-    return {
-        success: true,
-        templates: data.templates,
-    }
+    return (await response.json()) as ApiResponse<GetMessageTemplatesData>
 }
 
-export async function deleteMessageTemplate(id: string): Promise<{
-    success: boolean
-    error?: string
-}> {
+export async function deleteMessageTemplate(id: string): Promise<ApiResponse> {
     const config = vscode.workspace.getConfiguration("ton")
     const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
 
@@ -589,16 +610,11 @@ export async function deleteMessageTemplate(id: string): Promise<{
 
     return {
         success: true,
+        data: {},
     }
 }
 
-export async function renameContract(
-    address: string,
-    newName: string,
-): Promise<{
-    success: boolean
-    error?: string
-}> {
+export async function renameContract(address: string, newName: string): Promise<ApiResponse> {
     const config = vscode.workspace.getConfiguration("ton")
     const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
 
@@ -612,17 +628,10 @@ export async function renameContract(
         throw new Error(`API call failed: ${response.status} ${response.statusText}`)
     }
 
-    return (await response.json()) as {
-        success: boolean
-        error?: string
-    }
+    return (await response.json()) as ApiResponse
 }
 
-export async function getContracts(): Promise<{
-    success: boolean
-    contracts?: DeployedContract[]
-    error?: string
-}> {
+export async function getContracts(): Promise<ApiResponse<GetContractsData>> {
     const config = vscode.workspace.getConfiguration("ton")
     const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
 
@@ -645,14 +654,13 @@ export async function getContracts(): Promise<{
     }
     return {
         success: true,
-        contracts: data.contracts,
+        data: {
+            contracts: data.contracts,
+        },
     }
 }
 
-export async function deleteContract(address: string): Promise<{
-    success: boolean
-    error?: string
-}> {
+export async function deleteContract(address: string): Promise<ApiResponse> {
     const config = vscode.workspace.getConfiguration("ton")
     const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
 
@@ -672,6 +680,7 @@ export async function deleteContract(address: string): Promise<{
 
     return {
         success: true,
+        data: {},
     }
 }
 
@@ -684,7 +693,7 @@ export async function callGetMethodDirectly(
         const result = await callGetMethod(contract.address, methodId, emptyParameters)
 
         if (result.success) {
-            const reader = new TupleReader(result.result ?? [])
+            const reader = new TupleReader(result.data.result)
             try {
                 const parsedResult = parseGetMethodResult(contract.abi, reader, methodId)
                 const formattedResult = formatParsedObject(parsedResult)
@@ -696,7 +705,7 @@ export async function callGetMethodDirectly(
                 )
             }
         } else {
-            void vscode.window.showErrorMessage(`Call failed: ${result.error ?? "Unknown error"}`)
+            void vscode.window.showErrorMessage(`Call failed: ${result.error}`)
         }
     } catch (error) {
         void vscode.window.showErrorMessage(
@@ -705,11 +714,7 @@ export async function callGetMethodDirectly(
     }
 }
 
-export async function getOperations(): Promise<{
-    success: boolean
-    operations?: OperationNode[]
-    error?: string
-}> {
+export async function getOperations(): Promise<ApiResponse<GetOperationsData>> {
     try {
         const config = vscode.workspace.getConfiguration("ton")
         const serverUrl = config.get<string>("sandboxServerUrl") ?? "http://localhost:3000"
@@ -733,7 +738,9 @@ export async function getOperations(): Promise<{
         }
         return {
             success: true,
-            operations: data.operations,
+            data: {
+                operations: data.operations,
+            },
         }
     } catch (error) {
         return {
@@ -762,6 +769,7 @@ export async function restoreBlockchainState(eventId: string): Promise<ApiRespon
 
         return {
             success: true,
+            data: {},
         }
     } catch (error) {
         return {

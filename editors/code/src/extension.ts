@@ -887,10 +887,10 @@ function registerTransactionDetailsCommand(disposables: vscode.Disposable[]): vo
 
         try {
             const contractInfo = await loadContractInfo(args.contractAddress)
-            if (contractInfo.success && contractInfo.result) {
-                account = contractInfo.result.account
-                stateInit = contractInfo.result.stateInit
-                abi = contractInfo.result.abi
+            if (contractInfo.success) {
+                account = contractInfo.data.account
+                stateInit = contractInfo.data.stateInit
+                abi = contractInfo.data.abi
             }
         } catch (error) {
             vscode.window.showErrorMessage(`Failed to fetch contract info from server: ${error}`)
@@ -900,8 +900,8 @@ function registerTransactionDetailsCommand(disposables: vscode.Disposable[]): vo
         if (!resultString) {
             try {
                 const latestOperationResult = await loadLatestOperationResult()
-                if (latestOperationResult.success && latestOperationResult.resultString) {
-                    resultString = latestOperationResult.resultString
+                if (latestOperationResult.success) {
+                    resultString = latestOperationResult.data.resultString
                 } else {
                     const message = `Failed to load latest operation result: ${latestOperationResult.error}`
                     vscode.window.showErrorMessage(message)

@@ -84,15 +84,15 @@ export class HistoryWebviewProvider implements vscode.WebviewViewProvider {
                 getContracts(),
             ])
 
-            if (operationsResult.success && operationsResult.operations) {
-                this.operations = operationsResult.operations
+            if (operationsResult.success) {
+                this.operations = operationsResult.data.operations
             } else {
                 console.error("Failed to load operations:", operationsResult.error)
                 this.operations = []
             }
 
-            if (contractsResult.success && contractsResult.contracts) {
-                this.contracts = contractsResult.contracts
+            if (contractsResult.success) {
+                this.contracts = contractsResult.data.contracts
             } else {
                 console.error("Failed to load contracts:", contractsResult.error)
                 this.contracts = []

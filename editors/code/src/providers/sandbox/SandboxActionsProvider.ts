@@ -305,8 +305,8 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
                 )
                 this.refreshStates()
 
-                if (command.debug && result.txs.length > 0) {
-                    const validTransactions = result.txs.map((tx, index) => {
+                if (command.debug && result.data.txs.length > 0) {
+                    const validTransactions = result.data.txs.map((tx, index) => {
                         const contract = this.deployedContracts.find(c => c.address === tx.addr)
                         const contractName = contract?.name ?? "UnknownContract"
 
@@ -326,7 +326,7 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
                 this.showResult(
                     {
                         success: false,
-                        message: `External message send failed: ${result.error ?? "Unknown error"}`,
+                        message: `External message send failed: ${result.error}`,
                     },
                     "send-external-message-result",
                 )
@@ -398,8 +398,8 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
                 )
                 this.refreshStates()
 
-                if (command.debug && result.txs.length > 0) {
-                    const noSourceMaps = result.txs.every(tx => tx.sourceMap === undefined)
+                if (command.debug && result.data.txs.length > 0) {
+                    const noSourceMaps = result.data.txs.every(tx => tx.sourceMap === undefined)
                     if (noSourceMaps) {
                         this.showResult(
                             {
@@ -412,7 +412,7 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
                         return
                     }
 
-                    const validTransactions = result.txs.map((tx, index) => {
+                    const validTransactions = result.data.txs.map((tx, index) => {
                         const contract = this.deployedContracts.find(c => c.address === tx.addr)
                         const contractName = contract?.name ?? "UnknownContract"
 
@@ -432,7 +432,7 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
                 this.showResult(
                     {
                         success: false,
-                        message: `Send failed: ${result.error ?? "Unknown error"}`,
+                        message: `Send failed: ${result.error}`,
                     },
                     "send-internal-message-result",
                 )
@@ -493,8 +493,8 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
                 command.parameters,
             )
 
-            if (result.success && result.result) {
-                const reader = new TupleReader(result.result)
+            if (result.success) {
+                const reader = new TupleReader(result.data.result)
 
                 let formattedResult: string
                 try {
@@ -518,7 +518,7 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
                 this.showResult(
                     {
                         success: false,
-                        message: `Call failed: ${result.error ?? "Unknown error"}`,
+                        message: `Call failed: ${result.error}`,
                     },
                     "get-method-result",
                 )
@@ -535,31 +535,43 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
     }
 
     private async handleLoadAbiForDeploy(): Promise<void> {
+        if (!this.view) return
+
         const validation = await loadAndValidateAbiForDeploy()
 
-        if (this.view) {
+        if (validation.success) {
             const message: UpdateDeployStateMessage = {
                 type: "updateDeployState",
                 state: {
-                    isValidFile: validation.isValidFile,
-                    hasRequiredFunctions: validation.hasRequiredFunctions,
-                    fileName: validation.fileName,
-                    errorMessage: validation.errorMessage,
+                    isValidFile: validation.data.isValidFile,
+                    hasRequiredFunctions: validation.data.hasRequiredFunctions,
+                    fileName: validation.data.fileName,
                 },
-                abi: validation.abi,
+                abi: validation.data.abi,
             }
             void this.view.webview.postMessage(message)
-        }
 
-        if (validation.abi) {
-            this.updateContractAbi(validation.abi)
+            if (validation.data.abi) {
+                this.updateContractAbi(validation.data.abi)
+            }
+        } else {
+            const message: UpdateDeployStateMessage = {
+                type: "updateDeployState",
+                state: {
+                    isValidFile: true,
+                    hasRequiredFunctions: false,
+                    errorMessage: validation.error,
+                },
+                abi: undefined,
+            }
+            void this.view.webview.postMessage(message)
         }
     }
 
     private async handleLoadContractInfo(contractAddress: string): Promise<void> {
         const info = await loadContractInfo(contractAddress)
-        if (info.result) {
-            this.updateContractInfo(info.result)
+        if (info.success) {
+            this.updateContractInfo(info.data)
         }
     }
 
@@ -607,9 +619,7 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
                     `Contract renamed from "${currentName}" to "${newName.trim()}"`,
                 )
             } else {
-                void vscode.window.showErrorMessage(
-                    `Failed to rename contract: ${result.error ?? "Unknown error"}`,
-                )
+                void vscode.window.showErrorMessage(`Failed to rename contract: ${result.error}`)
             }
         } catch (error) {
             void vscode.window.showErrorMessage(
@@ -653,7 +663,7 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
             command.value,
             command.storageType,
         )
-        this.showResult(result, "compile-deploy-result")
+        this.showResult(result.success ? result.data : undefined, "compile-deploy-result")
     }
 
     public startSequentialDebugging(transactions: TransactionInfo[]): void {
@@ -876,6 +886,8 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
     private async handleCreateMessageTemplate(
         command: CreateMessageTemplateCommand,
     ): Promise<void> {
+        if (!this.view) return
+
         try {
             const result = await createMessageTemplate({
                 name: command.name,
@@ -886,10 +898,10 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
                 description: command.description,
             })
 
-            if (result.success && result.template && this.view) {
+            if (result.success) {
                 const message: TemplateCreatedMessage = {
                     type: "templateCreated",
-                    template: result.template,
+                    template: result.data.template,
                 }
                 void this.view.webview.postMessage(message)
 
@@ -899,9 +911,7 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
                     `Template "${command.name}" created successfully`,
                 )
             } else {
-                void vscode.window.showErrorMessage(
-                    `Failed to create template: ${result.error ?? "Unknown error"}`,
-                )
+                void vscode.window.showErrorMessage(`Failed to create template: ${result.error}`)
             }
         } catch (error) {
             console.error("Create template error:", error)
@@ -915,11 +925,11 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
         try {
             const result = await getMessageTemplates()
 
-            if (result.success && result.templates) {
+            if (result.success) {
                 if (this.view) {
                     const message: MessageTemplatesMessage = {
                         type: "messageTemplates",
-                        templates: result.templates,
+                        templates: result.data.templates,
                     }
                     void this.view.webview.postMessage(message)
                 }
@@ -950,9 +960,7 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
 
                 void this.handleGetMessageTemplates()
             } else {
-                void vscode.window.showErrorMessage(
-                    `Failed to delete template: ${result.error ?? "Unknown error"}`,
-                )
+                void vscode.window.showErrorMessage(`Failed to delete template: ${result.error}`)
             }
         } catch (error) {
             console.error("Delete template error:", error)
@@ -972,7 +980,7 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
                 value: `${command.messageName} Template`,
             })
 
-            if (!templateName) {
+            if (!templateName || !this.view) {
                 return
             }
 
@@ -997,20 +1005,18 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
 
             const result = await createMessageTemplate(templateData)
 
-            if (result.success && result.template && this.view) {
+            if (result.success) {
                 // Notify view about a new template
                 const message: TemplateCreatedMessage = {
                     type: "templateCreated",
-                    template: result.template,
+                    template: result.data.template,
                 }
                 void this.view.webview.postMessage(message)
                 void vscode.window.showInformationMessage(
                     `Template "${templateName}" saved successfully`,
                 )
             } else {
-                void vscode.window.showErrorMessage(
-                    `Failed to save template: ${result.error ?? "Unknown error"}`,
-                )
+                void vscode.window.showErrorMessage(`Failed to save template: ${result.error}`)
             }
         } catch (error) {
             console.error("Save template error:", error)
