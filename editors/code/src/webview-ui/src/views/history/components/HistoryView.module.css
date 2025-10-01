@@ -19,6 +19,8 @@
   justify-content: flex-start;
   padding: 2px 0;
   position: relative;
+  margin-left: 3px;
+  z-index: 100;
 }
 
 .timelineLine::before {
@@ -28,8 +30,9 @@
   top: 0;
   bottom: 0;
   width: 1px;
-  background-color: var(--vscode-descriptionForeground);
+  background-color: var(--vscode-charts-orange);
   transform: translateX(-50%);
+  z-index: 100;
 }
 
 .operations {
@@ -42,10 +45,11 @@
 }
 
 .node {
+  position: relative;
   display: flex;
   align-items: center;
   padding: 6px 8px;
-  margin: 0;
+  margin: 0 0 0 -13px;
   border-radius: 3px;
   border: 1px solid transparent;
   transition: background-color 0.1s ease;
@@ -54,8 +58,8 @@
 
 .node.compact {
   cursor: pointer;
-  min-height: 32px;
-  padding: 0 8px 0 4px;
+  min-height: 23px;
+  padding: 0 8px 0 20px;
 }
 
 .node:focus {
@@ -70,7 +74,7 @@
 }
 
 .node:hover::after {
-  border: 2px solid var(--vscode-descriptionForeground);
+  border: 2px solid var(--vscode-charts-orange);
 }
 
 .node.failed:hover::after {
@@ -80,14 +84,14 @@
 .node::after {
   content: "";
   position: absolute;
-  left: -17px;
-  top: 10px;
-  width: 10px;
-  height: 10px;
+  left: -4px;
+  top: 6px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
-  background-color: var(--vscode-descriptionForeground);
+  background-color: var(--vscode-charts-orange);
   border: 2px solid var(--vscode-sideBar-background);
-  z-index: 2;
+  z-index: 101;
 }
 
 .node.failed::after {
