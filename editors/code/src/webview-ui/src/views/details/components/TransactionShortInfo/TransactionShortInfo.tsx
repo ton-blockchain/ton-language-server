@@ -122,6 +122,7 @@ export function TransactionShortInfo({
   const targetContract = thisAddress ? contracts.get(thisAddress.toString()) : undefined
   const typeAbi = targetContract?.abi?.messages.find(it => it.opcode === tx.opcode)
   const opcodeNane = typeAbi?.name
+  const knownExitCodes = contracts.get(tx.address?.toString() ?? "")?.abi?.exitCodes
 
   return (
     <>
@@ -260,7 +261,11 @@ export function TransactionShortInfo({
                 <div className={styles.multiColumnItem}>
                   <div className={styles.multiColumnItemTitle}>Exit Code</div>
                   <div className={styles.multiColumnItemValue}>
-                    <ExitCodeChip exitCode={computeInfo.exitCode} abi={undefined} />
+                    <ExitCodeChip
+                      exitCode={computeInfo.exitCode}
+                      abi={undefined}
+                      exitCodes={knownExitCodes}
+                    />
                   </div>
                 </div>
                 <div className={styles.multiColumnItem}>

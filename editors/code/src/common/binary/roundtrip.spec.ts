@@ -176,6 +176,7 @@ const mockAbi: ContractAbi = {
     getMethods: [],
     entryPoint: undefined,
     externalEntryPoint: undefined,
+    exitCodes: [],
 }
 
 function typeAlias(aliasName: string, innerType: TypeInfo): TypeInfo {

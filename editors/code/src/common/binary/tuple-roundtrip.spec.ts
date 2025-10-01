@@ -145,6 +145,7 @@ const mockAbi: ContractAbi = {
     getMethods: [],
     entryPoint: undefined,
     externalEntryPoint: undefined,
+    exitCodes: [],
 }
 
 function createMockTypeAbi(fields: readonly Field[]): TypeAbi {

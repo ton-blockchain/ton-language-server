@@ -31,6 +31,11 @@ export interface ContractAbi {
     readonly getMethods: readonly GetMethod[]
     readonly entryPoint: EntryPoint | undefined
     readonly externalEntryPoint: EntryPoint | undefined
+
+    /**
+     * All exit codes from assert and throw statements
+     */
+    readonly exitCodes: readonly ExitCodeInfo[]
 }
 
 export interface EntryPoint {
@@ -55,6 +60,12 @@ export interface GetMethod {
     readonly pos: Pos | undefined
     readonly returnType?: TypeInfo
     readonly parameters?: Field[]
+}
+
+export interface ExitCodeInfo {
+    readonly constantName: string
+    readonly value: number
+    readonly pos: Pos | undefined
 }
 
 export interface Pos {

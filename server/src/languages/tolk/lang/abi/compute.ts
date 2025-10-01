@@ -1,9 +1,14 @@
+import type {Node as SyntaxNode} from "web-tree-sitter"
+
 import {TolkFile} from "@server/languages/tolk/psi/TolkFile"
-import {ContractAbi, EntryPoint, Field, GetMethod, TypeAbi} from "@shared/abi"
+import {ContractAbi, EntryPoint, Field, GetMethod, TypeAbi, ExitCodeInfo, Pos} from "@shared/abi"
 import {ImportResolver} from "@server/languages/tolk/psi/ImportResolver"
 import {typeOf} from "@server/languages/tolk/type-inference"
+import {RecursiveVisitor} from "@server/visitor/visitor"
 
 import {VoidTy} from "@server/languages/tolk/types/ty"
+
+import {Constant} from "@server/languages/tolk/psi/Decls"
 
 import {convertTyToTypeInfo} from "./type-converter"
 
@@ -11,6 +16,7 @@ export function contractAbi(file: TolkFile): ContractAbi | undefined {
     const getMethods: GetMethod[] = []
     const messages: TypeAbi[] = []
     const types: TypeAbi[] = []
+    const exitCodes: ExitCodeInfo[] = []
     let storage: TypeAbi | undefined = undefined
     let entryPoint: EntryPoint | undefined = undefined
     let externalEntryPoint: EntryPoint | undefined = undefined
@@ -31,6 +37,8 @@ export function contractAbi(file: TolkFile): ContractAbi | undefined {
     }
 
     const filesToProcess = [file, ...collectImportedFiles(file)]
+
+    collectExitCodes(filesToProcess, exitCodes)
 
     for (const currentFile of filesToProcess) {
         for (const method of currentFile.getGetMethods()) {
@@ -117,6 +125,7 @@ export function contractAbi(file: TolkFile): ContractAbi | undefined {
         getMethods,
         messages,
         types,
+        exitCodes,
     }
 }
 
@@ -143,6 +152,78 @@ export function collectImportedFiles(file: TolkFile): TolkFile[] {
     }
 
     return [...result.values()]
+}
+
+function collectExitCodes(files: TolkFile[], exitCodes: ExitCodeInfo[]): void {
+    const constantMap: Map<string, {value: number; pos: Pos | undefined}> = new Map()
+
+    for (const file of files) {
+        for (const constant of file.getConstants()) {
+            const value = extractConstantValue(constant)
+            if (value !== undefined) {
+                constantMap.set(constant.name(), {
+                    value,
+                    pos: constant.nameIdentifier()?.startPosition,
+                })
+            }
+        }
+    }
+
+    for (const file of files) {
+        RecursiveVisitor.visit(file.rootNode, node => {
+            if (node.type === "assert_statement" || node.type === "throw_statement") {
+                const throwNode = node.childForFieldName("excNo")
+                if (!throwNode) {
+                    return true
+                }
+                const exitCode = extractThrowCode(throwNode, constantMap)
+                if (!exitCode) {
+                    return true
+                }
+                const existing = exitCodes.find(ec => ec.constantName === exitCode.constantName)
+                if (!existing) {
+                    exitCodes.push(exitCode)
+                }
+                return true
+            }
+            return true
+        })
+    }
+}
+
+function extractConstantValue(constant: Constant): number | undefined {
+    const node = constant.node
+    const valueNode = node.childForFieldName("value")
+    if (valueNode?.type === "number_literal") {
+        const value = Number.parseInt(valueNode.text)
+        return Number.isNaN(value) ? undefined : value
+    }
+    return undefined
+}
+
+function extractThrowCode(
+    throwNode: SyntaxNode,
+    constantMap: Map<
+        string,
+        {
+            value: number
+            pos: Pos | undefined
+        }
+    >,
+): ExitCodeInfo | undefined {
+    if (throwNode.type === "identifier") {
+        const constantName = throwNode.text
+        const constantInfo = constantMap.get(constantName)
+        if (constantInfo) {
+            return {
+                constantName,
+                value: constantInfo.value,
+                pos: constantInfo.pos,
+            }
+        }
+    }
+
+    return undefined
 }
 
 function getContractNameFromDocument(document: TolkFile): string {

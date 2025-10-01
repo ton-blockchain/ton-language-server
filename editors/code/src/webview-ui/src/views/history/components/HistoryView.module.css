@@ -101,7 +101,7 @@
 .node.failed::before {
   content: "";
   position: absolute;
-  left: -11px;
+  left: 1px;
   top: -10px;
   bottom: -10px;
   width: 2px;

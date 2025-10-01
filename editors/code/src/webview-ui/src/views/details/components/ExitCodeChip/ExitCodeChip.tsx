@@ -2,6 +2,8 @@ import type {ContractABI} from "@ton/core"
 
 import React from "react"
 
+import {ExitCodeInfo} from "@shared/abi"
+
 import {Tooltip} from "../../../../components/common/Tooltip"
 
 import styles from "./ExitCodeViewer.module.css"
@@ -10,12 +12,16 @@ import {EXIT_CODE_DESCRIPTIONS} from "./error-codes"
 interface ExitCodeViewerProps {
   readonly exitCode: number | undefined
   readonly abi?: ContractABI | null
+  readonly exitCodes?: readonly ExitCodeInfo[]
 }
 
-export function ExitCodeChip({exitCode, abi}: ExitCodeViewerProps): React.JSX.Element {
+export function ExitCodeChip({exitCode, abi, exitCodes}: ExitCodeViewerProps): React.JSX.Element {
   if (exitCode === undefined) {
     return <span className={styles.exitCode}>—</span>
   }
+
+  const exitCodeInfo = exitCodes?.find(ec => ec.value === exitCode)
+  const constantName = exitCodeInfo?.constantName
 
   // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
   const standardDescription = EXIT_CODE_DESCRIPTIONS[
@@ -27,7 +33,7 @@ export function ExitCodeChip({exitCode, abi}: ExitCodeViewerProps): React.JSX.El
   }
   const abiError = abi?.errors?.[exitCode]
 
-  const displayName = standardDescription.name
+  const displayName = constantName ?? standardDescription.name
   const description = abiError?.message ?? standardDescription.description
   const phase = standardDescription.phase
 
