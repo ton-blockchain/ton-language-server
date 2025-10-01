@@ -649,15 +649,7 @@ export async function getContracts(): Promise<ApiResponse<GetContractsData>> {
         }
     }
 
-    const data = (await response.json()) as {
-        contracts: DeployedContract[]
-    }
-    return {
-        success: true,
-        data: {
-            contracts: data.contracts,
-        },
-    }
+    return (await response.json()) as ApiResponse<GetContractsData>
 }
 
 export async function deleteContract(address: string): Promise<ApiResponse> {
@@ -770,6 +762,30 @@ export async function restoreBlockchainState(eventId: string): Promise<ApiRespon
         return {
             success: true,
             data: {},
+        }
+    } catch (error) {
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "Unknown error",
+        }
+    }
+}
+
+export async function checkSandboxStatus(): Promise<{
+    success: boolean
+    error?: string
+}> {
+    try {
+        const config = vscode.workspace.getConfiguration("ton")
+        const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
+
+        const response = await fetch(`${sandboxUrl}/health`, {
+            method: "GET",
+            signal: AbortSignal.timeout(5000),
+        })
+
+        return {
+            success: response.ok,
         }
     } catch (error) {
         return {

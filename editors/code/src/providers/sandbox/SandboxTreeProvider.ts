@@ -12,7 +12,7 @@ import {formatAddress} from "../../common/format"
 
 import {SandboxActionsProvider} from "./SandboxActionsProvider"
 import type {SandboxCodeLensProvider} from "./SandboxCodeLensProvider"
-import {ApiResponse, GetContractsData} from "./methods"
+import {checkSandboxStatus, getContracts} from "./methods"
 
 interface SandboxTreeItem {
     readonly id: string
@@ -225,15 +225,9 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
 
     private async checkSandboxStatus(loadContracts: boolean): Promise<void> {
         try {
-            const config = vscode.workspace.getConfiguration("ton")
-            const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
+            const result = await checkSandboxStatus()
 
-            const response = await fetch(`${sandboxUrl}/health`, {
-                method: "GET",
-                signal: AbortSignal.timeout(5000),
-            })
-
-            this.sandboxStatus = response.ok ? "connected" : "error"
+            this.sandboxStatus = result.success ? "connected" : "error"
 
             if (this.sandboxStatus === "connected" && loadContracts) {
                 await this.loadContractsFromServer()
@@ -247,31 +241,18 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
 
     public async loadContractsFromServer(): Promise<void> {
         try {
-            const config = vscode.workspace.getConfiguration("ton")
-            const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
-
-            const response = await fetch(`${sandboxUrl}/contracts`, {
-                method: "GET",
-                signal: AbortSignal.timeout(5000),
-            })
-
-            if (!response.ok) {
-                console.warn("Failed to load contracts from server:", response.statusText)
+            const result = await getContracts()
+            if (!result.success) {
+                console.warn("Failed to load contracts from server:", result.error)
                 return
             }
 
-            const data = (await response.json()) as ApiResponse<GetContractsData>
-            if (!data.success) {
-                console.warn("Failed to load contracts from server:", data.error)
-                return
-            }
-
-            const serverAddresses = new Set(data.data.contracts.map(c => c.address))
+            const serverAddresses = new Set(result.data.contracts.map(c => c.address))
             const existingContracts = this.deployedContracts.filter(
                 c => !serverAddresses.has(c.address),
             )
 
-            const serverContracts: DeployedContract[] = data.data.contracts.map(c => ({
+            const serverContracts: DeployedContract[] = result.data.contracts.map(c => ({
                 ...c,
                 deployTime: new Date(),
             }))
