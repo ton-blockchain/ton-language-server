@@ -23,7 +23,6 @@ interface UseVSCodeMessagingParams {
   readonly setContractAbi: (abi: ContractAbi | undefined) => void
   readonly setDeployState: (state: DeployState | undefined) => void
   readonly setContractInfo: (info: ContractInfoData | undefined) => void
-  readonly setLoadedTemplate: (template: MessageTemplate | undefined) => void
   readonly setMessageTemplates: (templates: MessageTemplate[]) => void
 }
 
@@ -41,7 +40,6 @@ export function useVSCodeMessaging(params: UseVSCodeMessagingParams): UseVSCodeM
     setContractAbi,
     setDeployState,
     setContractInfo,
-    setLoadedTemplate,
     setMessageTemplates,
   } = params
 
@@ -105,11 +103,6 @@ export function useVSCodeMessaging(params: UseVSCodeMessagingParams): UseVSCodeM
           })
           break
         }
-        case "messageTemplate": {
-          setLoadedTemplate(message.template)
-          setActiveOperation("send-message")
-          break
-        }
         case "templateCreated": {
           vscode.postMessage({type: "getMessageTemplates"})
           break
@@ -145,7 +138,6 @@ export function useVSCodeMessaging(params: UseVSCodeMessagingParams): UseVSCodeM
       setContractAbi,
       setDeployState,
       setContractInfo,
-      setLoadedTemplate,
       setMessageTemplates,
       restoreFromState,
     ],

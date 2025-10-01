@@ -500,7 +500,7 @@ export function parseGetMethodResult(
 export interface MessageTemplateData {
     readonly name: string
     readonly opcode: number
-    readonly messageBody: string
+    readonly messageFields: binary.RawStringObject
     readonly sendMode: number
     readonly value: string
     readonly description?: string
@@ -562,68 +562,6 @@ export async function getMessageTemplates(): Promise<{
     return {
         success: true,
         templates: data.templates,
-    }
-}
-
-export async function getMessageTemplate(id: string): Promise<{
-    success: boolean
-    template?: MessageTemplate
-    error?: string
-}> {
-    const config = vscode.workspace.getConfiguration("ton")
-    const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
-
-    const response = await fetch(`${sandboxUrl}/message-templates/${id}`, {
-        method: "GET",
-        headers: {
-            "Content-Type": "application/json",
-        },
-    })
-
-    if (!response.ok) {
-        return {
-            success: false,
-            error: `HTTP ${response.status}: ${response.statusText}`,
-        }
-    }
-
-    const template = (await response.json()) as MessageTemplate
-    return {
-        success: true,
-        template,
-    }
-}
-
-export async function updateMessageTemplate(
-    id: string,
-    updates: {
-        name?: string
-        description?: string
-    },
-): Promise<{
-    success: boolean
-    error?: string
-}> {
-    const config = vscode.workspace.getConfiguration("ton")
-    const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
-
-    const response = await fetch(`${sandboxUrl}/message-templates/${id}`, {
-        method: "PUT",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify(updates),
-    })
-
-    if (!response.ok) {
-        return {
-            success: false,
-            error: `HTTP ${response.status}: ${response.statusText}`,
-        }
-    }
-
-    return {
-        success: true,
     }
 }
 

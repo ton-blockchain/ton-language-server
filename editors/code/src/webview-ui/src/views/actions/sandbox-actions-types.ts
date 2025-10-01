@@ -4,6 +4,8 @@ import {DeployedContract} from "../../../../common/types/contract"
 import {Base64String} from "../../../../common/base64-string"
 import {HexString} from "../../../../common/hex-string"
 
+import * as binary from "../../../../common/binary"
+
 export interface ResultData {
   readonly success: boolean
   readonly message: string
@@ -175,7 +177,7 @@ export interface CreateMessageTemplateCommand {
   readonly type: "createMessageTemplate"
   readonly name: string
   readonly opcode: number
-  readonly messageBody: Base64String
+  readonly messageFields: binary.RawStringObject
   readonly sendMode: number
   readonly value: string
   readonly description?: string
@@ -185,20 +187,8 @@ export interface GetMessageTemplatesCommand {
   readonly type: "getMessageTemplates"
 }
 
-export interface UpdateMessageTemplateCommand {
-  readonly type: "updateMessageTemplate"
-  readonly id: string
-  readonly name?: string
-  readonly description?: string
-}
-
 export interface DeleteMessageTemplateCommand {
   readonly type: "deleteMessageTemplate"
-  readonly id: string
-}
-
-export interface LoadMessageTemplateCommand {
-  readonly type: "loadMessageTemplate"
   readonly id: string
 }
 
@@ -206,7 +196,7 @@ export interface SaveMessageAsTemplateCommand {
   readonly type: "saveMessageAsTemplate"
   readonly contractAddress: string
   readonly messageName: string
-  readonly messageBody: Base64String
+  readonly messageFields: binary.RawStringObject
   readonly sendMode: number
   readonly value: string
 }
@@ -220,16 +210,11 @@ export interface MessageTemplate {
   readonly id: string
   readonly name: string
   readonly opcode: number
-  readonly messageBody: Base64String
+  readonly messageFields: binary.RawStringObject
   readonly sendMode: number
   readonly value: string
   readonly createdAt: string
   readonly description?: string
-}
-
-export interface MessageTemplateMessage {
-  readonly type: "messageTemplate"
-  readonly template: MessageTemplate
 }
 
 export interface TemplateCreatedMessage {
@@ -258,7 +243,6 @@ export type VSCodeMessage =
   | RestoreStateMessage
   | PersistStateMessage
   | MessageTemplatesMessage
-  | MessageTemplateMessage
   | TemplateCreatedMessage
   | TemplateUpdatedMessage
   | TemplateDeletedMessage
@@ -278,9 +262,7 @@ export type VSCodeCommand =
   | OpenContractSourceCommand
   | CreateMessageTemplateCommand
   | GetMessageTemplatesCommand
-  | UpdateMessageTemplateCommand
   | DeleteMessageTemplateCommand
-  | LoadMessageTemplateCommand
   | SaveMessageAsTemplateCommand
 
 export interface VSCodeAPI {

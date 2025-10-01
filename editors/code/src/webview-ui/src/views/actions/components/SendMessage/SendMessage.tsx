@@ -2,10 +2,6 @@ import React, {useState, useEffect, useMemo} from "react"
 
 import {VscSave} from "react-icons/vsc"
 
-import {Cell} from "@ton/core"
-
-import {ContractAbi, TypeAbi} from "@shared/abi"
-
 import {DeployedContract} from "../../../../../../common/types/contract"
 import * as binary from "../../../../../../common/binary"
 
@@ -43,7 +39,6 @@ interface Props {
   readonly onResultUpdate?: (
     result: {success: boolean; message: string; details?: string} | undefined,
   ) => void
-  readonly loadedTemplate?: MessageTemplate
   readonly messageTemplates: MessageTemplate[]
   readonly vscode: VSCodeAPI
 }
@@ -65,7 +60,6 @@ export const SendMessage: React.FC<Props> = ({
   result,
   onClearResult,
   onResultUpdate,
-  loadedTemplate,
   messageTemplates,
   vscode,
 }) => {
@@ -79,7 +73,6 @@ export const SendMessage: React.FC<Props> = ({
 
   const [messageMode, setMessageMode] = useState<"external" | "internal">("internal")
   const [selectedFromContract, setSelectedFromContract] = useState<string>("")
-  const [localMessageTemplates, setLocalMessageTemplates] = useState<MessageTemplate[]>([])
   const [selectedTemplate, setSelectedTemplate] = useState<string>("")
 
   const contract = contracts.find(c => c.address === selectedContract)
@@ -88,8 +81,8 @@ export const SendMessage: React.FC<Props> = ({
 
   const availableTemplates = useMemo(() => {
     if (!messageAbi) return []
-    return localMessageTemplates.filter(template => template.opcode === messageAbi.opcode)
-  }, [localMessageTemplates, messageAbi])
+    return messageTemplates.filter(template => template.opcode === messageAbi.opcode)
+  }, [messageAbi, messageTemplates])
 
   useEffect(() => {
     if (messageMode === "internal" && contracts.length > 0 && !selectedFromContract) {
@@ -119,10 +112,6 @@ export const SendMessage: React.FC<Props> = ({
   }, [result, onClearResult])
 
   useEffect(() => {
-    setLocalMessageTemplates(messageTemplates)
-  }, [messageTemplates])
-
-  useEffect(() => {
     const messageHandler = (event: MessageEvent): void => {
       const message = event.data as {type: string}
       if (
@@ -140,79 +129,22 @@ export const SendMessage: React.FC<Props> = ({
     }
   }, [vscode])
 
-  // useEffect(() => {
-  //   if (loadedTemplate) {
-  //     setValue(loadedTemplate.value)
-  //     setSendMode(loadedTemplate.sendMode)
-  //
-  //     // setMessageFields(
-  //     //   parseMessageBodyToParsedObject(loadedTemplate.messageBody, message, contract?.abi),
-  //     // )
-  //   }
-  // }, [loadedTemplate, selectedContract, selectedMessage, contracts, message, contract?.abi])
-
-  // useEffect(() => {
-  //   if (selectedTemplate && localMessageTemplates.length > 0) {
-  //     const template = localMessageTemplates.find(t => t.id === selectedTemplate)
-  //     if (template) {
-  //       setValue(template.value)
-  //       setSendMode(template.sendMode)
-  //
-  //       const fields = parseMessageBodyToParsedObject(
-  //         template.messageBody,
-  //         messageAbi,
-  //         contract?.abi,
-  //       )
-  //       const flattenFields = flattenParsedObject(fields)
-  //
-  //       Object.entries(flattenFields).map(([fieldPath, fieldValue]) => {
-  //         const stringValue = formatParsedSlice(fieldValue) ?? ""
-  //         const newField = {
-  //           type: {name: "void", humanReadable: "void"} satisfies TypeInfo,
-  //           value: stringValue,
-  //         }
-  //
-  //         setRawMessageFields(prev => ({
-  //           ...prev,
-  //           [fieldPath]: newField,
-  //         }))
-  //       })
-  //
-  //       // setMessageFields(flattenFields)
-  //     }
-  //   }
-  // }, [
-  //   selectedTemplate,
-  //   localMessageTemplates,
-  //   selectedContract,
-  //   selectedMessage,
-  //   contracts,
-  //   messageAbi,
-  //   contract?.abi,
-  // ])
+  // Templates
+  useEffect(() => {
+    if (selectedTemplate) {
+      const template = messageTemplates.find(t => t.id === selectedTemplate)
+      if (template) {
+        setValue(template.value)
+        setSendMode(template.sendMode)
+        setMessageFields(template.messageFields)
+      }
+    }
+  }, [messageTemplates, selectedTemplate])
 
   useEffect(() => {
+    // Reset template on message change
     setSelectedTemplate("")
   }, [selectedMessage])
-
-  const parseMessageBodyToParsedObject = (
-    messageBody: string,
-    messageAbi: TypeAbi | undefined,
-    contractAbi?: ContractAbi,
-  ): binary.ParsedObject => {
-    if (!messageAbi || !contractAbi) {
-      return {}
-    }
-
-    try {
-      const cell = Cell.fromBase64(messageBody)
-      const slice = cell.beginParse()
-      return binary.parseData(contractAbi, messageAbi, slice)
-    } catch (error) {
-      console.error("Failed to parse message body:", error)
-      return {}
-    }
-  }
 
   const handleSendModeChange = (newSendMode: number): void => {
     setSendMode(newSendMode)
@@ -230,7 +162,7 @@ export const SendMessage: React.FC<Props> = ({
       type: "saveMessageAsTemplate",
       contractAddress: selectedContract,
       messageName: selectedMessage,
-      messageBody: createMessageBody(),
+      messageFields,
       sendMode,
       value,
     })

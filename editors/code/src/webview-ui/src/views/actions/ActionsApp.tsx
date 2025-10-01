@@ -33,7 +33,6 @@ export default function ActionsApp({vscode}: Props): JSX.Element {
     deployState,
 
     // Message templates
-    loadedTemplate,
     messageTemplates,
   } = useActionsApp({vscode})
 
@@ -123,7 +122,6 @@ export default function ActionsApp({vscode}: Props): JSX.Element {
               updateResult("send-internal-message-result", result)
               updateResult("send-external-message-result", result)
             }}
-            loadedTemplate={loadedTemplate}
             messageTemplates={messageTemplates}
             vscode={vscode}
           />

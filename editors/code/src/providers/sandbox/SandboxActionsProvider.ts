@@ -25,16 +25,12 @@ import {
     PersistStateMessage,
     SandboxPersistedState,
     MessageTemplatesMessage,
-    MessageTemplateMessage,
     TemplateCreatedMessage,
-    TemplateUpdatedMessage,
     TemplateDeletedMessage,
     Operation,
     ContractInfoData,
     SaveMessageAsTemplateCommand,
-    LoadMessageTemplateCommand,
     DeleteMessageTemplateCommand,
-    UpdateMessageTemplateCommand,
     CreateMessageTemplateCommand,
 } from "../../webview-ui/src/views/actions/sandbox-actions-types"
 
@@ -52,8 +48,6 @@ import {
     loadAndValidateAbiForDeploy,
     renameContract,
     deleteMessageTemplate,
-    updateMessageTemplate,
-    getMessageTemplate,
     getMessageTemplates,
     createMessageTemplate,
     MessageTemplateData,
@@ -188,16 +182,8 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
                     void this.handleGetMessageTemplates()
                     break
                 }
-                case "updateMessageTemplate": {
-                    void this.handleUpdateMessageTemplate(command)
-                    break
-                }
                 case "deleteMessageTemplate": {
                     void this.handleDeleteMessageTemplate(command)
-                    break
-                }
-                case "loadMessageTemplate": {
-                    void this.handleLoadMessageTemplate(command)
                     break
                 }
                 case "saveMessageAsTemplate": {
@@ -922,7 +908,7 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
             const result = await createMessageTemplate({
                 name: command.name,
                 opcode: command.opcode,
-                messageBody: command.messageBody,
+                messageFields: command.messageFields,
                 sendMode: command.sendMode,
                 value: command.value,
                 description: command.description,
@@ -973,41 +959,6 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
         }
     }
 
-    private async handleUpdateMessageTemplate(
-        command: UpdateMessageTemplateCommand,
-    ): Promise<void> {
-        try {
-            const result = await updateMessageTemplate(command.id, {
-                name: command.name,
-                description: command.description,
-            })
-
-            if (result.success) {
-                void vscode.window.showInformationMessage(`Template updated successfully`)
-
-                const templateResult = await getMessageTemplate(command.id)
-                if (templateResult.success && templateResult.template && this.view) {
-                    const message: TemplateUpdatedMessage = {
-                        type: "templateUpdated",
-                        template: templateResult.template,
-                    }
-                    void this.view.webview.postMessage(message)
-                }
-
-                void this.handleGetMessageTemplates()
-            } else {
-                void vscode.window.showErrorMessage(
-                    `Failed to update template: ${result.error ?? "Unknown error"}`,
-                )
-            }
-        } catch (error) {
-            console.error("Update template error:", error)
-            void vscode.window.showErrorMessage(
-                `Failed to update template: ${error instanceof Error ? error.message : "Unknown error"}`,
-            )
-        }
-    }
-
     private async handleDeleteMessageTemplate(
         command: DeleteMessageTemplateCommand,
     ): Promise<void> {
@@ -1039,24 +990,6 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
         }
     }
 
-    private async handleLoadMessageTemplate(command: LoadMessageTemplateCommand): Promise<void> {
-        try {
-            const result = await getMessageTemplate(command.id)
-
-            if (result.success && result.template && this.view) {
-                const message: MessageTemplateMessage = {
-                    type: "messageTemplate",
-                    template: result.template,
-                }
-                void this.view.webview.postMessage(message)
-            } else {
-                console.error("Failed to load template:", result.error)
-            }
-        } catch (error) {
-            console.error("Load template error:", error)
-        }
-    }
-
     private async handleSaveMessageAsTemplate(
         command: SaveMessageAsTemplateCommand,
     ): Promise<void> {
@@ -1078,7 +1011,7 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
             const templateData: MessageTemplateData = {
                 name: templateName,
                 opcode,
-                messageBody: command.messageBody,
+                messageFields: command.messageFields,
                 sendMode: command.sendMode,
                 value: command.value,
                 description: `Template for ${command.messageName} message`,

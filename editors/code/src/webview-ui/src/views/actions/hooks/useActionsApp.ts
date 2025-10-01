@@ -23,7 +23,6 @@ interface UseActionsAppReturn {
   readonly contractAbi: ReturnType<typeof useContractData>["contractAbi"]
   readonly contractInfo: ReturnType<typeof useContractData>["contractInfo"]
   readonly deployState: ReturnType<typeof useContractData>["deployState"]
-  readonly loadedTemplate: ReturnType<typeof useMessageTemplates>["loadedTemplate"]
   readonly messageTemplates: ReturnType<typeof useMessageTemplates>["messageTemplates"]
   readonly vscode: VSCodeAPI
 }
@@ -43,7 +42,6 @@ export function useActionsApp({vscode}: UseActionsAppParams): UseActionsAppRetur
     setContractAbi: contractData.setContractAbi,
     setDeployState: contractData.setDeployState,
     setContractInfo: contractData.setContractInfo,
-    setLoadedTemplate: messageTemplates.setLoadedTemplate,
     setMessageTemplates: messageTemplates.setMessageTemplates,
   })
 
@@ -77,7 +75,6 @@ export function useActionsApp({vscode}: UseActionsAppParams): UseActionsAppRetur
     deployState: contractData.deployState,
 
     // Message templates
-    loadedTemplate: messageTemplates.loadedTemplate,
     messageTemplates: messageTemplates.messageTemplates,
 
     // VSCode communication
