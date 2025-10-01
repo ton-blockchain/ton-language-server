@@ -34,6 +34,9 @@ export interface OperationNode {
     readonly fromContract?: string
     readonly toContract?: string
     readonly resultString?: string
+    readonly sendMode?: number
+    readonly value?: string
+    readonly messageBody?: string
 }
 
 export interface DeployState {

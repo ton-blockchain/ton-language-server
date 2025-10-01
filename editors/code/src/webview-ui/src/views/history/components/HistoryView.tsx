@@ -60,6 +60,23 @@ export const HistoryView: React.FC<Props> = ({
     return `${nameOrAddress.slice(0, 3)}...${nameOrAddress.slice(-3)}`
   }
 
+  const getOperationTypeLabel = (type: "deploy" | "send-internal" | "send-external"): string => {
+    switch (type) {
+      case "deploy": {
+        return "Contract Deployment"
+      }
+      case "send-internal": {
+        return "Internal Message"
+      }
+      case "send-external": {
+        return "External Message"
+      }
+      default: {
+        return type
+      }
+    }
+  }
+
   const getMessageName = (
     contractAddress: string | undefined,
     opcode: number | undefined,
@@ -219,8 +236,58 @@ export const HistoryView: React.FC<Props> = ({
 
         {isDetailsExpanded && (
           <div className={styles.detailsExpanded}>
-            <div className={styles.details}>{node.details}</div>
-            {node.contractAddress && <div className={styles.address}>{node.contractAddress}</div>}
+            <div className={styles.detailItem}>
+              <span className={styles.detailLabel}>Type:</span>
+              <span className={styles.detailValue}>{getOperationTypeLabel(node.type)}</span>
+            </div>
+            <div className={styles.detailItem}>
+              <span className={styles.detailLabel}>Status:</span>
+              <span
+                className={`${styles.detailValue} ${node.success ? styles.successStatus : styles.errorStatus}`}
+              >
+                {node.success ? "Success" : "Failed"}
+              </span>
+            </div>
+            {(node.type === "send-internal" || node.type === "send-external") && (
+              <div className={styles.messageDetails}>
+                {node.sendMode !== undefined && (
+                  <div className={styles.detailItem}>
+                    <span className={styles.detailLabel}>Send Mode:</span>
+                    <span className={styles.detailValue}>{node.sendMode}</span>
+                  </div>
+                )}
+                {node.value && (
+                  <div className={styles.detailItem}>
+                    <span className={styles.detailLabel}>Value:</span>
+                    <span className={styles.detailValue}>
+                      {(Number.parseFloat(node.value) / 1_000_000_000).toFixed(2)} TON
+                    </span>
+                  </div>
+                )}
+                {node.fromContract && (
+                  <div className={styles.detailItem}>
+                    <span className={styles.detailLabel}>From:</span>
+                    <span className={styles.detailValue}>
+                      {formatContractName(node.fromContract)}
+                    </span>
+                  </div>
+                )}
+                {node.toContract && (
+                  <div className={styles.detailItem}>
+                    <span className={styles.detailLabel}>To:</span>
+                    <span className={styles.detailValue}>
+                      {formatContractName(node.toContract)}
+                    </span>
+                  </div>
+                )}
+                {node.messageBody && (
+                  <div className={styles.detailItem}>
+                    <span className={styles.detailLabel}>Message:</span>
+                    <span className={styles.detailValue}>{node.messageBody.slice(0, 20)}...</span>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         )}
       </div>

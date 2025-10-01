@@ -267,6 +267,45 @@
   border-radius: 3px;
 }
 
+.messageDetails {
+  margin-top: 8px;
+}
+
+.detailItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 4px;
+  font-size: 11px;
+}
+
+.detailItem:last-child {
+  margin-bottom: 0;
+}
+
+.detailLabel {
+  color: var(--vscode-descriptionForeground);
+  font-weight: 500;
+  min-width: 60px;
+  flex-shrink: 0;
+}
+
+.detailValue {
+  color: var(--vscode-foreground);
+  font-family: var(--vscode-editor-font-family, "SF Mono", Monaco, "Cascadia Code", monospace);
+  word-break: break-all;
+}
+
+.successStatus {
+  color: var(--vscode-charts-green, #3794ff);
+  font-weight: 500;
+}
+
+.errorStatus {
+  color: var(--vscode-errorForeground, #f48771);
+  font-weight: 500;
+}
+
 .children {
   position: relative;
 }
