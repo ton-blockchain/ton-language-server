@@ -1,12 +1,6 @@
 import {useState, useCallback} from "react"
 
-import {Operation, ResultData} from "../sandbox-actions-types"
-
-type ResultKeys =
-  | "compile-deploy-result"
-  | "send-internal-message-result"
-  | "send-external-message-result"
-  | "get-method-result"
+import {Operation, ResultData, ResultKeys} from "../sandbox-actions-types"
 
 interface UseOperationsReturn {
   readonly activeOperation: Operation

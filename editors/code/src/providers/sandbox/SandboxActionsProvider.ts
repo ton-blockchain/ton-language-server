@@ -32,6 +32,8 @@ import {
     SaveMessageAsTemplateCommand,
     DeleteMessageTemplateCommand,
     CreateMessageTemplateCommand,
+    ResultData,
+    ResultKeys,
 } from "../../webview-ui/src/views/actions/sandbox-actions-types"
 
 import {HexString} from "../../common/hex-string"
@@ -206,14 +208,7 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
         this.persistState()
     }
 
-    public showResult(
-        result: {
-            success: boolean
-            message: string
-            details?: string
-        },
-        resultId?: string,
-    ): void {
+    public showResult(result: ResultData | undefined, resultId: ResultKeys): void {
         if (this.view) {
             const message: ShowResultMessage = {
                 type: "showResult",
@@ -224,13 +219,18 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
         }
     }
 
-    public openOperation(operation: string, contractAddress?: string): void {
-        this.currentOperation = operation as Operation
+    public openOperation(operation: Operation, contractAddress?: string): void {
+        this.showResult(undefined, "compile-deploy-result")
+        this.showResult(undefined, "send-internal-message-result")
+        this.showResult(undefined, "send-external-message-result")
+        this.showResult(undefined, "get-method-result")
+
+        this.currentOperation = operation
         this.selectedContractAddress = contractAddress
         if (this.view) {
             const message: OpenOperationMessage = {
                 type: "openOperation",
-                operation: operation as Operation,
+                operation: operation,
                 contractAddress,
             }
             void this.view.webview.postMessage(message)

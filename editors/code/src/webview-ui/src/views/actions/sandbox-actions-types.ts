@@ -6,6 +6,12 @@ import {HexString} from "../../../../common/hex-string"
 
 import * as binary from "../../../../common/binary"
 
+export type ResultKeys =
+  | "compile-deploy-result"
+  | "send-internal-message-result"
+  | "send-external-message-result"
+  | "get-method-result"
+
 export interface ResultData {
   readonly success: boolean
   readonly message: string
@@ -22,8 +28,8 @@ export interface UpdateContractsMessage {
 
 export interface ShowResultMessage {
   readonly type: "showResult"
-  readonly result: ResultData
-  readonly resultId?: string
+  readonly result: ResultData | undefined
+  readonly resultId: ResultKeys
 }
 
 export interface OpenOperationMessage {

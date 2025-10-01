@@ -7,6 +7,7 @@ import {SandboxActionsProvider} from "../providers/sandbox/SandboxActionsProvide
 import {HistoryWebviewProvider} from "../providers/sandbox/HistoryWebviewProvider"
 import {DeployedContract} from "../common/types/contract"
 import {callGetMethodDirectly, deleteContract} from "../providers/sandbox/methods"
+import {Operation} from "../webview-ui/src/views/actions/sandbox-actions-types"
 
 export function registerSandboxCommands(
     treeProvider: SandboxTreeProvider,
@@ -23,7 +24,7 @@ export function registerSandboxCommands(
             treeProvider.clearContracts()
             void vscode.window.showInformationMessage("Deployed contracts cleared")
         }),
-        vscode.commands.registerCommand("ton.sandbox.openOperation", (operation: string) => {
+        vscode.commands.registerCommand("ton.sandbox.openOperation", (operation: Operation) => {
             formProvider.openOperation(operation)
         }),
         vscode.commands.registerCommand(

@@ -10,6 +10,7 @@ import {
   ContractInfoData,
   MessageTemplate,
   SandboxPersistedState,
+  ResultKeys,
 } from "../sandbox-actions-types"
 import {DeployState} from "../../../../../providers/sandbox/methods"
 import {DeployedContract} from "../../../../../common/types/contract"
@@ -19,7 +20,7 @@ interface UseVSCodeMessagingParams {
   readonly setContracts: (contracts: DeployedContract[]) => void
   readonly setActiveOperation: (operation: Operation) => void
   readonly setSelectedContract: (address: string) => void
-  readonly updateResult: (resultId: string, result: ResultData) => void
+  readonly updateResult: (resultId: ResultKeys, result: ResultData | undefined) => void
   readonly setContractAbi: (abi: ContractAbi | undefined) => void
   readonly setDeployState: (state: DeployState | undefined) => void
   readonly setContractInfo: (info: ContractInfoData | undefined) => void
@@ -71,7 +72,7 @@ export function useVSCodeMessaging(params: UseVSCodeMessagingParams): UseVSCodeM
           break
         }
         case "showResult": {
-          const resultId = message.resultId ?? "default"
+          const resultId = message.resultId
           updateResult(resultId, message.result)
           break
         }

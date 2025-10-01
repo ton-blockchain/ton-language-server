@@ -111,6 +111,20 @@ export const SendMessage: React.FC<Props> = ({
     return () => {}
   }, [result, onClearResult])
 
+  // ============ Templates ============
+  useEffect(() => {
+    if (selectedTemplate) {
+      const template = messageTemplates.find(t => t.id === selectedTemplate)
+      if (template) {
+        setValue(template.value)
+        setSendMode(template.sendMode)
+        setMessageFields(template.messageFields)
+      }
+    }
+  }, [messageTemplates, selectedTemplate])
+
+  // When we create a template, we send a request to server and when we get a successful response,
+  // we send a message to this view to update the list of templates
   useEffect(() => {
     const messageHandler = (event: MessageEvent): void => {
       const message = event.data as {type: string}
@@ -128,18 +142,6 @@ export const SendMessage: React.FC<Props> = ({
       window.removeEventListener("message", messageHandler)
     }
   }, [vscode])
-
-  // Templates
-  useEffect(() => {
-    if (selectedTemplate) {
-      const template = messageTemplates.find(t => t.id === selectedTemplate)
-      if (template) {
-        setValue(template.value)
-        setSendMode(template.sendMode)
-        setMessageFields(template.messageFields)
-      }
-    }
-  }, [messageTemplates, selectedTemplate])
 
   useEffect(() => {
     // Reset template on message change
