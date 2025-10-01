@@ -379,6 +379,7 @@ export const SendMessage: React.FC<Props> = ({
             {availableTemplates.map(template => (
               <option key={template.id} value={template.id}>
                 {template.name}
+                {template.description ? ` - ${template.description}` : ""}
               </option>
             ))}
           </Select>

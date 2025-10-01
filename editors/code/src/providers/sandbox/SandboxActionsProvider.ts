@@ -1004,6 +1004,12 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
                 return
             }
 
+            const templateDescription = await vscode.window.showInputBox({
+                prompt: "Enter template description (optional)",
+                placeHolder: "Description of this template",
+                value: ``,
+            })
+
             const contract = this.deployedContracts.find(c => c.address === command.contractAddress)
             const message = contract?.abi?.messages.find(m => m.name === command.messageName)
             const opcode = message?.opcode ?? 0
@@ -1014,7 +1020,7 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
                 messageFields: command.messageFields,
                 sendMode: command.sendMode,
                 value: command.value,
-                description: `Template for ${command.messageName} message`,
+                description: templateDescription ?? undefined,
             }
 
             const result = await createMessageTemplate(templateData)
