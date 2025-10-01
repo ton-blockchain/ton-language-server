@@ -1,5 +1,5 @@
 /* eslint-disable unicorn/prefer-spread */
-import React, {useMemo, useState, useRef} from "react"
+import React, {useMemo, useState, useRef, useEffect} from "react"
 import {Orientation, RawNodeDatum, TreeLinkDatum, Tree} from "react-d3-tree"
 import {Address} from "@ton/core"
 
@@ -30,10 +30,8 @@ interface TransactionTooltipData {
 }
 
 interface TransactionTreeProps {
-  readonly testData: {
-    readonly transactions: TransactionInfo[]
-    readonly contracts: ContractData[]
-  }
+  readonly transactions: TransactionInfo[]
+  readonly contracts: ContractData[]
 }
 
 const formatAddress = (
@@ -114,7 +112,10 @@ function TransactionTooltipContent({data}: {data: TransactionTooltipData}): Reac
   )
 }
 
-export function TransactionTree({testData}: TransactionTreeProps): React.JSX.Element {
+export function TransactionTree({
+  transactions,
+  contracts,
+}: TransactionTreeProps): React.JSX.Element {
   const {
     tooltip,
     showTooltip,
@@ -129,16 +130,16 @@ export function TransactionTree({testData}: TransactionTreeProps): React.JSX.Ele
   const [selectedRootLt, setSelectedRootLt] = useState<string | null>(null)
   const triggerRectRef = useRef<DOMRect | null>(null)
 
-  const contracts: Map<string, ContractData> = useMemo(
-    () => new Map(testData.contracts.map(it => [it.address.toString(), it])),
-    [testData.contracts],
+  const contractsMap: Map<string, ContractData> = useMemo(
+    () => new Map(contracts.map(it => [it.address.toString(), it])),
+    [contracts],
   )
 
   const rootTransactions = useMemo(() => {
-    return testData.transactions
+    return transactions
       .filter(tx => !tx.parent)
       .sort((a, b) => Number(a.transaction.lt - b.transaction.lt))
-  }, [testData.transactions])
+  }, [transactions])
 
   const getSubtreeTransactions = (rootTx: TransactionInfo): TransactionInfo[] => {
     const result: TransactionInfo[] = [rootTx]
@@ -156,18 +157,18 @@ export function TransactionTree({testData}: TransactionTreeProps): React.JSX.Ele
 
   const filteredTransactions = useMemo(() => {
     if (!selectedRootLt) {
-      return testData.transactions
+      return transactions
     }
 
     const selectedRoot = rootTransactions.find(
       tx => tx.transaction.lt.toString() === selectedRootLt,
     )
     if (!selectedRoot) {
-      return testData.transactions
+      return transactions
     }
 
     return getSubtreeTransactions(selectedRoot)
-  }, [testData.transactions, selectedRootLt, rootTransactions])
+  }, [transactions, selectedRootLt, rootTransactions])
 
   const handleRootChange = (rootLt: string | null): void => {
     setSelectedRootLt(rootLt)
@@ -223,7 +224,7 @@ export function TransactionTree({testData}: TransactionTreeProps): React.JSX.Ele
   }
 
   const handleContractClick = (contractAddress: string): void => {
-    const contract = contracts.get(contractAddress)
+    const contract = contractsMap.get(contractAddress)
     if (!contract) return
 
     if (selectedContract?.address.toString() === contractAddress) {
@@ -274,7 +275,7 @@ export function TransactionTree({testData}: TransactionTreeProps): React.JSX.Ele
 
     const convertTransactionToNode = (tx: TransactionInfo): RawNodeDatum => {
       const thisAddress = tx.address
-      const addressName = formatAddress(thisAddress, contracts)
+      const addressName = formatAddress(thisAddress, contractsMap)
 
       const computePhase =
         tx.transaction.description.type === "generic"
@@ -302,7 +303,7 @@ export function TransactionTree({testData}: TransactionTreeProps): React.JSX.Ele
 
       const opcode = tx.opcode
 
-      const targetContract = thisAddress ? contracts.get(thisAddress.toString()) : undefined
+      const targetContract = thisAddress ? contractsMap.get(thisAddress.toString()) : undefined
       const typeAbi = targetContract?.abi?.messages.find(it => it.opcode === opcode)
       const opcodeNane = typeAbi?.name
 
@@ -367,7 +368,7 @@ export function TransactionTree({testData}: TransactionTreeProps): React.JSX.Ele
       },
       children: [],
     }
-  }, [rootTransactions, contracts, selectedTransaction, selectedRootLt])
+  }, [rootTransactions, contractsMap, selectedTransaction, selectedRootLt])
 
   const renderCustomNodeElement = ({
     nodeDatum,
@@ -565,6 +566,11 @@ export function TransactionTree({testData}: TransactionTreeProps): React.JSX.Ele
 
   const treeDimensions = calculateTreeDimensions(treeData)
 
+  useEffect(() => {
+    // deselect transaction if we select other transaction details
+    setSelectedTransaction(null)
+  }, [transactions])
+
   return (
     <div className={styles.container}>
       {rootTransactions.length > 1 && (
@@ -578,7 +584,7 @@ export function TransactionTree({testData}: TransactionTreeProps): React.JSX.Ele
             All
           </button>
           {rootTransactions.map((rootTx, index) => {
-            const addressName = formatAddress(rootTx.address, contracts)
+            const addressName = formatAddress(rootTx.address, contractsMap)
             const isActive = selectedRootLt === rootTx.transaction.lt.toString()
             return (
               <button
@@ -652,8 +658,8 @@ export function TransactionTree({testData}: TransactionTreeProps): React.JSX.Ele
         <div className={styles.transactionDetails}>
           <TransactionShortInfo
             tx={selectedTransaction}
-            transactions={testData.transactions}
-            contracts={contracts}
+            transactions={transactions}
+            contracts={contractsMap}
             onContractClick={handleContractClick}
           />
         </div>

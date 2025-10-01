@@ -37,7 +37,7 @@ function parseMaybeTransactions(data: string): RawTransactions | undefined {
 
 export default function TransactionDetails({vscode}: Props): JSX.Element {
   const [transaction, setTransaction] = useState<TransactionDetailsInfo | null>(null)
-  const [transactionInfos, setTransactionInfos] = useState<TransactionInfo[] | null>(null)
+  const [transactions, setTransactions] = useState<TransactionInfo[] | null>(null)
 
   const parsedAccount = useMemo(() => {
     if (!transaction?.account) return null
@@ -81,8 +81,8 @@ export default function TransactionDetails({vscode}: Props): JSX.Element {
     )
 
     const transactionInfos = processRawTransactions(parsedTransactions)
-    setTransactionInfos(transactionInfos)
-  }, [transaction, setTransactionInfos])
+    setTransactions(transactionInfos)
+  }, [transaction, setTransactions])
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent<Message>): void => {
@@ -124,10 +124,10 @@ export default function TransactionDetails({vscode}: Props): JSX.Element {
 
   return (
     <div className={styles.container}>
-      {transactionInfos && (
+      {transactions && (
         <div className={styles.transactionsSection}>
           <div className={styles.sectionTitle}>Transaction Details</div>
-          <TransactionTree testData={{transactions: transactionInfos, contracts}} />
+          <TransactionTree transactions={transactions} contracts={contracts} />
         </div>
       )}
     </div>
