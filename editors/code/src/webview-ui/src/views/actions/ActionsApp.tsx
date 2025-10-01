@@ -112,6 +112,7 @@ export default function ActionsApp({vscode}: Props): JSX.Element {
                 methodName: tx.methodName,
                 transactionId: tx.transactionId,
                 timestamp: tx.timestamp,
+                status: "success",
               })
             }}
             result={

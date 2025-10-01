@@ -42,16 +42,15 @@ import {registerSandboxCommands} from "./commands/sandboxCommands"
 import {SandboxTreeProvider} from "./providers/sandbox/SandboxTreeProvider"
 import {SandboxActionsProvider} from "./providers/sandbox/SandboxActionsProvider"
 import {HistoryWebviewProvider} from "./providers/sandbox/HistoryWebviewProvider"
-import {
-    TransactionDetailsProvider,
-    TransactionDetails,
-} from "./providers/sandbox/TransactionDetailsProvider"
+import {TransactionDetailsProvider} from "./providers/sandbox/TransactionDetailsProvider"
 import {SandboxCodeLensProvider} from "./providers/sandbox/SandboxCodeLensProvider"
 
 import {configureDebugging} from "./debugging"
 import {loadContractInfo, loadLatestOperationResult} from "./providers/sandbox/methods"
 import {HexString} from "./common/hex-string"
 import {ShowTransactionDetailsCommand} from "./webview-ui/src/views/actions/sandbox-actions-types"
+import {TransactionDetailsInfo} from "./common/types/transaction"
+import {Base64String} from "./common/base64-string"
 
 let client: LanguageClient | null = null
 let cachedToolchainInfo: SetToolchainVersionParams | null = null
@@ -881,7 +880,7 @@ function registerTransactionDetailsCommand(disposables: vscode.Disposable[]): vo
         const deployedContracts = globalSandboxTreeProvider?.getDeployedContracts() ?? []
 
         let account: HexString | undefined
-        let stateInit: {code: Base64URLString; data: Base64URLString} | undefined
+        let stateInit: {code: Base64String; data: Base64String} | undefined
         let abi: ContractAbi | undefined
         let resultString = args.resultString
 
@@ -915,7 +914,7 @@ function registerTransactionDetailsCommand(disposables: vscode.Disposable[]): vo
             }
         }
 
-        const transaction: TransactionDetails = {
+        const transaction: TransactionDetailsInfo = {
             contractAddress: args.contractAddress,
             methodName: args.methodName,
             transactionId: args.transactionId,

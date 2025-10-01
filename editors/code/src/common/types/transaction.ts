@@ -1,6 +1,29 @@
 import {type Address, Cell, type OutAction, type Transaction} from "@ton/core"
 import {SourceMap} from "ton-source-map"
 
+import {ContractAbi} from "@shared/abi"
+
+import {HexString} from "../hex-string"
+import {Base64String} from "../base64-string"
+
+import {DeployedContract} from "./contract"
+
+export interface TransactionDetailsInfo {
+    readonly contractAddress: string
+    readonly methodName: string
+    readonly transactionId?: string
+    readonly timestamp: string
+    readonly status: "success" | "pending" | "failed"
+    readonly resultString?: string
+    readonly deployedContracts?: readonly DeployedContract[]
+    readonly account?: HexString
+    readonly stateInit?: {
+        readonly code: Base64String
+        readonly data: Base64String
+    }
+    readonly abi?: ContractAbi
+}
+
 /**
  * Processed transaction info with all necessary transport.
  */

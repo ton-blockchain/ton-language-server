@@ -5,6 +5,7 @@ import {Base64String} from "../../../../common/base64-string"
 import {HexString} from "../../../../common/hex-string"
 
 import * as binary from "../../../../common/binary"
+import {TransactionDetailsInfo} from "../../../../common/types/transaction"
 
 export type ResultKeys =
   | "compile-deploy-result"
@@ -159,20 +160,9 @@ export interface WebviewReadyCommand {
   readonly type: "webviewReady"
 }
 
-export interface ShowTransactionDetailsCommand {
+export type ShowTransactionDetailsCommand = {
   readonly type: "showTransactionDetails"
-  readonly contractAddress: string
-  readonly methodName: string
-  readonly transactionId?: string
-  readonly timestamp: string
-  readonly resultString?: string
-  readonly account?: HexString
-  readonly stateInit?: {
-    readonly code: Base64String
-    readonly data: Base64String
-  }
-  readonly abi?: ContractAbi
-}
+} & TransactionDetailsInfo
 
 export interface OpenContractSourceCommand {
   readonly type: "openContractSource"

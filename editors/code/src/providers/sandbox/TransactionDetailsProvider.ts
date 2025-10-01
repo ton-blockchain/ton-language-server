@@ -2,37 +2,17 @@
 //  Copyright © 2025 TON Core
 import * as vscode from "vscode"
 
-import {ContractAbi} from "@shared/abi"
-
-import {DeployedContract} from "../../common/types/contract"
-import {HexString} from "../../common/hex-string"
-
-export interface TransactionDetails {
-    readonly contractAddress: string
-    readonly methodName: string
-    readonly transactionId?: string
-    readonly timestamp: string
-    readonly status: "success" | "pending" | "failed"
-    readonly resultString?: string
-    readonly deployedContracts?: readonly DeployedContract[]
-    readonly account?: HexString
-    readonly stateInit?: {
-        readonly code: Base64URLString
-        readonly data: Base64URLString
-    }
-    readonly abi?: ContractAbi
-}
+import {TransactionDetailsInfo} from "../../common/types/transaction"
 
 export class TransactionDetailsProvider {
     public static readonly viewType: string = "tonTransactionDetails"
 
     private panel?: vscode.WebviewPanel
-    private currentTransaction?: TransactionDetails
+    private currentTransaction?: TransactionDetailsInfo
 
     public constructor(private readonly _extensionUri: vscode.Uri) {}
 
-    public showTransactionDetails(transaction: TransactionDetails): void {
-        console.log("TransactionDetailsProvider.showTransactionDetails called with:", transaction)
+    public showTransactionDetails(transaction: TransactionDetailsInfo): void {
         this.currentTransaction = transaction
 
         if (this.panel) {
@@ -50,10 +30,20 @@ export class TransactionDetailsProvider {
                 },
             )
 
+            this.panel.iconPath = {
+                light: vscode.Uri.joinPath(this._extensionUri, "dist", "icons", "sandbox-icon.svg"),
+                dark: vscode.Uri.joinPath(
+                    this._extensionUri,
+                    "dist",
+                    "icons",
+                    "sandbox-icon-dark.svg",
+                ),
+            }
+
             this.panel.webview.html = this.getHtmlForWebview(this.panel.webview)
 
             this.panel.webview.onDidReceiveMessage(() => {
-                // Handle messages from webview if needed
+                // ...
             })
 
             this.panel.onDidDispose(() => {
@@ -64,7 +54,7 @@ export class TransactionDetailsProvider {
         }
     }
 
-    private updateTransactionDetails(transaction: TransactionDetails): void {
+    private updateTransactionDetails(transaction: TransactionDetailsInfo): void {
         if (this.panel) {
             void this.panel.webview.postMessage({
                 type: "updateTransactionDetails",

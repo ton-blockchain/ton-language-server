@@ -2,43 +2,23 @@ import React, {JSX, useEffect, useMemo, useState} from "react"
 
 import {Address, Cell, loadTransaction, loadShardAccount} from "@ton/core"
 
-import {ContractAbi} from "@shared/abi"
-
-import {TransactionInfo} from "../../../../common/types/transaction"
+import {TransactionInfo, TransactionDetailsInfo} from "../../../../common/types/transaction"
 import {
   processRawTransactions,
   RawTransactionInfo,
   RawTransactions,
 } from "../../../../common/types/raw-transaction"
 
-import {ContractData, DeployedContract} from "../../../../common/types/contract"
-import {Base64String} from "../../../../common/base64-string"
-import {HexString} from "../../../../common/hex-string"
+import {ContractData} from "../../../../common/types/contract"
 import {LoadingSpinner} from "../../components/common"
 
 import {TransactionTree} from "./components"
 
 import styles from "./TransactionDetails.module.css"
 
-interface LocalTransactionDetails {
-  readonly contractAddress: string
-  readonly methodName: string
-  readonly transactionId?: string
-  readonly timestamp: string
-  readonly status: "success" | "pending" | "failed"
-  readonly resultString?: string
-  readonly deployedContracts?: DeployedContract[]
-  readonly account?: HexString
-  readonly stateInit?: {
-    readonly code: Base64String
-    readonly data: Base64String
-  }
-  readonly abi?: ContractAbi
-}
-
 interface Message {
   readonly type: "updateTransactionDetails"
-  readonly transaction: LocalTransactionDetails
+  readonly transaction: TransactionDetailsInfo
 }
 
 interface Props {
@@ -56,7 +36,7 @@ function parseMaybeTransactions(data: string): RawTransactions | undefined {
 }
 
 export default function TransactionDetails({vscode}: Props): JSX.Element {
-  const [transaction, setTransaction] = useState<LocalTransactionDetails | null>(null)
+  const [transaction, setTransaction] = useState<TransactionDetailsInfo | null>(null)
   const [transactionInfos, setTransactionInfos] = useState<TransactionInfo[] | null>(null)
 
   const parsedAccount = useMemo(() => {
