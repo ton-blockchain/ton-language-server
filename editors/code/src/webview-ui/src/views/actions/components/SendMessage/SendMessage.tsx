@@ -345,27 +345,29 @@ export const SendMessage: React.FC<Props> = ({
         </Select>
       </div>
 
-      <div className={styles.formGroup}>
-        <Select
-          label="Message:"
-          id="messageSelect"
-          value={selectedMessage}
-          onChange={e => {
-            setSelectedMessage(e.target.value)
-            setMessageFields({})
-          }}
-          disabled={!contract?.abi?.messages}
-        >
-          <option value="">Select message...</option>
-          {contract?.abi?.messages.map(msg => (
-            <option key={msg.name} value={msg.name}>
-              {msg.name} (opcode: 0x{msg.opcode?.toString(16)})
-            </option>
-          ))}
-        </Select>
-      </div>
+      {(messageMode === "internal" || hasExternalEntryPoint) && (
+        <div className={styles.formGroup}>
+          <Select
+            label="Message:"
+            id="messageSelect"
+            value={selectedMessage}
+            onChange={e => {
+              setSelectedMessage(e.target.value)
+              setMessageFields({})
+            }}
+            disabled={!contract?.abi?.messages}
+          >
+            <option value="">Select message...</option>
+            {contract?.abi?.messages.map(msg => (
+              <option key={msg.name} value={msg.name}>
+                {msg.name} (opcode: 0x{msg.opcode?.toString(16)})
+              </option>
+            ))}
+          </Select>
+        </div>
+      )}
 
-      {availableTemplates.length > 0 && (
+      {(messageMode === "internal" || hasExternalEntryPoint) && availableTemplates.length > 0 && (
         <div className={styles.formGroup}>
           <Select
             label="Template:"
@@ -386,14 +388,16 @@ export const SendMessage: React.FC<Props> = ({
         </div>
       )}
 
-      <AbiFieldsForm
-        abi={messageAbi}
-        contractAbi={contract?.abi}
-        contracts={contracts}
-        fields={messageFields}
-        onFieldsChange={setMessageFields}
-        onValidationChange={setMessageFieldsValid}
-      />
+      {(messageMode === "internal" || hasExternalEntryPoint) && (
+        <AbiFieldsForm
+          abi={messageAbi}
+          contractAbi={contract?.abi}
+          contracts={contracts}
+          fields={messageFields}
+          onFieldsChange={setMessageFields}
+          onValidationChange={setMessageFieldsValid}
+        />
+      )}
 
       {!contract?.abi?.messages && selectedContract && (
         <div className={styles.noMessages}>No messages available for this contract</div>
