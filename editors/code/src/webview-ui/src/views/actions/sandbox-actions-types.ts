@@ -101,7 +101,7 @@ export interface SendExternalMessageCommand {
   readonly contractAddress: string
   readonly selectedMessage: string
   readonly messageBody: string
-  readonly autoDebug?: boolean
+  readonly debug: boolean
 }
 
 export interface SendInternalMessageCommand {
@@ -112,7 +112,7 @@ export interface SendInternalMessageCommand {
   readonly messageBody: string
   readonly sendMode: number
   readonly value: string
-  readonly autoDebug?: boolean
+  readonly debug: boolean
 }
 
 export interface CallGetMethodCommand {

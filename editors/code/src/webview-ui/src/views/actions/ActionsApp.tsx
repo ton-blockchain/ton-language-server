@@ -90,7 +90,7 @@ export default function ActionsApp({vscode}: Props): JSX.Element {
                 contractAddress: selectedContract,
                 selectedMessage: messageData.selectedMessage,
                 messageBody: messageData.messageBody,
-                autoDebug: messageData.autoDebug,
+                debug: messageData.debug,
               })
             }}
             onSendInternalMessage={messageData => {
@@ -102,7 +102,7 @@ export default function ActionsApp({vscode}: Props): JSX.Element {
                 messageBody: messageData.messageBody,
                 sendMode: messageData.sendMode ?? 0,
                 value: messageData.value ?? "1.0",
-                autoDebug: messageData.autoDebug,
+                debug: messageData.debug,
               })
             }}
             handleShowTransactionDetails={tx => {

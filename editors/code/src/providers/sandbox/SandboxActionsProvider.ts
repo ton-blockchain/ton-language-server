@@ -276,7 +276,7 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
         contractAddress: string
         selectedMessage: string
         messageBody: string
-        autoDebug?: boolean
+        debug: boolean
     }): Promise<void> {
         this.sequentialDebugQueue = []
         this.isSequentialDebugRunning = false
@@ -315,7 +315,7 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
                 )
                 this.refreshStates()
 
-                if (command.autoDebug && result.txs.length > 0) {
+                if (command.debug && result.txs.length > 0) {
                     const validTransactions = result.txs.map((tx, index) => {
                         const contract = this.deployedContracts.find(c => c.address === tx.addr)
                         const contractName = contract?.name ?? "UnknownContract"
@@ -359,7 +359,7 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
         messageBody: string
         sendMode: number
         value: string
-        autoDebug?: boolean
+        debug: boolean
     }): Promise<void> {
         this.sequentialDebugQueue = []
         this.isSequentialDebugRunning = false
@@ -416,7 +416,7 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
                 )
                 this.refreshStates()
 
-                if (command.autoDebug && result.txs.length > 0) {
+                if (command.debug && result.txs.length > 0) {
                     const noSourceMaps = result.txs.every(tx => tx.sourceMap === undefined)
                     if (noSourceMaps) {
                         this.showResult(

@@ -18,9 +18,9 @@ import styles from "./SendMessage.module.css"
 interface MessageData {
   readonly selectedMessage: string
   readonly messageBody: Base64String
-  readonly value?: string
-  readonly sendMode?: number
-  readonly autoDebug?: boolean
+  readonly value?: string // undefined if external message
+  readonly sendMode?: number // undefined if external message
+  readonly debug: boolean
 }
 
 interface InternalMessageData extends MessageData {
@@ -68,7 +68,7 @@ export const SendMessage: React.FC<Props> = ({
   const [value, setValue] = useState<string>("1.0")
   const [sendMode, setSendMode] = useState<number>(0)
   const [lastTransaction, setLastTransaction] = useState<LastTransaction | null>(null)
-  const [autoDebug, setAutoDebug] = useState<boolean>(false)
+  const [debug, setDebug] = useState<boolean>(false)
   const [isMessageFieldsValid, setMessageFieldsValid] = useState<boolean>(true)
 
   const [messageMode, setMessageMode] = useState<"external" | "internal">("internal")
@@ -233,7 +233,7 @@ export const SendMessage: React.FC<Props> = ({
         messageBody: createMessageBody(),
         value,
         sendMode,
-        autoDebug,
+        debug,
         fromAddress: selectedFromContract,
       })
     } else {
@@ -250,7 +250,7 @@ export const SendMessage: React.FC<Props> = ({
       onSendMessage({
         selectedMessage,
         messageBody: createMessageBody(),
-        autoDebug,
+        debug,
       })
     }
   }
@@ -445,16 +445,16 @@ export const SendMessage: React.FC<Props> = ({
         <label className={styles.checkboxLabel}>
           <input
             type="checkbox"
-            checked={autoDebug}
+            checked={debug}
             onChange={e => {
-              setAutoDebug(e.target.checked)
+              setDebug(e.target.checked)
               if (selectedTemplate) {
                 setSelectedTemplate("")
               }
             }}
             className={styles.checkbox}
             disabled={!hasSourceMap}
-            id="autoDebugCheckbox"
+            id="debugCheckbox"
           />
           <span className={styles.checkboxMark}></span>
           <span className={styles.checkboxText}>Launch debugger after send</span>
