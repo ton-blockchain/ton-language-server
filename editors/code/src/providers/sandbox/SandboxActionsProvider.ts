@@ -1012,6 +1012,9 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
                     template: result.data.template,
                 }
                 void this.view.webview.postMessage(message)
+
+                this._treeProvider?.().addMessageTemplate(result.data.template)
+
                 void vscode.window.showInformationMessage(
                     `Template "${templateName}" saved successfully`,
                 )

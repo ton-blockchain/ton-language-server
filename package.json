@@ -392,6 +392,12 @@
                 "icon": "$(trash)"
             },
             {
+                "command": "ton.sandbox.deleteMessageTemplate",
+                "title": "Delete Message Template",
+                "category": "TON",
+                "icon": "$(trash)"
+            },
+            {
                 "command": "ton.sandbox.copyContractAbi",
                 "title": "Copy Contract ABI",
                 "category": "TON",
@@ -469,6 +475,13 @@
                     "command": "ton.sandbox.states.refresh",
                     "when": "view == tonSandboxHistory",
                     "group": "navigation"
+                }
+            ],
+            "view/item/context": [
+                {
+                    "command": "ton.sandbox.deleteMessageTemplate",
+                    "when": "view == tonSandbox && viewItem == message-template",
+                    "group": "inline"
                 }
             ]
         },

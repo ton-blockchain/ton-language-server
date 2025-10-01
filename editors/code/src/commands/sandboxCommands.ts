@@ -6,7 +6,11 @@ import {SandboxTreeProvider} from "../providers/sandbox/SandboxTreeProvider"
 import {SandboxActionsProvider} from "../providers/sandbox/SandboxActionsProvider"
 import {HistoryWebviewProvider} from "../providers/sandbox/HistoryWebviewProvider"
 import {DeployedContract} from "../common/types/contract"
-import {callGetMethodDirectly, deleteContract} from "../providers/sandbox/methods"
+import {
+    callGetMethodDirectly,
+    deleteContract,
+    deleteMessageTemplate,
+} from "../providers/sandbox/methods"
 import {Operation} from "../webview-ui/src/views/actions/sandbox-actions-types"
 
 export function registerSandboxCommands(
@@ -80,13 +84,48 @@ export function registerSandboxCommands(
                         void vscode.window.showInformationMessage("Contract deleted successfully")
                     } else {
                         void vscode.window.showErrorMessage(
-                            `Failed to delete contract: ${deleteResult.error ?? "Unknown error"}`,
+                            `Failed to delete contract: ${deleteResult.error}`,
                         )
                     }
                 } catch (error) {
                     void vscode.window.showErrorMessage(
                         `Failed to delete contract: ${error instanceof Error ? error.message : "Unknown error"}`,
                     )
+                }
+            },
+        ),
+        vscode.commands.registerCommand(
+            "ton.sandbox.deleteMessageTemplate",
+            async (treeItem: vscode.TreeItem) => {
+                const templateId = treeItem.id?.replace("template-", "")
+                if (!templateId) {
+                    return
+                }
+
+                const confirm = await vscode.window.showWarningMessage(
+                    "Are you sure you want to delete this message template?",
+                    {modal: true},
+                    "Delete",
+                )
+
+                if (confirm === "Delete") {
+                    try {
+                        const deleteResult = await deleteMessageTemplate(templateId)
+                        if (deleteResult.success) {
+                            treeProvider.removeMessageTemplate(templateId)
+                            void vscode.window.showInformationMessage(
+                                "Message template deleted successfully",
+                            )
+                        } else {
+                            void vscode.window.showErrorMessage(
+                                `Failed to delete message template: ${deleteResult.error}`,
+                            )
+                        }
+                    } catch (error) {
+                        void vscode.window.showErrorMessage(
+                            `Failed to delete message template: ${error instanceof Error ? error.message : "Unknown error"}`,
+                        )
+                    }
                 }
             },
         ),

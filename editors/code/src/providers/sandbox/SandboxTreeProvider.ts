@@ -7,12 +7,12 @@ import {SourceMap} from "ton-source-map"
 import {ContractAbi} from "@shared/abi"
 
 import {DeployedContract} from "../../common/types/contract"
-
 import {formatAddress} from "../../common/format"
+import {MessageTemplate} from "../../webview-ui/src/views/actions/sandbox-actions-types"
 
 import {SandboxActionsProvider} from "./SandboxActionsProvider"
 import type {SandboxCodeLensProvider} from "./SandboxCodeLensProvider"
-import {checkSandboxStatus, getContracts} from "./methods"
+import {checkSandboxStatus, getContracts, getMessageTemplates} from "./methods"
 
 interface SandboxTreeItem {
     readonly id: string
@@ -32,6 +32,7 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
 
     private deployedContracts: DeployedContract[] = []
     private sandboxStatus: "disconnected" | "connected" | "error" = "disconnected"
+    private messageTemplates: MessageTemplate[] = []
     private formProvider?: SandboxActionsProvider
     private codeLensProvider?: SandboxCodeLensProvider
 
@@ -72,6 +73,9 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
             case "contracts": {
                 return Promise.resolve(this.getContractItems())
             }
+            case "message-templates": {
+                return Promise.resolve(this.getMessageTemplateItems())
+            }
             case "actions": {
                 return Promise.resolve(this.getActionItems())
             }
@@ -100,6 +104,14 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
                 iconPath: new vscode.ThemeIcon("package"),
                 contextValue: "contracts-section",
                 collapsibleState: vscode.TreeItemCollapsibleState.Expanded,
+            },
+            {
+                id: "message-templates",
+                label: "Message Templates",
+                description: `${this.messageTemplates.length} template${this.messageTemplates.length === 1 ? "" : "s"}`,
+                iconPath: new vscode.ThemeIcon("file-text"),
+                contextValue: "message-templates-section",
+                collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
             },
             {
                 id: "actions",
@@ -138,6 +150,29 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
                 title: "Open Contract Information",
                 arguments: [contract.address],
             },
+        }))
+    }
+
+    private getMessageTemplateItems(): SandboxTreeItem[] {
+        if (this.messageTemplates.length === 0) {
+            return [
+                {
+                    id: "no-templates",
+                    label: "No message templates",
+                    iconPath: new vscode.ThemeIcon("info"),
+                    contextValue: "no-templates",
+                    collapsibleState: vscode.TreeItemCollapsibleState.None,
+                },
+            ]
+        }
+
+        return this.messageTemplates.map(template => ({
+            id: `template-${template.id}`,
+            label: template.name,
+            description: template.description,
+            iconPath: new vscode.ThemeIcon("file-text"),
+            contextValue: "message-template",
+            collapsibleState: vscode.TreeItemCollapsibleState.None,
         }))
     }
 
@@ -231,6 +266,7 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
 
             if (this.sandboxStatus === "connected" && loadContracts) {
                 await this.loadContractsFromServer()
+                await this.loadMessageTemplatesFromServer()
             }
         } catch {
             this.sandboxStatus = "disconnected"
@@ -265,6 +301,21 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
             this.updateFormContracts()
         } catch (error) {
             console.warn("Error loading contracts from server:", error)
+        }
+    }
+
+    public async loadMessageTemplatesFromServer(): Promise<void> {
+        try {
+            const result = await getMessageTemplates()
+            if (!result.success) {
+                console.warn("Failed to load message templates from server:", result.error)
+                return
+            }
+
+            this.messageTemplates = result.data.templates
+            this.refresh()
+        } catch (error) {
+            console.warn("Error loading message templates from server:", error)
         }
     }
 
@@ -332,5 +383,26 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
         if (this.formProvider) {
             this.formProvider.updateContracts(this.deployedContracts)
         }
+    }
+
+    public addMessageTemplate(template: MessageTemplate): void {
+        const existingIndex = this.messageTemplates.findIndex(t => t.id === template.id)
+
+        if (existingIndex === -1) {
+            this.messageTemplates.push(template)
+        } else {
+            this.messageTemplates[existingIndex] = template
+        }
+
+        this.refresh()
+    }
+
+    public removeMessageTemplate(id: string): void {
+        this.messageTemplates = this.messageTemplates.filter(t => t.id !== id)
+        this.refresh()
+    }
+
+    public getMessageTemplates(): readonly MessageTemplate[] {
+        return [...this.messageTemplates]
     }
 }
