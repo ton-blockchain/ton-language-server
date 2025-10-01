@@ -52,7 +52,6 @@ export class HistoryWebviewProvider implements vscode.WebviewViewProvider {
                     break
                 }
                 case "webviewReady": {
-                    void this.handleLoadOperations()
                     break
                 }
                 case "restoreState": {
