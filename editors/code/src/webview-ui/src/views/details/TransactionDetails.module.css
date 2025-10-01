@@ -7,12 +7,6 @@
   overflow: auto;
 }
 
-.header {
-  margin-bottom: 20px;
-  border-bottom: 1px solid var(--vscode-panel-border);
-  padding-bottom: 15px;
-}
-
 .title {
   margin: 0 0 10px;
   color: var(--vscode-foreground);
@@ -37,25 +31,6 @@
   padding: 8px;
   border-radius: 3px;
   border: 1px solid var(--vscode-textBlockQuote-border);
-  word-break: break-all;
-  font-size: 0.9em;
-}
-
-.methodName {
-  background-color: var(--vscode-textCodeBlock-background);
-  padding: 8px;
-  border-radius: 3px;
-  border: 1px solid var(--vscode-textBlockQuote-border);
-  font-family: var(--vscode-editor-font-family, "Fira Code", monospace), monospace;
-  font-size: 0.9em;
-}
-
-.transactionId {
-  background-color: var(--vscode-textCodeBlock-background);
-  padding: 8px;
-  border-radius: 3px;
-  border: 1px solid var(--vscode-textBlockQuote-border);
-  font-family: var(--vscode-editor-font-family, "Fira Code", monospace), monospace;
   word-break: break-all;
   font-size: 0.9em;
 }

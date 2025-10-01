@@ -127,7 +127,6 @@ export function TransactionTree({
 
   const [selectedTransaction, setSelectedTransaction] = useState<TransactionInfo | null>(null)
   const [selectedContract, setSelectedContract] = useState<ContractData | null>(null)
-  const [selectedRootLt, setSelectedRootLt] = useState<string | null>(null)
   const triggerRectRef = useRef<DOMRect | null>(null)
 
   const contractsMap: Map<string, ContractData> = useMemo(
@@ -140,41 +139,6 @@ export function TransactionTree({
       .filter(tx => !tx.parent)
       .sort((a, b) => Number(a.transaction.lt - b.transaction.lt))
   }, [transactions])
-
-  const getSubtreeTransactions = (rootTx: TransactionInfo): TransactionInfo[] => {
-    const result: TransactionInfo[] = [rootTx]
-
-    const addChildren = (tx: TransactionInfo): void => {
-      tx.children.forEach(child => {
-        result.push(child)
-        addChildren(child)
-      })
-    }
-
-    addChildren(rootTx)
-    return result
-  }
-
-  const filteredTransactions = useMemo(() => {
-    if (!selectedRootLt) {
-      return transactions
-    }
-
-    const selectedRoot = rootTransactions.find(
-      tx => tx.transaction.lt.toString() === selectedRootLt,
-    )
-    if (!selectedRoot) {
-      return transactions
-    }
-
-    return getSubtreeTransactions(selectedRoot)
-  }, [transactions, selectedRootLt, rootTransactions])
-
-  const handleRootChange = (rootLt: string | null): void => {
-    setSelectedRootLt(rootLt)
-    setSelectedTransaction(null)
-    setSelectedContract(null)
-  }
 
   const calculateTreeDimensions = (data: RawNodeDatum): {height: number; width: number} => {
     const getDepth = (node: RawNodeDatum, currentDepth = 0): number => {
@@ -204,11 +168,11 @@ export function TransactionTree({
 
   const transactionMap = useMemo(() => {
     const map: Map<string, TransactionInfo> = new Map()
-    for (const tx of filteredTransactions) {
+    for (const tx of transactions) {
       map.set(tx.transaction.lt.toString(), tx)
     }
     return map
-  }, [filteredTransactions])
+  }, [transactions])
 
   const handleNodeClick = (lt: string): void => {
     const transaction = transactionMap.get(lt)
@@ -269,10 +233,6 @@ export function TransactionTree({
   }
 
   const treeData: RawNodeDatum = useMemo(() => {
-    const displayedRoots = selectedRootLt
-      ? rootTransactions.filter(tx => tx.transaction.lt.toString() === selectedRootLt)
-      : rootTransactions
-
     const convertTransactionToNode = (tx: TransactionInfo): RawNodeDatum => {
       const thisAddress = tx.address
       const addressName = formatAddress(thisAddress, contractsMap)
@@ -351,13 +311,13 @@ export function TransactionTree({
       } satisfies RawNodeDatum
     }
 
-    if (displayedRoots.length > 0) {
+    if (rootTransactions.length > 0) {
       return {
         name: "",
         attributes: {
           isRoot: "true",
         },
-        children: displayedRoots.map(it => convertTransactionToNode(it)),
+        children: rootTransactions.map(it => convertTransactionToNode(it)),
       }
     }
 
@@ -368,7 +328,7 @@ export function TransactionTree({
       },
       children: [],
     }
-  }, [rootTransactions, contractsMap, selectedTransaction, selectedRootLt])
+  }, [rootTransactions, contractsMap, selectedTransaction])
 
   const renderCustomNodeElement = ({
     nodeDatum,
@@ -573,33 +533,6 @@ export function TransactionTree({
 
   return (
     <div className={styles.container}>
-      {rootTransactions.length > 1 && (
-        <div className={styles.tabsContainer}>
-          <button
-            className={`${styles.tab} ${selectedRootLt ? "" : styles.tabActive}`}
-            onClick={() => {
-              handleRootChange(null)
-            }}
-          >
-            All
-          </button>
-          {rootTransactions.map((rootTx, index) => {
-            const addressName = formatAddress(rootTx.address, contractsMap)
-            const isActive = selectedRootLt === rootTx.transaction.lt.toString()
-            return (
-              <button
-                key={rootTx.transaction.lt.toString()}
-                className={`${styles.tab} ${isActive ? styles.tabActive : ""}`}
-                onClick={() => {
-                  handleRootChange(rootTx.transaction.lt.toString())
-                }}
-              >
-                #{index + 1}: {addressName}
-              </button>
-            )
-          })}
-        </div>
-      )}
       <div className={styles.treeContainer} style={{height: `${treeDimensions.height}px`}}>
         <div className={styles.treeWrapper} style={{width: `${treeDimensions.width}px`}}>
           <Tree

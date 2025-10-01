@@ -193,10 +193,6 @@
   }
 }
 
-.parsedDataContent {
-  margin-left: var(--spacing-sm);
-}
-
 .actionsToggleButton {
   background: none;
   border: none;

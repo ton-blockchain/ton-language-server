@@ -5,16 +5,6 @@
   background-color: var(--vscode-sideBar-background);
 }
 
-.header {
-  display: flex;
-  align-items: center;
-  padding: 4px 12px;
-  border-bottom: 1px solid var(--vscode-panel-border);
-  background-color: var(--vscode-sideBar-background);
-  font-size: 11px;
-  color: var(--vscode-descriptionForeground);
-}
-
 .timeline {
   display: flex;
   flex: 1;

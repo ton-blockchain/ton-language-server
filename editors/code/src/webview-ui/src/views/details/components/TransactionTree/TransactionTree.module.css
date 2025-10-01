@@ -4,55 +4,6 @@
   overflow: hidden;
 }
 
-.tabsContainer {
-  padding: var(--spacing-md);
-  background-color: var(--color-background-secondary);
-  display: flex;
-  align-items: center;
-  gap: var(--spacing-xs);
-  flex-wrap: wrap;
-}
-
-.tab {
-  background: none;
-  border: none;
-  padding: var(--spacing-xs) var(--spacing-sm);
-  border-radius: var(--border-radius-sm);
-  color: var(--color-text-secondary);
-  font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-medium);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  white-space: nowrap;
-}
-
-.tab:hover {
-  background-color: var(--color-background-primary);
-  color: var(--color-text-primary);
-}
-
-.tabActive {
-  background-color: var(--color-text-primary);
-  color: var(--color-background-primary);
-}
-
-.tabActive:hover {
-  background-color: var(--color-text-primary);
-  color: var(--color-background-primary);
-}
-
-.header {
-  padding: var(--spacing-sm) 0;
-  background-color: var(--color-background-secondary);
-}
-
-.header h3 {
-  margin: 0 0 var(--spacing-xs) 0;
-  font-size: var(--font-size-lg);
-  font-weight: var(--font-weight-semibold);
-  color: var(--color-text-primary);
-}
-
 .treeContainer {
   width: 100%;
   height: auto;
@@ -135,20 +86,6 @@
   position: relative;
 }
 
-.tooltipWithoutTriangle {
-  background-color: var(--color-background-primary);
-  border-radius: var(--border-radius-md);
-  box-shadow: 0 8px 24px rgb(0 0 0 / 40%);
-  padding: var(--spacing-md);
-  font-size: var(--font-size-sm);
-  min-width: 280px;
-  max-width: 400px;
-  max-height: 90vh;
-  overflow-y: auto;
-  z-index: 1000;
-  position: relative;
-}
-
 .tooltip::after {
   content: "";
   position: absolute;
@@ -211,14 +148,6 @@
   line-height: 1.3;
 }
 
-.contractStateData {
-  max-height: none;
-  overflow: visible;
-  padding: var(--spacing-xs);
-  border-radius: var(--border-radius-sm);
-  font-size: var(--font-size-xs);
-}
-
 .foreignObjectContainer {
   pointer-events: none;
   display: flex;
@@ -229,12 +158,6 @@
 .iconSvg {
   display: block;
   stroke: none;
-}
-
-.tooltipContainer {
-  position: fixed;
-  z-index: 1000;
-  pointer-events: none;
 }
 
 .transactionDetails {
