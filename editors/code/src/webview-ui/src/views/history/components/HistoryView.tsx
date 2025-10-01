@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from "react"
 
-import {VscDebugAlt, VscInfo, VscDebugStepInto} from "react-icons/vsc"
+import {VscDebugAlt, VscInfo, VscDebugStepInto, VscAdd} from "react-icons/vsc"
 
 import {Cell, loadTransaction} from "@ton/core"
 
@@ -201,6 +201,25 @@ export const HistoryView: React.FC<Props> = ({
                   <VscDebugAlt size={12} />
                 </button>
               )}
+              {node.resultString &&
+                (() => {
+                  const resultString = node.resultString
+                  return (
+                    <button
+                      className={styles.addTransactionsButton}
+                      title="Add transactions to current details view"
+                      onClick={e => {
+                        e.stopPropagation()
+                        vscode.postMessage({
+                          type: "addTransactionsToDetails",
+                          resultString,
+                        })
+                      }}
+                    >
+                      <VscAdd size={12} />
+                    </button>
+                  )
+                })()}
               <button
                 className={styles.detailsButton}
                 title="View transaction details"

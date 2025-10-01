@@ -199,6 +199,30 @@
   cursor: pointer;
 }
 
+.addTransactionsButton {
+  background: transparent;
+  border: none;
+  color: var(--vscode-badge-foreground);
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 3px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  opacity: 0.7;
+  transition: opacity 0.1s ease;
+}
+
+.node:hover .addTransactionsButton {
+  display: flex;
+}
+
+.addTransactionsButton:hover {
+  opacity: 1;
+  cursor: pointer;
+}
+
 .debugButton {
   background: transparent;
   border: none;

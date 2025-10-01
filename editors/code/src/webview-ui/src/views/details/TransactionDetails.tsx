@@ -1,8 +1,8 @@
 import React, {JSX, useEffect, useMemo, useState} from "react"
 
-import {Address, Cell, loadTransaction, loadShardAccount} from "@ton/core"
+import {Address, Cell, loadShardAccount, loadTransaction} from "@ton/core"
 
-import {TransactionInfo, TransactionDetailsInfo} from "../../../../common/types/transaction"
+import {TransactionDetailsInfo, TransactionInfo} from "../../../../common/types/transaction"
 import {
   processRawTransactions,
   RawTransactionInfo,
@@ -21,17 +21,14 @@ interface Message {
   readonly transaction: TransactionDetailsInfo
 }
 
+interface AddTransactionsMessage {
+  readonly type: "addTransactions"
+  readonly resultString: string
+}
+
 interface Props {
   readonly vscode: {
     readonly postMessage: (message: unknown) => void
-  }
-}
-
-function parseTransactions(data: string): RawTransactions | undefined {
-  try {
-    return JSON.parse(data) as RawTransactions
-  } catch {
-    return undefined
   }
 }
 
@@ -65,29 +62,42 @@ export default function TransactionDetails({vscode}: Props): JSX.Element {
   useMemo(() => {
     if (!transaction || !transaction.resultString) return
 
-    const rawTxs = parseTransactions(transaction.resultString)
-    if (!rawTxs) {
+    const transactionInfos = processTxString(transaction.resultString)
+    if (!transactionInfos) {
       return
     }
-
-    const parsedTransactions = rawTxs.transactions.map(
-      (it): RawTransactionInfo => ({
-        ...it,
-        transaction: it.transaction,
-        parsedTransaction: loadTransaction(Cell.fromHex(it.transaction).asSlice()),
-      }),
-    )
-
-    const transactionInfos = processRawTransactions(parsedTransactions)
     setTransactions(transactionInfos)
   }, [transaction, setTransactions])
 
+  const addTransactions = (resultString: string): void => {
+    const newTransactionInfos = processTxString(resultString)
+    if (!newTransactionInfos) {
+      return
+    }
+
+    setTransactions(prevTransactions => {
+      if (!prevTransactions) {
+        return newTransactionInfos
+      }
+
+      const existingLts = new Set(prevTransactions.map(tx => tx.transaction.lt.toString()))
+
+      const filteredNewTransactions = newTransactionInfos.filter(
+        tx => !existingLts.has(tx.transaction.lt.toString()),
+      )
+
+      return [...prevTransactions, ...filteredNewTransactions]
+    })
+  }
+
   useEffect(() => {
-    const handleMessage = (event: MessageEvent<Message>): void => {
+    const handleMessage = (event: MessageEvent<Message | AddTransactionsMessage>): void => {
       const message = event.data
-      // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+
       if (message.type === "updateTransactionDetails") {
         setTransaction(message.transaction)
+      } else {
+        addTransactions(message.resultString)
       }
     }
 
@@ -125,4 +135,29 @@ export default function TransactionDetails({vscode}: Props): JSX.Element {
       {transactions && <TransactionTree transactions={transactions} contracts={contracts} />}
     </div>
   )
+}
+
+function parseTransactions(data: string): RawTransactions | undefined {
+  try {
+    return JSON.parse(data) as RawTransactions
+  } catch {
+    return undefined
+  }
+}
+
+function processTxString(resultString: string): TransactionInfo[] | undefined {
+  const rawTxs = parseTransactions(resultString)
+  if (!rawTxs) {
+    return undefined
+  }
+
+  const parsedTransactions = rawTxs.transactions.map(
+    (it): RawTransactionInfo => ({
+      ...it,
+      transaction: it.transaction,
+      parsedTransaction: loadTransaction(Cell.fromHex(it.transaction).asSlice()),
+    }),
+  )
+
+  return processRawTransactions(parsedTransactions)
 }

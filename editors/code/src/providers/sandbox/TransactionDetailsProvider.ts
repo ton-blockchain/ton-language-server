@@ -63,6 +63,15 @@ export class TransactionDetailsProvider {
         }
     }
 
+    public addTransactions(resultString: string): void {
+        if (this.panel) {
+            void this.panel.webview.postMessage({
+                type: "addTransactions",
+                resultString,
+            })
+        }
+    }
+
     private getHtmlForWebview(webview: vscode.Webview): string {
         const scriptUri = webview.asWebviewUri(
             vscode.Uri.joinPath(this._extensionUri, "dist", "webview-ui", "transaction-details.js"),

@@ -69,6 +69,13 @@ export class HistoryWebviewProvider implements vscode.WebviewViewProvider {
                     this.handleDebugTransaction(command.operationId)
                     break
                 }
+                case "addTransactionsToDetails": {
+                    void vscode.commands.executeCommand(
+                        "ton.sandbox.addTransactionsToDetails",
+                        command.resultString,
+                    )
+                    break
+                }
             }
         })
     }

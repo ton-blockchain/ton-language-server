@@ -37,12 +37,18 @@ export interface DebugTransactionCommand {
   readonly operationId: string
 }
 
+export interface AddTransactionsToDetailsCommand {
+  readonly type: "addTransactionsToDetails"
+  readonly resultString: string
+}
+
 export type StatesCommand =
   | LoadOperationsCommand
   | WebviewReadyCommand
   | RestoreStateCommand
   | ShowTransactionDetailsCommand
   | DebugTransactionCommand
+  | AddTransactionsToDetailsCommand
 
 export interface StatesVSCodeAPI {
   readonly postMessage: (command: StatesCommand) => void

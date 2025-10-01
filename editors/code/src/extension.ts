@@ -229,6 +229,7 @@ async function startServer(context: vscode.ExtensionContext): Promise<vscode.Dis
 
     registerCommands(disposables)
     registerTransactionDetailsCommand(disposables)
+    registerAddTransactionsToDetailsCommand(disposables)
 
     const langStatusBar = vscode.window.createStatusBarItem(
         "Tolk",
@@ -930,5 +931,18 @@ function registerTransactionDetailsCommand(disposables: vscode.Disposable[]): vo
         globalTransactionDetailsProvider.showTransactionDetails(transaction)
     }
     const disposable = vscode.commands.registerCommand("ton.sandbox.showTransactionDetails", cmd)
+    disposables.push(disposable)
+}
+
+function registerAddTransactionsToDetailsCommand(disposables: vscode.Disposable[]): void {
+    const cmd = (resultString: string): void => {
+        if (!globalTransactionDetailsProvider) {
+            vscode.window.showErrorMessage(`Transaction details provider is not set`)
+            return
+        }
+
+        globalTransactionDetailsProvider.addTransactions(resultString)
+    }
+    const disposable = vscode.commands.registerCommand("ton.sandbox.addTransactionsToDetails", cmd)
     disposables.push(disposable)
 }
