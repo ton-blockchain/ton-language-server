@@ -2,13 +2,15 @@ import React, {useEffect, useMemo, useState} from "react"
 
 import {ContractAbi} from "@shared/abi"
 
-import {Button, Input, Label, Select, ResultDisplay} from "../../../../components/common"
+import {Button, Input, Label, Select, OperationResultDisplay} from "../../../../components/common"
 
 import * as binary from "../../../../../../common/binary"
 import {AbiFieldsForm} from "../AbiFieldsForm/AbiFieldsForm"
 import {DeployedContract} from "../../../../../../common/types/contract"
 import {DeployState} from "../../../../../../providers/sandbox/methods"
 import {Base64String} from "../../../../../../common/base64-string"
+
+import {ResultData} from "../../sandbox-actions-types"
 
 import styles from "./CompileDeploy.module.css"
 
@@ -19,13 +21,11 @@ interface Props {
     contractName: string,
     storageType?: string,
   ) => void
-  readonly result?: {success: boolean; message: string; details?: string}
+  readonly result: ResultData | undefined
   readonly contractAbi?: ContractAbi
   readonly contracts: readonly DeployedContract[]
   readonly deployState?: DeployState | null
-  readonly onResultUpdate?: (
-    result: {success: boolean; message: string; details?: string} | undefined,
-  ) => void
+  readonly onResultUpdate?: (result: ResultData | undefined) => void
 }
 
 export const CompileDeploy: React.FC<Props> = ({
@@ -232,7 +232,9 @@ export const CompileDeploy: React.FC<Props> = ({
             />
           </div>
 
-          {result && <ResultDisplay result={result} onClose={() => onResultUpdate?.(undefined)} />}
+          {result && (
+            <OperationResultDisplay result={result} onClose={() => onResultUpdate?.(undefined)} />
+          )}
 
           <Button onClick={handleCompileAndDeploy} disabled={!isFormValid()}>
             Compile & Deploy from Editor

@@ -118,7 +118,6 @@ export default function ActionsApp({vscode}: Props): JSX.Element {
               results["send-internal-message-result"] ?? results["send-external-message-result"]
             }
             onResultUpdate={result => {
-              // Clear both possible results
               updateResult("send-internal-message-result", result)
               updateResult("send-external-message-result", result)
             }}
@@ -143,6 +142,9 @@ export default function ActionsApp({vscode}: Props): JSX.Element {
               })
             }}
             result={results["get-method-result"]}
+            onResultUpdate={result => {
+              updateResult("get-method-result", result)
+            }}
           />
         )
       }

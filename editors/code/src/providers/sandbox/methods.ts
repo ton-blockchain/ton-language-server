@@ -11,6 +11,7 @@ import {ContractAbi, TypeAbi} from "@shared/abi"
 import {
     ContractInfoData,
     MessageTemplate,
+    ResultData,
 } from "../../webview-ui/src/views/actions/sandbox-actions-types"
 import {Base64String} from "../../common/base64-string"
 
@@ -153,7 +154,7 @@ export async function compileAndDeployFromEditor(
     treeProvider: SandboxTreeProvider | undefined,
     value: string,
     storageType?: string,
-): Promise<{success: boolean; message: string; details?: string}> {
+): Promise<ResultData> {
     const editor = vscode.window.activeTextEditor
     if (!editor) {
         return {

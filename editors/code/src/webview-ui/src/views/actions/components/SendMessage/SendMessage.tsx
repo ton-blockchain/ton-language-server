@@ -5,9 +5,9 @@ import {VscSave} from "react-icons/vsc"
 import {DeployedContract} from "../../../../../../common/types/contract"
 import * as binary from "../../../../../../common/binary"
 
-import {MessageTemplate, VSCodeAPI} from "../../sandbox-actions-types"
+import {MessageTemplate, ResultData, VSCodeAPI} from "../../sandbox-actions-types"
 import {SendModeSelector} from "../SendModeSelector/SendModeSelector"
-import {Button, Input, Select, ResultDisplay} from "../../../../components/common"
+import {Button, Input, Select, OperationResultDisplay} from "../../../../components/common"
 import {AbiFieldsForm} from "../AbiFieldsForm/AbiFieldsForm"
 import {Base64String} from "../../../../../../common/base64-string"
 
@@ -34,11 +34,9 @@ interface Props {
   readonly onSendMessage: (messageData: MessageData) => void
   readonly onSendInternalMessage: (messageData: InternalMessageData) => void
   readonly handleShowTransactionDetails: (tx: LastTransaction) => void
-  readonly result?: {success: boolean; message: string; details?: string}
+  readonly result: ResultData | undefined
   readonly onClearResult?: () => void
-  readonly onResultUpdate?: (
-    result: {success: boolean; message: string; details?: string} | undefined,
-  ) => void
+  readonly onResultUpdate?: (result: ResultData | undefined) => void
   readonly messageTemplates: MessageTemplate[]
   readonly vscode: VSCodeAPI
 }
@@ -67,7 +65,7 @@ export const SendMessage: React.FC<Props> = ({
   const [messageFields, setMessageFields] = useState<RawStringObject>({})
   const [value, setValue] = useState<string>("1.0")
   const [sendMode, setSendMode] = useState<number>(0)
-  const [lastTransaction, setLastTransaction] = useState<LastTransaction | null>(null)
+  const [lastTransaction, setLastTransaction] = useState<LastTransaction | undefined>(undefined)
   const [debug, setDebug] = useState<boolean>(false)
   const [isMessageFieldsValid, setMessageFieldsValid] = useState<boolean>(true)
 
@@ -467,12 +465,12 @@ export const SendMessage: React.FC<Props> = ({
       </div>
 
       {result && (
-        <ResultDisplay
+        <OperationResultDisplay
           result={result}
           lastTransaction={lastTransaction}
           onShowTransactionDetails={handleShowTransactionDetails}
           onClose={() => {
-            setLastTransaction(null)
+            setLastTransaction(undefined)
             onResultUpdate?.(undefined)
           }}
         />

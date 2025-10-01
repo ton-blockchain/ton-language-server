@@ -68,31 +68,6 @@
   cursor: not-allowed;
 }
 
-.result {
-  margin-top: 12px;
-  padding: 8px;
-  border-radius: 3px;
-  font-size: 11px;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-  overflow-wrap: break-word;
-  word-break: break-all;
-  max-width: 100%;
-  font-family: var(--vscode-editor-font-family), monospace;
-}
-
-.result.success {
-  background-color: rgb(22 163 74 / 10%);
-  border: 1px solid rgb(22 163 74 / 30%);
-  color: var(--vscode-foreground);
-}
-
-.result.error {
-  background-color: rgb(239 68 68 / 10%);
-  border: 1px solid rgb(239 68 68 / 30%);
-  color: var(--vscode-foreground);
-}
-
 .parametersTitle {
   display: block;
   margin-bottom: 0;

@@ -4,7 +4,7 @@ import {serializeTuple} from "@ton/core"
 
 import {TypeAbi} from "@shared/abi"
 
-import {Button, Input, Select} from "../../../../components/common"
+import {Button, Input, Select, OperationResultDisplay} from "../../../../components/common"
 
 import {DeployedContract} from "../../../../../../common/types/contract"
 import {AbiFieldsForm} from "../AbiFieldsForm/AbiFieldsForm"
@@ -15,6 +15,8 @@ import {
 } from "../../../../../../common/binary"
 
 import {Base64String} from "../../../../../../common/base64-string"
+
+import {ResultData} from "../../sandbox-actions-types"
 
 import styles from "./GetMethod.module.css"
 
@@ -29,7 +31,8 @@ interface Props {
   readonly selectedContract?: string
   readonly onContractChange: (address: string) => void
   readonly onCallGetMethod: (methodData: MethodData) => void
-  readonly result?: {success: boolean; message: string; details?: string}
+  readonly result?: ResultData
+  readonly onResultUpdate?: (result: ResultData | undefined) => void
 }
 
 export const GetMethod: React.FC<Props> = ({
@@ -38,6 +41,7 @@ export const GetMethod: React.FC<Props> = ({
   onContractChange,
   onCallGetMethod,
   result,
+  onResultUpdate,
 }) => {
   const [selectedMethod, setSelectedMethod] = useState<string>("")
   const [methodId, setMethodId] = useState<string>("0")
@@ -170,10 +174,12 @@ export const GetMethod: React.FC<Props> = ({
       </Button>
 
       {result && (
-        <div className={`${styles.result} ${result.success ? styles.success : styles.error}`}>
-          {result.message}
-          {result.details && `\n\n${result.details}`}
-        </div>
+        <OperationResultDisplay
+          result={result}
+          onClose={() => {
+            onResultUpdate?.(undefined)
+          }}
+        />
       )}
     </div>
   )
