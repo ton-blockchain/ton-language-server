@@ -66,7 +66,7 @@ export const CompileDeploy: React.FC<Props> = ({
       return contractAbi.storage
     }
     if (selectedStorageType && contractAbi?.types) {
-      return contractAbi.types.find(type => type.name === selectedStorageType) ?? undefined
+      return contractAbi.types.find(type => type.name === selectedStorageType)
     }
     if (storageTypes.length > 0 && !selectedStorageType) {
       return storageTypes[0]

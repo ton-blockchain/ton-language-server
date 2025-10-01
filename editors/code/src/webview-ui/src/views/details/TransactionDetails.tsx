@@ -27,7 +27,7 @@ interface Props {
   }
 }
 
-function parseMaybeTransactions(data: string): RawTransactions | undefined {
+function parseTransactions(data: string): RawTransactions | undefined {
   try {
     return JSON.parse(data) as RawTransactions
   } catch {
@@ -50,24 +50,22 @@ export default function TransactionDetails({vscode}: Props): JSX.Element {
   }, [transaction?.account])
 
   const parsedStateInit = useMemo(() => {
-    if (!transaction?.stateInit?.code || !transaction.stateInit.data) return null
+    if (!transaction?.stateInit?.code || !transaction.stateInit.data) return undefined
     try {
-      const codeCell = Cell.fromBase64(transaction.stateInit.code)
-      const dataCell = Cell.fromBase64(transaction.stateInit.data)
       return {
-        code: codeCell,
-        data: dataCell,
+        code: Cell.fromBase64(transaction.stateInit.code),
+        data: Cell.fromBase64(transaction.stateInit.data),
       }
     } catch (error) {
       console.warn("Failed to parse stateInit data:", error)
-      return null
+      return undefined
     }
   }, [transaction?.stateInit?.code, transaction?.stateInit?.data])
 
   useMemo(() => {
     if (!transaction || !transaction.resultString) return
 
-    const rawTxs = parseMaybeTransactions(transaction.resultString)
+    const rawTxs = parseTransactions(transaction.resultString)
     if (!rawTxs) {
       return
     }
@@ -111,7 +109,7 @@ export default function TransactionDetails({vscode}: Props): JSX.Element {
         address: Address.parse(it.address),
         kind: it.name === "treasury" ? "treasury" : "user-contract",
         letter,
-        stateInit: parsedStateInit ?? undefined,
+        stateInit: parsedStateInit,
         account: parsedAccount,
         abi: it.abi,
       } satisfies ContractData
@@ -124,12 +122,7 @@ export default function TransactionDetails({vscode}: Props): JSX.Element {
 
   return (
     <div className={styles.container}>
-      {transactions && (
-        <div className={styles.transactionsSection}>
-          <div className={styles.sectionTitle}>Transaction Details</div>
-          <TransactionTree transactions={transactions} contracts={contracts} />
-        </div>
-      )}
+      {transactions && <TransactionTree transactions={transactions} contracts={contracts} />}
     </div>
   )
 }

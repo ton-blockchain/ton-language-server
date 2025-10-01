@@ -1000,7 +1000,7 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
                 messageFields: command.messageFields,
                 sendMode: command.sendMode,
                 value: command.value,
-                description: templateDescription ?? undefined,
+                description: templateDescription,
             }
 
             const result = await createMessageTemplate(templateData)
