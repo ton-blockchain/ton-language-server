@@ -15,7 +15,7 @@ import {Button, Input, Select, ResultDisplay} from "../../../../components/commo
 import {AbiFieldsForm} from "../AbiFieldsForm/AbiFieldsForm"
 import {Base64String} from "../../../../../../common/base64-string"
 
-import {flattenParsedObject, unflattenParsedObject} from "../../../../../../common/binary"
+import {RawStringObject, rawStringObjectToParsedObject} from "../../../../../../common/binary"
 
 import styles from "./SendMessage.module.css"
 
@@ -70,7 +70,7 @@ export const SendMessage: React.FC<Props> = ({
   vscode,
 }) => {
   const [selectedMessage, setSelectedMessage] = useState<string>("")
-  const [messageFields, setMessageFields] = useState<binary.FlattenParsedObject>({})
+  const [messageFields, setMessageFields] = useState<RawStringObject>({})
   const [value, setValue] = useState<string>("1.0")
   const [sendMode, setSendMode] = useState<number>(0)
   const [lastTransaction, setLastTransaction] = useState<LastTransaction | null>(null)
@@ -83,13 +83,13 @@ export const SendMessage: React.FC<Props> = ({
   const [selectedTemplate, setSelectedTemplate] = useState<string>("")
 
   const contract = contracts.find(c => c.address === selectedContract)
-  const message = contract?.abi?.messages.find(m => m.name === selectedMessage)
+  const messageAbi = contract?.abi?.messages.find(m => m.name === selectedMessage)
   const hasExternalEntryPoint = contract?.abi?.externalEntryPoint !== undefined
 
   const availableTemplates = useMemo(() => {
-    if (!message) return []
-    return localMessageTemplates.filter(template => template.opcode === message.opcode)
-  }, [localMessageTemplates, message])
+    if (!messageAbi) return []
+    return localMessageTemplates.filter(template => template.opcode === messageAbi.opcode)
+  }, [localMessageTemplates, messageAbi])
 
   useEffect(() => {
     if (messageMode === "internal" && contracts.length > 0 && !selectedFromContract) {
@@ -140,38 +140,56 @@ export const SendMessage: React.FC<Props> = ({
     }
   }, [vscode])
 
-  useEffect(() => {
-    if (loadedTemplate) {
-      setValue(loadedTemplate.value)
-      setSendMode(loadedTemplate.sendMode)
+  // useEffect(() => {
+  //   if (loadedTemplate) {
+  //     setValue(loadedTemplate.value)
+  //     setSendMode(loadedTemplate.sendMode)
+  //
+  //     // setMessageFields(
+  //     //   parseMessageBodyToParsedObject(loadedTemplate.messageBody, message, contract?.abi),
+  //     // )
+  //   }
+  // }, [loadedTemplate, selectedContract, selectedMessage, contracts, message, contract?.abi])
 
-      setMessageFields(
-        parseMessageBodyToParsedObject(loadedTemplate.messageBody, message, contract?.abi),
-      )
-    }
-  }, [loadedTemplate, selectedContract, selectedMessage, contracts, message, contract?.abi])
-
-  useEffect(() => {
-    if (selectedTemplate && localMessageTemplates.length > 0) {
-      const template = localMessageTemplates.find(t => t.id === selectedTemplate)
-      if (template) {
-        setValue(template.value)
-        setSendMode(template.sendMode)
-
-        const fields = parseMessageBodyToParsedObject(template.messageBody, message, contract?.abi)
-        const flattenFields = flattenParsedObject(fields)
-        setMessageFields(flattenFields)
-      }
-    }
-  }, [
-    selectedTemplate,
-    localMessageTemplates,
-    selectedContract,
-    selectedMessage,
-    contracts,
-    message,
-    contract?.abi,
-  ])
+  // useEffect(() => {
+  //   if (selectedTemplate && localMessageTemplates.length > 0) {
+  //     const template = localMessageTemplates.find(t => t.id === selectedTemplate)
+  //     if (template) {
+  //       setValue(template.value)
+  //       setSendMode(template.sendMode)
+  //
+  //       const fields = parseMessageBodyToParsedObject(
+  //         template.messageBody,
+  //         messageAbi,
+  //         contract?.abi,
+  //       )
+  //       const flattenFields = flattenParsedObject(fields)
+  //
+  //       Object.entries(flattenFields).map(([fieldPath, fieldValue]) => {
+  //         const stringValue = formatParsedSlice(fieldValue) ?? ""
+  //         const newField = {
+  //           type: {name: "void", humanReadable: "void"} satisfies TypeInfo,
+  //           value: stringValue,
+  //         }
+  //
+  //         setRawMessageFields(prev => ({
+  //           ...prev,
+  //           [fieldPath]: newField,
+  //         }))
+  //       })
+  //
+  //       // setMessageFields(flattenFields)
+  //     }
+  //   }
+  // }, [
+  //   selectedTemplate,
+  //   localMessageTemplates,
+  //   selectedContract,
+  //   selectedMessage,
+  //   contracts,
+  //   messageAbi,
+  //   contract?.abi,
+  // ])
 
   useEffect(() => {
     setSelectedTemplate("")
@@ -246,15 +264,15 @@ export const SendMessage: React.FC<Props> = ({
   }
 
   const createMessageBody = (): Base64String => {
-    if (!message || !contract?.abi) {
+    if (!messageAbi || !contract?.abi) {
       throw new Error("Message ABI not found")
     }
 
     try {
       const encodedCell = binary.encodeData(
         contract.abi,
-        message,
-        unflattenParsedObject(messageFields),
+        messageAbi,
+        rawStringObjectToParsedObject(messageFields),
       )
       return encodedCell.toBoc().toString("base64") as Base64String
     } catch (error) {
@@ -434,7 +452,7 @@ export const SendMessage: React.FC<Props> = ({
       )}
 
       <AbiFieldsForm
-        abi={message}
+        abi={messageAbi}
         contractAbi={contract?.abi}
         contracts={contracts}
         fields={messageFields}

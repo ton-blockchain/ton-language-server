@@ -13,8 +13,8 @@ interface Props {
   readonly abi: TypeAbi | undefined
   readonly contractAbi?: ContractAbi
   readonly contracts: readonly DeployedContract[]
-  readonly fields: binary.FlattenParsedObject
-  readonly onFieldsChange: (fields: binary.FlattenParsedObject) => void
+  readonly fields: binary.RawStringObject
+  readonly onFieldsChange: (fields: binary.RawStringObject) => void
   readonly onValidationChange: (isValid: boolean) => void
   readonly onClearResult?: () => void
 }
@@ -28,28 +28,20 @@ export const AbiFieldsForm: React.FC<Props> = ({
   onValidationChange,
   onClearResult,
 }) => {
-  const [rawFields, setRawFields] = useState<Record<string, string>>({})
   const [fieldErrors, setFieldErrors] = useState<Record<string, string | undefined>>({})
   const [isFormValid, setIsFormValid] = useState<boolean>(true)
 
   const handleFieldChange = (fieldPath: string, fieldValue: string, fieldType: TypeInfo): void => {
-    let parsedValue: binary.ParsedSlice
-    let errorMessage: string | undefined
-
     try {
-      parsedValue = binary.parseStringFieldValue(fieldValue, fieldType)
+      // try to parse
+      binary.parseStringFieldValue(fieldValue, fieldType)
+      setFieldErrors(prev => ({...prev, [fieldPath]: undefined}))
     } catch (error) {
-      parsedValue = fieldValue
-      errorMessage = error instanceof Error ? error.message : "Invalid value"
+      const errorMessage = error instanceof Error ? error.message : "Invalid value"
+      setFieldErrors(prev => ({...prev, [fieldPath]: errorMessage}))
     }
 
-    const newFields = {...fields}
-    newFields[fieldPath] = parsedValue
-    onFieldsChange(newFields)
-
     onClearResult?.()
-
-    setFieldErrors(prev => ({...prev, [fieldPath]: errorMessage}))
   }
 
   const handleFieldErrorReset = (fieldPath: string): void => {
@@ -73,7 +65,7 @@ export const AbiFieldsForm: React.FC<Props> = ({
     // console.log(Object.values(rawFields))
     // const allFieldsFilled = Object.values(rawFields).every(value => value.trim() !== "")
     // setIsFormValid(allFieldsFilled)
-  }, [abi?.fields, fieldErrors, rawFields])
+  }, [abi?.fields, fieldErrors, fields])
 
   useEffect(() => {
     onValidationChange(isFormValid)
@@ -86,10 +78,6 @@ export const AbiFieldsForm: React.FC<Props> = ({
   ): React.ReactNode => {
     return fieldsToRender.map(field => {
       const fieldPath = pathPrefix ? `${pathPrefix}.${field.name}` : field.name
-
-      if (!(fieldPath in rawFields)) {
-        setRawFields(prev => ({...prev, [fieldPath]: ""}))
-      }
 
       if (field.type.name === "struct" && contractAbi) {
         const structType = contractAbi.types.find(t => t.name === field.type.humanReadable)
@@ -156,9 +144,9 @@ export const AbiFieldsForm: React.FC<Props> = ({
             </div>
             <AddressInput
               contracts={contracts}
-              value={rawFields[fieldPath]}
+              value={fields[fieldPath]?.value ?? ""}
               onChange={value => {
-                setRawFields(prev => ({...prev, [fieldPath]: value}))
+                onFieldsChange({...fields, [fieldPath]: {type: field.type, value}})
                 handleFieldChange(fieldPath, value, field.type)
               }}
               placeholder={`Enter ${field.type.humanReadable}`}
@@ -177,9 +165,9 @@ export const AbiFieldsForm: React.FC<Props> = ({
           key={fieldPath}
           name={field.name}
           type={field.type.humanReadable}
-          value={rawFields[fieldPath]}
+          value={fields[fieldPath]?.value ?? ""}
           onChange={value => {
-            setRawFields(prev => ({...prev, [fieldPath]: value}))
+            onFieldsChange({...fields, [fieldPath]: {type: field.type, value: value}})
             handleFieldChange(fieldPath, value, field.type)
           }}
           error={fieldErrors[fieldPath]}

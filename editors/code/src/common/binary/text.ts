@@ -3,7 +3,29 @@ import {Address, beginCell, Cell, ExternalAddress, Slice, toNano} from "@ton/cor
 import {TypeInfo} from "@shared/abi"
 
 import * as binary from "./index"
-import {AddressNone, ParsedObject, ParsedSlice} from "./index"
+import {AddressNone, ParsedObject, ParsedSlice, unflattenParsedObject} from "./index"
+
+export type RawStringObject = Record<string, {type: TypeInfo; value: string} | undefined>
+
+export function rawStringObjectToParsedObject(obj: RawStringObject): ParsedObject {
+    const messageFields: binary.FlattenParsedObject = {}
+
+    Object.entries(obj).map(([fieldPath, val]) => {
+        if (!val) return
+
+        const {type, value} = val
+
+        let parsedValue: binary.ParsedSlice
+        try {
+            parsedValue = parseStringFieldValue(value, type)
+        } catch {
+            parsedValue = value
+        }
+        messageFields[fieldPath] = parsedValue
+    })
+
+    return unflattenParsedObject(messageFields)
+}
 
 function parseSliceLiteral(fieldValue: string, fieldType: TypeInfo): Slice {
     if (fieldValue.startsWith("te6")) {
