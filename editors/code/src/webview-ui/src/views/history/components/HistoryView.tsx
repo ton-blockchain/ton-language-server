@@ -14,6 +14,8 @@ import {
 import {DeployedContract} from "../../../../../common/types/contract"
 import {OperationNode} from "../../../../../providers/sandbox/methods"
 
+import {LoadingSpinner} from "../../../components/common"
+
 import styles from "./HistoryView.module.css"
 
 interface Props {
@@ -297,7 +299,7 @@ export const HistoryView: React.FC<Props> = ({
   return (
     <div className={styles.container}>
       {isLoading ? (
-        <div className={styles.loading}>Loading operation history...</div>
+        <LoadingSpinner message="Loading operation history..." />
       ) : operations.length === 0 ? (
         <div className={styles.empty}>
           <p>No operations found.</p>

@@ -306,16 +306,6 @@
   position: relative;
 }
 
-.loading {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  color: var(--vscode-descriptionForeground);
-  font-size: 13px;
-}
-
 .empty {
   flex: 1;
   display: flex;

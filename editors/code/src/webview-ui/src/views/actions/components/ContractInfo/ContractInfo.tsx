@@ -10,6 +10,8 @@ import * as binary from "../../../../../../common/binary"
 
 import {formatAddress} from "../../../../components/format/format"
 
+import {LoadingSpinner} from "../../../../components/common"
+
 import styles from "./ContractInfo.module.css"
 
 interface Props {
@@ -91,10 +93,7 @@ export const ContractInfo: React.FC<Props> = ({
   if (!info) {
     return (
       <div className={styles.container}>
-        <div className={styles.loading}>
-          <div className={styles.loadingSpinner}></div>
-          <div className={styles.loadingText}>Loading contract information...</div>
-        </div>
+        <LoadingSpinner message="Loading contract information..." />
       </div>
     )
   }

@@ -7,17 +7,6 @@
   overflow: auto;
 }
 
-.loading {
-  padding: 20px;
-  text-align: center;
-  color: var(--vscode-foreground);
-}
-
-.loadingIcon {
-  font-size: 1.2em;
-  margin-bottom: 10px;
-}
-
 .header {
   margin-bottom: 20px;
   border-bottom: 1px solid var(--vscode-panel-border);

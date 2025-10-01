@@ -14,6 +14,7 @@ import {
 import {ContractData, DeployedContract} from "../../../../common/types/contract"
 import {Base64String} from "../../../../common/base64-string"
 import {HexString} from "../../../../common/hex-string"
+import {LoadingSpinner} from "../../components/common"
 
 import {TransactionTree} from "./components"
 
@@ -138,12 +139,7 @@ export default function TransactionDetails({vscode}: Props): JSX.Element {
   }, [transaction, parsedAccount, parsedStateInit])
 
   if (!transaction) {
-    return (
-      <div className={styles.loading}>
-        <div className={styles.loadingIcon}>📋</div>
-        <div>Waiting for transaction details...</div>
-      </div>
-    )
+    return <LoadingSpinner message="Waiting for transaction details..." />
   }
 
   return (

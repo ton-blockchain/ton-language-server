@@ -2,7 +2,14 @@ import React, {useEffect, useMemo, useState} from "react"
 
 import {ContractAbi} from "@shared/abi"
 
-import {Button, Input, Label, Select, OperationResultDisplay} from "../../../../components/common"
+import {
+  Button,
+  Input,
+  Label,
+  Select,
+  OperationResultDisplay,
+  LoadingSpinner,
+} from "../../../../components/common"
 
 import * as binary from "../../../../../../common/binary"
 import {AbiFieldsForm} from "../AbiFieldsForm/AbiFieldsForm"
@@ -145,10 +152,7 @@ export const CompileDeploy: React.FC<Props> = ({
       </div>
 
       {isAbiLoading ? (
-        <div className={styles.loading}>
-          <div className={styles.loadingSpinner}></div>
-          <div className={styles.loadingText}>Loading contract ABI...</div>
-        </div>
+        <LoadingSpinner message="Loading contract ABI..." />
       ) : hasValidationErrors ? (
         <div className={styles.validationError}>
           <div className={styles.errorMessage}>

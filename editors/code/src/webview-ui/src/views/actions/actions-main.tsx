@@ -2,7 +2,9 @@ import React from "react"
 import {createRoot} from "react-dom/client"
 
 import ActionsApp from "./ActionsApp"
+
 import "../../main.css"
+import "../../index.css"
 
 declare function acquireVsCodeApi(): {
   readonly postMessage: (msg: unknown) => void

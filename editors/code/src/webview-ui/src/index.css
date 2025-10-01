@@ -1,4 +1,7 @@
 :root {
+  --color-primary: #0a84ff;
+  --color-primary-rgb: 10, 132, 255;
+
   --color-success: var(--vscode-charts-green);
   --color-success-bg: color-mix(in srgb, var(--color-success) 10%, transparent);
   --color-success-text: var(--vscode-charts-green);

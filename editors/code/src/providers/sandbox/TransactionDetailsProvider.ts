@@ -101,14 +101,7 @@ export class TransactionDetailsProvider {
     <title>Transaction Details</title>
 </head>
 <body>
-    <div id="transaction-details-root">
-        <div class="transaction-header">
-            <h2>Transaction Details</h2>
-        </div>
-        <div id="transaction-content">
-            <div class="loading">Loading transaction details...</div>
-        </div>
-    </div>
+    <div id="transaction-details-root"></div>
     <script nonce="${nonce}" src="${scriptUriString}"></script>
 </body>
 </html>`
