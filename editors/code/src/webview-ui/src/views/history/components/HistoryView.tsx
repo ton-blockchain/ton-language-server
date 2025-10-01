@@ -249,7 +249,7 @@ export const HistoryView: React.FC<Props> = ({
               </span>
             </div>
             {(node.type === "send-internal" || node.type === "send-external") && (
-              <div className={styles.messageDetails}>
+              <>
                 {node.sendMode !== undefined && (
                   <div className={styles.detailItem}>
                     <span className={styles.detailLabel}>Send Mode:</span>
@@ -286,7 +286,7 @@ export const HistoryView: React.FC<Props> = ({
                     <span className={styles.detailValue}>{node.messageBody.slice(0, 20)}...</span>
                   </div>
                 )}
-              </div>
+              </>
             )}
           </div>
         )}

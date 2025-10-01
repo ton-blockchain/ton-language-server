@@ -260,23 +260,19 @@
 }
 
 .detailsExpanded {
-  padding: 8px 12px;
-  margin: 2px 8px 4px 32px;
-  background-color: var(--vscode-textBlockQuote-background, rgb(127 127 127 / 10%));
-  border-left: 2px solid var(--vscode-textBlockQuote-border, var(--vscode-widget-border));
-  border-radius: 3px;
-}
-
-.messageDetails {
-  margin-top: 8px;
+  padding: 6px 0;
+  margin: 0 0 0 8px;
+  border-left: 1px solid var(--vscode-panel-border);
 }
 
 .detailItem {
-  display: flex;
-  align-items: center;
+  display: grid;
+  grid-template-columns: 70px 1fr;
   gap: 8px;
-  margin-bottom: 4px;
+  margin-bottom: 2px;
   font-size: 11px;
+  line-height: 1.2;
+  align-items: baseline;
 }
 
 .detailItem:last-child {
@@ -285,9 +281,9 @@
 
 .detailLabel {
   color: var(--vscode-descriptionForeground);
-  font-weight: 500;
-  min-width: 60px;
-  flex-shrink: 0;
+  font-weight: 400;
+  opacity: 0.8;
+  justify-self: start;
 }
 
 .detailValue {
