@@ -38,7 +38,11 @@ export function registerSandboxCommands(
             },
         ),
         vscode.commands.registerCommand("ton.sandbox.deployFromCodeLens", () => {
-            formProvider.openOperation("compile-deploy")
+            vscode.commands
+                .executeCommand("workbench.view.extension.tonSandboxContainer")
+                .then(() => {
+                    formProvider.openOperation("compile-deploy")
+                })
         }),
         vscode.commands.registerCommand(
             "ton.sandbox.copyContractAddress",
@@ -50,7 +54,11 @@ export function registerSandboxCommands(
         vscode.commands.registerCommand(
             "ton.sandbox.openContractSendMessage",
             (address: string) => {
-                formProvider.openOperation("send-message", address)
+                vscode.commands
+                    .executeCommand("workbench.view.extension.tonSandboxContainer")
+                    .then(() => {
+                        formProvider.openOperation("send-message", address)
+                    })
             },
         ),
         vscode.commands.registerCommand(
