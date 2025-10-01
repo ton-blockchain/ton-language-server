@@ -13,8 +13,8 @@ interface Props {
   readonly abi: TypeAbi | undefined
   readonly contractAbi?: ContractAbi
   readonly contracts: readonly DeployedContract[]
-  readonly fields: binary.ParsedObject
-  readonly onFieldsChange: (fields: binary.ParsedObject) => void
+  readonly fields: binary.FlattenParsedObject
+  readonly onFieldsChange: (fields: binary.FlattenParsedObject) => void
   readonly onValidationChange: (isValid: boolean) => void
   readonly onClearResult?: () => void
 }
@@ -28,28 +28,11 @@ export const AbiFieldsForm: React.FC<Props> = ({
   onValidationChange,
   onClearResult,
 }) => {
-  const isAddressField = (fieldType: TypeInfo): boolean => {
-    const containsAddress = (type: TypeInfo): boolean => {
-      if (type.name === "address") {
-        return true
-      }
-      if (type.name === "cell" && type.innerType) {
-        return containsAddress(type.innerType)
-      }
-      if (type.name === "option") {
-        return containsAddress(type.innerType)
-      }
-      if (type.name === "type-alias") {
-        return containsAddress(type.innerType)
-      }
-      return false
-    }
-
-    return containsAddress(fieldType)
-  }
+  const [rawFields, setRawFields] = useState<Record<string, string>>({})
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string | undefined>>({})
+  const [isFormValid, setIsFormValid] = useState<boolean>(true)
 
   const handleFieldChange = (fieldPath: string, fieldValue: string, fieldType: TypeInfo): void => {
-    const pathParts = fieldPath.split(".")
     let parsedValue: binary.ParsedSlice
     let errorMessage: string | undefined
 
@@ -61,7 +44,7 @@ export const AbiFieldsForm: React.FC<Props> = ({
     }
 
     const newFields = {...fields}
-    setNestedValue(newFields, pathParts, parsedValue, fieldPath)
+    newFields[fieldPath] = parsedValue
     onFieldsChange(newFields)
 
     onClearResult?.()
@@ -72,96 +55,6 @@ export const AbiFieldsForm: React.FC<Props> = ({
   const handleFieldErrorReset = (fieldPath: string): void => {
     setFieldErrors(prev => ({...prev, [fieldPath]: undefined}))
   }
-
-  const setNestedValue = (
-    obj: binary.ParsedObject,
-    path: string[],
-    value: binary.ParsedSlice,
-    fullPath: string,
-  ): void => {
-    if (path.length === 1) {
-      obj[path[0]] = value
-      return
-    }
-
-    const [first, ...rest] = path
-    if (!obj[first] || typeof obj[first] !== "object") {
-      // Find the struct name for this path level
-      const structName = getStructNameForPath(fullPath, path.length - 1)
-      obj[first] = {
-        $: "nested-object",
-        name: structName ?? "unknown",
-        value: {} as binary.ParsedObject,
-      } as binary.NestedObject
-    }
-    if ("$" in obj[first]) {
-      const nestedObj = obj[first] as binary.NestedObject
-      if (nestedObj.value) {
-        setNestedValue(nestedObj.value, rest, value, fullPath)
-      }
-    } else {
-      setNestedValue(obj[first] as binary.ParsedObject, rest, value, fullPath)
-    }
-  }
-
-  const getStructNameForPath = (fullPath: string, depth: number): string | undefined => {
-    if (!abi) return undefined
-
-    const pathParts = fullPath.split(".")
-    const pathToStruct = pathParts.slice(0, depth + 1)
-
-    let currentFields = abi.fields
-    let structName: string | undefined
-
-    for (const part of pathToStruct) {
-      const field = currentFields.find(f => f.name === part)
-
-      if (!field) return undefined
-
-      if (field.type.name === "struct" && contractAbi) {
-        structName = field.type.humanReadable
-        const structType = contractAbi.types.find(t => t.name === field.type.humanReadable)
-        if (structType) {
-          currentFields = structType.fields
-        } else {
-          return undefined
-        }
-      } else if (field.type.name === "anon-struct") {
-        structName = field.type.humanReadable
-        currentFields = field.type.fields.map((fieldType: TypeInfo, index: number) => ({
-          name: `field_${index}`,
-          type: fieldType,
-        }))
-      }
-    }
-
-    return structName
-  }
-
-  const getNestedValue = (
-    obj: binary.ParsedObject,
-    path: string[],
-  ): binary.ParsedSlice | undefined => {
-    if (path.length === 0) return obj
-    if (path.length === 1) return obj[path[0]]
-
-    const [first, ...rest] = path
-    if (!obj[first] || typeof obj[first] !== "object") {
-      return undefined
-    }
-
-    if ("$" in obj[first]) {
-      const nestedObj = obj[first] as binary.NestedObject
-      return nestedObj.value ? getNestedValue(nestedObj.value, rest) : undefined
-    } else {
-      return getNestedValue(obj[first] as binary.ParsedObject, rest)
-    }
-  }
-
-  const [rawFields, setRawFields] = useState<Record<string, string>>({})
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string | undefined>>({})
-
-  const [isFormValid, setIsFormValid] = useState<boolean>(true)
 
   useEffect(() => {
     if (!abi?.fields) {
@@ -302,4 +195,24 @@ export const AbiFieldsForm: React.FC<Props> = ({
       )}
     </div>
   )
+}
+
+function isAddressField(fieldType: TypeInfo): boolean {
+  const containsAddress = (type: TypeInfo): boolean => {
+    if (type.name === "address") {
+      return true
+    }
+    if (type.name === "cell" && type.innerType) {
+      return containsAddress(type.innerType)
+    }
+    if (type.name === "option") {
+      return containsAddress(type.innerType)
+    }
+    if (type.name === "type-alias") {
+      return containsAddress(type.innerType)
+    }
+    return false
+  }
+
+  return containsAddress(fieldType)
 }

@@ -15,6 +15,8 @@ import {Button, Input, Select, ResultDisplay} from "../../../../components/commo
 import {AbiFieldsForm} from "../AbiFieldsForm/AbiFieldsForm"
 import {Base64String} from "../../../../../../common/base64-string"
 
+import {flattenParsedObject, unflattenParsedObject} from "../../../../../../common/binary"
+
 import styles from "./SendMessage.module.css"
 
 interface MessageData {
@@ -68,7 +70,7 @@ export const SendMessage: React.FC<Props> = ({
   vscode,
 }) => {
   const [selectedMessage, setSelectedMessage] = useState<string>("")
-  const [messageFields, setMessageFields] = useState<binary.ParsedObject>({})
+  const [messageFields, setMessageFields] = useState<binary.FlattenParsedObject>({})
   const [value, setValue] = useState<string>("1.0")
   const [sendMode, setSendMode] = useState<number>(0)
   const [lastTransaction, setLastTransaction] = useState<LastTransaction | null>(null)
@@ -156,9 +158,9 @@ export const SendMessage: React.FC<Props> = ({
         setValue(template.value)
         setSendMode(template.sendMode)
 
-        setMessageFields(
-          parseMessageBodyToParsedObject(template.messageBody, message, contract?.abi),
-        )
+        const fields = parseMessageBodyToParsedObject(template.messageBody, message, contract?.abi)
+        const flattenFields = flattenParsedObject(fields)
+        setMessageFields(flattenFields)
       }
     }
   }, [
@@ -249,7 +251,11 @@ export const SendMessage: React.FC<Props> = ({
     }
 
     try {
-      const encodedCell = binary.encodeData(contract.abi, message, messageFields)
+      const encodedCell = binary.encodeData(
+        contract.abi,
+        message,
+        unflattenParsedObject(messageFields),
+      )
       return encodedCell.toBoc().toString("base64") as Base64String
     } catch (error) {
       throw new Error(

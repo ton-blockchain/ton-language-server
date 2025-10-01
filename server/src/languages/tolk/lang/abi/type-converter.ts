@@ -11,6 +11,7 @@ import {
     Ty,
     TypeAliasTy,
     UnionTy,
+    UnknownTy,
     VarIntNTy,
     VoidTy,
 } from "@server/languages/tolk/types/ty"
@@ -167,6 +168,10 @@ function convertTyToBaseTypeInfo(ty: Ty): BaseTypeInfo & {humanReadable: string}
                 humanReadable,
             }
         }
+    }
+
+    if (ty instanceof UnknownTy) {
+        return {name: "void", humanReadable}
     }
 
     throw new Error(`Unsupported type for ABI conversion: ${ty.name()} (${ty.constructor.name})`)

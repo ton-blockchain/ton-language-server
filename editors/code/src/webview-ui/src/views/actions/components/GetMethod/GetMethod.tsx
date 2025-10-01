@@ -9,7 +9,7 @@ import {Button, Input, Select} from "../../../../components/common"
 import {DeployedContract} from "../../../../../../common/types/contract"
 import {AbiFieldsForm} from "../AbiFieldsForm/AbiFieldsForm"
 import * as binary from "../../../../../../common/binary"
-import {encodeTuple} from "../../../../../../common/binary"
+import {encodeTuple, unflattenParsedObject} from "../../../../../../common/binary"
 
 import {Base64String} from "../../../../../../common/base64-string"
 
@@ -38,7 +38,7 @@ export const GetMethod: React.FC<Props> = ({
 }) => {
   const [selectedMethod, setSelectedMethod] = useState<string>("")
   const [methodId, setMethodId] = useState<string>("0")
-  const [methodParameters, setMethodParameters] = useState<binary.ParsedObject>({})
+  const [methodParameters, setMethodParameters] = useState<binary.FlattenParsedObject>({})
   const [isParametersValid, setParametersValid] = useState<boolean>(true)
 
   const contract = contracts.find(c => c.address === selectedContract)
@@ -71,7 +71,7 @@ export const GetMethod: React.FC<Props> = ({
 
     const encodedParameters =
       methodParamsAbi && contract?.abi
-        ? encodeTuple(contract.abi, methodParamsAbi, methodParameters)
+        ? encodeTuple(contract.abi, methodParamsAbi, unflattenParsedObject(methodParameters))
         : []
 
     const encodedParametersCell = serializeTuple(encodedParameters)

@@ -10,6 +10,8 @@ import {DeployedContract} from "../../../../../../common/types/contract"
 import {DeployState} from "../../../../../../providers/sandbox/methods"
 import {Base64String} from "../../../../../../common/base64-string"
 
+import {unflattenParsedObject} from "../../../../../../common/binary"
+
 import styles from "./CompileDeploy.module.css"
 
 interface Props {
@@ -36,7 +38,7 @@ export const CompileDeploy: React.FC<Props> = ({
   deployState,
   onResultUpdate,
 }) => {
-  const [storageFields, setStorageFields] = useState<binary.ParsedObject>({})
+  const [storageFields, setStorageFields] = useState<binary.FlattenParsedObject>({})
   const [value, setValue] = useState<string>("1.0")
   const [isStorageFieldsValid, setStorageFieldsValid] = useState<boolean>(true)
 
@@ -90,7 +92,11 @@ export const CompileDeploy: React.FC<Props> = ({
     }
 
     try {
-      const encodedCell = binary.encodeData(contractAbi, storageAbi, storageFields)
+      const encodedCell = binary.encodeData(
+        contractAbi,
+        storageAbi,
+        unflattenParsedObject(storageFields),
+      )
       return encodedCell.toBoc().toString("base64") as Base64String
     } catch (error) {
       throw new Error(
