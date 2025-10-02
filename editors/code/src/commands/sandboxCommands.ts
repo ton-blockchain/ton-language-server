@@ -26,7 +26,7 @@ export function registerSandboxCommands(
 
     disposables.push(
         vscode.commands.registerCommand("ton.sandbox.refresh", () => {
-            treeProvider.refresh()
+            treeProvider.refresh(true)
         }),
         vscode.commands.registerCommand("ton.sandbox.openOperation", (operation: Operation) => {
             formProvider.openOperation(operation)
