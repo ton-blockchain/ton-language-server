@@ -129,6 +129,20 @@
   display: flex;
 }
 
+.multiColumnItemValueWithRows {
+  flex-direction: column;
+}
+
+.parsedDataItem {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.parsedDataContent {
+  margin-left: var(--spacing-sm);
+}
+
 .booleanTrue {
   font-weight: var(--font-weight-semibold);
   color: var(--table-boolean-true-color);

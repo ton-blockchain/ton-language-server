@@ -1,19 +1,19 @@
 import {Address, type ExternalAddress} from "@ton/core"
-
 import React, {type JSX, useState} from "react"
 import type {Maybe} from "@ton/core/dist/utils/maybe"
 import {FiChevronDown, FiChevronUp} from "react-icons/fi"
 
 import {ContractChip} from "../ContractChip/ContractChip"
-import {OpcodeChip} from "../OpcodeChip/OpcodeChip"
-import {computeSendMode, type TransactionInfo} from "../../../../../../common/types/transaction"
-
-import {SendModeViewer} from "../SendModeViewer"
 import {ExitCodeChip} from "../ExitCodeChip/ExitCodeChip"
-
-import {ContractData} from "../../../../../../common/types/contract"
+import {OpcodeChip} from "../OpcodeChip/OpcodeChip"
+import {ParsedDataView} from "../ParsedDataView/ParsedDataView"
+import {SendModeViewer} from "../SendModeViewer"
 
 import {formatCurrency, formatNumber} from "../../../../components/format/format"
+
+import {ContractData} from "../../../../../../common/types/contract"
+import {computeSendMode, type TransactionInfo} from "../../../../../../common/types/transaction"
+import {parseData, ParsedObject} from "../../../../../../common/binary"
 
 import {ActionsSummary} from "./ActionsSummary"
 
@@ -97,6 +97,7 @@ export function TransactionDetails({
   transactions,
 }: TransactionShortInfoProps): React.JSX.Element {
   const [showActions, setShowActions] = useState(false)
+  const [showParsedData, setShowParsedData] = useState(false)
 
   if (tx.transaction.description.type !== "generic") {
     throw new Error(
@@ -123,6 +124,12 @@ export function TransactionDetails({
   const typeAbi = targetContract?.abi?.messages.find(it => it.opcode === tx.opcode)
   const opcodeNane = typeAbi?.name
   const knownExitCodes = contracts.get(tx.address?.toString() ?? "")?.abi?.exitCodes
+
+  let inMsgBodyParsed: ParsedObject | undefined = undefined
+  const slice = tx.transaction.inMessage?.body.asSlice()
+  if (slice && typeAbi && targetContract?.abi) {
+    inMsgBodyParsed = parseData(targetContract.abi, typeAbi, slice)
+  }
 
   return (
     <>
@@ -194,16 +201,32 @@ export function TransactionDetails({
                 </div>
               </div>
             </div>
-            {/*{inMsgBodyParsed && (*/}
-            {/*  <div*/}
-            {/*    className={`${styles.multiColumnItemValue} ${styles.multiColumnItemValueWithRows}`}*/}
-            {/*  >*/}
-            {/*    <div className={styles.multiColumnItemTitle}>Parsed Data:</div>*/}
-            {/*    <div className={styles.parsedDataContent}>*/}
-            {/*      <ParsedDataView data={inMsgBodyParsed} contracts={contracts} />*/}
-            {/*    </div>*/}
-            {/*  </div>*/}
-            {/*)}*/}
+            {inMsgBodyParsed && (
+              <div
+                className={`${styles.multiColumnItemValue} ${styles.multiColumnItemValueWithRows}`}
+              >
+                <div className={styles.multiColumnItemTitle + " " + styles.parsedDataItem}>
+                  Parsed Data
+                  <button
+                    onClick={() => {
+                      setShowParsedData(!showParsedData)
+                    }}
+                    className={styles.actionsToggleButton}
+                    aria-label={showParsedData ? "Hide parsed data" : "Show parsed data"}
+                  >
+                    {showParsedData ? <FiChevronUp size={14} /> : <FiChevronDown size={14} />}
+                    <span className={styles.actionsToggleText}>
+                      {showParsedData ? "Hide" : "Show"}
+                    </span>
+                  </button>
+                </div>
+                {showParsedData && (
+                  <div className={styles.parsedDataContent}>
+                    <ParsedDataView data={inMsgBodyParsed} contracts={contracts} />
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
