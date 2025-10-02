@@ -43,7 +43,7 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
         void this.checkSandboxStatus(true)
     }
 
-    public setFormProvider(formProvider: SandboxActionsProvider): void {
+    public setActionsProvider(formProvider: SandboxActionsProvider): void {
         this.actionsProvider = formProvider
         this.updateFormContracts()
     }

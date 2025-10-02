@@ -103,7 +103,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         vscode.languages.registerCodeLensProvider({language: "tolk"}, sandboxCodeLensProvider),
     )
 
-    sandboxTreeProvider.setFormProvider(sandboxActionsProvider)
+    sandboxTreeProvider.setActionsProvider(sandboxActionsProvider)
     sandboxTreeProvider.setCodeLensProvider(sandboxCodeLensProvider)
 
     context.subscriptions.push(
