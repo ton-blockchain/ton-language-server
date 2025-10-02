@@ -17,6 +17,7 @@ import {
 import {DeployedContract} from "../../common/types/contract"
 
 import {getContracts, getOperations, OperationNode, restoreBlockchainState} from "./methods"
+import type {SandboxTreeProvider} from "./SandboxTreeProvider"
 
 export class HistoryWebviewProvider implements vscode.WebviewViewProvider {
     public static readonly viewType: string = "tonSandboxHistory"
@@ -28,7 +29,7 @@ export class HistoryWebviewProvider implements vscode.WebviewViewProvider {
 
     public constructor(
         private readonly _extensionUri: vscode.Uri,
-        private readonly _treeProvider?: () => import("./SandboxTreeProvider").SandboxTreeProvider,
+        private readonly _treeProvider?: () => SandboxTreeProvider,
     ) {}
 
     public resolveWebviewView(

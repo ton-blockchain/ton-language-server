@@ -3,7 +3,7 @@
 import * as vscode from "vscode"
 
 import {SandboxTreeProvider} from "../providers/sandbox/SandboxTreeProvider"
-import {SandboxActionsProvider} from "../providers/sandbox/SandboxActionsProvider"
+import {SandboxActionsProvider, TransactionInfo} from "../providers/sandbox/SandboxActionsProvider"
 import {HistoryWebviewProvider} from "../providers/sandbox/HistoryWebviewProvider"
 import {DeployedContract} from "../common/types/contract"
 import {
@@ -176,9 +176,7 @@ export function registerSandboxCommands(
         }),
         vscode.commands.registerCommand(
             "ton.sandbox.startDebugSequence",
-            (
-                transactions: import("../providers/sandbox/SandboxActionsProvider").TransactionInfo[],
-            ) => {
+            (transactions: TransactionInfo[]) => {
                 formProvider.startSequentialDebugging(transactions)
             },
         ),
