@@ -106,9 +106,32 @@ export const ContractInfo: React.FC<Props> = ({
     const isFrozen = stateType === "frozen"
     const storageStats = account.account?.storageStats.used
 
+    const storageFee = storageStats
+      ? (() => {
+          const BIT_PRICE = 1n // from network config
+          const CELL_PRICE = 500n // from network config
+          const SECONDS_PER_YEAR = 365n * 24n * 60n * 60n // 31536000
+          const STORAGE_FEE_SCALE = 1n << 16n // 2^16 = 65536
+
+          const bitsCost = storageStats.bits * BIT_PRICE
+          const cellsCost = storageStats.cells * CELL_PRICE
+          const totalCostPerSecond = bitsCost + cellsCost
+          const totalCost = totalCostPerSecond * SECONDS_PER_YEAR
+          const fee = totalCost / STORAGE_FEE_SCALE
+          // ceil
+          const remainder = totalCost % STORAGE_FEE_SCALE
+          return remainder > 0n ? fee + 1n : fee
+        })()
+      : 0n
+
     const formatBalance = (coins: string): string => {
       const tonAmount = Number(coins) / 1e9
       return `${tonAmount.toFixed(4)} TON`
+    }
+
+    const formatStorageFee = (nanoTons: bigint): string => {
+      const tonAmount = Number(nanoTons) / 1e9
+      return `${tonAmount.toFixed(6)} TON/year`
     }
 
     const renderStorageFields = (
@@ -239,8 +262,8 @@ export const ContractInfo: React.FC<Props> = ({
             <div className={styles.sectionTitle}>Storage</div>
             {storageStats && (
               <div className={styles.storageStats}>
-                {storageStats.bits.toString()} bits, {storageStats.cells.toString()} cells (data +
-                code)
+                {storageStats.bits.toString()} bits, {storageStats.cells.toString()} cells •{" "}
+                {formatStorageFee(storageFee)}
               </div>
             )}
           </div>
