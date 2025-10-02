@@ -6,6 +6,7 @@
 !dist/**/*.svg
 !dist/**/*.tolk
 !dist/**/*.fc
+!dist/**/*.css
 
 # Include only this files
 !LICENSE

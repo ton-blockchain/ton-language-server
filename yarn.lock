@@ -11469,27 +11469,27 @@ __metadata:
   languageName: node
   linkType: hard
 
-"ton-assembly@file:/Users/petrmakhnev/tasm-new/ton-assembly-0.3.4.tgz::locator=vscode-ton%40workspace%3A.":
-  version: 0.3.4
-  resolution: "ton-assembly@file:/Users/petrmakhnev/tasm-new/ton-assembly-0.3.4.tgz#/Users/petrmakhnev/tasm-new/ton-assembly-0.3.4.tgz::hash=7e4c1e&locator=vscode-ton%40workspace%3A."
+"ton-assembly@npm:0.4.0":
+  version: 0.4.0
+  resolution: "ton-assembly@npm:0.4.0"
   dependencies:
     "@tonstudio/parser-runtime": "npm:^0.0.1"
     cac: "npm:^6.7.14"
-    ton-source-map: "npm:^0.2.1"
+    ton-source-map: "npm:^0.2.2"
   peerDependencies:
     "@ton/core": ">=0.61.0"
   peerDependenciesMeta:
     "@ton/core":
       optional: false
   bin:
-    tasm: ./dist/cli/assembler.js
-    tdisasm: ./dist/cli/disassembler.js
-    tfift: ./dist/cli/fift-compiler.js
-  checksum: 10c0/c27e970f9e907561b4aeafb583ee1b411b3f7ea363e047d37a8504a8990574d470f851db067c7e78c8472ebca99b1d5caa2d6a1d42435abde6b7013d5d7c2bb7
+    tasm: dist/cli/assembler.js
+    tdisasm: dist/cli/disassembler.js
+    tfift: dist/cli/fift-compiler.js
+  checksum: 10c0/afaaa128267e5c9f859b12061d860f4cfcf7ba3ca11604f61d8eef00e8c189d1dbcfe0220eaeb5f00617b57fdd6be2b9e394d57565917d89df363a793974227e
   languageName: node
   linkType: hard
 
-"ton-source-map@npm:^0.2.1, ton-source-map@npm:^0.2.2":
+"ton-source-map@npm:^0.2.2":
   version: 0.2.2
   resolution: "ton-source-map@npm:0.2.2"
   checksum: 10c0/c1e0413983f589a1dfcbb53aa35d04f42244e88d75899eb4c04a3733ac37d2a915063dc91a726409b0239e4a039059d860e1069efb9c8faa6580d06c8b88f3a0
@@ -12318,7 +12318,7 @@ __metadata:
     stylelint: "npm:^16.24.0"
     stylelint-config-standard: "npm:^39.0.0"
     tolkfmt-test-dev: "npm:0.0.21"
-    ton-assembly: /Users/petrmakhnev/tasm-new/ton-assembly-0.3.4.tgz
+    ton-assembly: "npm:0.4.0"
     ton-source-map: "npm:^0.2.2"
     tree-sitter-cli: "npm:^0.25.8"
     ts-jest: "npm:^29.2.6"

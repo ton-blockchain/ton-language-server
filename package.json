@@ -425,6 +425,12 @@
                 "title": "Copy Contract ABI",
                 "category": "TON",
                 "icon": "$(copy)"
+            },
+            {
+                "command": "ton.sandbox.installServer",
+                "title": "Install TON Sandbox Server",
+                "category": "TON",
+                "icon": "$(cloud-download)"
             }
         ],
         "views": {
@@ -448,6 +454,12 @@
                 }
             ]
         },
+        "viewsWelcome": [
+            {
+                "view": "tonSandbox",
+                "contents": "To get started with TON Sandbox, you need to install the sandbox server:\n\n[Install TON Sandbox Server](command:ton.sandbox.installServer)\n\nAfter installation completes, click Refresh Status to check if the server is available:\n\n[Refresh Status](command:ton.sandbox.refresh)\n\nOnce installed and connected, you can deploy contracts, send messages, and interact with the TON blockchain in a local environment.\n\n[Learn more about TON Sandbox](https://docs.ton.org/develop/smart-contracts/sdk/sandbox)"
+            }
+        ],
         "viewsContainers": {
             "activitybar": [
                 {
@@ -802,7 +814,7 @@
         "react-icons": "^5.5.0",
         "react-markdown": "^10.1.0",
         "tolkfmt-test-dev": "0.0.21",
-        "ton-assembly": "/Users/petrmakhnev/tasm-new/ton-assembly-0.3.4.tgz",
+        "ton-assembly": "0.4.0",
         "ton-source-map": "^0.2.2",
         "vscode-debugadapter": "^1.51.0",
         "vscode-languageclient": "^8.0.2",
