@@ -12,6 +12,8 @@ import {formatAddress} from "../../../../components/format/format"
 
 import {LoadingSpinner} from "../../../../components/common"
 
+import {StorageFieldsView} from "./StorageFieldsView"
+
 import styles from "./ContractInfo.module.css"
 
 interface Props {
@@ -134,41 +136,6 @@ export const ContractInfo: React.FC<Props> = ({
       return `${tonAmount.toFixed(6)} TON/year`
     }
 
-    const renderStorageFields = (
-      fields: binary.ParsedObject,
-      depth: number = 0,
-    ): React.ReactNode => {
-      return Object.entries(fields).map(([fieldName, fieldValue]) => {
-        if (fieldValue && typeof fieldValue === "object" && "$" in fieldValue) {
-          const nestedObj = fieldValue as binary.NestedObject
-          return (
-            <div key={fieldName} className={styles.nestedStorageGroup}>
-              <div className={styles.nestedStorageHeader}>
-                <span className={styles.structFieldName}>{fieldName}</span>
-                <span className={styles.structFieldType}>{nestedObj.name}</span>
-              </div>
-              <div className={styles.nestedStorageContent}>
-                {nestedObj.value && renderStorageFields(nestedObj.value, depth + 1)}
-              </div>
-            </div>
-          )
-        } else {
-          const formattedValue = binary.formatParsedSlice(fieldValue) ?? ""
-          const displayValue =
-            formattedValue.length > 20 ? formattedValue.slice(0, 20) + "..." : formattedValue
-
-          return (
-            <div key={fieldName} className={styles.storageItem}>
-              <span className={styles.fieldName}>{fieldName}:</span>
-              <span className={styles.fieldValue} title={formattedValue}>
-                {displayValue}
-              </span>
-            </div>
-          )
-        }
-      })
-    }
-
     return (
       <div className={styles.container}>
         <div className={styles.header}>
@@ -268,7 +235,9 @@ export const ContractInfo: React.FC<Props> = ({
             )}
           </div>
           {Object.keys(storageFields).length > 0 && (
-            <div className={styles.storageGrid}>{renderStorageFields(storageFields)}</div>
+            <div className={styles.storageGrid}>
+              <StorageFieldsView data={storageFields} contracts={contracts} />
+            </div>
           )}
         </div>
 
