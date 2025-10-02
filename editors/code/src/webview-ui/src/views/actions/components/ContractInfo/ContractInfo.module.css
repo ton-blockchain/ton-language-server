@@ -82,6 +82,14 @@
   font-size: 12px;
 }
 
+.storageStats {
+  font-weight: 400;
+  color: var(--vscode-descriptionForeground);
+  font-size: 11px;
+  opacity: 0.8;
+  margin-right: 16px;
+}
+
 .contractName {
   font-size: 16px;
   font-weight: 600;
@@ -137,8 +145,7 @@
   color: var(--vscode-charts-red);
 }
 
-.balance {
-  font-family: var(--vscode-editor-font-family), monospace;
+.contractBalance {
   font-weight: 600;
   color: var(--vscode-charts-green);
   font-size: 12px;
@@ -148,6 +155,12 @@
   margin: 12px 0 0;
   padding: 0;
   border-top: 1px solid var(--vscode-panel-border);
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
 .sectionTitle {

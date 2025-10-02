@@ -104,6 +104,7 @@ export const ContractInfo: React.FC<Props> = ({
     const stateType = account.account?.storage.state.type
     const isActive = stateType === "active"
     const isFrozen = stateType === "frozen"
+    const storageStats = account.account?.storageStats.used
 
     const formatBalance = (coins: string): string => {
       const tonAmount = Number(coins) / 1e9
@@ -233,12 +234,20 @@ export const ContractInfo: React.FC<Props> = ({
           </div>
         </div>
 
-        {Object.keys(storageFields).length > 0 && (
-          <div className={styles.storageSection}>
+        <div className={styles.storageSection}>
+          <div className={styles.sectionHeader}>
             <div className={styles.sectionTitle}>Storage</div>
-            <div className={styles.storageGrid}>{renderStorageFields(storageFields)}</div>
+            {storageStats && (
+              <div className={styles.storageStats}>
+                {storageStats.bits.toString()} bits, {storageStats.cells.toString()} cells (data +
+                code)
+              </div>
+            )}
           </div>
-        )}
+          {Object.keys(storageFields).length > 0 && (
+            <div className={styles.storageGrid}>{renderStorageFields(storageFields)}</div>
+          )}
+        </div>
 
         <div className={styles.actions}>
           <button className={styles.actionButton} onClick={onSendMessage} disabled={!onSendMessage}>
