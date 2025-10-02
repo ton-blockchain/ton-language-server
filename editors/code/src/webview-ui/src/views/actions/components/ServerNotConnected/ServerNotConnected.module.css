@@ -1,0 +1,28 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: var(--vscode-descriptionForeground);
+  padding: 0 24px;
+  min-height: 100%;
+}
+
+.icon {
+  font-size: 36px;
+  margin-bottom: 20px;
+  opacity: 0.8;
+  color: var(--vscode-descriptionForeground);
+}
+
+.title {
+  font-size: 14px;
+  color: var(--vscode-foreground);
+  margin: 8px 0;
+}
+
+.message {
+  font-size: 13px;
+  margin: 8px 0;
+}
