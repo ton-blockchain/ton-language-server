@@ -1,6 +1,5 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
-import {Expression, NamedNode} from "./TolkNode"
 import type {Node as SyntaxNode} from "web-tree-sitter"
 import {crc16} from "@server/utils/crc16"
 import {parentOfType} from "@server/psi/utils"
@@ -8,6 +7,8 @@ import {RecursiveVisitor} from "@server/visitor/visitor"
 import {Reference} from "@server/languages/tolk/psi/Reference"
 import {EnumTy, Ty} from "@server/languages/tolk/types/ty"
 import {typeOf} from "@server/languages/tolk/type-inference"
+
+import {Expression, NamedNode} from "./TolkNode"
 
 export class GlobalVariable extends NamedNode {
     public override kindName(): string {

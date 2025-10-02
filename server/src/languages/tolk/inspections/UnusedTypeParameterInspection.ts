@@ -2,9 +2,11 @@
 //  Copyright © 2025 TON Core
 import type * as lsp from "vscode-languageserver"
 import type {TolkFile} from "@server/languages/tolk/psi/TolkFile"
+
+import {TypeParameter} from "@server/languages/tolk/psi/Decls"
+
 import {UnusedInspection} from "./UnusedInspection"
 import {Inspection, InspectionIds} from "./Inspection"
-import {TypeParameter} from "@server/languages/tolk/psi/Decls"
 
 export class UnusedTypeParameterInspection extends UnusedInspection implements Inspection {
     public readonly id: "unused-type-parameter" = InspectionIds.UNUSED_TYPE_PARAMETER

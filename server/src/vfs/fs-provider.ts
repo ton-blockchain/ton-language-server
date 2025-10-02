@@ -5,6 +5,7 @@
 import {readFileSync, existsSync, readdirSync, statSync} from "node:fs"
 import {join} from "node:path"
 import {fileURLToPath} from "node:url"
+
 import {FileSystemProvider, VirtualFile} from "./types"
 
 export function createNodeFSProvider(): FileSystemProvider {

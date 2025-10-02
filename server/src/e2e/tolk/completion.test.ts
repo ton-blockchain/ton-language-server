@@ -1,10 +1,14 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Studio
-import * as vscode from "vscode"
 import * as assert from "node:assert"
-import {BaseTestSuite} from "./BaseTestSuite"
-import type {TestCase} from "../common/TestParser"
+
+import * as vscode from "vscode"
+
 import {CompletionItem} from "vscode"
+
+import type {TestCase} from "../common/TestParser"
+
+import {BaseTestSuite} from "./BaseTestSuite"
 
 suite("Completion Test Suite", () => {
     const testSuite = new (class extends BaseTestSuite {

@@ -2,11 +2,14 @@
 //  Copyright © 2025 TON Studio
 import type {Node as SyntaxNode} from "web-tree-sitter"
 import {RecursiveVisitor} from "@server/visitor/visitor"
+
+import {BaseReferent, GlobalSearchScope, LocalSearchScope} from "@server/references/referent"
+
+import {File} from "@server/psi/File"
+
 import {NamedNode, TlbNode} from "./TlbNode"
 import {Reference} from "./Reference"
 import type {TlbFile} from "./TlbFile"
-import {BaseReferent, GlobalSearchScope, LocalSearchScope} from "@server/references/referent"
-import {File} from "@server/psi/File"
 
 export class Referent extends BaseReferent<NamedNode> {
     public readonly resolved: NamedNode | null = null

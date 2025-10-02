@@ -1,11 +1,12 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
+import {fileURLToPath} from "node:url"
+
 import {NamedNode} from "@server/languages/func/psi/FuncNode"
 import {FuncFile} from "@server/languages/func/psi/FuncFile"
 import {Constant, Func, GlobalVariable} from "@server/languages/func/psi/Decls"
 import {ScopeProcessor} from "@server/languages/func/psi/Reference"
 import {FUNC_CACHE} from "@server/languages/func/cache"
-import {fileURLToPath} from "node:url"
 import {FUNC_PARSED_FILES_CACHE} from "@server/files"
 import {ResolveState} from "@server/psi/ResolveState"
 

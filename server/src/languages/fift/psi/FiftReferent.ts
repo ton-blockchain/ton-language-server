@@ -2,9 +2,11 @@
 //  Copyright © 2025 TON Studio
 import type {Node as SyntaxNode} from "web-tree-sitter"
 import {RecursiveVisitor} from "@server/visitor/visitor"
-import {FiftReference} from "./FiftReference"
+
 import {FiftFile} from "@server/languages/fift/psi/FiftFile"
 import {FiftNode} from "@server/languages/fift/psi/FiftNode"
+
+import {FiftReference} from "./FiftReference"
 
 export class FiftReferent {
     private readonly node: SyntaxNode

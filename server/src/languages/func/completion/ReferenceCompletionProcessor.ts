@@ -11,10 +11,12 @@ import {
     Parameter,
     TypeParameter,
 } from "@server/languages/func/psi/Decls"
-import {CompletionContext} from "./CompletionContext"
+
 import {CompletionWeight, WeightedCompletionItem} from "@server/completion/WeightedCompletionItem"
 import {ResolveState} from "@server/psi/ResolveState"
 import {CompletionItemAdditionalInformation} from "@server/completion/CompletionItemAdditionalInformation"
+
+import {CompletionContext} from "./CompletionContext"
 
 export class ReferenceCompletionProcessor implements ScopeProcessor {
     public constructor(private readonly ctx: CompletionContext) {}

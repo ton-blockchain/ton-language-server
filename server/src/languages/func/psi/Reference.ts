@@ -1,7 +1,5 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
-import {Expression, NamedNode, FuncNode, VarDeclaration} from "./FuncNode"
-import type {FuncFile} from "./FuncFile"
 import {ResolveState} from "@server/psi/ResolveState"
 import {FUNC_CACHE} from "@server/languages/func/cache"
 import type {Node as SyntaxNode} from "web-tree-sitter"
@@ -15,6 +13,9 @@ import {
 import {index, IndexFinder, IndexKey} from "@server/languages/func/indexes"
 import {ImportResolver} from "@server/languages/func/psi/ImportResolver"
 import {filePathToUri} from "@server/files"
+
+import type {FuncFile} from "./FuncFile"
+import {Expression, NamedNode, FuncNode, VarDeclaration} from "./FuncNode"
 
 export interface ScopeProcessor {
     execute(node: FuncNode, state: ResolveState): boolean

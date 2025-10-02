@@ -18,11 +18,13 @@ import {
     TypeAlias,
     TypeParameter,
 } from "@server/languages/tolk/psi/Decls"
-import {CompletionContext} from "./CompletionContext"
+
 import {CompletionWeight, WeightedCompletionItem} from "@server/completion/WeightedCompletionItem"
 import {ResolveState} from "@server/psi/ResolveState"
 import {CompletionItemAdditionalInformation} from "@server/completion/CompletionItemAdditionalInformation"
 import {typeOf} from "@server/languages/tolk/type-inference"
+
+import {CompletionContext} from "./CompletionContext"
 
 export class ReferenceCompletionProcessor implements ScopeProcessor {
     public constructor(private readonly ctx: CompletionContext) {}

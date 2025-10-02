@@ -5,6 +5,7 @@ import type {TolkFile} from "@server/languages/tolk/psi/TolkFile"
 import {asLspRange} from "@server/utils/position"
 import type {Node as SyntaxNode} from "web-tree-sitter"
 import {ImportResolver} from "@server/languages/tolk/psi/ImportResolver"
+
 import {Inspection, InspectionIds} from "./Inspection"
 
 export class UnusedImportInspection implements Inspection {

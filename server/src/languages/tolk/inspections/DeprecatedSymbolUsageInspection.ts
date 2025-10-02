@@ -2,11 +2,13 @@
 //  Copyright © 2025 TON Core
 import * as lsp from "vscode-languageserver"
 import type {TolkFile} from "@server/languages/tolk/psi/TolkFile"
-import {Inspection, InspectionIds} from "./Inspection"
+
 import {RecursiveVisitor} from "@server/visitor/visitor"
 import {Reference} from "@server/languages/tolk/psi/Reference"
 import {NamedNode} from "@server/languages/tolk/psi/TolkNode"
 import {asLspRange} from "@server/utils/position"
+
+import {Inspection, InspectionIds} from "./Inspection"
 
 export class DeprecatedSymbolUsageInspection implements Inspection {
     public readonly id: "deprecated-symbol-usage" = InspectionIds.DEPRECATED_SYMBOL_USAGE

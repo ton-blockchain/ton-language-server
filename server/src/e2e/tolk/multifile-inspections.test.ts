@@ -1,9 +1,12 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
-import * as vscode from "vscode"
 import * as assert from "node:assert"
-import {BaseTestSuite} from "./BaseTestSuite"
+
+import * as vscode from "vscode"
+
 import type {TestCase} from "../common/TestParser"
+
+import {BaseTestSuite} from "./BaseTestSuite"
 
 suite("Multi file Inspection Test Suite", () => {
     const testSuite = new (class extends BaseTestSuite {

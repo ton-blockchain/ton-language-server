@@ -1,5 +1,7 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
+import {fileURLToPath} from "node:url"
+
 import {NamedNode} from "@server/languages/tolk/psi/TolkNode"
 import {TolkFile} from "@server/languages/tolk/psi/TolkFile"
 import {
@@ -15,7 +17,6 @@ import {
 } from "@server/languages/tolk/psi/Decls"
 import {ScopeProcessor} from "@server/languages/tolk/psi/Reference"
 import {TOLK_CACHE} from "@server/languages/tolk/cache"
-import {fileURLToPath} from "node:url"
 import {TOLK_PARSED_FILES_CACHE} from "@server/files"
 import {ResolveState} from "@server/psi/ResolveState"
 

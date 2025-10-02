@@ -2,6 +2,7 @@
 //  Copyright © 2025 TON Core
 import type {Node as SyntaxNode} from "web-tree-sitter"
 import * as lsp from "vscode-languageserver"
+
 import {Constant} from "../psi/Decls"
 import {ConstantEvaluator} from "../evaluation/ConstantEvaluator"
 import type {TolkFile} from "../psi/TolkFile"
