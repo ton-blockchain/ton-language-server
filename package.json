@@ -326,7 +326,7 @@
             },
             {
                 "command": "ton.sandbox.states.refresh",
-                "title": "Refresh States",
+                "title": "Refresh History",
                 "category": "TON",
                 "icon": "$(refresh)"
             },
@@ -334,13 +334,19 @@
                 "command": "ton.sandbox.states.exportTrace",
                 "title": "Export Trace",
                 "category": "TON",
-                "icon": "$(desktop-download)"
+                "icon": "$(arrow-down)"
             },
             {
                 "command": "ton.sandbox.states.importTrace",
                 "title": "Import Trace",
                 "category": "TON",
-                "icon": "$(go-to-file)"
+                "icon": "$(arrow-up)"
+            },
+            {
+                "command": "ton.sandbox.states.resetState",
+                "title": "Reset State",
+                "category": "TON",
+                "icon": "$(clear-all)"
             },
             {
                 "command": "ton.sandbox.sendMessageFromForm",
@@ -500,6 +506,11 @@
                 },
                 {
                     "command": "ton.sandbox.states.importTrace",
+                    "when": "view == tonSandboxHistory",
+                    "group": "navigation"
+                },
+                {
+                    "command": "ton.sandbox.states.resetState",
                     "when": "view == tonSandboxHistory",
                     "group": "navigation"
                 }

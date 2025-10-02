@@ -76,6 +76,10 @@ export class HistoryWebviewProvider implements vscode.WebviewViewProvider {
                     )
                     break
                 }
+                case "resetState": {
+                    void this.handleResetState()
+                    break
+                }
             }
         })
     }
@@ -119,7 +123,7 @@ export class HistoryWebviewProvider implements vscode.WebviewViewProvider {
             if (result.success) {
                 void vscode.window.showInformationMessage("Blockchain state restored successfully")
                 void this.handleLoadOperations()
-                this.refreshTreeContracts()
+                await this.refreshTreeContracts()
             } else {
                 void vscode.window.showErrorMessage(
                     `Failed to restore blockchain state: ${result.error}`,
@@ -131,9 +135,10 @@ export class HistoryWebviewProvider implements vscode.WebviewViewProvider {
         }
     }
 
-    private refreshTreeContracts(): void {
+    private async refreshTreeContracts(): Promise<void> {
         if (this._treeProvider) {
             this._treeProvider().refresh()
+            await this._treeProvider().loadContractsFromServer()
         }
     }
 
@@ -202,6 +207,43 @@ export class HistoryWebviewProvider implements vscode.WebviewViewProvider {
         } catch (error) {
             console.error("Failed to debug transaction:", error)
             void vscode.window.showErrorMessage("Failed to start debugging transaction")
+        }
+    }
+
+    public async handleResetState(): Promise<void> {
+        try {
+            const latestOperation = this.operations.at(0)
+            if (!latestOperation) {
+                // nothing to reset
+                return
+            }
+
+            const confirm = await vscode.window.showWarningMessage(
+                "Are you sure you want to reset the blockchain state completely?",
+                {modal: true},
+                "Reset State",
+            )
+
+            if (confirm !== "Reset State") {
+                return
+            }
+
+            const result = await restoreBlockchainState(latestOperation.id)
+            if (result.success) {
+                void vscode.window.showInformationMessage("Blockchain state reset successfully")
+                void this.handleLoadOperations()
+
+                setTimeout(() => {
+                    void this.refreshTreeContracts()
+                }, 500)
+            } else {
+                void vscode.window.showErrorMessage(
+                    `Failed to reset blockchain state: ${result.error}`,
+                )
+            }
+        } catch (error) {
+            console.error("Failed to reset blockchain state:", error)
+            void vscode.window.showErrorMessage("Failed to reset blockchain state")
         }
     }
 

@@ -42,6 +42,10 @@ export interface AddTransactionsToDetailsCommand {
   readonly resultString: string
 }
 
+export interface ResetStateCommand {
+  readonly type: "resetState"
+}
+
 export type StatesCommand =
   | LoadOperationsCommand
   | WebviewReadyCommand
@@ -49,6 +53,7 @@ export type StatesCommand =
   | ShowTransactionDetailsCommand
   | DebugTransactionCommand
   | AddTransactionsToDetailsCommand
+  | ResetStateCommand
 
 export interface StatesVSCodeAPI {
   readonly postMessage: (command: StatesCommand) => void

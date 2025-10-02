@@ -19,7 +19,7 @@ import {Operation} from "../webview-ui/src/views/actions/sandbox-actions-types"
 export function registerSandboxCommands(
     treeProvider: SandboxTreeProvider,
     formProvider: SandboxActionsProvider,
-    statesProvider: HistoryWebviewProvider,
+    historyProvider: HistoryWebviewProvider,
 ): vscode.Disposable[] {
     const disposables: vscode.Disposable[] = []
 
@@ -81,7 +81,7 @@ export function registerSandboxCommands(
             },
         ),
         vscode.commands.registerCommand("ton.sandbox.states.refresh", () => {
-            void statesProvider.handleLoadOperations()
+            void historyProvider.handleLoadOperations()
         }),
         vscode.commands.registerCommand("ton.sandbox.states.exportTrace", async () => {
             try {
@@ -123,6 +123,9 @@ export function registerSandboxCommands(
                 void vscode.window.showErrorMessage("Failed to export trace")
             }
         }),
+        vscode.commands.registerCommand("ton.sandbox.states.resetState", () => {
+            void historyProvider.handleResetState()
+        }),
         vscode.commands.registerCommand("ton.sandbox.states.importTrace", async () => {
             try {
                 const workspaceFolder = vscode.workspace.workspaceFolders?.[0]
@@ -150,7 +153,7 @@ export function registerSandboxCommands(
                 const result = await importTrace(trace)
                 if (result.success) {
                     void vscode.window.showInformationMessage("Trace imported successfully")
-                    void statesProvider.handleLoadOperations()
+                    void historyProvider.handleLoadOperations()
                     treeProvider.refresh()
                     await treeProvider.loadContractsFromServer()
                 } else {
@@ -162,7 +165,7 @@ export function registerSandboxCommands(
             }
         }),
         vscode.commands.registerCommand("ton.sandbox.debugTransaction", (operationId: string) => {
-            statesProvider.handleDebugTransaction(operationId)
+            historyProvider.handleDebugTransaction(operationId)
         }),
         vscode.commands.registerCommand(
             "ton.sandbox.startDebugSequence",
