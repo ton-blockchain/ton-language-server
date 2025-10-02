@@ -3,7 +3,7 @@ import React, {useMemo, useState, useRef, useEffect} from "react"
 import {Orientation, RawNodeDatum, TreeLinkDatum, Tree} from "react-d3-tree"
 import {Address} from "@ton/core"
 
-import {TransactionShortInfo} from "../index"
+import {TransactionDetails} from "../index"
 
 import {formatCurrency} from "../../../../components/format/format"
 import {ContractData} from "../../../../../../common/types/contract"
@@ -589,7 +589,7 @@ export function TransactionTree({
 
       {selectedTransaction && (
         <div className={styles.transactionDetails}>
-          <TransactionShortInfo
+          <TransactionDetails
             tx={selectedTransaction}
             transactions={transactions}
             contracts={contractsMap}

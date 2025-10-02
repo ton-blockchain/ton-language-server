@@ -17,7 +17,7 @@ import {formatCurrency, formatNumber} from "../../../../components/format/format
 
 import {ActionsSummary} from "./ActionsSummary"
 
-import styles from "./TransactionShortInfo.module.css"
+import styles from "./TransactionDetails.module.css"
 
 const formatAddressAsChip = (
   address: Address | Maybe<ExternalAddress> | undefined,
@@ -90,7 +90,7 @@ export interface TransactionShortInfoProps {
   readonly onContractClick?: (address: string) => void
 }
 
-export function TransactionShortInfo({
+export function TransactionDetails({
   tx,
   contracts,
   onContractClick,
