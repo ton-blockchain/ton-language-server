@@ -215,6 +215,8 @@ export function TransactionTree({
     const transaction = transactionMap.get(lt)
     if (!transaction) return
 
+    forceHideTooltip()
+
     if (selectedTransaction?.transaction.lt.toString() === lt) {
       setSelectedTransaction(null)
       setSelectedContract(null)
