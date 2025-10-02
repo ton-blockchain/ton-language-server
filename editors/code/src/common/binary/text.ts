@@ -69,6 +69,21 @@ export function parseStringFieldValue(
             if (fieldValue.trim() === "") {
                 return 0
             }
+
+            const separatorIndex = fieldValue.lastIndexOf("|")
+            if (separatorIndex !== -1) {
+                const value = fieldValue.slice(0, Math.max(0, separatorIndex))
+                const mode = fieldValue.slice(Math.max(0, separatorIndex + 1))
+
+                if (mode === "ton") {
+                    return toNano(value)
+                } else if (mode === "raw") {
+                    return BigInt(value)
+                } else {
+                    throw new Error(`Invalid coins mode: ${mode}`)
+                }
+            }
+
             return toNano(fieldValue)
         }
 

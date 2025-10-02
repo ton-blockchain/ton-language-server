@@ -1,0 +1,43 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.inputContainer {
+  display: flex;
+  align-items: stretch;
+}
+
+.input {
+  flex: 1;
+  min-width: 0;
+  border-radius: 2px 0 0 2px;
+}
+
+.select {
+  width: 65px;
+  appearance: none;
+  background: var(--vscode-dropdown-background);
+  border: 1px solid var(--vscode-dropdown-border);
+  color: var(--vscode-foreground);
+  font-size: 11px;
+  padding: 0 10px;
+  border-radius: 0 2px 2px 0;
+  background-image: url("data:image/svg+xml,%3csvg xmlns=%27http://www.w3.org/2000/svg%27 fill=%27none%27 viewBox=%270 0 20 20%27%3e%3cpath stroke=%27%236b7280%27 stroke-linecap=%27round%27 stroke-linejoin=%27round%27 stroke-width=%271.5%27 d=%27m6 8 4 4 4-4%27/%3e%3c/svg%3e");
+  background-position: right 8px center;
+  background-repeat: no-repeat;
+  background-size: 16px;
+}
+
+.select:focus {
+  outline: 1px solid var(--vscode-focusBorder);
+  outline-offset: -1px;
+}
+
+.errorMessage {
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--vscode-errorForeground);
+  line-height: 1.3;
+}

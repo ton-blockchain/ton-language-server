@@ -2,7 +2,7 @@ import React, {useEffect, useState} from "react"
 
 import {ContractAbi, Field, TypeAbi, TypeInfo} from "@shared/abi"
 
-import {FieldInput, AddressInput} from "../../../../components/common"
+import {FieldInput, AddressInput, CoinsInput} from "../../../../components/common"
 
 import * as binary from "../../../../../../common/binary"
 import {DeployedContract} from "../../../../../../common/types/contract"
@@ -33,7 +33,32 @@ export const AbiFieldsForm: React.FC<Props> = ({
 
   const handleFieldChange = (fieldPath: string, fieldValue: string, fieldType: TypeInfo): void => {
     try {
-      // try to parse
+      if (isCoinsField(fieldType) && fieldValue.includes("|")) {
+        const separatorIndex = fieldValue.lastIndexOf("|")
+        const value = fieldValue.slice(0, Math.max(0, separatorIndex))
+        const mode = fieldValue.slice(Math.max(0, separatorIndex + 1))
+
+        if (mode === "ton") {
+          if (value.trim() === "") {
+            // Empty value is allowed
+          } else {
+            const num = Number.parseFloat(value)
+            if (Number.isNaN(num) || num < 0) {
+              throw new Error("Invalid TON amount")
+            }
+          }
+        } else if (mode === "raw") {
+          if (value.trim() === "") {
+            // Empty value is allowed
+          } else {
+            const num = BigInt(value)
+            if (num < 0n) {
+              throw new Error("Invalid raw amount")
+            }
+          }
+        }
+      }
+
       binary.parseStringFieldValue(fieldValue, fieldType)
       setFieldErrors(prev => ({...prev, [fieldPath]: undefined}))
     } catch (error) {
@@ -135,6 +160,31 @@ export const AbiFieldsForm: React.FC<Props> = ({
         )
       }
 
+      if (isCoinsField(field.type)) {
+        const defaultMode =
+          field.name.startsWith("ton") || field.name.includes("Ton") ? "ton" : "raw"
+        return (
+          <div key={fieldPath} className={styles.fieldContainer}>
+            <div className={styles.fieldHeader}>
+              <span className={styles.fieldName}>{field.name}</span>
+              <span className={styles.fieldType}>{field.type.humanReadable}</span>
+            </div>
+            <CoinsInput
+              value={fields[fieldPath]?.value ?? ""}
+              onChange={(value, mode) => {
+                const storedValue = `${value}|${mode}`
+                onFieldsChange({...fields, [fieldPath]: {type: field.type, value: storedValue}})
+                handleFieldChange(fieldPath, storedValue, field.type)
+              }}
+              placeholder={`Enter ${field.name}`}
+              className={styles.coinsInput}
+              error={fieldErrors[fieldPath]}
+              defaultMode={defaultMode}
+            />
+          </div>
+        )
+      }
+
       if (isAddressField(field.type)) {
         return (
           <div key={fieldPath} className={styles.fieldContainer}>
@@ -149,7 +199,7 @@ export const AbiFieldsForm: React.FC<Props> = ({
                 onFieldsChange({...fields, [fieldPath]: {type: field.type, value}})
                 handleFieldChange(fieldPath, value, field.type)
               }}
-              placeholder={`Enter ${field.type.humanReadable}`}
+              placeholder={`Enter ${field.name}`}
               className={styles.addressInput}
               error={fieldErrors[fieldPath]}
               onErrorChange={error => {
@@ -203,4 +253,21 @@ function isAddressField(fieldType: TypeInfo): boolean {
   }
 
   return containsAddress(fieldType)
+}
+
+function isCoinsField(fieldType: TypeInfo): boolean {
+  const containsCoins = (type: TypeInfo): boolean => {
+    if (type.name === "coins") {
+      return true
+    }
+    if (type.name === "option") {
+      return containsCoins(type.innerType)
+    }
+    if (type.name === "type-alias") {
+      return containsCoins(type.innerType)
+    }
+    return false
+  }
+
+  return containsCoins(fieldType)
 }
