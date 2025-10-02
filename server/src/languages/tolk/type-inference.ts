@@ -419,8 +419,10 @@ class InferenceWalker {
         const defaultValue = field.defaultValue()?.node
         if (defaultValue) {
             const flowAfterExpression = this.inferExpression(defaultValue, flow, false, typeHintTy)
-            const exprType = this.ctx.getType(defaultValue)
-            this.ctx.setType(field.node, exprType)
+            // foo: int? = null
+            // infers as null, TODO
+            // const exprType = this.ctx.getType(defaultValue)
+            // this.ctx.setType(field.node, exprType)
             return flowAfterExpression.outFlow
         }
 

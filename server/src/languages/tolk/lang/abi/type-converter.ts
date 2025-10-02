@@ -7,6 +7,7 @@ import {
     InstantiationTy,
     IntNTy,
     IntTy,
+    NullTy,
     StructTy,
     Ty,
     TypeAliasTy,
@@ -171,6 +172,10 @@ function convertTyToBaseTypeInfo(ty: Ty): BaseTypeInfo & {humanReadable: string}
     }
 
     if (ty instanceof UnknownTy) {
+        return {name: "void", humanReadable}
+    }
+
+    if (ty instanceof NullTy) {
         return {name: "void", humanReadable}
     }
 
