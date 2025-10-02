@@ -10,6 +10,9 @@ import {
     callGetMethodDirectly,
     deleteContract,
     deleteMessageTemplate,
+    exportTrace,
+    importTrace,
+    OperationTrace,
 } from "../providers/sandbox/methods"
 import {Operation} from "../webview-ui/src/views/actions/sandbox-actions-types"
 
@@ -79,6 +82,84 @@ export function registerSandboxCommands(
         ),
         vscode.commands.registerCommand("ton.sandbox.states.refresh", () => {
             void statesProvider.handleLoadOperations()
+        }),
+        vscode.commands.registerCommand("ton.sandbox.states.exportTrace", async () => {
+            try {
+                const result = await exportTrace()
+                if (result.success) {
+                    const traceJson = JSON.stringify(result.data, null, 2)
+                    const blob = new Blob([traceJson], {type: "application/json"})
+
+                    const filename = `ton-sandbox-trace-${new Date().toISOString().slice(0, 10)}.json`
+
+                    const workspaceFolder = vscode.workspace.workspaceFolders?.[0]
+                    const defaultUri = workspaceFolder
+                        ? vscode.Uri.joinPath(workspaceFolder.uri, filename)
+                        : vscode.Uri.file(filename)
+
+                    const uri = await vscode.window.showSaveDialog({
+                        defaultUri,
+                        filters: {
+                            "JSON files": ["json"],
+                            "All files": ["*"],
+                        },
+                        saveLabel: "Save Trace",
+                    })
+
+                    if (uri) {
+                        await vscode.workspace.fs.writeFile(
+                            uri,
+                            new Uint8Array(await blob.arrayBuffer()),
+                        )
+                        void vscode.window.showInformationMessage(
+                            `Trace exported successfully to ${uri.fsPath}`,
+                        )
+                    }
+                } else {
+                    void vscode.window.showErrorMessage(`Failed to export trace: ${result.error}`)
+                }
+            } catch (error) {
+                console.error("Failed to export trace:", error)
+                void vscode.window.showErrorMessage("Failed to export trace")
+            }
+        }),
+        vscode.commands.registerCommand("ton.sandbox.states.importTrace", async () => {
+            try {
+                const workspaceFolder = vscode.workspace.workspaceFolders?.[0]
+
+                const uri = await vscode.window.showOpenDialog({
+                    canSelectFiles: true,
+                    canSelectFolders: false,
+                    canSelectMany: false,
+                    defaultUri: workspaceFolder?.uri,
+                    filters: {
+                        "JSON files": ["json"],
+                        "All files": ["*"],
+                    },
+                    openLabel: "Import Trace",
+                })
+
+                if (!uri || uri.length === 0) {
+                    return
+                }
+
+                const fileContent = await vscode.workspace.fs.readFile(uri[0])
+                const traceData = new TextDecoder().decode(fileContent)
+
+                const trace = JSON.parse(traceData) as OperationTrace
+                const result = await importTrace(trace)
+                if (result.success) {
+                    void vscode.window.showInformationMessage("Trace imported successfully")
+                    void statesProvider.handleLoadOperations()
+                    treeProvider.refresh()
+                    await treeProvider.loadContractsFromServer()
+                } else {
+                    void vscode.window.showErrorMessage(`Failed to import trace: ${result.error}`)
+                }
+            } catch (error) {
+                console.error("Failed to import trace:", error)
+                void vscode.window.showErrorMessage("Failed to import trace: Invalid file format")
+            }
         }),
         vscode.commands.registerCommand("ton.sandbox.debugTransaction", (operationId: string) => {
             statesProvider.handleDebugTransaction(operationId)

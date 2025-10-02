@@ -808,3 +808,93 @@ export async function checkSandboxStatus(): Promise<{
         }
     }
 }
+
+export interface OperationTrace {
+    readonly operations: readonly OperationTraceItem[]
+    readonly timestamp: string
+    readonly version: string
+}
+
+export type OperationTraceItem =
+    | {readonly type: "deploy"; readonly data: DeployRequest}
+    | {readonly type: "send-external"; readonly data: SendExternalMessageRequest}
+    | {readonly type: "send-internal"; readonly data: SendInternalMessageRequest}
+    | {readonly type: "rename-contract"; readonly data: RenameContractRequest}
+
+export interface DeployRequest {
+    readonly stateInit: {
+        readonly code: Base64String
+        readonly data: Base64String
+    }
+    readonly value: string
+    readonly name: string
+    readonly sourceMap?: object
+    readonly abi?: object
+    readonly sourceUri: string
+}
+
+export interface SendExternalMessageRequest {
+    readonly address: string
+    readonly message: Base64String
+}
+
+export interface SendInternalMessageRequest {
+    readonly fromAddress: string
+    readonly toAddress: string
+    readonly message: Base64String
+    readonly sendMode: number
+    readonly value: string
+}
+
+export interface RenameContractRequest {
+    readonly address: string
+    readonly newName: string
+}
+
+export async function exportTrace(): Promise<ApiResponse<OperationTrace>> {
+    try {
+        const config = vscode.workspace.getConfiguration("ton")
+        const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
+
+        const response = await fetch(`${sandboxUrl}/export-trace`, {
+            method: "GET",
+        })
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+        }
+
+        return (await response.json()) as ApiResponse<OperationTrace>
+    } catch (error) {
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "Unknown error",
+        }
+    }
+}
+
+export async function importTrace(trace: OperationTrace): Promise<ApiResponse> {
+    try {
+        const config = vscode.workspace.getConfiguration("ton")
+        const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
+
+        const response = await fetch(`${sandboxUrl}/import-trace`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({trace}),
+        })
+
+        if (!response.ok) {
+            throw new Error(`HTTP ${response.status}: ${response.statusText}`)
+        }
+
+        return (await response.json()) as ApiResponse
+    } catch (error) {
+        return {
+            success: false,
+            error: error instanceof Error ? error.message : "Unknown error",
+        }
+    }
+}
