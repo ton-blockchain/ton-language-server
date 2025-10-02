@@ -2,8 +2,10 @@
 //  Copyright © 2025 TON Studio
 import type * as lsp from "vscode-languageserver"
 import type {TolkFile} from "@server/languages/tolk/psi/TolkFile"
-import {UnusedInspection} from "./UnusedInspection"
+
 import {RecursiveVisitor} from "@server/visitor/visitor"
+
+import {UnusedInspection} from "./UnusedInspection"
 import {Inspection, InspectionIds} from "./Inspection"
 
 export class UnusedVariableInspection extends UnusedInspection implements Inspection {

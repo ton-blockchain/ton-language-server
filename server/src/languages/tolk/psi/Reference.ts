@@ -1,7 +1,5 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
-import {Expression, NamedNode, TolkNode, VarDeclaration} from "./TolkNode"
-import type {TolkFile} from "./TolkFile"
 import {ResolveState} from "@server/psi/ResolveState"
 import {TOLK_CACHE} from "@server/languages/tolk/cache"
 import type {Node as SyntaxNode} from "web-tree-sitter"
@@ -36,6 +34,9 @@ import {
 } from "@server/languages/tolk/types/ty"
 import {parentOfType} from "@server/psi/utils"
 import {inferenceOf, typeOf} from "@server/languages/tolk/type-inference"
+
+import type {TolkFile} from "./TolkFile"
+import {Expression, NamedNode, TolkNode, VarDeclaration} from "./TolkNode"
 
 export interface ScopeProcessor {
     execute(node: TolkNode, state: ResolveState): boolean

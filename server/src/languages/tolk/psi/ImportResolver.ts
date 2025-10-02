@@ -1,11 +1,14 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
-import type {Node as SyntaxNode} from "web-tree-sitter"
 import * as path from "node:path"
-import type {TolkFile} from "./TolkFile"
+
+import type {Node as SyntaxNode} from "web-tree-sitter"
+
 import {trimPrefix, trimSuffix} from "@server/utils/strings"
 import {projectTolkStdlibPath} from "@server/languages/tolk/toolchain/toolchain"
 import {filePathToUri, TOLK_PARSED_FILES_CACHE} from "@server/files"
+
+import type {TolkFile} from "./TolkFile"
 
 export class ImportResolver {
     public static resolveImport(fromFile: TolkFile, importPath: string): string | null {

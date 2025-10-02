@@ -2,13 +2,15 @@
 //  Copyright © 2025 TON Studio
 import type {Node as SyntaxNode} from "web-tree-sitter"
 import {RecursiveVisitor} from "@server/visitor/visitor"
-import {NamedNode, TolkNode} from "./TolkNode"
-import {Reference} from "./Reference"
-import type {TolkFile} from "./TolkFile"
+
 import {parentOfType} from "@server/psi/utils"
 import {TOLK_PARSED_FILES_CACHE} from "@server/files"
 import {BaseReferent, GlobalSearchScope, LocalSearchScope} from "@server/references/referent"
 import {File} from "@server/psi/File"
+
+import type {TolkFile} from "./TolkFile"
+import {Reference} from "./Reference"
+import {NamedNode, TolkNode} from "./TolkNode"
 
 class TolkGlobalSearchScope extends GlobalSearchScope<File> {
     public static allFiles(): GlobalSearchScope<File> {

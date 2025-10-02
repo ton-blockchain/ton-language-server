@@ -1,10 +1,12 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
 import type {Node as SyntaxNode} from "web-tree-sitter"
-import {FuncFile} from "./FuncFile"
+
 import {BaseNode} from "@server/psi/BaseNode"
 import {parentOfType} from "@server/psi/utils"
 import {extractCommentsDoc} from "@server/psi/comments"
+
+import {FuncFile} from "./FuncFile"
 
 export class FuncNode extends BaseNode {
     public node: SyntaxNode

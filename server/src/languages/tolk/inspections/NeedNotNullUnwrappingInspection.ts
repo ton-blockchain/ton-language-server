@@ -4,12 +4,14 @@ import * as lsp from "vscode-languageserver"
 import type {TolkFile} from "@server/languages/tolk/psi/TolkFile"
 import {asLspPosition, asLspRange} from "@server/utils/position"
 import {RecursiveVisitor} from "@server/visitor/visitor"
-import {Inspection, InspectionIds} from "./Inspection"
+
 import {inferenceOf, methodCandidates} from "@server/languages/tolk/type-inference"
 import {CallLike} from "@server/languages/tolk/psi/TolkNode"
 import {Ty, UnknownTy, UnionTy} from "@server/languages/tolk/types/ty"
 import {Node as SyntaxNode} from "web-tree-sitter"
 import {FileDiff} from "@server/utils/FileDiff"
+
+import {Inspection, InspectionIds} from "./Inspection"
 
 export class NeedNotNullUnwrappingInspection implements Inspection {
     public readonly id: "need-not-null-unwrapping" = InspectionIds.NEED_NOT_NULL_UNWRAPPING

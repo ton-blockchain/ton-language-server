@@ -5,11 +5,13 @@ import type {TolkFile} from "@server/languages/tolk/psi/TolkFile"
 import {asLspRange} from "@server/utils/position"
 import {RecursiveVisitor} from "@server/visitor/visitor"
 import type {Node as SyntaxNode} from "web-tree-sitter"
-import {Inspection, InspectionIds} from "./Inspection"
+
 import {Field} from "@server/languages/tolk/psi/Decls"
 import {NeverTy, StructTy, TypeParameterTy} from "@server/languages/tolk/types/ty"
 import {typeOf} from "@server/languages/tolk/type-inference"
 import {trimBackticks} from "@server/languages/tolk/lang/names-util"
+
+import {Inspection, InspectionIds} from "./Inspection"
 
 export class StructInitializationInspection implements Inspection {
     public readonly id: "struct-initialization" = InspectionIds.STRUCT_INITIALIZATION

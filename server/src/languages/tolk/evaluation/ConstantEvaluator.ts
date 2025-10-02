@@ -1,14 +1,16 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
-import {CallLike, NamedNode} from "../psi/TolkNode"
-import {Constant} from "../psi/Decls"
-import {Reference} from "../psi/Reference"
 import type {Node as SyntaxNode} from "web-tree-sitter"
-import {TolkFile} from "../psi/TolkFile"
+
 import {crc16} from "@server/utils/crc16"
 import {crc32} from "@server/utils/crc32"
 import {sha256, sha256_32} from "@server/utils/sha256"
 import {stringToBase256} from "@server/utils/stringToBase256"
+
+import {TolkFile} from "../psi/TolkFile"
+import {Reference} from "../psi/Reference"
+import {Constant} from "../psi/Decls"
+import {CallLike, NamedNode} from "../psi/TolkNode"
 
 const compileTimeFunctions = new Set([
     "stringCrc32",

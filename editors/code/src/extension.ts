@@ -1,7 +1,8 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Studio
-import * as vscode from "vscode"
 import * as path from "node:path"
+
+import * as vscode from "vscode"
 import {Utils as vscode_uri} from "vscode-uri"
 import {
     LanguageClient,
@@ -10,8 +11,7 @@ import {
     ServerOptions,
     TransportKind,
 } from "vscode-languageclient/node"
-import {consoleError, createClientLog} from "./client-log"
-import {getClientConfiguration} from "./client-config"
+
 import {
     DocumentationAtPositionRequest,
     TypeAtPositionParams,
@@ -20,15 +20,23 @@ import {
     SetToolchainVersionNotification,
     SetToolchainVersionParams,
 } from "@shared/shared-msgtypes"
+
 import type {ClientOptions} from "@shared/config-scheme"
+
+import {Range, Position, FileSystemWatcher} from "vscode"
+
+import {ToolchainConfig} from "@server/settings/settings"
+
+import {consoleError, createClientLog} from "./client-log"
+import {getClientConfiguration} from "./client-config"
+
 import {registerBuildTasks} from "./build-system"
 import {registerOpenBocCommand} from "./commands/openBocCommand"
 import {BocEditorProvider} from "./providers/BocEditorProvider"
 import {BocFileSystemProvider} from "./providers/BocFileSystemProvider"
 import {BocDecompilerProvider} from "./providers/BocDecompilerProvider"
 import {registerSaveBocDecompiledCommand} from "./commands/saveBocDecompiledCommand"
-import {Range, Position, FileSystemWatcher} from "vscode"
-import {ToolchainConfig} from "@server/settings/settings"
+
 import {configureDebugging} from "./debugging"
 
 let client: LanguageClient | null = null

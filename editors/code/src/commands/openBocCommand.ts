@@ -1,9 +1,12 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Studio
 import * as vscode from "vscode"
-import {BocDecompilerProvider} from "../providers/BocDecompilerProvider"
-import {openBocFilePicker} from "./saveBocDecompiledCommand"
+
 import {Disposable} from "vscode"
+
+import {BocDecompilerProvider} from "../providers/BocDecompilerProvider"
+
+import {openBocFilePicker} from "./saveBocDecompiledCommand"
 
 export function registerOpenBocCommand(_context: vscode.ExtensionContext): Disposable {
     return vscode.commands.registerCommand(

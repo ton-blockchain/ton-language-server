@@ -1,14 +1,14 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Studio
-import {connection} from "./connection"
-import {DocumentStore} from "./document-store"
-import {initParser} from "./parser"
+import * as path from "node:path"
+
+import {fileURLToPath} from "node:url"
+
 import {asParserPoint} from "@server/utils/position"
 import {index as tolkIndex, IndexRoot as TolkIndexRoot} from "@server/languages/tolk/indexes"
 import {index as funcIndex, IndexRoot as FuncIndexRoot} from "@server/languages/func/indexes"
 import * as lsp from "vscode-languageserver"
 import {DidChangeWatchedFilesParams, FileChangeType, RenameFilesParams} from "vscode-languageserver"
-import * as path from "node:path"
 import {globalVFS} from "@server/vfs/global"
 import {existsVFS} from "@server/vfs/files-adapter"
 import type {ClientOptions} from "@shared/config-scheme"
@@ -29,7 +29,7 @@ import {WorkspaceEdit} from "vscode-languageserver-types"
 import type {Node as SyntaxNode} from "web-tree-sitter"
 import {setToolchain, setWorkspaceRoot, toolchain} from "@server/toolchain"
 import * as toolchainManager from "@server/toolchain-manager"
-import {fileURLToPath} from "node:url"
+
 import {
     FIFT_PARSED_FILES_CACHE,
     filePathToUri,
@@ -121,6 +121,10 @@ import {FuncIndexingRoot} from "@server/languages/func/indexing-root"
 import {formatTolkFile} from "@server/languages/tolk/format/format"
 import {collectFuncCodeLenses} from "@server/languages/func/lens"
 import {collectFiftCodeLenses} from "@server/languages/fift/lens"
+
+import {initParser} from "./parser"
+import {DocumentStore} from "./document-store"
+import {connection} from "./connection"
 
 /**
  * Whenever LS is initialized.

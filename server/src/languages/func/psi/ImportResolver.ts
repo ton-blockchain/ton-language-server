@@ -1,9 +1,12 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
-import type {Node as SyntaxNode} from "web-tree-sitter"
 import * as path from "node:path"
-import type {FuncFile} from "./FuncFile"
+
+import type {Node as SyntaxNode} from "web-tree-sitter"
+
 import {filePathToUri, FUNC_PARSED_FILES_CACHE} from "@server/files"
+
+import type {FuncFile} from "./FuncFile"
 
 export class ImportResolver {
     public static resolveImport(fromFile: FuncFile, importPath: string): string | null {

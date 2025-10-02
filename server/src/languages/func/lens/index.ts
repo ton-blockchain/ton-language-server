@@ -1,9 +1,10 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
+import {createHash} from "node:crypto"
+
 import * as lsp from "vscode-languageserver"
 import {RecursiveVisitor} from "@server/visitor/visitor"
 import {FuncFile} from "@server/languages/func/psi/FuncFile"
-import {createHash} from "node:crypto"
 import {crc32} from "@server/utils/crc32"
 import {asLspRange} from "@server/utils/position"
 
