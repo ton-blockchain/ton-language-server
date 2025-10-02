@@ -13,6 +13,7 @@ import {
     exportTrace,
     importTrace,
     OperationTrace,
+    redeployContract,
 } from "../providers/sandbox/methods"
 import {Operation} from "../webview-ui/src/views/actions/sandbox-actions-types"
 
@@ -78,6 +79,12 @@ export function registerSandboxCommands(
             "ton.sandbox.callGetMethodFromCodeLens",
             async (contract: DeployedContract, methodId: number) => {
                 await callGetMethodDirectly(contract, methodId)
+            },
+        ),
+        vscode.commands.registerCommand(
+            "ton.sandbox.redeployContract",
+            async (contract: DeployedContract) => {
+                await redeployContract(contract, treeProvider, formProvider)
             },
         ),
         vscode.commands.registerCommand("ton.sandbox.states.refresh", () => {

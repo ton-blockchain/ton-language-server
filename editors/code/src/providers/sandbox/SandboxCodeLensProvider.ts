@@ -103,7 +103,13 @@ export class SandboxCodeLensProvider implements vscode.CodeLensProvider {
                 arguments: [deployedContract.address],
             })
 
-            codeLenses.push(statusLens, sendMessageLens)
+            const redeployLens = new vscode.CodeLens(range, {
+                title: "Redeploy",
+                command: "ton.sandbox.redeployContract",
+                arguments: [deployedContract],
+            })
+
+            codeLenses.push(statusLens, sendMessageLens, redeployLens)
         } else {
             const deployLens = new vscode.CodeLens(range, {
                 title: "Deploy contract",

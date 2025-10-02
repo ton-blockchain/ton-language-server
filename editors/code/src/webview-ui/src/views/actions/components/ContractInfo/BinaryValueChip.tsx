@@ -17,7 +17,11 @@ export function BinaryValueChip({value, title}: BinaryValueChipProps): React.JSX
   const textValue = useMemo(() => {
     try {
       const buffer = value.clone().loadBuffer(value.remainingBits / 8)
-      return buffer.toString("utf8")
+      const text = buffer.toString("utf8")
+      if (text === "") {
+        return "<empty>"
+      }
+      return text
     } catch (error) {
       return error instanceof Error ? error.message : "Error decoding value"
     }

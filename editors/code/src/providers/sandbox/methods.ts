@@ -2,7 +2,15 @@ import vscode from "vscode"
 
 import {SourceMap} from "ton-source-map"
 
-import {Cell, parseTuple, serializeTuple, toNano, TupleItem, TupleReader} from "@ton/core"
+import {
+    Cell,
+    loadShardAccount,
+    parseTuple,
+    serializeTuple,
+    toNano,
+    TupleItem,
+    TupleReader,
+} from "@ton/core"
 
 import {GetContractAbiParams, GetContractAbiResponse} from "@shared/shared-msgtypes"
 
@@ -22,6 +30,7 @@ import {HexString} from "../../common/hex-string"
 
 import {TolkCompilerProvider} from "./TolkCompilerProvider"
 import {SandboxTreeProvider} from "./SandboxTreeProvider"
+import {SandboxActionsProvider} from "./SandboxActionsProvider"
 
 export interface OperationNode {
     readonly id: string
@@ -896,5 +905,106 @@ export async function importTrace(trace: OperationTrace): Promise<ApiResponse> {
             success: false,
             error: error instanceof Error ? error.message : "Unknown error",
         }
+    }
+}
+
+export async function redeployContract(
+    oldContract: DeployedContract,
+    treeProvider?: SandboxTreeProvider,
+    formProvider?: SandboxActionsProvider,
+): Promise<void> {
+    try {
+        const contractInfoResult = await loadContractInfo(oldContract.address)
+        if (!contractInfoResult.success) {
+            void vscode.window.showErrorMessage(
+                `Failed to load contract info: ${contractInfoResult.error}`,
+            )
+            return
+        }
+
+        const contractInfo = contractInfoResult.data
+        let contractData = contractInfo.stateInit?.data
+
+        const account = loadShardAccount(Cell.fromHex(contractInfoResult.data.account).beginParse())
+        const state = account.account?.storage.state
+        if (state?.type === "active" && state.state.data) {
+            contractData = state.state.data.toBoc().toString("base64") as Base64String
+        }
+
+        if (!contractData) {
+            void vscode.window.showErrorMessage(
+                "Cannot redeploy: contract storage data not available",
+            )
+            return
+        }
+
+        const editor = vscode.window.activeTextEditor
+        if (!editor || editor.document.languageId !== "tolk") {
+            void vscode.window.showErrorMessage("No active Tolk contract file")
+            return
+        }
+
+        const abiResult: GetContractAbiResponse = await vscode.commands.executeCommand(
+            "tolk.getContractAbi",
+            {
+                textDocument: {
+                    uri: editor.document.uri.toString(),
+                },
+            } satisfies GetContractAbiParams,
+        )
+
+        if (!abiResult.abi) {
+            void vscode.window.showErrorMessage("Failed to get contract ABI")
+            return
+        }
+
+        const newAbi = abiResult.abi
+
+        if (JSON.stringify(newAbi.storage) !== JSON.stringify(oldContract.abi?.storage)) {
+            if (formProvider) {
+                vscode.commands
+                    .executeCommand("workbench.view.extension.tonSandboxContainer")
+                    .then(() => {
+                        formProvider.openOperation("compile-deploy")
+                    })
+            }
+            void vscode.window.showInformationMessage(
+                `Storage fields changed. Please fill in the additional fields and deploy manually.`,
+            )
+            return
+        }
+
+        void vscode.window.showInformationMessage("Starting automatic redeploy...")
+
+        const deleteResult = await deleteContract(oldContract.address)
+        if (!deleteResult.success) {
+            void vscode.window.showErrorMessage(
+                `Failed to delete old contract: ${deleteResult.error}`,
+            )
+            return
+        }
+
+        if (treeProvider) {
+            treeProvider.removeContract(oldContract.address)
+            await treeProvider.loadContractsFromServer()
+        }
+
+        const deployResult = await compileAndDeployFromEditor(
+            oldContract.name,
+            contractData,
+            treeProvider,
+            "1",
+            newAbi.storage?.name,
+        )
+
+        if (deployResult.success) {
+            void vscode.window.showInformationMessage("Contract redeployed successfully!")
+        } else {
+            void vscode.window.showErrorMessage(`Redeploy failed: ${deployResult.error}`)
+        }
+    } catch (error) {
+        void vscode.window.showErrorMessage(
+            `Redeploy failed: ${error instanceof Error ? error.message : "Unknown error"}`,
+        )
     }
 }
