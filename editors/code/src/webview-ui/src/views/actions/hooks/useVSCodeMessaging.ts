@@ -26,6 +26,7 @@ interface UseVSCodeMessagingParams {
   readonly setDeployState: (state: DeployState | undefined) => void
   readonly setContractInfo: (info: ContractInfoData | undefined) => void
   readonly setMessageTemplates: (templates: MessageTemplate[]) => void
+  readonly setIsConnected: (isConnected: boolean) => void
 }
 
 interface UseVSCodeMessagingReturn {
@@ -44,6 +45,7 @@ export function useVSCodeMessaging(params: UseVSCodeMessagingParams): UseVSCodeM
     setDeployState,
     setContractInfo,
     setMessageTemplates,
+    setIsConnected,
   } = params
 
   const restoreFromState = useCallback(
@@ -123,6 +125,10 @@ export function useVSCodeMessaging(params: UseVSCodeMessagingParams): UseVSCodeM
           setMessageTemplates(message.templates)
           break
         }
+        case "updateConnectionStatus": {
+          setIsConnected(message.isConnected)
+          break
+        }
         case "restoreState": {
           restoreFromState(message.state)
           break
@@ -144,6 +150,7 @@ export function useVSCodeMessaging(params: UseVSCodeMessagingParams): UseVSCodeM
       setContractInfo,
       vscode,
       setMessageTemplates,
+      setIsConnected,
       restoreFromState,
     ],
   )

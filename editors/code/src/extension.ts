@@ -72,26 +72,26 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         }),
     )
 
-    const sandboxFormProvider = new SandboxActionsProvider(
+    const sandboxActionsProvider = new SandboxActionsProvider(
         context.extensionUri,
         () => sandboxTreeProvider,
-        () => statesWebviewProvider,
+        () => historyWebviewProvider,
     )
     context.subscriptions.push(
         vscode.window.registerWebviewViewProvider(
             SandboxActionsProvider.viewType,
-            sandboxFormProvider,
+            sandboxActionsProvider,
         ),
     )
 
-    const statesWebviewProvider = new HistoryWebviewProvider(
+    const historyWebviewProvider = new HistoryWebviewProvider(
         context.extensionUri,
         () => sandboxTreeProvider,
     )
     context.subscriptions.push(
         vscode.window.registerWebviewViewProvider(
             HistoryWebviewProvider.viewType,
-            statesWebviewProvider,
+            historyWebviewProvider,
         ),
     )
 
@@ -103,7 +103,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         vscode.languages.registerCodeLensProvider({language: "tolk"}, sandboxCodeLensProvider),
     )
 
-    sandboxTreeProvider.setFormProvider(sandboxFormProvider)
+    sandboxTreeProvider.setFormProvider(sandboxActionsProvider)
     sandboxTreeProvider.setCodeLensProvider(sandboxCodeLensProvider)
 
     context.subscriptions.push(
@@ -114,17 +114,17 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
                     languageId: editor.document.languageId,
                     content: editor.document.getText(),
                 }
-                sandboxFormProvider.updateActiveEditor(document)
+                sandboxActionsProvider.updateActiveEditor(document)
             } else {
-                sandboxFormProvider.updateActiveEditor(null)
+                sandboxActionsProvider.updateActiveEditor(null)
             }
         }),
     )
 
     const sandboxCommands = registerSandboxCommands(
         sandboxTreeProvider,
-        sandboxFormProvider,
-        statesWebviewProvider,
+        sandboxActionsProvider,
+        historyWebviewProvider,
     )
 
     context.subscriptions.push(

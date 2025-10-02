@@ -36,7 +36,7 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
     private sandboxStatus: "disconnected" | "connected" | "server-not-found" | "error" =
         "disconnected"
     private messageTemplates: MessageTemplate[] = []
-    private formProvider?: SandboxActionsProvider
+    private actionsProvider?: SandboxActionsProvider
     private codeLensProvider?: SandboxCodeLensProvider
 
     public constructor() {
@@ -44,7 +44,7 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
     }
 
     public setFormProvider(formProvider: SandboxActionsProvider): void {
-        this.formProvider = formProvider
+        this.actionsProvider = formProvider
         this.updateFormContracts()
     }
 
@@ -322,6 +322,9 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
                   ? "server-not-found"
                   : "error"
 
+            const isConnected = this.sandboxStatus === "connected"
+            this.actionsProvider?.updateConnectionStatus(isConnected)
+
             if (this.sandboxStatus === "connected" && loadContracts) {
                 await this.loadContractsFromServer()
                 await this.loadMessageTemplatesFromServer()
@@ -430,8 +433,8 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
     }
 
     private updateFormContracts(): void {
-        if (this.formProvider) {
-            this.formProvider.updateContracts(this.deployedContracts)
+        if (this.actionsProvider) {
+            this.actionsProvider.updateContracts(this.deployedContracts)
         }
     }
 

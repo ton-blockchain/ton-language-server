@@ -5,6 +5,7 @@ import {SendMessage} from "./components/SendMessage/SendMessage"
 import {GetMethod} from "./components/GetMethod/GetMethod"
 import {NoOperation} from "./components/NoOperation/NoOperation"
 import {ContractInfo} from "./components/ContractInfo/ContractInfo"
+import ServerNotConnected from "./components/ServerNotConnected/ServerNotConnected"
 import {VSCodeAPI} from "./sandbox-actions-types"
 import {useActionsApp} from "./hooks/useActionsApp"
 
@@ -35,9 +36,16 @@ export default function ActionsApp({vscode}: Props): JSX.Element {
 
     // Message templates
     messageTemplates,
+
+    // Connection status
+    isConnected,
   } = useActionsApp({vscode})
 
   const renderActiveOperation = (): JSX.Element => {
+    if (!isConnected) {
+      return <ServerNotConnected />
+    }
+
     if (!activeOperation) return <NoOperation />
 
     switch (activeOperation) {

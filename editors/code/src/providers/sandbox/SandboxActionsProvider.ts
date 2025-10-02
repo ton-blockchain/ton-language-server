@@ -274,6 +274,16 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
         }
     }
 
+    public updateConnectionStatus(isConnected: boolean): void {
+        if (this.view) {
+            const message = {
+                type: "updateConnectionStatus" as const,
+                isConnected,
+            }
+            void this.view.webview.postMessage(message)
+        }
+    }
+
     private async handleSendExternalMessage(command: SendExternalMessageCommand): Promise<void> {
         this.sequentialDebugQueue = []
         this.isSequentialDebugRunning = false

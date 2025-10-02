@@ -236,6 +236,11 @@ export interface TemplateDeletedMessage {
   readonly templateId: string
 }
 
+export interface UpdateConnectionStatusMessage {
+  readonly type: "updateConnectionStatus"
+  readonly isConnected: boolean
+}
+
 export type VSCodeMessage =
   | UpdateContractsMessage
   | ShowResultMessage
@@ -250,6 +255,7 @@ export type VSCodeMessage =
   | TemplateCreatedMessage
   | TemplateUpdatedMessage
   | TemplateDeletedMessage
+  | UpdateConnectionStatusMessage
 
 export type VSCodeCommand =
   | SendExternalMessageCommand

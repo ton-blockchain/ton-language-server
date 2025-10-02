@@ -326,7 +326,7 @@ export const HistoryView: React.FC<Props> = ({
         <LoadingSpinner message="Loading operation history..." />
       ) : operations.length === 0 ? (
         <div className={styles.empty}>
-          <p>No operations found.</p>
+          <p>No operations found</p>
           <p>
             Perform some actions like deploying contracts or sending messages to see the history.
           </p>

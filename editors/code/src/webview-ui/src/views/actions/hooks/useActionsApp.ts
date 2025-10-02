@@ -1,4 +1,4 @@
-import {useEffect} from "react"
+import {useEffect, useState} from "react"
 
 import {VSCodeAPI, Operation} from "../sandbox-actions-types"
 
@@ -25,6 +25,7 @@ interface UseActionsAppReturn {
   readonly contractInfo: ReturnType<typeof useContractData>["contractInfo"]
   readonly deployState: ReturnType<typeof useContractData>["deployState"]
   readonly messageTemplates: ReturnType<typeof useMessageTemplates>["messageTemplates"]
+  readonly isConnected: boolean
   readonly vscode: VSCodeAPI
 }
 
@@ -33,6 +34,7 @@ export function useActionsApp({vscode}: UseActionsAppParams): UseActionsAppRetur
   const operations = useOperations()
   const contractData = useContractData()
   const messageTemplates = useMessageTemplates()
+  const [isConnected, setIsConnected] = useState(false)
 
   useVSCodeMessaging({
     vscode,
@@ -45,6 +47,7 @@ export function useActionsApp({vscode}: UseActionsAppParams): UseActionsAppRetur
     setDeployState: contractData.setDeployState,
     setContractInfo: contractData.setContractInfo,
     setMessageTemplates: messageTemplates.setMessageTemplates,
+    setIsConnected,
   })
 
   useEffect(() => {
@@ -79,6 +82,9 @@ export function useActionsApp({vscode}: UseActionsAppParams): UseActionsAppRetur
 
     // Message templates
     messageTemplates: messageTemplates.messageTemplates,
+
+    // Connection status
+    isConnected,
 
     // VSCode communication
     vscode,

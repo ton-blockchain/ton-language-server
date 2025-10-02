@@ -332,6 +332,7 @@
   justify-content: center;
   text-align: center;
   color: var(--vscode-descriptionForeground);
+  padding: 24px;
 }
 
 .empty p {
