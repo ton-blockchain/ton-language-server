@@ -6,7 +6,9 @@
   position: relative;
   padding: var(--spacing-xs) var(--spacing-xs) var(--spacing-xs) var(--spacing-xs);
   border-radius: var(--border-radius-sm);
-  transition: background-color var(--transition-duration-fast) ease;
+  transition:
+    background-color var(--transition-duration-fast) ease-out,
+    padding-right var(--transition-duration-fast) ease;
   border: none;
   background: transparent;
   color: inherit;
@@ -16,6 +18,7 @@
 
 .contractChip:hover {
   background-color: var(--color-background-secondary);
+  padding-right: 1.7rem;
 }
 
 .contractChip:hover .contractChipCopyButton {
