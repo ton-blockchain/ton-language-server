@@ -295,8 +295,6 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
 
             this.deployedContracts = [...existingContracts, ...serverContracts]
 
-            console.log("this.deployedContracts", this.deployedContracts)
-
             this.refresh()
             this.updateFormContracts()
         } catch (error) {

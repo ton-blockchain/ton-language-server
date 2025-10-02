@@ -9,6 +9,10 @@ import {formatCurrency} from "../../../../components/format/format"
 import {ContractData} from "../../../../../../common/types/contract"
 import {TransactionInfo} from "../../../../../../common/types/transaction"
 
+import {ParsedDataView} from "../ParsedDataView/ParsedDataView"
+
+import {parseData, ParsedObject} from "../../../../../../common/binary"
+
 import {useTooltip} from "./useTooltip"
 import {SmartTooltip} from "./SmartTooltip"
 
@@ -106,6 +110,39 @@ function TransactionTooltipContent({data}: {data: TransactionTooltipData}): Reac
               Gas Fees: {formatCurrency(data.fees.gasFees)}
             </div>
           )}
+        </div>
+      </div>
+    </div>
+  )
+}
+
+interface NodeTooltipData {
+  readonly contractState?: ParsedObject
+  readonly contractStateBefore?: ParsedObject
+  readonly contractData: ContractData
+}
+
+function NodeTooltipContent({
+  data,
+  contracts,
+}: {
+  data: NodeTooltipData
+  contracts: Map<string, ContractData>
+}): React.JSX.Element {
+  return (
+    <div className={styles.tooltipContent}>
+      <div className={styles.tooltipField}>
+        <div className={styles.tooltipFieldLabel}>Contract State</div>
+        <div className={styles.tooltipFieldValue}>
+          <div className={styles.contractStateData}>
+            {data.contractState && (
+              <ParsedDataView
+                data={data.contractState}
+                dataBefore={data.contractStateBefore}
+                contracts={contracts}
+              />
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -230,6 +267,45 @@ export function TransactionTree({
       y: rect.top,
       content: <TransactionTooltipContent data={tooltipData} />,
     })
+  }
+
+  const showNodeTooltip = (event: React.MouseEvent, tx: TransactionInfo | undefined): void => {
+    if (!tx || !tx.address) return
+
+    const rect = (event.currentTarget as SVGElement).getBoundingClientRect()
+    triggerRectRef.current = rect
+
+    const contract = contractsMap.get(tx.address.toString())
+    if (!contract) return
+
+    if (!contract.abi || !contract.abi.storage || !tx.oldStorage || !tx.newStorage) return
+
+    try {
+      const contractStateBefore = parseData(
+        contract.abi,
+        contract.abi.storage,
+        tx.oldStorage.asSlice(),
+      )
+      const contractStateAfter = parseData(
+        contract.abi,
+        contract.abi.storage,
+        tx.newStorage.asSlice(),
+      )
+
+      const nodeTooltipData: NodeTooltipData = {
+        contractState: contractStateAfter,
+        contractStateBefore,
+        contractData: contract,
+      }
+
+      showTooltip({
+        x: rect.left,
+        y: rect.top,
+        content: <NodeTooltipContent data={nodeTooltipData} contracts={contractsMap} />,
+      })
+    } catch (error) {
+      console.error("Error parsing contract state:", error)
+    }
   }
 
   const treeData: RawNodeDatum = useMemo(() => {
@@ -459,6 +535,10 @@ export function TransactionTree({
           strokeWidth={1.5}
           onClick={() => {
             handleNodeClick(lt)
+          }}
+          onMouseEnter={event => {
+            if (!tx?.address) return
+            showNodeTooltip(event, tx)
           }}
           onMouseLeave={() => {
             hideTooltip()

@@ -11,6 +11,8 @@ import {
 
 import {SourceMap} from "ton-source-map"
 
+import {HexString} from "../hex-string"
+
 import type {
     ComputeInfo,
     ExternalTransactionInfoData,
@@ -39,6 +41,8 @@ export interface RawTransactionInfo {
     readonly contractName: string | undefined
     readonly parentId: string | undefined
     readonly childrenIds: string[]
+    readonly oldStorage: HexString | undefined
+    readonly newStorage: HexString | undefined
 }
 
 // temp type only for building
@@ -57,6 +61,8 @@ interface MutableTransactionInfo {
     readonly code: Cell | undefined
     readonly sourceMap: SourceMap | undefined
     readonly contractName: string | undefined
+    readonly oldStorage: Cell | undefined
+    readonly newStorage: Cell | undefined
     parent: TransactionInfo | undefined
     children: TransactionInfo[]
 }
@@ -133,6 +139,8 @@ const processRawTx = (
         sourceMap: tx.sourceMap,
         contractName: tx.contractName,
         children: [],
+        oldStorage: tx.oldStorage ? Cell.fromHex(tx.oldStorage) : undefined,
+        newStorage: tx.newStorage ? Cell.fromHex(tx.newStorage) : undefined,
     }
     visited.set(tx, result)
 
