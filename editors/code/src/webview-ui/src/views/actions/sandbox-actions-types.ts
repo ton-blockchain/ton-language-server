@@ -142,6 +142,13 @@ export interface CompileAndDeployCommand {
   readonly storageType?: string
 }
 
+export interface RedeployByNameCommand {
+  readonly type: "redeployByName"
+  readonly contractName: string
+  readonly stateData: Base64String
+  readonly value: string
+}
+
 export interface RenameContractCommand {
   readonly type: "renameContract"
   readonly contractAddress: string
@@ -251,6 +258,7 @@ export type VSCodeCommand =
   | LoadAbiForDeployCommand
   | LoadContractInfoCommand
   | CompileAndDeployCommand
+  | RedeployByNameCommand
   | RenameContractCommand
   | DeleteContractCommand
   | RefreshContractsCommand

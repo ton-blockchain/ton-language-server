@@ -38,6 +38,7 @@ import {
     SendInternalMessageCommand,
     CallGetMethodCommand,
     CompileAndDeployCommand,
+    RedeployByNameCommand,
 } from "../../webview-ui/src/views/actions/sandbox-actions-types"
 
 import {HexString} from "../../common/hex-string"
@@ -59,6 +60,7 @@ import {
     callGetMethod,
     sendInternalMessage,
     sendExternalMessage,
+    redeployContract,
 } from "./methods"
 
 import {SandboxTreeProvider} from "./SandboxTreeProvider"
@@ -137,6 +139,10 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
                 }
                 case "compileAndDeploy": {
                     void this.handleCompileAndDeploy(command)
+                    break
+                }
+                case "redeployByName": {
+                    void this.handleRedeployByName(command)
                     break
                 }
                 case "renameContract": {
@@ -665,6 +671,24 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
             command.storageType,
         )
         this.showResult(result.success ? result.data : undefined, "compile-deploy-result")
+    }
+
+    private async handleRedeployByName(command: RedeployByNameCommand): Promise<void> {
+        const deployedContract = this.deployedContracts.find(c => c.name === command.contractName)
+        if (!deployedContract) {
+            void vscode.window.showErrorMessage(
+                `Contract with name "${command.contractName}" not found`,
+            )
+            return
+        }
+
+        await redeployContract(
+            deployedContract,
+            command.value,
+            this,
+            command.stateData,
+            this._treeProvider?.(),
+        )
     }
 
     public startSequentialDebugging(transactions: TransactionInfo[]): void {

@@ -70,6 +70,14 @@ export default function ActionsApp({vscode}: Props): JSX.Element {
                 storageType,
               })
             }}
+            onRedeployByName={(contractName, stateData, value) => {
+              vscode.postMessage({
+                type: "redeployByName",
+                contractName,
+                stateData,
+                value,
+              })
+            }}
             result={results["compile-deploy-result"]}
             contractAbi={contractAbi}
             deployState={deployState}

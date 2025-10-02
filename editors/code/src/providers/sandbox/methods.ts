@@ -910,8 +910,10 @@ export async function importTrace(trace: OperationTrace): Promise<ApiResponse> {
 
 export async function redeployContract(
     oldContract: DeployedContract,
-    treeProvider?: SandboxTreeProvider,
+    value: string,
     formProvider?: SandboxActionsProvider,
+    newStateData?: Base64String,
+    treeProvider?: SandboxTreeProvider,
 ): Promise<void> {
     try {
         const contractInfoResult = await loadContractInfo(oldContract.address)
@@ -960,6 +962,38 @@ export async function redeployContract(
 
         const newAbi = abiResult.abi
 
+        if (newStateData) {
+            void vscode.window.showInformationMessage("Starting redeploy with new storage data...")
+
+            const deleteResult = await deleteContract(oldContract.address)
+            if (!deleteResult.success) {
+                void vscode.window.showErrorMessage(
+                    `Failed to delete old contract: ${deleteResult.error}`,
+                )
+                return
+            }
+
+            if (treeProvider) {
+                treeProvider.removeContract(oldContract.address)
+                await treeProvider.loadContractsFromServer()
+            }
+
+            const deployResult = await compileAndDeployFromEditor(
+                oldContract.name,
+                newStateData,
+                treeProvider,
+                value,
+                newAbi.storage?.name,
+            )
+
+            if (deployResult.success) {
+                void vscode.window.showInformationMessage("Contract redeployed successfully!")
+            } else {
+                void vscode.window.showErrorMessage(`Redeploy failed: ${deployResult.error}`)
+            }
+            return
+        }
+
         if (JSON.stringify(newAbi.storage) !== JSON.stringify(oldContract.abi?.storage)) {
             if (formProvider) {
                 vscode.commands
@@ -993,7 +1027,7 @@ export async function redeployContract(
             oldContract.name,
             contractData,
             treeProvider,
-            "1",
+            value,
             newAbi.storage?.name,
         )
 

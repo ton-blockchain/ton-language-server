@@ -28,6 +28,7 @@ interface Props {
     contractName: string,
     storageType?: string,
   ) => void
+  readonly onRedeployByName: (contractName: string, stateData: Base64String, value: string) => void
   readonly result: ResultData | undefined
   readonly contractAbi?: ContractAbi
   readonly contracts: readonly DeployedContract[]
@@ -37,6 +38,7 @@ interface Props {
 
 export const CompileDeploy: React.FC<Props> = ({
   onCompileAndDeploy,
+  onRedeployByName,
   result,
   contractAbi,
   contracts,
@@ -55,6 +57,8 @@ export const CompileDeploy: React.FC<Props> = ({
     deployState && (!deployState.isValidFile || !deployState.hasRequiredFunctions)
   const defaultContractName = contractAbi?.name ?? "UnknownContract"
   const contractName = customContractName.trim() ? customContractName : defaultContractName
+
+  const existingContract = contracts.find(c => c.name === contractName)
 
   const storageTypes = useMemo(() => {
     if (!contractAbi?.types) return []
@@ -128,6 +132,19 @@ export const CompileDeploy: React.FC<Props> = ({
       const storageTypeToPass =
         !contractAbi?.storage && selectedStorageType ? selectedStorageType : undefined
       onCompileAndDeploy(createStateData(), value, contractName, storageTypeToPass)
+    } catch (error) {
+      const errorResult = {
+        success: false,
+        message: "Failed to prepare contract data",
+        details: error instanceof Error ? error.message : "Unknown error",
+      }
+      onResultUpdate?.(errorResult)
+    }
+  }
+
+  const handleRedeploy = (): void => {
+    try {
+      onRedeployByName(contractName, createStateData(), value)
     } catch (error) {
       const errorResult = {
         success: false,
@@ -240,8 +257,11 @@ export const CompileDeploy: React.FC<Props> = ({
             <OperationResultDisplay result={result} onClose={() => onResultUpdate?.(undefined)} />
           )}
 
-          <Button onClick={handleCompileAndDeploy} disabled={!isFormValid()}>
-            Compile & Deploy from Editor
+          <Button
+            onClick={existingContract ? handleRedeploy : handleCompileAndDeploy}
+            disabled={!isFormValid()}
+          >
+            {existingContract ? "Redeploy Contract" : "Compile & Deploy from Editor"}
           </Button>
         </>
       )}
