@@ -245,7 +245,6 @@ export async function compileAndDeployFromEditor(
                 data: {
                     success: true,
                     message,
-                    details: deployResult.data.address,
                 },
             }
         } else {

@@ -32,6 +32,10 @@ export class SandboxCodeLensProvider implements vscode.CodeLensProvider {
             return []
         }
 
+        if (this.treeProvider.getSandboxStatus() !== "connected") {
+            return []
+        }
+
         try {
             const abiResult: GetContractAbiResponse = await vscode.commands.executeCommand(
                 "tolk.getContractAbi",

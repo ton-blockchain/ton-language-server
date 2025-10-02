@@ -453,4 +453,8 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
     public getMessageTemplates(): readonly MessageTemplate[] {
         return [...this.messageTemplates]
     }
+
+    public getSandboxStatus(): "disconnected" | "connected" | "server-not-found" | "error" {
+        return this.sandboxStatus
+    }
 }
