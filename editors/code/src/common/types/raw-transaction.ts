@@ -37,7 +37,7 @@ export interface RawTransactionInfo {
     readonly code: string | undefined
     readonly sourceMap: SourceMap | undefined
     readonly contractName: string | undefined
-    readonly parentId: string
+    readonly parentId: string | undefined
     readonly childrenIds: string[]
 }
 
