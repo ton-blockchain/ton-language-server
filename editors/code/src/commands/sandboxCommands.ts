@@ -28,10 +28,6 @@ export function registerSandboxCommands(
         vscode.commands.registerCommand("ton.sandbox.refresh", () => {
             treeProvider.refresh()
         }),
-        vscode.commands.registerCommand("ton.sandbox.clearContracts", () => {
-            treeProvider.clearContracts()
-            void vscode.window.showInformationMessage("Deployed contracts cleared")
-        }),
         vscode.commands.registerCommand("ton.sandbox.openOperation", (operation: Operation) => {
             formProvider.openOperation(operation)
         }),
@@ -273,6 +269,102 @@ export function registerSandboxCommands(
             } catch (error) {
                 void vscode.window.showErrorMessage(
                     `Failed to copy contract ABI: ${error instanceof Error ? error.message : "Unknown error"}`,
+                )
+            }
+        }),
+        vscode.commands.registerCommand("ton.sandbox.installServer", () => {
+            try {
+                const terminal =
+                    vscode.window.terminals.find(t => t.name === "TON Sandbox Installation") ??
+                    vscode.window.createTerminal("TON Sandbox Installation")
+                terminal.show()
+
+                const command = "npm install -g ton-sandbox-server-dev"
+
+                terminal.sendText(command)
+
+                setTimeout(() => {
+                    treeProvider.refresh()
+                }, 2000)
+                setTimeout(() => {
+                    treeProvider.refresh()
+                }, 3000)
+                setTimeout(() => {
+                    treeProvider.refresh()
+                }, 5000)
+            } catch (error) {
+                void vscode.window.showErrorMessage(
+                    `Failed to start installation: ${error instanceof Error ? error.message : "Unknown error"}`,
+                )
+            }
+        }),
+        vscode.commands.registerCommand("ton.sandbox.startServer", () => {
+            try {
+                const terminal =
+                    vscode.window.terminals.find(t => t.name === "TON Sandbox Server") ??
+                    vscode.window.createTerminal({
+                        name: "TON Sandbox Server",
+                        isTransient: false,
+                        iconPath: new vscode.ThemeIcon("server"),
+                        hideFromUser: true,
+                    })
+
+                // terminal.sendText("LOG_LEVEL=TRACE ts-node ~/sandbox/src/daemon.ts")
+                terminal.sendText("ton-sandbox-server")
+
+                setTimeout(() => {
+                    treeProvider.refresh(true)
+                }, 2000)
+                setTimeout(() => {
+                    treeProvider.refresh(true)
+                }, 3000)
+                setTimeout(() => {
+                    treeProvider.refresh(true)
+                }, 5000)
+            } catch (error) {
+                void vscode.window.showErrorMessage(
+                    `Failed to start TON Sandbox server: ${error instanceof Error ? error.message : "Unknown error"}`,
+                )
+            }
+        }),
+        vscode.commands.registerCommand("ton.sandbox.stopServer", () => {
+            try {
+                const sandboxTerminal = vscode.window.terminals.find(
+                    t => t.name === "TON Sandbox Server",
+                )
+
+                if (!sandboxTerminal) {
+                    return
+                }
+
+                sandboxTerminal.sendText("\u0003")
+
+                void vscode.window.showInformationMessage("Stopping TON Sandbox server...")
+
+                setTimeout(() => {
+                    treeProvider.refresh()
+                }, 1000)
+                setTimeout(() => {
+                    treeProvider.refresh()
+                }, 2000)
+            } catch (error) {
+                void vscode.window.showErrorMessage(
+                    `Failed to stop TON Sandbox server: ${error instanceof Error ? error.message : "Unknown error"}`,
+                )
+            }
+        }),
+        vscode.commands.registerCommand("ton.sandbox.openTerminal", () => {
+            try {
+                const terminal = vscode.window.terminals.find(t => t.name === "TON Sandbox Server")
+                if (!terminal) {
+                    void vscode.window.showInformationMessage("TON Sandbox server is not running")
+                    return
+                }
+
+                terminal.show()
+            } catch (error) {
+                void vscode.window.showErrorMessage(
+                    `Failed to open sandbox terminal: ${error instanceof Error ? error.message : "Unknown error"}`,
                 )
             }
         }),

@@ -319,12 +319,6 @@
                 "icon": "$(refresh)"
             },
             {
-                "command": "ton.sandbox.clearContracts",
-                "title": "Clear All Contracts",
-                "category": "TON",
-                "icon": "$(trash)"
-            },
-            {
                 "command": "ton.sandbox.states.refresh",
                 "title": "Refresh History",
                 "category": "TON",
@@ -430,7 +424,25 @@
                 "command": "ton.sandbox.installServer",
                 "title": "Install TON Sandbox Server",
                 "category": "TON",
-                "icon": "$(cloud-download)"
+                "icon": "$(arrow-down)"
+            },
+            {
+                "command": "ton.sandbox.startServer",
+                "title": "Start TON Sandbox Server",
+                "category": "TON",
+                "icon": "$(debug-start)"
+            },
+            {
+                "command": "ton.sandbox.stopServer",
+                "title": "Stop TON Sandbox Server",
+                "category": "TON",
+                "icon": "$(debug-stop)"
+            },
+            {
+                "command": "ton.sandbox.openTerminal",
+                "title": "Open Sandbox Terminal",
+                "category": "TON",
+                "icon": "$(terminal)"
             }
         ],
         "views": {
@@ -454,12 +466,6 @@
                 }
             ]
         },
-        "viewsWelcome": [
-            {
-                "view": "tonSandbox",
-                "contents": "To get started with TON Sandbox, you need to install the sandbox server:\n\n[Install TON Sandbox Server](command:ton.sandbox.installServer)\n\nAfter installation completes, click Refresh Status to check if the server is available:\n\n[Refresh Status](command:ton.sandbox.refresh)\n\nOnce installed and connected, you can deploy contracts, send messages, and interact with the TON blockchain in a local environment.\n\n[Learn more about TON Sandbox](https://docs.ton.org/develop/smart-contracts/sdk/sandbox)"
-            }
-        ],
         "viewsContainers": {
             "activitybar": [
                 {
@@ -502,11 +508,6 @@
                     "group": "navigation"
                 },
                 {
-                    "command": "ton.sandbox.clearContracts",
-                    "when": "view == tonSandbox",
-                    "group": "navigation"
-                },
-                {
                     "command": "ton.sandbox.states.refresh",
                     "when": "view == tonSandboxHistory",
                     "group": "navigation"
@@ -524,6 +525,21 @@
                 {
                     "command": "ton.sandbox.states.resetState",
                     "when": "view == tonSandboxHistory",
+                    "group": "navigation"
+                },
+                {
+                    "command": "ton.sandbox.startServer",
+                    "when": "view == tonSandbox",
+                    "group": "navigation"
+                },
+                {
+                    "command": "ton.sandbox.stopServer",
+                    "when": "view == tonSandbox",
+                    "group": "navigation"
+                },
+                {
+                    "command": "ton.sandbox.openTerminal",
+                    "when": "view == tonSandbox",
                     "group": "navigation"
                 }
             ],

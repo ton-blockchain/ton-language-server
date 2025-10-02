@@ -1,5 +1,7 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Studio
+import * as child_process from "node:child_process"
+
 import * as vscode from "vscode"
 
 import {SourceMap} from "ton-source-map"
@@ -31,7 +33,8 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
         this._onDidChangeTreeData.event
 
     private deployedContracts: DeployedContract[] = []
-    private sandboxStatus: "disconnected" | "connected" | "error" = "disconnected"
+    private sandboxStatus: "disconnected" | "connected" | "server-not-found" | "error" =
+        "disconnected"
     private messageTemplates: MessageTemplate[] = []
     private formProvider?: SandboxActionsProvider
     private codeLensProvider?: SandboxCodeLensProvider
@@ -49,9 +52,9 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
         this.codeLensProvider = codeLensProvider
     }
 
-    public refresh(): void {
+    public refresh(loadContracts: boolean = false): void {
         this._onDidChangeTreeData.fire(undefined)
-        void this.checkSandboxStatus(false)
+        void this.checkSandboxStatus(loadContracts)
     }
 
     public getTreeItem(element: SandboxTreeItem): vscode.TreeItem {
@@ -87,16 +90,34 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
 
     private getRootItems(): SandboxTreeItem[] {
         const items: SandboxTreeItem[] = []
+        const isServerAvailable = this.isSandboxServerAvailable()
+
+        items.push({
+            id: "status",
+            label: "Sandbox Status",
+            description: this.getStatusDescription(),
+            iconPath: this.getStatusIcon(),
+            contextValue: "sandbox-status",
+            collapsibleState: vscode.TreeItemCollapsibleState.None,
+        })
+
+        if (!isServerAvailable) {
+            items.push({
+                id: "install-server",
+                label: "Install TON Sandbox Server",
+                description: "Click to install via NPM",
+                iconPath: new vscode.ThemeIcon("cloud-download"),
+                contextValue: "install-server",
+                collapsibleState: vscode.TreeItemCollapsibleState.None,
+                command: {
+                    command: "ton.sandbox.installServer",
+                    title: "Install TON Sandbox Server",
+                },
+            })
+            return items
+        }
 
         items.push(
-            {
-                id: "status",
-                label: "Sandbox Status",
-                description: this.getStatusDescription(),
-                iconPath: this.getStatusIcon(),
-                contextValue: "sandbox-status",
-                collapsibleState: vscode.TreeItemCollapsibleState.None,
-            },
             {
                 id: "contracts",
                 label: "Deployed Contracts",
@@ -123,6 +144,19 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
         )
 
         return items
+    }
+
+    private isSandboxServerAvailable(): boolean {
+        try {
+            const command = process.platform === "win32" ? "where" : "which"
+            const result = child_process.spawnSync(command, ["ton-sandbox-server"], {
+                stdio: "pipe",
+                encoding: "utf8",
+            })
+            return result.status === 0
+        } catch {
+            return false
+        }
     }
 
     private getContractItems(): SandboxTreeItem[] {
@@ -226,6 +260,9 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
             case "error": {
                 return "Connection Error"
             }
+            case "server-not-found": {
+                return "Need to start sandbox-server"
+            }
             case "disconnected": {
                 return "Disconnected"
             }
@@ -243,6 +280,12 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
             case "error": {
                 return new vscode.ThemeIcon("error", new vscode.ThemeColor("testing.iconFailed"))
             }
+            case "server-not-found": {
+                return new vscode.ThemeIcon(
+                    "circle-outline",
+                    new vscode.ThemeColor("testing.iconQueued"),
+                )
+            }
             case "disconnected": {
                 return new vscode.ThemeIcon(
                     "circle-outline",
@@ -259,10 +302,23 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
     }
 
     private async checkSandboxStatus(loadContracts: boolean): Promise<void> {
+        if (!this.isSandboxServerAvailable()) {
+            this.sandboxStatus = "server-not-found"
+            this._onDidChangeTreeData.fire(undefined)
+            this.codeLensProvider?.refresh()
+            return
+        }
+
         try {
             const result = await checkSandboxStatus()
 
-            this.sandboxStatus = result.success ? "connected" : "error"
+            console.log(result)
+
+            this.sandboxStatus = result.success
+                ? "connected"
+                : result.error === "fetch failed"
+                  ? "server-not-found"
+                  : "error"
 
             if (this.sandboxStatus === "connected" && loadContracts) {
                 await this.loadContractsFromServer()
@@ -271,6 +327,7 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
         } catch {
             this.sandboxStatus = "disconnected"
         }
+        this._onDidChangeTreeData.fire(undefined)
 
         this.codeLensProvider?.refresh()
     }
@@ -356,13 +413,6 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
 
     public removeContract(address: string): void {
         this.deployedContracts = this.deployedContracts.filter(c => c.address !== address)
-        this.refresh()
-        this.updateFormContracts()
-        this.codeLensProvider?.refresh()
-    }
-
-    public clearContracts(): void {
-        this.deployedContracts = []
         this.refresh()
         this.updateFormContracts()
         this.codeLensProvider?.refresh()
