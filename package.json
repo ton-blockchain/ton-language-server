@@ -331,14 +331,14 @@
                 "icon": "$(refresh)"
             },
             {
-                "command": "ton.sandbox.states.exportTrace",
-                "title": "Export Trace",
+                "command": "ton.sandbox.states.importTrace",
+                "title": "Import Trace",
                 "category": "TON",
                 "icon": "$(arrow-down)"
             },
             {
-                "command": "ton.sandbox.states.importTrace",
-                "title": "Import Trace",
+                "command": "ton.sandbox.states.exportTrace",
+                "title": "Export Trace",
                 "category": "TON",
                 "icon": "$(arrow-up)"
             },
