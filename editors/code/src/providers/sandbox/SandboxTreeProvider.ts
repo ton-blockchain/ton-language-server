@@ -255,7 +255,9 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
     private getStatusDescription(): string {
         switch (this.sandboxStatus) {
             case "connected": {
-                return "Connected"
+                const config = vscode.workspace.getConfiguration("ton")
+                const port = config.get<number>("sandbox.port", 3000)
+                return `Connected to port ${port}`
             }
             case "error": {
                 return "Connection Error"

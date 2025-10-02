@@ -772,15 +772,15 @@
             {
                 "title": "Sandbox",
                 "properties": {
-                    "ton.sandbox.url": {
-                        "type": "string",
-                        "default": "http://localhost:3000",
-                        "description": "URL of the TON Sandbox API server"
+                    "ton.sandbox.port": {
+                        "type": "number",
+                        "default": 3000,
+                        "description": "Port for the TON Sandbox server"
                     },
-                    "ton.sandbox.autoStart": {
-                        "type": "boolean",
-                        "default": false,
-                        "description": "Automatically start sandbox server when opening workspace"
+                    "ton.sandbox.binaryPath": {
+                        "type": "string",
+                        "default": "ton-sandbox-server",
+                        "description": "Path to the TON Sandbox server binary"
                     }
                 }
             }

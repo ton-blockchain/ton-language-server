@@ -32,6 +32,12 @@ import {TolkCompilerProvider} from "./TolkCompilerProvider"
 import {SandboxTreeProvider} from "./SandboxTreeProvider"
 import {SandboxActionsProvider} from "./SandboxActionsProvider"
 
+function getSandboxUrl(): string {
+    const config = vscode.workspace.getConfiguration("ton")
+    const port = config.get<number>("sandbox.port", 3000)
+    return `http://localhost:${port}`
+}
+
 export interface OperationNode {
     readonly id: string
     readonly type: "deploy" | "send-internal" | "send-external"
@@ -123,8 +129,7 @@ export async function loadAndValidateAbiForDeploy(): Promise<ApiResponse<DeployV
 
 export async function loadContractInfo(address: string): Promise<ApiResponse<ContractInfoData>> {
     try {
-        const config = vscode.workspace.getConfiguration("ton")
-        const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
+        const sandboxUrl = getSandboxUrl()
 
         const response = await fetch(`${sandboxUrl}/info`, {
             method: "POST",
@@ -273,8 +278,7 @@ async function deployContract(
     abi: ContractAbi | undefined,
 ): Promise<ApiResponse<DeployContractData>> {
     try {
-        const config = vscode.workspace.getConfiguration("ton")
-        const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
+        const sandboxUrl = getSandboxUrl()
 
         const response = await fetch(`${sandboxUrl}/deploy`, {
             method: "POST",
@@ -306,8 +310,7 @@ export async function loadLatestOperationResult(): Promise<
     ApiResponse<LoadLatestOperationResultData>
 > {
     try {
-        const config = vscode.workspace.getConfiguration("ton")
-        const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
+        const sandboxUrl = getSandboxUrl()
 
         const response = await fetch(`${sandboxUrl}/operations/latest/result`, {
             method: "GET",
@@ -399,8 +402,7 @@ export async function sendExternalMessage(
     address: string,
     message: string,
 ): Promise<ApiResponse<SendMessageData>> {
-    const config = vscode.workspace.getConfiguration("ton")
-    const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
+    const sandboxUrl = getSandboxUrl()
 
     const response = await fetch(`${sandboxUrl}/send-external`, {
         method: "POST",
@@ -422,8 +424,7 @@ export async function sendInternalMessage(
     sendMode: number,
     value: string,
 ): Promise<ApiResponse<SendMessageData>> {
-    const config = vscode.workspace.getConfiguration("ton")
-    const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
+    const sandboxUrl = getSandboxUrl()
 
     const response = await fetch(`${sandboxUrl}/send-internal`, {
         method: "POST",
@@ -456,8 +457,7 @@ export async function callGetMethod(
     methodId: number,
     parametersBase64: string,
 ): Promise<ApiResponse<CallGetMethodData>> {
-    const config = vscode.workspace.getConfiguration("ton")
-    const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
+    const sandboxUrl = getSandboxUrl()
 
     const response = await fetch(`${sandboxUrl}/get`, {
         method: "POST",
@@ -549,8 +549,7 @@ export interface MessageTemplateData {
 export async function createMessageTemplate(
     templateData: MessageTemplateData,
 ): Promise<ApiResponse<CreateMessageTemplateData>> {
-    const config = vscode.workspace.getConfiguration("ton")
-    const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
+    const sandboxUrl = getSandboxUrl()
 
     const response = await fetch(`${sandboxUrl}/message-templates`, {
         method: "POST",
@@ -581,8 +580,7 @@ export async function createMessageTemplate(
 }
 
 export async function getMessageTemplates(): Promise<ApiResponse<GetMessageTemplatesData>> {
-    const config = vscode.workspace.getConfiguration("ton")
-    const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
+    const sandboxUrl = getSandboxUrl()
 
     const response = await fetch(`${sandboxUrl}/message-templates`, {
         method: "GET",
@@ -602,8 +600,7 @@ export async function getMessageTemplates(): Promise<ApiResponse<GetMessageTempl
 }
 
 export async function deleteMessageTemplate(id: string): Promise<ApiResponse> {
-    const config = vscode.workspace.getConfiguration("ton")
-    const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
+    const sandboxUrl = getSandboxUrl()
 
     const response = await fetch(`${sandboxUrl}/message-templates/${id}`, {
         method: "DELETE",
@@ -626,8 +623,7 @@ export async function deleteMessageTemplate(id: string): Promise<ApiResponse> {
 }
 
 export async function renameContract(address: string, newName: string): Promise<ApiResponse> {
-    const config = vscode.workspace.getConfiguration("ton")
-    const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
+    const sandboxUrl = getSandboxUrl()
 
     const response = await fetch(`${sandboxUrl}/rename-contract`, {
         method: "POST",
@@ -643,8 +639,7 @@ export async function renameContract(address: string, newName: string): Promise<
 }
 
 export async function getContracts(): Promise<ApiResponse<GetContractsData>> {
-    const config = vscode.workspace.getConfiguration("ton")
-    const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
+    const sandboxUrl = getSandboxUrl()
 
     const response = await fetch(`${sandboxUrl}/contracts`, {
         method: "GET",
@@ -664,8 +659,7 @@ export async function getContracts(): Promise<ApiResponse<GetContractsData>> {
 }
 
 export async function deleteContract(address: string): Promise<ApiResponse> {
-    const config = vscode.workspace.getConfiguration("ton")
-    const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
+    const sandboxUrl = getSandboxUrl()
 
     const response = await fetch(`${sandboxUrl}/contracts/${address}`, {
         method: "DELETE",
@@ -730,8 +724,7 @@ export async function callGetMethodDirectly(
 
 export async function getOperations(): Promise<ApiResponse<GetOperationsData>> {
     try {
-        const config = vscode.workspace.getConfiguration("ton")
-        const serverUrl = config.get<string>("sandboxServerUrl") ?? "http://localhost:3000"
+        const serverUrl = getSandboxUrl()
 
         const response = await fetch(`${serverUrl}/operations`, {
             method: "GET",
@@ -766,8 +759,7 @@ export async function getOperations(): Promise<ApiResponse<GetOperationsData>> {
 
 export async function restoreBlockchainState(eventId: string): Promise<ApiResponse> {
     try {
-        const config = vscode.workspace.getConfiguration("ton")
-        const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
+        const sandboxUrl = getSandboxUrl()
 
         const response = await fetch(`${sandboxUrl}/restore-state`, {
             method: "POST",
@@ -798,8 +790,7 @@ export async function checkSandboxStatus(): Promise<{
     error?: string
 }> {
     try {
-        const config = vscode.workspace.getConfiguration("ton")
-        const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
+        const sandboxUrl = getSandboxUrl()
 
         const response = await fetch(`${sandboxUrl}/health`, {
             method: "GET",
@@ -861,8 +852,7 @@ export interface RenameContractRequest {
 
 export async function exportTrace(): Promise<ApiResponse<OperationTrace>> {
     try {
-        const config = vscode.workspace.getConfiguration("ton")
-        const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
+        const sandboxUrl = getSandboxUrl()
 
         const response = await fetch(`${sandboxUrl}/export-trace`, {
             method: "GET",
@@ -883,8 +873,7 @@ export async function exportTrace(): Promise<ApiResponse<OperationTrace>> {
 
 export async function importTrace(trace: OperationTrace): Promise<ApiResponse> {
     try {
-        const config = vscode.workspace.getConfiguration("ton")
-        const sandboxUrl = config.get<string>("sandbox.url", "http://localhost:3000")
+        const sandboxUrl = getSandboxUrl()
 
         const response = await fetch(`${sandboxUrl}/import-trace`, {
             method: "POST",

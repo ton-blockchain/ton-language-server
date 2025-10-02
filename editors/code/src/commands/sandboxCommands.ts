@@ -300,6 +300,10 @@ export function registerSandboxCommands(
         }),
         vscode.commands.registerCommand("ton.sandbox.startServer", () => {
             try {
+                const config = vscode.workspace.getConfiguration("ton")
+                const binaryPath = config.get<string>("sandbox.binaryPath", "ton-sandbox-server")
+                const port = config.get<number>("sandbox.port", 3000)
+
                 const terminal =
                     vscode.window.terminals.find(t => t.name === "TON Sandbox Server") ??
                     vscode.window.createTerminal({
@@ -310,7 +314,7 @@ export function registerSandboxCommands(
                     })
 
                 // terminal.sendText("LOG_LEVEL=TRACE ts-node ~/sandbox/src/daemon.ts")
-                terminal.sendText("ton-sandbox-server")
+                terminal.sendText(`${binaryPath} --port ${port}`)
 
                 setTimeout(() => {
                     treeProvider.refresh(true)
