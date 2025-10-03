@@ -106,7 +106,7 @@ export function registerSandboxCommands(
         vscode.commands.registerCommand(
             "ton.sandbox.redeployContract",
             async (contract: DeployedContract) => {
-                await redeployContract(contract, "1", formProvider, undefined, treeProvider)
+                await redeployContract(treeProvider, contract, "1", formProvider, undefined)
             },
         ),
         vscode.commands.registerCommand("ton.sandbox.history.refresh", () => {

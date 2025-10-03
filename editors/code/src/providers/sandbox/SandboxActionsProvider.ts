@@ -86,15 +86,13 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
     private isSequentialDebugRunning: boolean = false
 
     public constructor(
-        private readonly _extensionUri: vscode.Uri,
-        private readonly _treeProvider?: () => SandboxTreeProvider,
-        private readonly _statesProvider?: () => HistoryWebviewProvider,
+        private readonly extensionUri: vscode.Uri,
+        private readonly treeProvider: SandboxTreeProvider,
+        private readonly statesProvider: HistoryWebviewProvider,
     ) {}
 
     private refreshStates(): void {
-        if (this._statesProvider) {
-            void this._statesProvider().handleLoadOperations()
-        }
+        void this.statesProvider.handleLoadOperations()
     }
 
     public resolveWebviewView(
@@ -106,7 +104,7 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
 
         webviewView.webview.options = {
             enableScripts: true,
-            localResourceRoots: [this._extensionUri],
+            localResourceRoots: [this.extensionUri],
         }
 
         webviewView.webview.html = this.getHtmlForWebview(webviewView.webview)
@@ -626,9 +624,7 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
                     this.deployedContracts[contractIndex].name = newName.trim()
                 }
 
-                if (this._treeProvider) {
-                    void this._treeProvider().loadContractsFromServer()
-                }
+                void this.treeProvider.loadContractsFromServer()
 
                 vscode.commands.executeCommand("ton.sandbox.history.refresh")
 
@@ -676,7 +672,7 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
         const result = await compileAndDeployFromEditor(
             command.name,
             command.stateData,
-            this._treeProvider?.(),
+            this.treeProvider,
             command.value,
             command.storageType,
         )
@@ -693,11 +689,11 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
         }
 
         await redeployContract(
+            this.treeProvider,
             deployedContract,
             command.value,
             this,
             command.stateData,
-            this._treeProvider?.(),
         )
     }
 
@@ -897,10 +893,10 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
 
     private getHtmlForWebview(webview: vscode.Webview): string {
         const scriptUri = webview.asWebviewUri(
-            vscode.Uri.joinPath(this._extensionUri, "dist", "webview-ui", "actions.js"),
+            vscode.Uri.joinPath(this.extensionUri, "dist", "webview-ui", "actions.js"),
         )
         const styleUri = webview.asWebviewUri(
-            vscode.Uri.joinPath(this._extensionUri, "dist", "webview-ui", "actions.css"),
+            vscode.Uri.joinPath(this.extensionUri, "dist", "webview-ui", "actions.css"),
         )
 
         return `<!DOCTYPE html>
@@ -1048,7 +1044,7 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
                 }
                 void this.view.webview.postMessage(message)
 
-                this._treeProvider?.().addMessageTemplate(result.data.template)
+                this.treeProvider.addMessageTemplate(result.data.template)
 
                 void vscode.window.showInformationMessage(
                     `Template "${templateName}" saved successfully`,

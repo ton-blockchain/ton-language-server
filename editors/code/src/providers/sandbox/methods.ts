@@ -155,7 +155,7 @@ export async function loadContractInfo(address: string): Promise<ApiResponse<Con
 export async function compileAndDeployFromEditor(
     name: string,
     stateData: Base64String,
-    treeProvider: SandboxTreeProvider | undefined,
+    treeProvider: SandboxTreeProvider,
     value: string,
     storageType?: string,
 ): Promise<ApiResponse<ResultData>> {
@@ -229,9 +229,9 @@ export async function compileAndDeployFromEditor(
         )
 
         if (deployResult.success) {
-            const isRedeploy = treeProvider?.isContractDeployed(deployResult.data.address) ?? false
+            const isRedeploy = treeProvider.isContractDeployed(deployResult.data.address)
 
-            treeProvider?.addDeployedContract(
+            treeProvider.addDeployedContract(
                 deployResult.data.address,
                 name,
                 contractAbi,
@@ -897,11 +897,11 @@ export async function importTrace(trace: OperationTrace): Promise<ApiResponse> {
 }
 
 export async function redeployContract(
+    treeProvider: SandboxTreeProvider,
     oldContract: DeployedContract,
     value: string,
     formProvider?: SandboxActionsProvider,
     newStateData?: Base64String,
-    treeProvider?: SandboxTreeProvider,
 ): Promise<void> {
     try {
         const contractInfoResult = await loadContractInfo(oldContract.address)
@@ -961,10 +961,8 @@ export async function redeployContract(
                 return
             }
 
-            if (treeProvider) {
-                treeProvider.removeContract(oldContract.address)
-                await treeProvider.loadContractsFromServer()
-            }
+            treeProvider.removeContract(oldContract.address)
+            await treeProvider.loadContractsFromServer()
 
             const deployResult = await compileAndDeployFromEditor(
                 oldContract.name,
@@ -1006,10 +1004,8 @@ export async function redeployContract(
             return
         }
 
-        if (treeProvider) {
-            treeProvider.removeContract(oldContract.address)
-            await treeProvider.loadContractsFromServer()
-        }
+        treeProvider.removeContract(oldContract.address)
+        await treeProvider.loadContractsFromServer()
 
         const deployResult = await compileAndDeployFromEditor(
             oldContract.name,

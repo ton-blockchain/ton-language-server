@@ -65,26 +65,26 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         }),
     )
 
-    const sandboxActionsProvider = new SandboxActionsProvider(
-        context.extensionUri,
-        () => sandboxTreeProvider,
-        () => historyWebviewProvider,
-    )
-    context.subscriptions.push(
-        vscode.window.registerWebviewViewProvider(
-            SandboxActionsProvider.viewType,
-            sandboxActionsProvider,
-        ),
-    )
-
     const historyWebviewProvider = new HistoryWebviewProvider(
         context.extensionUri,
-        () => sandboxTreeProvider,
+        sandboxTreeProvider,
     )
     context.subscriptions.push(
         vscode.window.registerWebviewViewProvider(
             HistoryWebviewProvider.viewType,
             historyWebviewProvider,
+        ),
+    )
+
+    const sandboxActionsProvider = new SandboxActionsProvider(
+        context.extensionUri,
+        sandboxTreeProvider,
+        historyWebviewProvider,
+    )
+    context.subscriptions.push(
+        vscode.window.registerWebviewViewProvider(
+            SandboxActionsProvider.viewType,
+            sandboxActionsProvider,
         ),
     )
 

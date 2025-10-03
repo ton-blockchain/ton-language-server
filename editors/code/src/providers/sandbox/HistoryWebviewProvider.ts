@@ -29,7 +29,7 @@ export class HistoryWebviewProvider implements vscode.WebviewViewProvider {
 
     public constructor(
         private readonly _extensionUri: vscode.Uri,
-        private readonly _treeProvider?: () => SandboxTreeProvider,
+        private readonly _treeProvider: SandboxTreeProvider,
     ) {}
 
     public resolveWebviewView(
@@ -137,10 +137,8 @@ export class HistoryWebviewProvider implements vscode.WebviewViewProvider {
     }
 
     private async refreshTreeContracts(): Promise<void> {
-        if (this._treeProvider) {
-            this._treeProvider().refresh()
-            await this._treeProvider().loadContractsFromServer()
-        }
+        this._treeProvider.refresh()
+        await this._treeProvider.loadContractsFromServer()
     }
 
     private parseMaybeTransactions(data: string): RawTransactions | undefined {
