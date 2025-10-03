@@ -52,6 +52,20 @@ export function registerSandboxCommands(
             },
         ),
         vscode.commands.registerCommand(
+            "ton.sandbox.copyContractAddressFromTree",
+            async (treeItem: vscode.TreeItem) => {
+                const contractAddress = treeItem.id?.replace("contract-", "")
+                if (!contractAddress) {
+                    return
+                }
+
+                await vscode.env.clipboard.writeText(contractAddress)
+                void vscode.window.showInformationMessage(
+                    `Contract address copied: ${contractAddress}`,
+                )
+            },
+        ),
+        vscode.commands.registerCommand(
             "ton.sandbox.openContractSendMessage",
             (address: string) => {
                 vscode.commands

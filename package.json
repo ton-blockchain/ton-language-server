@@ -349,6 +349,12 @@
                 "icon": "$(copy)"
             },
             {
+                "command": "ton.sandbox.copyContractAddressFromTree",
+                "title": "Copy Address",
+                "category": "TON",
+                "icon": "$(copy)"
+            },
+            {
                 "command": "ton.sandbox.installServer",
                 "title": "Install TON Sandbox Server",
                 "category": "TON",
@@ -421,6 +427,10 @@
                 {
                     "command": "ton.sandbox.deleteMessageTemplate",
                     "when": "false"
+                },
+                {
+                    "command": "ton.sandbox.copyContractAddressFromTree",
+                    "when": "false"
                 }
             ],
             "explorer/context": [
@@ -481,6 +491,11 @@
                 {
                     "command": "ton.sandbox.deleteMessageTemplate",
                     "when": "view == tonSandbox && viewItem == message-template",
+                    "group": "inline"
+                },
+                {
+                    "command": "ton.sandbox.copyContractAddressFromTree",
+                    "when": "view == tonSandbox && viewItem == deployed-contract",
                     "group": "inline"
                 }
             ]
