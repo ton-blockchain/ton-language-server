@@ -32,7 +32,7 @@ interface Props {
   readonly result: ResultData | undefined
   readonly contractAbi?: ContractAbi
   readonly contracts: readonly DeployedContract[]
-  readonly deployState?: DeployState | null
+  readonly deployState?: DeployState | undefined
   readonly onResultUpdate?: (result: ResultData | undefined) => void
 }
 
@@ -155,7 +155,7 @@ export const CompileDeploy: React.FC<Props> = ({
     }
   }
 
-  const getErrorTitle = (deployState?: DeployState | null): string => {
+  const getErrorTitle = (deployState: DeployState | undefined): string => {
     if (!deployState) return "Unknown validation error"
     if (!deployState.isValidFile) return "Invalid file type"
     if (!deployState.hasRequiredFunctions) return "Missing required functions"

@@ -42,10 +42,10 @@ export function getInstallCommand(packageManager: PackageManager, packageName: s
     throw new Error(`Unsupported package manager`)
 }
 
-export async function getLocalBinaryPath(binaryName: string): Promise<string | null> {
+export async function getLocalBinaryPath(binaryName: string): Promise<string | undefined> {
     const workspaceFolder = vscode.workspace.workspaceFolders?.[0]
     if (!workspaceFolder) {
-        return null
+        return undefined
     }
 
     try {
@@ -58,6 +58,6 @@ export async function getLocalBinaryPath(binaryName: string): Promise<string | n
         await vscode.workspace.fs.stat(nodeModulesPath)
         return nodeModulesPath.fsPath
     } catch {
-        return null
+        return undefined
     }
 }

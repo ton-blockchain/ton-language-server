@@ -162,9 +162,11 @@ export function TransactionTree({
     calculateOptimalPosition,
   } = useTooltip()
 
-  const [selectedTransaction, setSelectedTransaction] = useState<TransactionInfo | null>(null)
-  const [selectedContract, setSelectedContract] = useState<ContractData | null>(null)
-  const triggerRectRef = useRef<DOMRect | null>(null)
+  const [selectedTransaction, setSelectedTransaction] = useState<TransactionInfo | undefined>(
+    undefined,
+  )
+  const [selectedContract, setSelectedContract] = useState<ContractData | undefined>(undefined)
+  const triggerRectRef = useRef<DOMRect | undefined>(undefined)
 
   const contractsMap: Map<string, ContractData> = useMemo(
     () => new Map(contracts.map(it => [it.address.toString(), it])),
@@ -218,11 +220,11 @@ export function TransactionTree({
     forceHideTooltip()
 
     if (selectedTransaction?.transaction.lt.toString() === lt) {
-      setSelectedTransaction(null)
-      setSelectedContract(null)
+      setSelectedTransaction(undefined)
+      setSelectedContract(undefined)
     } else {
       setSelectedTransaction(transaction)
-      setSelectedContract(null)
+      setSelectedContract(undefined)
     }
   }
 
@@ -231,7 +233,7 @@ export function TransactionTree({
     if (!contract) return
 
     if (selectedContract?.address.toString() === contractAddress) {
-      setSelectedContract(null)
+      setSelectedContract(undefined)
     } else {
       setSelectedContract(contract)
     }
@@ -610,7 +612,7 @@ export function TransactionTree({
 
   useEffect(() => {
     // deselect transaction if we select other transaction details
-    setSelectedTransaction(null)
+    setSelectedTransaction(undefined)
   }, [transactions])
 
   return (

@@ -46,8 +46,8 @@ import {SandboxCodeLensProvider} from "./providers/sandbox/SandboxCodeLensProvid
 
 import {configureDebugging} from "./debugging"
 
-let client: LanguageClient | null = null
-let cachedToolchainInfo: SetToolchainVersionParams | null = null
+let client: LanguageClient | undefined = undefined
+let cachedToolchainInfo: SetToolchainVersionParams | undefined = undefined
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
     await checkConflictingExtensions()

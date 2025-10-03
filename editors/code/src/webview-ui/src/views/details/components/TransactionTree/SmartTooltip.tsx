@@ -83,7 +83,7 @@ export function SmartTooltip({
   const bridgeRef = useRef<HTMLDivElement>(null)
   const [position, setPosition] = useState<TooltipPosition>({x: 0, y: 0, placement: "right"})
   const [isVisible, setIsVisible] = useState(false)
-  const [bridgeRect, setBridgeRect] = useState<DOMRect | null>(null)
+  const [bridgeRect, setBridgeRect] = useState<DOMRect | undefined>(undefined)
 
   useEffect(() => {
     if (!tooltipRef.current) return

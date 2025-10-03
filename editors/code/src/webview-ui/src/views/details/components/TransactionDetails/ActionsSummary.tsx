@@ -271,7 +271,7 @@ export function ActionsSummary({
   contractAddress,
   onContractClick,
 }: ActionsSummaryProps): React.JSX.Element {
-  const [selectedActionIndex, setSelectedActionIndex] = useState<number | null>(null)
+  const [selectedActionIndex, setSelectedActionIndex] = useState<number | undefined>(undefined)
 
   if (actions.length === 0) {
     return (
@@ -312,12 +312,12 @@ export function ActionsSummary({
                 key={index}
                 className={`${styles.actionCard} ${isSelected ? styles.actionCardSelected : ""}`}
                 onClick={() => {
-                  setSelectedActionIndex(isSelected ? null : index)
+                  setSelectedActionIndex(isSelected ? undefined : index)
                 }}
                 onKeyDown={e => {
                   if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault()
-                    setSelectedActionIndex(isSelected ? null : index)
+                    setSelectedActionIndex(isSelected ? undefined : index)
                   }
                 }}
                 role="button"
@@ -339,7 +339,7 @@ export function ActionsSummary({
         </div>
       </div>
 
-      {selectedActionIndex !== null && (
+      {selectedActionIndex !== undefined && selectedActionIndex < actions.length && (
         <div className={styles.detailsContainer}>
           {renderActionDetails(
             actions[selectedActionIndex],

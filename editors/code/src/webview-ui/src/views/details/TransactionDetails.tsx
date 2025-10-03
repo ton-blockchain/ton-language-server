@@ -33,8 +33,8 @@ interface Props {
 }
 
 export default function TransactionDetails({vscode}: Props): JSX.Element {
-  const [transaction, setTransaction] = useState<TransactionDetailsInfo | null>(null)
-  const [transactions, setTransactions] = useState<TransactionInfo[] | null>(null)
+  const [transaction, setTransaction] = useState<TransactionDetailsInfo | undefined>(undefined)
+  const [transactions, setTransactions] = useState<TransactionInfo[] | undefined>(undefined)
 
   const parsedAccount = useMemo(() => {
     if (!transaction?.account) return null

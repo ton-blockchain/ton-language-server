@@ -15,7 +15,7 @@ export interface TooltipData {
 }
 
 interface UseTooltipReturn {
-  readonly tooltip: TooltipData | null
+  readonly tooltip: TooltipData | undefined
   readonly showTooltip: (data: Omit<TooltipData, "id">) => void
   readonly hideTooltip: (force?: boolean) => void
   readonly forceHideTooltip: () => void
@@ -29,15 +29,15 @@ interface UseTooltipReturn {
 }
 
 export function useTooltip(): UseTooltipReturn {
-  const [tooltip, setTooltip] = useState<TooltipData | null>(null)
+  const [tooltip, setTooltip] = useState<TooltipData | undefined>(undefined)
   const [isTooltipHovered, setIsTooltipHovered] = useState(false)
-  const hideTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const hideTimeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
   const tooltipIdRef = useRef(0)
 
   const clearHideTimeout = useCallback(() => {
     if (hideTimeoutRef.current) {
       clearTimeout(hideTimeoutRef.current)
-      hideTimeoutRef.current = null
+      hideTimeoutRef.current = undefined
     }
   }, [])
 
@@ -148,7 +148,7 @@ export function useTooltip(): UseTooltipReturn {
 
       clearHideTimeout()
       hideTimeoutRef.current = setTimeout(() => {
-        setTooltip(null)
+        setTooltip(undefined)
         setIsTooltipHovered(false)
       }, 0)
     },
@@ -157,7 +157,7 @@ export function useTooltip(): UseTooltipReturn {
 
   const forceHideTooltip = useCallback(() => {
     clearHideTimeout()
-    setTooltip(null)
+    setTooltip(undefined)
     setIsTooltipHovered(false)
   }, [clearHideTimeout])
 

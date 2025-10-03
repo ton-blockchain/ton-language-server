@@ -4,7 +4,7 @@ import styles from "./CodeBlock.module.css"
 
 export interface CodeBlockProps {
   readonly title?: string
-  readonly content: string | undefined | null
+  readonly content: string | undefined
   readonly variant?: "assembly" | "hex"
   readonly placeholder?: string
   readonly className?: string
