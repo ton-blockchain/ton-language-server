@@ -239,7 +239,7 @@ export async function compileAndDeployFromEditor(
                 sourceUri,
             )
 
-            void vscode.commands.executeCommand("ton.sandbox.states.refresh")
+            void vscode.commands.executeCommand("ton.sandbox.history.refresh")
 
             const message = isRedeploy
                 ? `Contract redeployed successfully!`

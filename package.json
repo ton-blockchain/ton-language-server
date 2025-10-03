@@ -307,106 +307,34 @@
                 "title": "TON: Debug contract"
             },
             {
-                "command": "ton.sandbox.callGetMethod",
-                "title": "Call Get Method",
-                "category": "TON",
-                "icon": "$(symbol-method)"
-            },
-            {
                 "command": "ton.sandbox.refresh",
                 "title": "Refresh",
                 "category": "TON",
                 "icon": "$(refresh)"
             },
             {
-                "command": "ton.sandbox.states.refresh",
+                "command": "ton.sandbox.history.refresh",
                 "title": "Refresh History",
                 "category": "TON",
                 "icon": "$(refresh)"
             },
             {
-                "command": "ton.sandbox.states.importTrace",
-                "title": "Import Trace",
+                "command": "ton.sandbox.history.importTrace",
+                "title": "Import History",
                 "category": "TON",
                 "icon": "$(arrow-down)"
             },
             {
-                "command": "ton.sandbox.states.exportTrace",
-                "title": "Export Trace",
+                "command": "ton.sandbox.history.exportTrace",
+                "title": "Export History",
                 "category": "TON",
                 "icon": "$(arrow-up)"
             },
             {
-                "command": "ton.sandbox.states.resetState",
-                "title": "Reset State",
+                "command": "ton.sandbox.history.reset",
+                "title": "Reset History",
                 "category": "TON",
                 "icon": "$(clear-all)"
-            },
-            {
-                "command": "ton.sandbox.sendMessageFromForm",
-                "title": "Send Message from Form",
-                "category": "TON"
-            },
-            {
-                "command": "ton.sandbox.callGetMethodFromForm",
-                "title": "Call Get Method from Form",
-                "category": "TON"
-            },
-            {
-                "command": "ton.sandbox.openOperation",
-                "title": "Open Sandbox Operation",
-                "category": "TON"
-            },
-            {
-                "command": "ton.sandbox.openContractInfo",
-                "title": "Open Contract Information",
-                "category": "TON"
-            },
-            {
-                "command": "ton.sandbox.deployFromCodeLens",
-                "title": "Deploy Contract from CodeLens",
-                "category": "TON"
-            },
-            {
-                "command": "ton.sandbox.copyContractAddress",
-                "title": "Copy Contract Address",
-                "category": "TON"
-            },
-            {
-                "command": "ton.sandbox.openContractSendMessage",
-                "title": "Open Contract Send Message",
-                "category": "TON"
-            },
-            {
-                "command": "ton.sandbox.openContractGetMethodSend",
-                "title": "Open Contract Get Method Send",
-                "category": "TON"
-            },
-            {
-                "command": "ton.sandbox.callGetMethodFromCodeLens",
-                "title": "Call Get Method from CodeLens",
-                "category": "TON"
-            },
-            {
-                "command": "ton.sandbox.showTransactionDetails",
-                "title": "Show Transaction Details",
-                "category": "TON"
-            },
-            {
-                "command": "ton.sandbox.debugTransaction",
-                "title": "Debug Transaction",
-                "category": "TON"
-            },
-            {
-                "command": "ton.sandbox.startDebugSequence",
-                "title": "Start Debug Sequence",
-                "category": "TON"
-            },
-            {
-                "command": "ton.sandbox.deleteContract",
-                "title": "Delete Contract",
-                "category": "TON",
-                "icon": "$(trash)"
             },
             {
                 "command": "ton.sandbox.deleteMessageTemplate",
@@ -489,6 +417,12 @@
             }
         ],
         "menus": {
+            "commandPalette": [
+                {
+                    "command": "ton.sandbox.deleteMessageTemplate",
+                    "when": "false"
+                }
+            ],
             "explorer/context": [
                 {
                     "when": "resourceExtname == .boc",
@@ -508,22 +442,22 @@
                     "group": "navigation"
                 },
                 {
-                    "command": "ton.sandbox.states.refresh",
+                    "command": "ton.sandbox.history.refresh",
                     "when": "view == tonSandboxHistory",
                     "group": "navigation"
                 },
                 {
-                    "command": "ton.sandbox.states.exportTrace",
+                    "command": "ton.sandbox.history.exportTrace",
                     "when": "view == tonSandboxHistory",
                     "group": "navigation"
                 },
                 {
-                    "command": "ton.sandbox.states.importTrace",
+                    "command": "ton.sandbox.history.importTrace",
                     "when": "view == tonSandboxHistory",
                     "group": "navigation"
                 },
                 {
-                    "command": "ton.sandbox.states.resetState",
+                    "command": "ton.sandbox.history.reset",
                     "when": "view == tonSandboxHistory",
                     "group": "navigation"
                 },

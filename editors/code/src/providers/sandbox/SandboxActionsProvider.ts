@@ -630,7 +630,7 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
                     void this._treeProvider().loadContractsFromServer()
                 }
 
-                vscode.commands.executeCommand("ton.sandbox.states.refresh")
+                vscode.commands.executeCommand("ton.sandbox.history.refresh")
 
                 void vscode.window.showInformationMessage(
                     `Contract renamed from "${currentName}" to "${newName.trim()}"`,

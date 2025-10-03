@@ -83,10 +83,10 @@ export function registerSandboxCommands(
                 await redeployContract(contract, "1", formProvider, undefined, treeProvider)
             },
         ),
-        vscode.commands.registerCommand("ton.sandbox.states.refresh", () => {
+        vscode.commands.registerCommand("ton.sandbox.history.refresh", () => {
             void historyProvider.handleLoadOperations()
         }),
-        vscode.commands.registerCommand("ton.sandbox.states.exportTrace", async () => {
+        vscode.commands.registerCommand("ton.sandbox.history.exportTrace", async () => {
             try {
                 const result = await exportTrace()
                 if (result.success) {
@@ -126,10 +126,10 @@ export function registerSandboxCommands(
                 void vscode.window.showErrorMessage("Failed to export trace")
             }
         }),
-        vscode.commands.registerCommand("ton.sandbox.states.resetState", () => {
+        vscode.commands.registerCommand("ton.sandbox.history.reset", () => {
             void historyProvider.handleResetState()
         }),
-        vscode.commands.registerCommand("ton.sandbox.states.importTrace", async () => {
+        vscode.commands.registerCommand("ton.sandbox.history.importTrace", async () => {
             try {
                 const workspaceFolder = vscode.workspace.workspaceFolders?.[0]
 
