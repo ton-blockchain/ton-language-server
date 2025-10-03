@@ -1,9 +1,11 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
 import * as lsp from "vscode-languageserver"
+
+import type {Node as SyntaxNode} from "web-tree-sitter"
+
 import type {TolkFile} from "@server/languages/tolk/psi/TolkFile"
 import {asLspRange} from "@server/utils/position"
-import type {Node as SyntaxNode} from "web-tree-sitter"
 import {ImportResolver} from "@server/languages/tolk/psi/ImportResolver"
 
 import {Inspection, InspectionIds} from "./Inspection"

@@ -2,6 +2,7 @@
 //  Copyright © 2025 TON Core
 import type {Node as SyntaxNode} from "web-tree-sitter"
 import {CompletionItem, InsertTextFormat, CompletionItemKind} from "vscode-languageserver-types"
+
 import {ScopeProcessor} from "@server/languages/func/psi/Reference"
 import {NamedNode, FuncNode} from "@server/languages/func/psi/FuncNode"
 import {

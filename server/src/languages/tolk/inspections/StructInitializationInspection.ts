@@ -1,10 +1,12 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
 import * as lsp from "vscode-languageserver"
-import type {TolkFile} from "@server/languages/tolk/psi/TolkFile"
-import {asLspRange} from "@server/utils/position"
-import {RecursiveVisitor} from "@server/visitor/visitor"
+
 import type {Node as SyntaxNode} from "web-tree-sitter"
+
+import {RecursiveVisitor} from "@server/visitor/visitor"
+import {asLspRange} from "@server/utils/position"
+import type {TolkFile} from "@server/languages/tolk/psi/TolkFile"
 
 import {Field} from "@server/languages/tolk/psi/Decls"
 import {NeverTy, StructTy, TypeParameterTy} from "@server/languages/tolk/types/ty"

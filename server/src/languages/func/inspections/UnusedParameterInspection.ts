@@ -1,6 +1,7 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
 import type * as lsp from "vscode-languageserver"
+
 import type {FuncFile} from "@server/languages/func/psi/FuncFile"
 
 import {Func} from "@server/languages/func/psi/Decls"

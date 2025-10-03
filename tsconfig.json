@@ -2,15 +2,20 @@
     "compilerOptions": {
         "module": "commonjs",
         "target": "es2020",
-        "lib": ["es2020"],
+        "lib": ["es2020", "DOM"],
+        "jsx": "react-jsx",
         "sourceMap": true,
-        "strict": true,
+        "strict": false,
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
         "allowUnreachableCode": true,
         "noFallthroughCasesInSwitch": true,
         "noImplicitOverride": true,
         "noImplicitReturns": true,
-        "noPropertyAccessFromIndexSignature": true,
+        "strictNullChecks": true,
+        "noPropertyAccessFromIndexSignature": false,
         // "noUnusedParameters": true,
+        "skipLibCheck": true,
         "baseUrl": ".",
         "paths": {
             "@server/*": ["server/src/*"],
@@ -18,6 +23,5 @@
         }
     },
     "include": ["server/src/**/*", "editors/code/src/**/*"],
-    "exclude": ["node_modules", ".vscode-test"],
-    "references": [{"path": "./editors"}, {"path": "./server"}]
+    "exclude": ["node_modules", ".vscode-test", "server/src/e2e/**/*"]
 }

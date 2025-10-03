@@ -1,8 +1,9 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
-import {RecursiveVisitor} from "@server/visitor/visitor"
 import * as lsp from "vscode-languageserver"
 import type {SemanticTokens} from "vscode-languageserver"
+
+import {RecursiveVisitor} from "@server/visitor/visitor"
 import {Tokens} from "@server/semantic/tokens"
 import {TolkFile} from "@server/languages/tolk/psi/TolkFile"
 import {Reference} from "@server/languages/tolk/psi/Reference"

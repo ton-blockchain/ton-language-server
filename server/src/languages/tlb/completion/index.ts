@@ -1,4 +1,5 @@
 import * as lsp from "vscode-languageserver"
+
 import {getOffsetFromPosition} from "@server/document-store"
 import {asParserPoint} from "@server/utils/position"
 import {getDocumentSettings} from "@server/settings/settings"

@@ -1,0 +1,346 @@
+.container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--vscode-sideBar-background);
+}
+
+.timeline {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.timelineLine {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  padding: 2px 0;
+  position: relative;
+  margin-left: 3px;
+  z-index: 100;
+}
+
+.timelineLine::before {
+  content: "";
+  position: absolute;
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background-color: var(--vscode-charts-orange);
+  transform: translateX(-50%);
+  z-index: 100;
+}
+
+.operations {
+  flex: 1;
+  padding-left: 4px;
+}
+
+.nodeContainer {
+  position: relative;
+}
+
+.node {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 6px 8px;
+  margin: 0 0 0 -13px;
+  border-radius: 3px;
+  border: 1px solid transparent;
+  transition: background-color 0.1s ease;
+  min-height: 40px;
+}
+
+.node.compact {
+  cursor: pointer;
+  min-height: 23px;
+  padding: 0 8px 0 20px;
+}
+
+.node:focus {
+  outline: 2px solid var(--vscode-focusBorder);
+  outline-offset: -2px;
+  background-color: var(--vscode-list-activeSelectionBackground);
+}
+
+.node:focus:not(:focus-visible) {
+  outline: none;
+  background-color: var(--vscode-list-hoverBackground);
+}
+
+.node:hover::after {
+  border: 2px solid var(--vscode-charts-orange);
+}
+
+.node.failed:hover::after {
+  border: 2px solid var(--vscode-errorForeground);
+}
+
+.node::after {
+  content: "";
+  position: absolute;
+  left: -4px;
+  top: 6px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: var(--vscode-charts-orange);
+  border: 2px solid var(--vscode-sideBar-background);
+  z-index: 101;
+}
+
+.node.failed::after {
+  background-color: var(--vscode-errorForeground);
+}
+
+.node.failed::before {
+  content: "";
+  position: absolute;
+  left: 1px;
+  top: -10px;
+  bottom: -10px;
+  width: 2px;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    var(--vscode-errorForeground) 20%,
+    var(--vscode-errorForeground) 80%,
+    transparent 100%
+  );
+  z-index: 1;
+}
+
+.placeholder {
+  width: 24px;
+  height: 20px;
+  margin-right: 4px;
+}
+
+.compactContent {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.contractName {
+  font-weight: 500;
+  color: var(--vscode-textLink-foreground);
+  font-size: 11px;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.label {
+  color: var(--vscode-foreground);
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.arrow {
+  color: var(--vscode-foreground);
+  font-size: 11px;
+  flex-shrink: 0;
+  margin: 0 2px;
+  opacity: 0;
+}
+
+.restoreButton {
+  font-size: 20px;
+  background: none;
+  border: none;
+  color: var(--vscode-foreground);
+  cursor: pointer;
+  padding: 3px 4px 4px;
+  margin-left: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.7;
+  transition: opacity 0.1s ease;
+  flex-shrink: 0;
+}
+
+.restoreButton:hover {
+  opacity: 1;
+}
+
+.detailsButton {
+  background: transparent;
+  border: none;
+  color: var(--vscode-badge-foreground);
+  cursor: pointer;
+  padding: 2px 4px;
+  margin-right: 4px;
+  border-radius: 3px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  opacity: 0.7;
+  transition: opacity 0.1s ease;
+}
+
+.node:hover .detailsButton {
+  display: flex;
+}
+
+.detailsButton:hover {
+  opacity: 1;
+  cursor: pointer;
+}
+
+.addTransactionsButton {
+  background: transparent;
+  border: none;
+  color: var(--vscode-badge-foreground);
+  cursor: pointer;
+  padding: 2px 4px;
+  border-radius: 3px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  opacity: 0.7;
+  transition: opacity 0.1s ease;
+}
+
+.node:hover .addTransactionsButton {
+  display: flex;
+}
+
+.addTransactionsButton:hover {
+  opacity: 1;
+  cursor: pointer;
+}
+
+.debugButton {
+  background: transparent;
+  border: none;
+  color: var(--vscode-badge-foreground);
+  cursor: pointer;
+  padding: 2px 4px;
+  margin-right: 2px;
+  border-radius: 3px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  opacity: 0.7;
+  transition: opacity 0.1s ease;
+}
+
+.node:hover .debugButton {
+  display: flex;
+}
+
+.debugButton:hover {
+  opacity: 1;
+  cursor: pointer;
+}
+
+.timestamp {
+  color: var(--vscode-descriptionForeground);
+  font-size: 10px;
+  flex-shrink: 0;
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+}
+
+.details {
+  color: var(--vscode-foreground);
+  font-size: 12px;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.address {
+  font-family: var(--vscode-editor-font-family, "SF Mono", Monaco, "Cascadia Code", monospace),
+    monospace;
+  font-size: 11px;
+  color: var(--vscode-descriptionForeground);
+  background-color: var(--vscode-textCodeBlock-background, rgb(0 0 0 / 10%));
+  padding: 2px 4px;
+  border-radius: 2px;
+  border: 1px solid var(--vscode-textBlockQuote-border, var(--vscode-widget-border));
+  margin-top: 2px;
+  word-break: break-all;
+}
+
+.detailsExpanded {
+  padding: 6px 0;
+  margin: 0 0 0 8px;
+  border-left: 1px solid var(--vscode-panel-border);
+}
+
+.detailItem {
+  display: grid;
+  grid-template-columns: 70px 1fr;
+  gap: 8px;
+  margin-bottom: 2px;
+  font-size: 11px;
+  line-height: 1.2;
+  align-items: baseline;
+}
+
+.detailItem:last-child {
+  margin-bottom: 0;
+}
+
+.detailLabel {
+  color: var(--vscode-descriptionForeground);
+  font-weight: 400;
+  opacity: 0.8;
+  justify-self: start;
+}
+
+.detailValue {
+  color: var(--vscode-foreground);
+  font-family: var(--vscode-editor-font-family, "SF Mono", Monaco, "Cascadia Code", monospace);
+  word-break: break-all;
+}
+
+.successStatus {
+  color: var(--vscode-charts-green, #3794ff);
+  font-weight: 500;
+}
+
+.errorStatus {
+  color: var(--vscode-errorForeground, #f48771);
+  font-weight: 500;
+}
+
+.children {
+  position: relative;
+}
+
+.empty {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  color: var(--vscode-descriptionForeground);
+  padding: 24px;
+}
+
+.empty p {
+  margin: 8px 0;
+  font-size: 13px;
+}
+
+.empty p:first-child {
+  font-size: 14px;
+  color: var(--vscode-foreground);
+}

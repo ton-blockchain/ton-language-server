@@ -4,7 +4,7 @@
 /* eslint-disable @typescript-eslint/no-base-to-string */
 import * as vscode from "vscode"
 
-let consoleLogChannel: vscode.OutputChannel | null = null
+let consoleLogChannel: vscode.OutputChannel | undefined = undefined
 
 export function createClientLog(): vscode.OutputChannel {
     if (!consoleLogChannel) {

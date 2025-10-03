@@ -324,7 +324,7 @@ const TOLK_GRAMMAR = {
     throw_statement: $ =>
         seq(
             "throw",
-            $._expression, // excNo, (excNo), (excNo, arg); but (1,2,3) will be also acceptable
+            field("excNo", $._expression), // excNo, (excNo), (excNo, arg); but (1,2,3) will be also acceptable
         ),
 
     assert_statement: $ =>

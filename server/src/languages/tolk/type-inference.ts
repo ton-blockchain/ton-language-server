@@ -1,5 +1,7 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
+import {Node as SyntaxNode} from "web-tree-sitter"
+
 import {
     BitsNTy,
     BoolTy,
@@ -26,7 +28,6 @@ import {
     VarIntNTy,
     VoidTy,
 } from "@server/languages/tolk/types/ty"
-import {Node as SyntaxNode} from "web-tree-sitter"
 import {
     Constant,
     Enum,
@@ -418,8 +419,10 @@ class InferenceWalker {
         const defaultValue = field.defaultValue()?.node
         if (defaultValue) {
             const flowAfterExpression = this.inferExpression(defaultValue, flow, false, typeHintTy)
-            const exprType = this.ctx.getType(defaultValue)
-            this.ctx.setType(field.node, exprType)
+            // foo: int? = null
+            // infers as null, TODO
+            // const exprType = this.ctx.getType(defaultValue)
+            // this.ctx.setType(field.node, exprType)
             return flowAfterExpression.outFlow
         }
 
@@ -1300,9 +1303,7 @@ class InferenceWalker {
                 ).outFlow
             }
 
-            if (armFlow === null) {
-                armFlow = armsEntryFlow.clone()
-            }
+            armFlow ??= armsEntryFlow.clone()
 
             if (armPatternType) {
                 let armType =

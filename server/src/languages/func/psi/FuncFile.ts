@@ -2,8 +2,9 @@
 //  Copyright © 2025 TON Core
 import * as path from "node:path"
 
-import {File} from "@server/psi/File"
 import type {Node as SyntaxNode} from "web-tree-sitter"
+
+import {File} from "@server/psi/File"
 import {ImportResolver} from "@server/languages/func/psi/ImportResolver"
 import {NamedNode} from "@server/languages/func/psi/FuncNode"
 import {Constant, Func, GlobalVariable} from "@server/languages/func/psi/Decls"

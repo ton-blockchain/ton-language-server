@@ -1,6 +1,7 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
 import type * as lsp from "vscode-languageserver"
+
 import type {TolkFile} from "@server/languages/tolk/psi/TolkFile"
 
 import {Func, FunctionKind} from "@server/languages/tolk/psi/Decls"

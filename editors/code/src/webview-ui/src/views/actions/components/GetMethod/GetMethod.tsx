@@ -1,0 +1,213 @@
+import React, {useState, useEffect, useCallback} from "react"
+
+import {serializeTuple} from "@ton/core"
+
+import {TypeAbi} from "@shared/abi"
+
+import {Button, Input, Select, OperationResultDisplay} from "../../../../components/common"
+
+import {DeployedContract} from "../../../../../../common/types/contract"
+import {AbiFieldsForm} from "../AbiFieldsForm/AbiFieldsForm"
+import {
+  encodeTuple,
+  RawStringObject,
+  rawStringObjectToParsedObject,
+} from "../../../../../../common/binary"
+
+import {Base64String} from "../../../../../../common/base64-string"
+
+import {ResultData} from "../../sandbox-actions-types"
+
+import {formatAddress} from "../../../../components/format/format"
+
+import styles from "./GetMethod.module.css"
+
+interface MethodData {
+  readonly selectedMethod: string
+  readonly methodId: string
+  readonly parameters: Base64String
+}
+
+interface Props {
+  readonly contracts: DeployedContract[]
+  readonly selectedContract?: string
+  readonly methodId?: number
+  readonly onContractChange: (address: string) => void
+  readonly onCallGetMethod: (methodData: MethodData) => void
+  readonly result?: ResultData
+  readonly onResultUpdate?: (result: ResultData | undefined) => void
+}
+
+export const GetMethod: React.FC<Props> = ({
+  contracts,
+  selectedContract,
+  methodId: initialMethodId,
+  onContractChange,
+  onCallGetMethod,
+  result,
+  onResultUpdate,
+}) => {
+  const [selectedMethod, setSelectedMethod] = useState<string>("")
+  const [methodId, setMethodId] = useState<string>("0")
+  const [methodParameters, setMethodParameters] = useState<RawStringObject>({})
+  const [isParametersValid, setParametersValid] = useState<boolean>(true)
+
+  const contract = contracts.find(c => c.address === selectedContract)
+  const method = contract?.abi?.getMethods.find(m => m.name === selectedMethod)
+
+  const methodParamsAbi: TypeAbi | undefined = method?.parameters
+    ? {
+        name: `${method.name}_params`,
+        opcode: undefined,
+        opcodeWidth: undefined,
+        fields: method.parameters,
+      }
+    : undefined
+
+  useEffect(() => {
+    if (initialMethodId !== undefined) {
+      setMethodId(initialMethodId.toString())
+      const method = contract?.abi?.getMethods.find(method => method.name)
+      if (method) {
+        setSelectedMethod(method.name)
+      }
+    }
+  }, [contract?.abi?.getMethods, initialMethodId])
+
+  const handleMethodChange = (methodName: string): void => {
+    setSelectedMethod(methodName)
+    setMethodParameters({})
+    const method = contract?.abi?.getMethods.find(m => m.name === methodName)
+    if (method) {
+      setMethodId(method.id.toString())
+    } else {
+      setMethodId("0")
+    }
+  }
+
+  const handleCallGetMethod = (): void => {
+    if (!selectedContract) {
+      return
+    }
+
+    const encodedParameters =
+      methodParamsAbi && contract?.abi
+        ? encodeTuple(
+            contract.abi,
+            methodParamsAbi,
+            rawStringObjectToParsedObject(methodParameters),
+          )
+        : []
+
+    const encodedParametersCell = serializeTuple(encodedParameters)
+
+    onCallGetMethod({
+      selectedMethod,
+      methodId,
+      parameters: encodedParametersCell.toBoc().toString("base64") as Base64String,
+    })
+  }
+
+  const isMethodIdReadonly = Boolean(method)
+
+  const isFormValid = useCallback(() => {
+    if (contracts.length === 0) return false
+    if (!selectedMethod) return false
+    if (!isParametersValid) return false
+
+    if (method?.parameters?.length === 0) return true
+
+    // Check if all parameters are filled
+    const parameters = method?.parameters ?? []
+    for (const parameter of parameters) {
+      const value = methodParameters[parameter.name]
+      if (!value) return false
+      if (value.value.trim() === "") return false
+    }
+
+    return true
+  }, [contracts.length, isParametersValid, method, methodParameters, selectedMethod])
+
+  return (
+    <div className={styles.container}>
+      <div className={styles.formGroup}>
+        <Select
+          label="Target Contract:"
+          id="getContractSelect"
+          value={selectedContract ?? ""}
+          onChange={e => {
+            onContractChange(e.target.value)
+          }}
+        >
+          <option value="">Select contract...</option>
+          {contracts.map(contract => (
+            <option key={contract.address} value={contract.address}>
+              {contract.name} ({formatAddress(contract.address)})
+            </option>
+          ))}
+        </Select>
+      </div>
+
+      <div className={styles.formGroup}>
+        <Select
+          label="Get Method:"
+          id="methodSelect"
+          value={selectedMethod}
+          onChange={e => {
+            handleMethodChange(e.target.value)
+          }}
+          disabled={!contract?.abi?.getMethods}
+        >
+          <option value="">Select method...</option>
+          {contract?.abi?.getMethods.map(method => (
+            <option key={method.name} value={method.name}>
+              {method.name} (ID: 0x{method.id.toString(16)})
+            </option>
+          ))}
+        </Select>
+      </div>
+
+      <div className={styles.formGroup}>
+        <Input
+          label="Method ID:"
+          type="number"
+          id="methodId"
+          value={methodId}
+          onChange={e => {
+            setMethodId(e.target.value)
+          }}
+          placeholder="0"
+          readOnly={isMethodIdReadonly}
+          className={isMethodIdReadonly ? styles.readonly : ""}
+        />
+      </div>
+
+      {methodParamsAbi && methodParamsAbi.fields.length > 0 && (
+        <div className={styles.formGroup}>
+          <div className={styles.parametersTitle}>Method Parameters:</div>
+          <AbiFieldsForm
+            abi={methodParamsAbi}
+            contractAbi={contract?.abi}
+            contracts={contracts}
+            fields={methodParameters}
+            onFieldsChange={setMethodParameters}
+            onValidationChange={setParametersValid}
+          />
+        </div>
+      )}
+
+      <Button onClick={handleCallGetMethod} disabled={!isFormValid()}>
+        Call Get Method
+      </Button>
+
+      {result && (
+        <OperationResultDisplay
+          result={result}
+          onClose={() => {
+            onResultUpdate?.(undefined)
+          }}
+        />
+      )}
+    </div>
+  )
+}

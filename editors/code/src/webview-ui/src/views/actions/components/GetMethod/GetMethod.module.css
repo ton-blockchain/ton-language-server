@@ -1,0 +1,77 @@
+.container {
+  padding: 12px;
+  background-color: var(--vscode-sideBar-background);
+}
+
+.formGroup {
+  margin-bottom: 12px;
+}
+
+.formGroup label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--vscode-input-foreground);
+}
+
+.input,
+.select {
+  width: 100%;
+  padding: 6px 8px;
+  background-color: var(--vscode-input-background);
+  color: var(--vscode-input-foreground);
+  border: 1px solid var(--vscode-input-border);
+  border-radius: 2px;
+  font-family: inherit;
+  font-size: 12px;
+}
+
+.input:focus,
+.select:focus {
+  outline: none;
+  border-color: var(--vscode-focusBorder);
+}
+
+.input:disabled,
+.select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background-color: var(--vscode-input-background);
+}
+
+.input.readonly {
+  background-color: var(--vscode-editor-inactiveSelectionBackground);
+  cursor: default;
+}
+
+.button {
+  width: 100%;
+  background-color: var(--vscode-button-background);
+  color: var(--vscode-button-foreground);
+  border: none;
+  padding: 8px 12px;
+  border-radius: 2px;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  margin-top: 8px;
+}
+
+.button:hover {
+  background-color: var(--vscode-button-hoverBackground);
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.parametersTitle {
+  display: block;
+  margin-bottom: 0;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--vscode-input-foreground);
+}

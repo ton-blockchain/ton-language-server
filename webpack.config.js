@@ -6,11 +6,12 @@ const path = require("path")
 const CopyPlugin = require("copy-webpack-plugin")
 const TsconfigPathsPlugin = require("tsconfig-paths-webpack-plugin")
 const webpack = require("webpack")
+const MiniCssExtractPlugin = require("mini-css-extract-plugin")
 
 const distDir = path.resolve(__dirname, "dist")
 
 /**@type {import("webpack").Configuration}*/
-const config = {
+const extensionConfig = {
     mode: "development",
 
     target: "node", // vscode extensions run in webworker context for VS Code web 📖 -> https://webpack.js.org/configuration/target/#target
@@ -36,8 +37,10 @@ const config = {
         alias: {
             // provides alternate implementation for node module and source files
         },
-        plugins: [new TsconfigPathsPlugin()],
-        fallback: {},
+        plugins: [new TsconfigPathsPlugin.TsconfigPathsPlugin()],
+        fallback: {
+            buffer: require.resolve("buffer"),
+        },
     },
     module: {
         rules: [
@@ -53,10 +56,13 @@ const config = {
         ],
     },
     plugins: [
+        new webpack.ProvidePlugin({
+            Buffer: ["buffer", "Buffer"],
+        }),
         new webpack.BannerPlugin({
             banner: "#!/usr/bin/env node",
             raw: true,
-            include: "server.js",
+            include: ["server.js", "debugging/adapter/server.js"],
         }),
         new CopyPlugin({
             patterns: [
@@ -108,4 +114,90 @@ const config = {
         }),
     ],
 }
-module.exports = config
+
+/**@type {import("webpack").Configuration}*/
+const webviewConfig = {
+    mode: "development",
+    target: "web",
+    entry: {
+        actions: "./editors/code/src/webview-ui/src/views/actions/actions-main.tsx",
+        "transaction-details":
+            "./editors/code/src/webview-ui/src/views/details/transaction-details-main.tsx",
+        history: "./editors/code/src/webview-ui/src/views/history/history-main.tsx",
+    },
+    output: {
+        path: path.join(distDir, "webview-ui"),
+        filename: "[name].js",
+        clean: false,
+    },
+    devtool: "source-map",
+    resolve: {
+        extensions: [".ts", ".tsx", ".js", ".jsx"],
+        alias: {
+            "@shared": path.resolve(__dirname, "shared/src"),
+            "react-d3-tree": path.resolve(__dirname, "node_modules/react-d3-tree/lib/esm/index.js"),
+        },
+        fallback: {
+            buffer: require.resolve("buffer"),
+        },
+    },
+    module: {
+        rules: [
+            {
+                test: /\.tsx?$/,
+                exclude: /node_modules/,
+                use: [
+                    {
+                        loader: "ts-loader",
+                        options: {
+                            configFile: path.resolve(__dirname, "tsconfig.json"),
+                            compilerOptions: {
+                                jsx: "react-jsx",
+                                lib: ["ES2020", "DOM"],
+                                moduleResolution: "node",
+                                esModuleInterop: true,
+                                allowSyntheticDefaultImports: true,
+                                strict: false,
+                            },
+                        },
+                    },
+                ],
+            },
+            {
+                test: /\.module\.css$/,
+                use: [
+                    MiniCssExtractPlugin.loader,
+                    {
+                        loader: "css-loader",
+                        options: {
+                            modules: {
+                                localIdentName: "[name]__[local]___[hash:base64:5]",
+                                exportGlobals: true,
+                                namedExport: false,
+                            },
+                        },
+                    },
+                ],
+            },
+            {
+                test: /\.css$/,
+                exclude: /\.module\.css$/,
+                use: [MiniCssExtractPlugin.loader, "css-loader"],
+            },
+        ],
+    },
+    plugins: [
+        new webpack.ProvidePlugin({
+            Buffer: ["buffer", "Buffer"],
+        }),
+        new MiniCssExtractPlugin({
+            filename: "[name].css",
+        }),
+    ],
+    externals: {
+        // React and ReactDOM will be available globally in the webview
+        // but we need to bundle them for the webview context
+    },
+}
+
+module.exports = [extensionConfig, webviewConfig]

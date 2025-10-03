@@ -1,0 +1,98 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.storageItem {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 2px 0;
+  line-height: 1.4;
+}
+
+.fieldName {
+  font-weight: 500;
+  color: var(--vscode-foreground);
+  flex-shrink: 0;
+  font-size: 0.9em;
+}
+
+.fieldValue {
+  text-align: right;
+  word-break: break-all;
+  color: var(--vscode-foreground);
+  flex: 1;
+  min-width: 0;
+}
+
+.nullValue {
+  font-size: 0.95em;
+}
+
+.numberValue {
+  font-size: 0.95em;
+}
+
+.booleanTrue,
+.booleanFalse {
+  font-size: 0.95em;
+  font-weight: 500;
+}
+
+.nestedObjectValue {
+  font-style: italic;
+}
+
+.unknownValue {
+  color: var(--color-text-secondary);
+}
+
+.nestedStorageGroup {
+  border: 1px solid var(--vscode-panel-border);
+  border-radius: 3px;
+  padding: 6px 12px;
+  margin: 2px 0 2px 4px;
+  background-color: var(--vscode-panel-background);
+}
+
+.nestedStorageHeader {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  margin-bottom: 6px;
+  font-weight: 500;
+}
+
+.structFieldName {
+  color: var(--vscode-foreground);
+}
+
+.structFieldType {
+  color: var(--color-text-secondary);
+  font-size: 0.9em;
+  font-weight: 600;
+  opacity: 0.7;
+}
+
+.nestedStorageContent {
+  margin-left: 8px;
+}
+
+.nestedFieldContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.nestedFieldName {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 2px 0;
+  font-family: var(--vscode-editor-font-family);
+  font-size: var(--vscode-editor-font-size);
+  line-height: 1.4;
+}

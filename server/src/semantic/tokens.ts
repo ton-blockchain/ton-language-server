@@ -1,9 +1,10 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Studio
-import {encode, SemanticToken} from "@server/semantic/utils"
 import {Node as SyntaxNode} from "web-tree-sitter"
 import {Position} from "vscode-languageclient"
 import * as lsp from "vscode-languageserver"
+
+import {encode, SemanticToken} from "@server/semantic/utils"
 
 export class Tokens {
     private readonly tokens: SemanticToken[] = []

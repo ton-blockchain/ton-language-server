@@ -1,8 +1,9 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
+import type {Node as SyntaxNode} from "web-tree-sitter"
+
 import {ResolveState} from "@server/psi/ResolveState"
 import {TOLK_CACHE} from "@server/languages/tolk/cache"
-import type {Node as SyntaxNode} from "web-tree-sitter"
 import {
     Constant,
     Enum,

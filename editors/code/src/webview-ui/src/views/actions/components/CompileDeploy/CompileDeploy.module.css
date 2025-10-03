@@ -1,0 +1,90 @@
+.container {
+  padding: 12px;
+  background-color: var(--vscode-sideBar-background);
+}
+
+.formGroup {
+  margin-bottom: 12px;
+}
+
+.formGroup label {
+  display: block;
+  margin-bottom: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--vscode-input-foreground);
+}
+
+.description {
+  font-size: 11px;
+  color: var(--vscode-descriptionForeground);
+  margin-bottom: 8px;
+  margin-top: 0;
+}
+
+.result {
+  margin-top: 12px;
+  padding: 8px;
+  border-radius: 3px;
+  font-size: 11px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  word-break: break-all;
+  max-width: 100%;
+  font-family: var(--vscode-editor-font-family), monospace;
+}
+
+.result.success {
+  background-color: rgb(22 163 74 / 10%);
+  border: 1px solid rgb(22 163 74 / 30%);
+  color: var(--vscode-foreground);
+}
+
+.result.error {
+  background-color: rgb(239 68 68 / 10%);
+  border: 1px solid rgb(239 68 68 / 30%);
+  color: var(--vscode-foreground);
+}
+
+.validationError {
+  margin-top: 12px;
+  padding: 12px;
+  border-radius: 4px;
+  background-color: rgb(239 68 68 / 10%);
+  border: 1px solid rgb(239 68 68 / 30%);
+  color: var(--vscode-foreground);
+}
+
+.validationError .errorMessage {
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.4;
+  margin-bottom: 6px;
+}
+
+.validationError .errorDetails {
+  font-size: 12px;
+  opacity: 1;
+  color: var(--vscode-descriptionForeground);
+}
+
+.validationError .fileInfo {
+  margin-top: 8px;
+  padding-top: 12px;
+  border-top: 1px solid rgb(239 68 68 / 20%);
+  font-size: 11px;
+  line-height: 1;
+}
+
+.validationError .errorIcon {
+  display: inline-block;
+  margin-right: 6px;
+  font-weight: bold;
+  color: rgb(239 68 68 / 80%);
+}
+
+.errorDetails {
+  margin-top: 6px;
+  opacity: 0.9;
+}

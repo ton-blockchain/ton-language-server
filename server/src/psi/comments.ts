@@ -1,5 +1,6 @@
 import type {Node as SyntaxNode} from "web-tree-sitter"
 import {Position} from "vscode-languageclient"
+
 import {trimPrefix} from "@server/utils/strings"
 import {asLspPosition} from "@server/utils/position"
 

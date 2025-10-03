@@ -4,16 +4,28 @@ import * as path from "node:path"
 
 import {fileURLToPath} from "node:url"
 
+import * as lsp from "vscode-languageserver"
+
+import {DidChangeWatchedFilesParams, FileChangeType, RenameFilesParams} from "vscode-languageserver"
+
+import {WorkspaceEdit} from "vscode-languageserver-types"
+
+import type {Node as SyntaxNode} from "web-tree-sitter"
+
+import {TextDocument} from "vscode-languageserver-textdocument"
+
 import {asParserPoint} from "@server/utils/position"
 import {index as tolkIndex, IndexRoot as TolkIndexRoot} from "@server/languages/tolk/indexes"
 import {index as funcIndex, IndexRoot as FuncIndexRoot} from "@server/languages/func/indexes"
-import * as lsp from "vscode-languageserver"
-import {DidChangeWatchedFilesParams, FileChangeType, RenameFilesParams} from "vscode-languageserver"
+
 import {globalVFS} from "@server/vfs/global"
 import {existsVFS} from "@server/vfs/files-adapter"
 import type {ClientOptions} from "@shared/config-scheme"
 import {
+    ContractAbiRequest,
     DocumentationAtPositionRequest,
+    GetContractAbiParams,
+    GetContractAbiResponse,
     SetToolchainVersionNotification,
     SetToolchainVersionParams,
     TypeAtPositionParams,
@@ -25,8 +37,7 @@ import {clearDocumentSettings, getDocumentSettings, ServerSettings} from "@serve
 import {provideFiftFoldingRanges} from "@server/languages/fift/foldings/collect"
 import {provideFiftSemanticTokens as provideFiftSemanticTokens} from "server/src/languages/fift/semantic-tokens"
 import {provideFiftInlayHints as collectFiftInlays} from "@server/languages/fift/inlays/collect"
-import {WorkspaceEdit} from "vscode-languageserver-types"
-import type {Node as SyntaxNode} from "web-tree-sitter"
+
 import {setToolchain, setWorkspaceRoot, toolchain} from "@server/toolchain"
 import * as toolchainManager from "@server/toolchain-manager"
 
@@ -60,7 +71,7 @@ import {provideTlbDocumentSymbols} from "@server/languages/tlb/symbols"
 import {provideTlbCompletion} from "@server/languages/tlb/completion"
 import {TLB_CACHE} from "@server/languages/tlb/cache"
 import {provideTlbReferences} from "@server/languages/tlb/references"
-import {TextDocument} from "vscode-languageserver-textdocument"
+
 import {TolkIndexingRoot} from "@server/languages/tolk/indexing-root"
 import {TOLK_CACHE} from "@server/languages/tolk/cache"
 import {provideTolkSemanticTokens} from "@server/languages/tolk/semantic-tokens"
@@ -121,6 +132,7 @@ import {FuncIndexingRoot} from "@server/languages/func/indexing-root"
 import {formatTolkFile} from "@server/languages/tolk/format/format"
 import {collectFuncCodeLenses} from "@server/languages/func/lens"
 import {collectFiftCodeLenses} from "@server/languages/fift/lens"
+import {contractAbi} from "@server/languages/tolk/lang/abi/compute"
 
 import {initParser} from "./parser"
 import {DocumentStore} from "./document-store"
@@ -1091,6 +1103,24 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
             }
 
             return {type: null, range: null}
+        },
+    )
+
+    connection.onRequest(
+        ContractAbiRequest,
+        async (params: GetContractAbiParams): Promise<GetContractAbiResponse> => {
+            const uri = params.textDocument.uri
+
+            if (isTolkFile(uri)) {
+                const file = await findTolkFile(uri)
+                return {
+                    abi: contractAbi(file),
+                }
+            }
+
+            return {
+                abi: undefined,
+            }
         },
     )
 

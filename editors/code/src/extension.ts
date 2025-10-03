@@ -3,6 +3,7 @@
 import * as path from "node:path"
 
 import * as vscode from "vscode"
+import {FileSystemWatcher, Position, Range} from "vscode"
 import {Utils as vscode_uri} from "vscode-uri"
 import {
     LanguageClient,
@@ -14,16 +15,16 @@ import {
 
 import {
     DocumentationAtPositionRequest,
+    GetContractAbiParams,
+    GetContractAbiResponse,
+    SetToolchainVersionNotification,
+    SetToolchainVersionParams,
     TypeAtPositionParams,
     TypeAtPositionRequest,
     TypeAtPositionResponse,
-    SetToolchainVersionNotification,
-    SetToolchainVersionParams,
 } from "@shared/shared-msgtypes"
 
 import type {ClientOptions} from "@shared/config-scheme"
-
-import {Range, Position, FileSystemWatcher} from "vscode"
 
 import {ToolchainConfig} from "@server/settings/settings"
 
@@ -32,15 +33,21 @@ import {getClientConfiguration} from "./client-config"
 
 import {registerBuildTasks} from "./build-system"
 import {registerOpenBocCommand} from "./commands/openBocCommand"
-import {BocEditorProvider} from "./providers/BocEditorProvider"
-import {BocFileSystemProvider} from "./providers/BocFileSystemProvider"
-import {BocDecompilerProvider} from "./providers/BocDecompilerProvider"
+import {BocEditorProvider} from "./providers/boc/BocEditorProvider"
+import {BocFileSystemProvider} from "./providers/boc/BocFileSystemProvider"
+import {BocDecompilerProvider} from "./providers/boc/BocDecompilerProvider"
 import {registerSaveBocDecompiledCommand} from "./commands/saveBocDecompiledCommand"
+import {registerSandboxCommands} from "./commands/sandboxCommands"
+import {SandboxTreeProvider} from "./providers/sandbox/SandboxTreeProvider"
+import {SandboxActionsProvider} from "./providers/sandbox/SandboxActionsProvider"
+import {HistoryWebviewProvider} from "./providers/sandbox/HistoryWebviewProvider"
+import {TransactionDetailsProvider} from "./providers/sandbox/TransactionDetailsProvider"
+import {SandboxCodeLensProvider} from "./providers/sandbox/SandboxCodeLensProvider"
 
 import {configureDebugging} from "./debugging"
 
-let client: LanguageClient | null = null
-let cachedToolchainInfo: SetToolchainVersionParams | null = null
+let client: LanguageClient | undefined = undefined
+let cachedToolchainInfo: SetToolchainVersionParams | undefined = undefined
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
     await checkConflictingExtensions()
@@ -49,6 +56,81 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     await registerBuildTasks(context)
     registerOpenBocCommand(context)
     registerSaveBocDecompiledCommand(context)
+
+    const sandboxTreeProvider = new SandboxTreeProvider()
+    context.subscriptions.push(
+        vscode.window.createTreeView("tonSandbox", {
+            treeDataProvider: sandboxTreeProvider,
+            showCollapseAll: false,
+        }),
+    )
+
+    const historyWebviewProvider = new HistoryWebviewProvider(
+        context.extensionUri,
+        sandboxTreeProvider,
+    )
+    context.subscriptions.push(
+        vscode.window.registerWebviewViewProvider(
+            HistoryWebviewProvider.viewType,
+            historyWebviewProvider,
+        ),
+    )
+
+    const sandboxActionsProvider = new SandboxActionsProvider(
+        context.extensionUri,
+        sandboxTreeProvider,
+        historyWebviewProvider,
+    )
+    context.subscriptions.push(
+        vscode.window.registerWebviewViewProvider(
+            SandboxActionsProvider.viewType,
+            sandboxActionsProvider,
+        ),
+    )
+
+    const transactionDetailsProvider = new TransactionDetailsProvider(context.extensionUri)
+
+    const sandboxCodeLensProvider = new SandboxCodeLensProvider(sandboxTreeProvider)
+    context.subscriptions.push(
+        vscode.languages.registerCodeLensProvider({language: "tolk"}, sandboxCodeLensProvider),
+    )
+
+    sandboxTreeProvider.setActionsProvider(sandboxActionsProvider)
+    sandboxTreeProvider.setCodeLensProvider(sandboxCodeLensProvider)
+
+    context.subscriptions.push(
+        vscode.window.onDidChangeActiveTextEditor(editor => {
+            if (editor) {
+                const document = {
+                    uri: editor.document.uri.toString(),
+                    languageId: editor.document.languageId,
+                    content: editor.document.getText(),
+                }
+                sandboxActionsProvider.updateActiveEditor(document)
+            } else {
+                sandboxActionsProvider.updateActiveEditor(null)
+            }
+        }),
+    )
+
+    const sandboxCommands = registerSandboxCommands(
+        sandboxTreeProvider,
+        sandboxActionsProvider,
+        historyWebviewProvider,
+        transactionDetailsProvider,
+    )
+
+    context.subscriptions.push(
+        // Register earlier for sandbox commands
+        vscode.commands.registerCommand(
+            "tolk.getContractAbi",
+            async (params: GetContractAbiParams) => {
+                return client?.sendRequest<GetContractAbiResponse>("tolk.getContractAbi", params)
+            },
+        ),
+        ...sandboxCommands,
+    )
+
     configureDebugging(context)
 
     const config = vscode.workspace.getConfiguration("ton")

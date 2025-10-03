@@ -1,5 +1,6 @@
 import * as lsp from "vscode-languageserver"
 import type {Node as SyntaxNode} from "web-tree-sitter"
+
 import {TolkFile} from "@server/languages/tolk/psi/TolkFile"
 import {asLspRange} from "@server/utils/position"
 import {Reference} from "@server/languages/tolk/psi/Reference"

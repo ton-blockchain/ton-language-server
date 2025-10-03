@@ -3,6 +3,7 @@
 import {createHash} from "node:crypto"
 
 import * as lsp from "vscode-languageserver"
+
 import {RecursiveVisitor} from "@server/visitor/visitor"
 import {FuncFile} from "@server/languages/func/psi/FuncFile"
 import {crc32} from "@server/utils/crc32"

@@ -1,4 +1,5 @@
 import type {Node as SyntaxNode} from "web-tree-sitter"
+
 import {File} from "@server/psi/File"
 
 /**

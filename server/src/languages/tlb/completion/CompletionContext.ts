@@ -1,6 +1,7 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Studio
 import type * as lsp from "vscode-languageserver/node"
+
 import type {ServerSettings} from "@server/settings/settings"
 
 import {TlbNode} from "../psi/TlbNode"

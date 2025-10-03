@@ -1,8 +1,9 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
 
-import {FuncFile} from "@server/languages/func/psi/FuncFile"
 import * as lsp from "vscode-languageserver"
+
+import {FuncFile} from "@server/languages/func/psi/FuncFile"
 import {createFuncParser} from "@server/parser"
 import {getOffsetFromPosition} from "@server/document-store"
 import {asParserPoint} from "@server/utils/position"

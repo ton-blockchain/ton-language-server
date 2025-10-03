@@ -1,0 +1,53 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.customInputContainer {
+  position: relative;
+  display: flex;
+  align-items: stretch;
+}
+
+.customInput {
+  flex: 1;
+  min-width: 0;
+  padding-right: 140px;
+}
+
+.arrowButton {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: var(--vscode-button-secondaryBackground, var(--vscode-dropdown-background));
+  border: 1px solid var(--vscode-dropdown-border);
+  color: var(--vscode-foreground);
+  cursor: pointer;
+  padding: 4px 6px;
+  font-size: 11px;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 2px;
+  white-space: nowrap;
+  transition: background-color 0.1s ease;
+}
+
+.arrowButton:hover {
+  background-color: var(--vscode-toolbar-hoverBackground, rgb(255 255 255 / 10%));
+}
+
+.arrowButton:focus {
+  outline: 1px solid var(--vscode-focusBorder);
+  outline-offset: -1px;
+}
+
+.errorMessage {
+  margin-top: 4px;
+  font-size: 11px;
+  color: var(--vscode-errorForeground);
+  line-height: 1.3;
+}

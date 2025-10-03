@@ -1,6 +1,7 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Studio
 import * as lsp from "vscode-languageserver"
+
 import {FuncFile} from "@server/languages/func/psi/FuncFile"
 
 export const InspectionIds = {

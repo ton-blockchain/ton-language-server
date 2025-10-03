@@ -1,8 +1,10 @@
 import * as lsp from "vscode-languageserver"
+
+import type {Node as SyntaxNode} from "web-tree-sitter"
+
 import {findTolkFile, TOLK_PARSED_FILES_CACHE} from "@server/files"
 import {Referent} from "@server/languages/tolk/psi/Referent"
 import {File} from "@server/psi/File"
-import type {Node as SyntaxNode} from "web-tree-sitter"
 import {asParserPoint} from "@server/utils/position"
 import type {
     Intention,

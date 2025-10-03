@@ -1,5 +1,6 @@
 import type {Node as SyntaxNode} from "web-tree-sitter"
 import * as lsp from "vscode-languageserver"
+
 import {asLspRange} from "@server/utils/position"
 
 export function documentationForAnnotation(hoverNode: SyntaxNode): lsp.Hover | null {

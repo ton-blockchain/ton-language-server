@@ -2,9 +2,12 @@
 //  Copyright © 2025 TON Studio
 import type * as lsp from "vscode-languageserver"
 
+import {ContractAbi} from "@shared/abi"
+
 export const TypeAtPositionRequest = "tolk.getTypeAtPosition"
 export const DocumentationAtPositionRequest = "tolk.executeHoverProvider"
 export const SetToolchainVersionNotification = "tolk.setToolchainVersion"
+export const ContractAbiRequest = "tolk.getContractAbi"
 
 export interface TypeAtPositionParams {
     readonly textDocument: {
@@ -14,6 +17,16 @@ export interface TypeAtPositionParams {
         readonly line: number
         readonly character: number
     }
+}
+
+export interface GetContractAbiParams {
+    readonly textDocument: {
+        readonly uri: string
+    }
+}
+
+export interface GetContractAbiResponse {
+    readonly abi: ContractAbi | undefined
 }
 
 export interface EnvironmentInfo {

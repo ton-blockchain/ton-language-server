@@ -29,15 +29,19 @@ export class Logger {
             const instance = new Logger(connection, logPath)
 
             console.log = (...args) => {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                 instance.log(...args)
             }
             console.info = (...args) => {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                 instance.info(...args)
             }
             console.warn = (...args) => {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                 instance.warn(...args)
             }
             console.error = (...args) => {
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-argument
                 instance.error(...args)
             }
 

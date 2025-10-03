@@ -1,8 +1,9 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
 
-import {TolkFile} from "@server/languages/tolk/psi/TolkFile"
 import * as lsp from "vscode-languageserver"
+
+import {TolkFile} from "@server/languages/tolk/psi/TolkFile"
 import {createTolkParser} from "@server/parser"
 import {getOffsetFromPosition} from "@server/document-store"
 import {asParserPoint} from "@server/utils/position"

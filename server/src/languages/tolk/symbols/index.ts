@@ -1,5 +1,6 @@
 import * as lsp from "vscode-languageserver"
 import {SymbolKind} from "vscode-languageserver"
+
 import {NamedNode, TolkNode} from "@server/languages/tolk/psi/TolkNode"
 import {
     Constant,

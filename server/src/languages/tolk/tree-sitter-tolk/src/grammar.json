@@ -2202,8 +2202,12 @@
                     "value": "throw"
                 },
                 {
-                    "type": "SYMBOL",
-                    "name": "_expression"
+                    "type": "FIELD",
+                    "name": "excNo",
+                    "content": {
+                        "type": "SYMBOL",
+                        "name": "_expression"
+                    }
                 }
             ]
         },

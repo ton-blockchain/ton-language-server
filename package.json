@@ -39,6 +39,7 @@
         "build": "webpack && node ./.scripts/set-executable.js ./dist/server.js",
         "package": "npx vsce package --no-yarn --readme-path editors/code/README.md",
         "lint": "eslint --cache .",
+        "lint:css": "npx stylelint \"editors/**/*.css\"",
         "fmt": "prettier --write -l --cache .",
         "fmt:check": "prettier --check --cache .",
         "grammar:wasm": "yarn grammar:tolk:wasm && yarn grammar:func:wasm && yarn grammar:fift:wasm && yarn grammar:tlb:wasm",
@@ -47,7 +48,7 @@
         "grammar:fift:wasm": "cd server/src/languages/fift/tree-sitter-fift && tree-sitter generate && tree-sitter build --wasm",
         "grammar:tlb:wasm": "cd server/src/languages/tlb/tree-sitter-tlb && tree-sitter generate && tree-sitter build --wasm",
         "watch": "webpack --watch",
-        "precommit": "yarn build && yarn fmt && yarn lint",
+        "precommit": "yarn build && yarn fmt && yarn lint --fix && yarn run lint:css --fix",
         "test:grammars": "yarn test:grammars:tolk && yarn test:grammars:func && yarn test:grammars:fift && yarn test:grammars:tlb",
         "test:grammars:tolk": "cd ./server/src/languages/tolk/tree-sitter-tolk/ && tree-sitter test",
         "test:grammars:func": "cd ./server/src/languages/func/tree-sitter-func/ && tree-sitter test",
@@ -205,11 +206,25 @@
             {
                 "type": "tvm",
                 "label": "TVM Debug"
+            },
+            {
+                "type": "assembly",
+                "label": "Assembly Debug"
+            },
+            {
+                "type": "tolk",
+                "label": "Tolk Debug"
             }
         ],
         "breakpoints": [
             {
                 "language": "func"
+            },
+            {
+                "language": "tasm"
+            },
+            {
+                "language": "tolk"
             }
         ],
         "commands": [
@@ -225,6 +240,11 @@
             {
                 "command": "tolk.getTypeAtPosition",
                 "title": "Get Type At Position",
+                "category": "Tolk"
+            },
+            {
+                "command": "tolk.getContractAbi",
+                "title": "Get Contract ABI",
                 "category": "Tolk"
             },
             {
@@ -285,16 +305,134 @@
             {
                 "command": "ton.debug",
                 "title": "TON: Debug contract"
+            },
+            {
+                "command": "ton.sandbox.refresh",
+                "title": "Refresh",
+                "category": "TON",
+                "icon": "$(refresh)"
+            },
+            {
+                "command": "ton.sandbox.history.refresh",
+                "title": "Refresh History",
+                "category": "TON",
+                "icon": "$(refresh)"
+            },
+            {
+                "command": "ton.sandbox.history.importTrace",
+                "title": "Import History",
+                "category": "TON",
+                "icon": "$(arrow-down)"
+            },
+            {
+                "command": "ton.sandbox.history.exportTrace",
+                "title": "Export History",
+                "category": "TON",
+                "icon": "$(arrow-up)"
+            },
+            {
+                "command": "ton.sandbox.history.reset",
+                "title": "Reset History",
+                "category": "TON",
+                "icon": "$(clear-all)"
+            },
+            {
+                "command": "ton.sandbox.deleteMessageTemplate",
+                "title": "Delete Message Template",
+                "category": "TON",
+                "icon": "$(trash)"
+            },
+            {
+                "command": "ton.sandbox.copyContractAbi",
+                "title": "Copy Contract ABI",
+                "category": "TON",
+                "icon": "$(copy)"
+            },
+            {
+                "command": "ton.sandbox.copyContractAddressFromTree",
+                "title": "Copy Address",
+                "category": "TON",
+                "icon": "$(copy)"
+            },
+            {
+                "command": "ton.sandbox.installServer",
+                "title": "Install TON Sandbox Server",
+                "category": "TON",
+                "icon": "$(arrow-down)"
+            },
+            {
+                "command": "ton.sandbox.startServer",
+                "title": "Start TON Sandbox Server",
+                "category": "TON",
+                "icon": "$(debug-start)"
+            },
+            {
+                "command": "ton.sandbox.stopServer",
+                "title": "Stop TON Sandbox Server",
+                "category": "TON",
+                "icon": "$(debug-stop)"
+            },
+            {
+                "command": "ton.sandbox.openTerminal",
+                "title": "Open Sandbox Terminal",
+                "category": "TON",
+                "icon": "$(terminal)"
             }
         ],
+        "views": {
+            "tonSandboxContainer": [
+                {
+                    "id": "tonSandbox",
+                    "name": "Contracts & Actions",
+                    "when": "true"
+                },
+                {
+                    "id": "tonSandboxActions",
+                    "type": "webview",
+                    "name": "Operations",
+                    "when": "true"
+                },
+                {
+                    "id": "tonSandboxHistory",
+                    "type": "webview",
+                    "name": "History",
+                    "when": "true"
+                }
+            ]
+        },
+        "viewsContainers": {
+            "activitybar": [
+                {
+                    "id": "tonSandboxContainer",
+                    "title": "TON Sandbox",
+                    "icon": "$(rocket)"
+                }
+            ]
+        },
         "keybindings": [
             {
                 "command": "tolk.build",
                 "key": "f5",
                 "when": "editorTextFocus && editorLangId == 'tolk'"
+            },
+            {
+                "command": "ton.sandbox.copyContractAbi",
+                "key": "ctrl+shift+c",
+                "mac": "cmd+shift+c",
+                "when": "editorTextFocus && editorLangId == 'tolk'"
             }
         ],
         "menus": {
+            "commandPalette": [
+                {
+                    "command": "ton.sandbox.deleteMessageTemplate",
+                    "when": "false"
+                },
+                {
+                    "command": "ton.sandbox.copyContractAddressFromTree",
+                    "when": "false"
+                }
+            ],
             "explorer/context": [
                 {
                     "when": "resourceExtname == .boc",
@@ -305,6 +443,60 @@
                     "when": "resourceExtname == '.boc'",
                     "command": "ton.saveBocDecompiled",
                     "group": "navigation"
+                }
+            ],
+            "view/title": [
+                {
+                    "command": "ton.sandbox.refresh",
+                    "when": "view == tonSandbox",
+                    "group": "navigation"
+                },
+                {
+                    "command": "ton.sandbox.history.refresh",
+                    "when": "view == tonSandboxHistory",
+                    "group": "navigation"
+                },
+                {
+                    "command": "ton.sandbox.history.exportTrace",
+                    "when": "view == tonSandboxHistory",
+                    "group": "navigation"
+                },
+                {
+                    "command": "ton.sandbox.history.importTrace",
+                    "when": "view == tonSandboxHistory",
+                    "group": "navigation"
+                },
+                {
+                    "command": "ton.sandbox.history.reset",
+                    "when": "view == tonSandboxHistory",
+                    "group": "navigation"
+                },
+                {
+                    "command": "ton.sandbox.startServer",
+                    "when": "view == tonSandbox",
+                    "group": "navigation"
+                },
+                {
+                    "command": "ton.sandbox.stopServer",
+                    "when": "view == tonSandbox",
+                    "group": "navigation"
+                },
+                {
+                    "command": "ton.sandbox.openTerminal",
+                    "when": "view == tonSandbox",
+                    "group": "navigation"
+                }
+            ],
+            "view/item/context": [
+                {
+                    "command": "ton.sandbox.deleteMessageTemplate",
+                    "when": "view == tonSandbox && viewItem == message-template",
+                    "group": "inline"
+                },
+                {
+                    "command": "ton.sandbox.copyContractAddressFromTree",
+                    "when": "view == tonSandbox && viewItem == deployed-contract",
+                    "group": "inline"
                 }
             ]
         },
@@ -525,6 +717,21 @@
                         "description": "Sort imports on format"
                     }
                 }
+            },
+            {
+                "title": "Sandbox",
+                "properties": {
+                    "ton.sandbox.port": {
+                        "type": "number",
+                        "default": 3000,
+                        "description": "Port for the TON Sandbox server"
+                    },
+                    "ton.sandbox.binaryPath": {
+                        "type": "string",
+                        "default": "./node_modules/.bin/ton-sandbox-server",
+                        "description": "Path to the TON Sandbox server binary"
+                    }
+                }
             }
         ],
         "customEditors": [
@@ -559,11 +766,21 @@
         ]
     },
     "dependencies": {
-        "@ton/core": "0.60.1",
+        "@ton/core": "0.61.0",
         "@ton/crypto": "^3.3.0",
+        "@vscode/debugadapter": "^1.51.0",
+        "@vscode/debugprotocol": "^1.68.0",
+        "buffer": "^6.0.3",
         "glob": "^11.0.1",
+        "jssha": "^3.3.1",
+        "react": "^18.3.1",
+        "react-d3-tree": "^3.6.6",
+        "react-dom": "^18.3.1",
+        "react-icons": "^5.5.0",
+        "react-markdown": "^10.1.0",
         "tolkfmt-test-dev": "0.0.21",
-        "ton-assembly": "0.2.0",
+        "ton-assembly": "0.4.0",
+        "ton-source-map": "^0.2.2",
         "vscode-languageclient": "^8.0.2",
         "vscode-languageserver": "^8.0.2",
         "vscode-languageserver-textdocument": "^1.0.7",
@@ -571,23 +788,42 @@
         "web-tree-sitter": "^0.25.0"
     },
     "devDependencies": {
+        "@babel/core": "^7.26.0",
+        "@babel/plugin-transform-modules-commonjs": "^7.25.9",
+        "@babel/preset-env": "^7.26.0",
+        "@types/eslint-plugin-jsx-a11y": "^6.10.0",
         "@types/jest": "^29.5.14",
         "@types/mocha": "^10.0.6",
         "@types/node": "^22.2.0",
+        "@types/react": "^18.3.3",
+        "@types/react-dom": "^18.3.0",
         "@types/vscode": "^1.63.0",
         "@vscode/test-cli": "^0.0.10",
         "@vscode/test-electron": "^2.4.1",
         "@vscode/vsce": "^3.6.0",
+        "babel-loader": "^9.2.1",
         "c8": "^10.1.3",
+        "concurrently": "^9.2.1",
         "copy-webpack-plugin": "^12.0.2",
+        "css-loader": "^7.1.2",
         "eslint": "^9.19.0",
+        "eslint-import-resolver-typescript": "^4.4.4",
         "eslint-plugin-functional": "^9.0.1",
+        "eslint-plugin-import-x": "^4.16.1",
+        "eslint-plugin-jsx-a11y": "^6.10.2",
+        "eslint-plugin-react": "^7.37.5",
+        "eslint-plugin-react-hooks": "^5.2.0",
+        "eslint-plugin-react-refresh": "^0.4.22",
         "eslint-plugin-unicorn": "^56.0.1",
         "eslint-plugin-unused-imports": "^4.1.4",
         "husky": "^9.1.7",
         "jest": "^29.7.0",
+        "mini-css-extract-plugin": "^2.9.2",
         "mocha": "^10.3.0",
         "prettier": "3.4.2",
+        "style-loader": "^4.0.0",
+        "stylelint": "^16.24.0",
+        "stylelint-config-standard": "^39.0.0",
         "tree-sitter-cli": "^0.25.8",
         "ts-jest": "^29.2.6",
         "ts-loader": "^9.5.1",
@@ -626,6 +862,14 @@
                 "files": [
                     "*.yaml",
                     "*.yml"
+                ],
+                "options": {
+                    "tabWidth": 2
+                }
+            },
+            {
+                "files": [
+                    "editors/code/src/webview-ui/**/*.*"
                 ],
                 "options": {
                     "tabWidth": 2

@@ -1,6 +1,7 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
 import * as lsp from "vscode-languageserver"
+
 import type {FuncFile} from "@server/languages/func/psi/FuncFile"
 import {asLspRange} from "@server/utils/position"
 import {ImportResolver} from "@server/languages/func/psi/ImportResolver"

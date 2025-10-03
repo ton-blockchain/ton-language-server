@@ -1,6 +1,7 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Studio
 import {FoldingRange} from "vscode-languageserver-types"
+
 import {RecursiveVisitor} from "@server/visitor/visitor"
 import {FiftFile} from "@server/languages/fift/psi/FiftFile"
 import {genericFolding} from "@server/foldings"

@@ -1,5 +1,6 @@
 import * as lsp from "vscode-languageserver"
 import {SymbolKind} from "vscode-languageserver"
+
 import {asLspRange, asNullableLspRange} from "@server/utils/position"
 import {TlbFile} from "@server/languages/tlb/psi/TlbFile"
 import {DeclarationNode} from "@server/languages/tlb/psi/TlbNode"

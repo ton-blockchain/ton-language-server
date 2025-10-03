@@ -1,6 +1,7 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
 import * as lsp from "vscode-languageserver"
+
 import {RecursiveVisitor} from "@server/visitor/visitor"
 import {asLspRange} from "@server/utils/position"
 import {FiftFile} from "@server/languages/fift/psi/FiftFile"

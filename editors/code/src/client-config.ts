@@ -1,9 +1,10 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Studio
 import * as vscode from "vscode"
+
 import {defaultConfig, TonPluginConfigScheme} from "@shared/config-scheme"
 
-let cachedClientConfig: TonPluginConfigScheme | null = null
+let cachedClientConfig: TonPluginConfigScheme | undefined = undefined
 
 export function getClientConfiguration(): TonPluginConfigScheme {
     if (cachedClientConfig) {
@@ -24,5 +25,5 @@ export function getClientConfiguration(): TonPluginConfigScheme {
 }
 
 export function resetClientConfigCache(): void {
-    cachedClientConfig = null
+    cachedClientConfig = undefined
 }

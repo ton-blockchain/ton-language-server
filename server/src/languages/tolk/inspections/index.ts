@@ -1,4 +1,5 @@
 import * as lsp from "vscode-languageserver"
+
 import {connection} from "@server/connection"
 import {getDocumentSettings} from "@server/settings/settings"
 import {TolkFile} from "@server/languages/tolk/psi/TolkFile"

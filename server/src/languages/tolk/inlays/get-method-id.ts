@@ -1,9 +1,11 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
 import type {Node as SyntaxNode} from "web-tree-sitter"
+
+import * as lsp from "vscode-languageserver-types"
+
 import type {TolkFile} from "@server/languages/tolk/psi/TolkFile"
 import {GetMethod} from "@server/languages/tolk/psi/Decls"
-import * as lsp from "vscode-languageserver-types"
 
 export function getMethodId(n: SyntaxNode, file: TolkFile, result: lsp.InlayHint[]): void {
     const func = new GetMethod(n, file)

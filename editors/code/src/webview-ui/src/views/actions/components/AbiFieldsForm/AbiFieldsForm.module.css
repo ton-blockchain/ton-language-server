@@ -1,0 +1,98 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.fieldsContainer {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 0;
+}
+
+.select {
+  width: 100%;
+  padding: 6px 8px;
+  background-color: var(--vscode-input-background);
+  color: var(--vscode-input-foreground);
+  border: 1px solid var(--vscode-input-border);
+  border-radius: 2px;
+  font-family: inherit;
+  font-size: 12px;
+}
+
+.select:focus {
+  outline: none;
+  border-color: var(--vscode-focusBorder);
+}
+
+.select:disabled {
+  opacity: 0.6;
+}
+
+.nestedFieldGroup {
+  border-left: 2px solid var(--vscode-panel-border);
+  padding-left: 12px;
+  margin-bottom: 12px;
+}
+
+.structLabel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.structLabel .fieldName {
+  font-weight: 500;
+  font-size: 12px;
+  color: var(--vscode-foreground);
+}
+
+.structLabel .fieldType {
+  font-size: 11px;
+  color: var(--vscode-descriptionForeground);
+  font-family: var(--vscode-editor-font-family), monospace;
+}
+
+.nestedFields {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.addressInput {
+  width: 100%;
+}
+
+.coinsInput {
+  width: 100%;
+}
+
+.fieldContainer {
+  margin-bottom: 10px;
+  padding: 8px;
+  border: 1px solid var(--vscode-input-border);
+  border-radius: 3px;
+  background-color: var(--vscode-editor-background);
+}
+
+.fieldHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.fieldName {
+  font-weight: 500;
+  font-size: 12px;
+  color: var(--vscode-foreground);
+}
+
+.fieldType {
+  font-size: 11px;
+  color: var(--vscode-descriptionForeground);
+  font-family: var(--vscode-editor-font-family), monospace;
+}

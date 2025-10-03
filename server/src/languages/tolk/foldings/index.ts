@@ -1,6 +1,7 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
 import {FoldingRange} from "vscode-languageserver-types"
+
 import {RecursiveVisitor} from "@server/visitor/visitor"
 import type {TolkFile} from "@server/languages/tolk/psi/TolkFile"
 import {genericFolding} from "@server/foldings"

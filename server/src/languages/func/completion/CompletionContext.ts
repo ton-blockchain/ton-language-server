@@ -1,6 +1,7 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
 import type * as lsp from "vscode-languageserver/node"
+
 import {FuncNode} from "@server/languages/func/psi/FuncNode"
 
 export class CompletionContext {

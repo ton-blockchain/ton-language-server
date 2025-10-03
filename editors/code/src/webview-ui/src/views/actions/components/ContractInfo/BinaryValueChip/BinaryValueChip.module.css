@@ -1,0 +1,71 @@
+.binaryValueChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--vscode-editor-font-size);
+  color: var(--vscode-foreground);
+  padding: 1px 4px;
+  position: relative;
+  cursor: pointer;
+  transition: padding-right 0.1s ease;
+  max-width: 300px;
+}
+
+.binaryValueChip:hover {
+  padding-right: 36px;
+}
+
+.value {
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--vscode-foreground);
+  font-size: 0.9em;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 0.1s ease;
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.binaryValueChip:hover .controls {
+  opacity: 1;
+}
+
+.controlButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: transparent;
+  color: var(--vscode-text-muted);
+  cursor: pointer;
+  border-radius: 2px;
+  transition: all 0.1s ease;
+  position: relative;
+}
+
+.controlButton:hover {
+  background-color: var(--vscode-toolbar-hoverBackground, rgb(255 255 255 / 10%));
+  color: var(--vscode-foreground);
+}
+
+.controlButton svg {
+  width: 11px;
+  height: 11px;
+  display: block;
+  stroke: currentcolor;
+  stroke-width: 1.5;
+}

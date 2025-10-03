@@ -2,13 +2,17 @@
 //  Copyright © 2025 TON Core
 import type {Node as SyntaxNode} from "web-tree-sitter"
 import * as lsp from "vscode-languageserver"
-import {BuiltinTy, EnumTy, FuncTy, StructTy, Ty, TypeAliasTy} from "@server/languages/tolk/types/ty"
+
 import {InlayHintLabelPart} from "vscode-languageserver"
+
+import {InlayHintKind} from "vscode-languageserver-types"
+
+import {BuiltinTy, EnumTy, FuncTy, StructTy, Ty, TypeAliasTy} from "@server/languages/tolk/types/ty"
 import {toLocation} from "@server/languages/tolk/inlays/common"
 import {CallLike, Expression, VarDeclaration} from "@server/languages/tolk/psi/TolkNode"
 import type {TolkFile} from "@server/languages/tolk/psi/TolkFile"
 import {FileDiff} from "@server/utils/FileDiff"
-import {InlayHintKind} from "vscode-languageserver-types"
+
 import {Constant, FunctionBase} from "@server/languages/tolk/psi/Decls"
 import {typeOf} from "@server/languages/tolk/type-inference"
 

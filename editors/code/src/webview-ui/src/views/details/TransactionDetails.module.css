@@ -1,0 +1,44 @@
+.container {
+  padding: 20px;
+  background-color: var(--vscode-editor-background);
+  font-family: var(--vscode-font-family), sans-serif;
+  color: var(--vscode-foreground);
+  height: 100vh;
+  overflow: auto;
+}
+
+.title {
+  margin: 0 0 10px;
+  color: var(--vscode-foreground);
+  font-size: 1.4em;
+}
+
+.status {
+  font-size: 1.1em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.label {
+  font-weight: bold;
+  color: var(--vscode-foreground);
+}
+
+.contractAddress {
+  font-family: var(--vscode-editor-font-family, "Fira Code", monospace), monospace;
+  background-color: var(--vscode-textCodeBlock-background);
+  padding: 8px;
+  border-radius: 3px;
+  border: 1px solid var(--vscode-textBlockQuote-border);
+  word-break: break-all;
+  font-size: 0.9em;
+}
+
+.timestamp {
+  background-color: var(--vscode-textCodeBlock-background);
+  padding: 8px;
+  border-radius: 3px;
+  border: 1px solid var(--vscode-textBlockQuote-border);
+  font-size: 0.9em;
+}

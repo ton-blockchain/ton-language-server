@@ -1,8 +1,9 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
-import {CallLike, NamedNode} from "@server/languages/tolk/psi/TolkNode"
 import type {Node as SyntaxNode} from "web-tree-sitter"
 import {InlayHint, InlayHintKind} from "vscode-languageserver-types"
+
+import {CallLike, NamedNode} from "@server/languages/tolk/psi/TolkNode"
 import type {TolkFile} from "@server/languages/tolk/psi/TolkFile"
 import {Reference} from "@server/languages/tolk/psi/Reference"
 import {FunctionBase, InstanceMethod} from "@server/languages/tolk/psi/Decls"

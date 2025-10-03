@@ -3,6 +3,7 @@
 import type {WorkspaceEdit} from "vscode-languageserver"
 import type {Position} from "vscode-languageclient"
 import type {Range} from "vscode-languageserver-textdocument"
+
 import type {TolkFile} from "@server/languages/tolk/psi/TolkFile"
 
 export interface IntentionContext {

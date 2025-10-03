@@ -2,6 +2,7 @@
 //  Copyright © 2025 TON Core
 import type {Node as SyntaxNode} from "web-tree-sitter"
 import * as lsp from "vscode-languageserver-types"
+
 import {FuncFile} from "@server/languages/func/psi/FuncFile"
 import {typeOf} from "@server/languages/func/types/infer"
 

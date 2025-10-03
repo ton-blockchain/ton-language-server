@@ -64,6 +64,23 @@ BoC support includes:
 - Automatic BoC disassembly with syntax highlighting
 - Automatic updates on BoC changes
 
+### Sandbox Integration
+
+This extension also includes a comprehensive **TON Sandbox** — a graphical interface for local TON blockchain
+testing:
+
+- **One-Click Contract Deployment**: Deploy contracts directly from source code
+- **Interactive Message Testing**: Send internal/external messages
+- **Transaction Tree Visualization**: Deep inspection of all messages and transactions
+- **Flexible History Management**: Rollback to any previous state, export/import scenarios
+- **Contract State Monitoring**: Real-time storage and balance inspection
+- **Code Lenses**: Instant deployment and method execution from editor
+
+Perfect for rapid prototyping, interactive debugging, and educational purposes. Powered by `@ton/sandbox` package.
+
+Check out the [Sandbox Wiki Page](https://github.com/ton-blockchain/ton-language-server/wiki/Sandbox:-1.-Overview) for
+more details.
+
 ## Quick start
 
 The easiest way to get started with TON development is to use VS Code or editors based on it:

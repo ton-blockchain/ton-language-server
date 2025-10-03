@@ -1,8 +1,10 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Studio
 import type {InlayHint} from "vscode-languageserver"
-import {AsyncRecursiveVisitor} from "@server/visitor/visitor"
+
 import {InlayHintKind} from "vscode-languageserver-types"
+
+import {AsyncRecursiveVisitor} from "@server/visitor/visitor"
 import {FiftFile} from "@server/languages/fift/psi/FiftFile"
 import {findInstruction} from "@server/languages/fift/asm/types"
 import {instructionPresentation} from "@server/languages/fift/asm/gas"

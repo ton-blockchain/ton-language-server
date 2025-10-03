@@ -1,0 +1,8 @@
+.container {
+  font-family: var(--vscode-font-family), sans-serif;
+  font-size: var(--vscode-font-size);
+  color: var(--vscode-foreground);
+  background-color: var(--vscode-sideBar-background);
+  height: 100vh;
+  overflow: auto;
+}

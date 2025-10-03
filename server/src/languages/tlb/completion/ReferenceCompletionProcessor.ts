@@ -1,8 +1,9 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Studio
 
-import {CompletionContext} from "@server/languages/tlb/completion/CompletionContext"
 import {CompletionItem, CompletionItemKind, InsertTextFormat} from "vscode-languageserver-types"
+
+import {CompletionContext} from "@server/languages/tlb/completion/CompletionContext"
 import {ResolveState} from "@server/psi/ResolveState"
 import {WeightedCompletionItem} from "@server/completion/WeightedCompletionItem"
 

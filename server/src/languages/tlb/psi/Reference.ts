@@ -1,6 +1,7 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Studio
 import type {Node} from "web-tree-sitter"
+
 import {RecursiveVisitor} from "@server/visitor/visitor"
 import {DeclarationNode, NamedNode, TlbNode} from "@server/languages/tlb/psi/TlbNode"
 import {TlbFile} from "@server/languages/tlb/psi/TlbFile"

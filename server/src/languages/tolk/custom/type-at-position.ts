@@ -1,4 +1,5 @@
 import type {Node as SyntaxNode} from "web-tree-sitter"
+
 import {Ty} from "@server/languages/tolk/types/ty"
 import {TypeAtPositionParams, TypeAtPositionResponse} from "@shared/shared-msgtypes"
 import {asLspRange, asParserPoint} from "@server/utils/position"

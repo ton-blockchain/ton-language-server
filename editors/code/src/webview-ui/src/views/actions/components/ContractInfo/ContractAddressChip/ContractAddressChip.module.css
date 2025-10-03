@@ -1,0 +1,66 @@
+.contractAddressChip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--vscode-editor-font-size);
+  color: var(--vscode-foreground);
+  padding: 1px 4px;
+  position: relative;
+  cursor: pointer;
+  transition: padding-right 0.1s ease;
+}
+
+.contractAddressChip:hover {
+  padding-right: 18px;
+}
+
+.contractName {
+  font-weight: 500;
+  color: var(--vscode-foreground);
+}
+
+.contractAddress {
+  color: var(--color-text-secondary);
+  font-size: 0.9em;
+}
+
+.contractAddressOnly {
+  color: var(--vscode-foreground);
+}
+
+.copyButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: transparent;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  border-radius: 2px;
+  opacity: 0;
+  transition: opacity 0.1s ease;
+  position: absolute;
+  right: 2px;
+  top: 50%;
+  transform: translateY(-50%);
+}
+
+.contractAddressChip:hover .copyButton {
+  opacity: 1;
+}
+
+.copyButton:hover {
+  color: var(--vscode-foreground);
+}
+
+.copyButton svg {
+  width: 11px;
+  height: 11px;
+  display: block;
+  stroke: currentcolor;
+  stroke-width: 1.5;
+}
