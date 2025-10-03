@@ -120,15 +120,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         transactionDetailsProvider,
     )
 
-    context.subscriptions.push(
-        vscode.commands.registerCommand(
-            "tolk.getContractAbi",
-            async (params: GetContractAbiParams) => {
-                return client?.sendRequest<GetContractAbiResponse>("tolk.getContractAbi", params)
-            },
-        ),
-        ...sandboxCommands,
-    )
+    context.subscriptions.push(...sandboxCommands)
 
     configureDebugging(context)
 
@@ -326,6 +318,12 @@ async function resolveFile(filePath: string): Promise<vscode.Uri> {
 
 function registerCommands(disposables: vscode.Disposable[]): void {
     disposables.push(
+        vscode.commands.registerCommand(
+            "tolk.getContractAbi",
+            async (params: GetContractAbiParams) => {
+                return client?.sendRequest<GetContractAbiResponse>("tolk.getContractAbi", params)
+            },
+        ),
         vscode.commands.registerCommand("tolk.showToolchainInfo", async () => {
             if (!cachedToolchainInfo) {
                 vscode.window.showInformationMessage("Toolchain information not available")
