@@ -1,5 +1,5 @@
-import {DebugAdapterExecutable, DebugSession} from "vscode"
 import * as vscode from "vscode"
+import {DebugAdapterExecutable, DebugSession} from "vscode"
 
 export function configureDebugging(context: vscode.ExtensionContext): void {
     context.subscriptions.push(
@@ -10,9 +10,6 @@ export function configureDebugging(context: vscode.ExtensionContext): void {
                         type: "tvm",
                         name: "Debug",
                         request: "launch",
-                        code: "${command:ton.getAssemblyCode}",
-                        vmLogs: "${command:ton.getVmLogs}",
-                        stopOnEntry: true,
                     },
                 ]
             },
