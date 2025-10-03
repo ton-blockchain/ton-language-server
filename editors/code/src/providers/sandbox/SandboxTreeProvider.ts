@@ -333,8 +333,6 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
         try {
             const result = await checkSandboxStatus()
 
-            console.log(result)
-
             this.sandboxStatus = result.success
                 ? "connected"
                 : result.error === "fetch failed"
