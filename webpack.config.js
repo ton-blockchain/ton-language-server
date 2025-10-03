@@ -19,7 +19,6 @@ const extensionConfig = {
     entry: {
         server: "./server/src/server.ts",
         client: "./editors/code/src/extension.ts",
-        "debugging/adapter/server": "./editors/code/src/debugging/adapter/server.ts",
     }, // the entry point of this extension, 📖 -> https://webpack.js.org/configuration/entry-context/
     output: {
         // the bundle is stored in the 'dist' folder (check package.json), 📖 -> https://webpack.js.org/configuration/output/
