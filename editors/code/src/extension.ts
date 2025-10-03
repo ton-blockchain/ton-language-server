@@ -61,7 +61,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     context.subscriptions.push(
         vscode.window.createTreeView("tonSandbox", {
             treeDataProvider: sandboxTreeProvider,
-            showCollapseAll: true,
+            showCollapseAll: false,
         }),
     )
 
