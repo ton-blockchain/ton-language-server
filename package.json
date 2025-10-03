@@ -728,7 +728,7 @@
                     },
                     "ton.sandbox.binaryPath": {
                         "type": "string",
-                        "default": "ton-sandbox-server",
+                        "default": "./node_modules/.bin/ton-sandbox-server",
                         "description": "Path to the TON Sandbox server binary"
                     }
                 }

@@ -27,6 +27,11 @@ import {TransactionDetailsProvider} from "../providers/sandbox/TransactionDetail
 import {HexString} from "../common/hex-string"
 import {Base64String} from "../common/base64-string"
 import {TransactionDetailsInfo} from "../common/types/transaction"
+import {
+    detectPackageManager,
+    getInstallCommand,
+    getLocalBinaryPath,
+} from "../common/package-manager"
 
 export function registerSandboxCommands(
     treeProvider: SandboxTreeProvider,
@@ -298,16 +303,25 @@ export function registerSandboxCommands(
                 )
             }
         }),
-        vscode.commands.registerCommand("ton.sandbox.installServer", () => {
+        vscode.commands.registerCommand("ton.sandbox.installServer", async () => {
             try {
+                const workspaceFolder = vscode.workspace.workspaceFolders?.[0]
+                if (!workspaceFolder) {
+                    void vscode.window.showErrorMessage(
+                        "No workspace folder found. Please open project first!",
+                    )
+                    return
+                }
+
+                const packageManager = await detectPackageManager(workspaceFolder)
+                const installCommand = getInstallCommand(packageManager, "ton-sandbox-server-dev")
+
                 const terminal =
                     vscode.window.terminals.find(t => t.name === "TON Sandbox Installation") ??
                     vscode.window.createTerminal("TON Sandbox Installation")
                 terminal.show()
 
-                const command = "npm install -g ton-sandbox-server-dev"
-
-                terminal.sendText(command)
+                terminal.sendText(installCommand)
 
                 setTimeout(() => {
                     treeProvider.refresh()
@@ -324,10 +338,14 @@ export function registerSandboxCommands(
                 )
             }
         }),
-        vscode.commands.registerCommand("ton.sandbox.startServer", () => {
+        vscode.commands.registerCommand("ton.sandbox.startServer", async () => {
             try {
                 const config = vscode.workspace.getConfiguration("ton")
-                const binaryPath = config.get<string>("sandbox.binaryPath", "ton-sandbox-server")
+                const binaryPath =
+                    config.get<string | undefined>("sandbox.binaryPath", undefined) ??
+                    (await getLocalBinaryPath("ton-sandbox-server")) ??
+                    "ton-sandbox-server"
+
                 const port = config.get<number>("sandbox.port", 3000)
 
                 const terminal =

@@ -1,7 +1,5 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
-import * as child_process from "node:child_process"
-
 import * as vscode from "vscode"
 
 import {SourceMap} from "ton-source-map"
@@ -88,9 +86,9 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
         }
     }
 
-    private getRootItems(): SandboxTreeItem[] {
+    private async getRootItems(): Promise<SandboxTreeItem[]> {
         const items: SandboxTreeItem[] = []
-        const isServerAvailable = this.isSandboxServerAvailable()
+        const isServerAvailable = await this.isSandboxServerAvailable()
 
         items.push({
             id: "status",
@@ -146,14 +144,34 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
         return items
     }
 
-    private isSandboxServerAvailable(): boolean {
+    private async isSandboxServerAvailable(): Promise<boolean> {
+        const config = vscode.workspace.getConfiguration("ton")
+        const customBinaryPath = config.get<string>("sandbox.binaryPath")
+
+        if (customBinaryPath) {
+            try {
+                const binaryUri = vscode.Uri.file(customBinaryPath)
+                await vscode.workspace.fs.stat(binaryUri)
+                return true
+            } catch {
+                // Not found
+            }
+        }
+
+        const workspaceFolder = vscode.workspace.workspaceFolders?.[0]
+        if (!workspaceFolder) {
+            return false
+        }
+
         try {
-            const command = process.platform === "win32" ? "where" : "which"
-            const result = child_process.spawnSync(command, ["ton-sandbox-server"], {
-                stdio: "pipe",
-                encoding: "utf8",
-            })
-            return result.status === 0
+            const localBinaryPath = vscode.Uri.joinPath(
+                workspaceFolder.uri,
+                "node_modules",
+                ".bin",
+                "ton-sandbox-server",
+            )
+            await vscode.workspace.fs.stat(localBinaryPath)
+            return true
         } catch {
             return false
         }
@@ -263,7 +281,7 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
                 return "Connection Error"
             }
             case "server-not-found": {
-                return "Need to start sandbox-server"
+                return "Sandbox-server is not installed"
             }
             case "disconnected": {
                 return "Disconnected"
@@ -304,7 +322,8 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
     }
 
     private async checkSandboxStatus(loadContracts: boolean): Promise<void> {
-        if (!this.isSandboxServerAvailable()) {
+        const isAvailable = await this.isSandboxServerAvailable()
+        if (!isAvailable) {
             this.sandboxStatus = "server-not-found"
             this._onDidChangeTreeData.fire(undefined)
             this.codeLensProvider?.refresh()
@@ -319,7 +338,7 @@ export class SandboxTreeProvider implements vscode.TreeDataProvider<SandboxTreeI
             this.sandboxStatus = result.success
                 ? "connected"
                 : result.error === "fetch failed"
-                  ? "server-not-found"
+                  ? "disconnected"
                   : "error"
 
             const isConnected = this.sandboxStatus === "connected"
