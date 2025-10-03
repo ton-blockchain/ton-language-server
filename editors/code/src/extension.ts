@@ -25,7 +25,6 @@ import {
 } from "@shared/shared-msgtypes"
 
 import type {ClientOptions} from "@shared/config-scheme"
-import {ContractAbi} from "@shared/abi"
 
 import {ToolchainConfig} from "@server/settings/settings"
 
@@ -46,11 +45,6 @@ import {TransactionDetailsProvider} from "./providers/sandbox/TransactionDetails
 import {SandboxCodeLensProvider} from "./providers/sandbox/SandboxCodeLensProvider"
 
 import {configureDebugging} from "./debugging"
-import {loadContractInfo, loadLatestOperationResult} from "./providers/sandbox/methods"
-import {HexString} from "./common/hex-string"
-import {ShowTransactionDetailsCommand} from "./webview-ui/src/views/actions/sandbox-actions-types"
-import {TransactionDetailsInfo} from "./common/types/transaction"
-import {Base64String} from "./common/base64-string"
 
 let client: LanguageClient | null = null
 let cachedToolchainInfo: SetToolchainVersionParams | null = null
@@ -64,7 +58,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     registerSaveBocDecompiledCommand(context)
 
     const sandboxTreeProvider = new SandboxTreeProvider()
-    setSandboxTreeProvider(sandboxTreeProvider)
     context.subscriptions.push(
         vscode.window.createTreeView("tonSandbox", {
             treeDataProvider: sandboxTreeProvider,
@@ -96,7 +89,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     )
 
     const transactionDetailsProvider = new TransactionDetailsProvider(context.extensionUri)
-    setTransactionDetailsProvider(transactionDetailsProvider)
 
     const sandboxCodeLensProvider = new SandboxCodeLensProvider(sandboxTreeProvider)
     context.subscriptions.push(
@@ -125,6 +117,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         sandboxTreeProvider,
         sandboxActionsProvider,
         historyWebviewProvider,
+        transactionDetailsProvider,
     )
 
     context.subscriptions.push(
@@ -228,8 +221,6 @@ async function startServer(context: vscode.ExtensionContext): Promise<vscode.Dis
     await client.start()
 
     registerCommands(disposables)
-    registerTransactionDetailsCommand(disposables)
-    registerAddTransactionsToDetailsCommand(disposables)
 
     const langStatusBar = vscode.window.createStatusBarItem(
         "Tolk",
@@ -853,96 +844,4 @@ async function checkConflictingExtensions(): Promise<void> {
             `@id:${installedConflicting[0].id}`,
         )
     }
-}
-
-// Global variable to store transaction details provider
-let globalTransactionDetailsProvider: TransactionDetailsProvider | undefined
-let globalSandboxTreeProvider: SandboxTreeProvider | undefined
-
-export function setTransactionDetailsProvider(provider: TransactionDetailsProvider): void {
-    globalTransactionDetailsProvider = provider
-}
-
-export function setSandboxTreeProvider(provider: SandboxTreeProvider): void {
-    globalSandboxTreeProvider = provider
-}
-
-function registerTransactionDetailsCommand(disposables: vscode.Disposable[]): void {
-    const cmd = async (args?: ShowTransactionDetailsCommand): Promise<void> => {
-        if (!args) {
-            vscode.window.showErrorMessage(`Missing arguments for showTransactionDetails command`)
-            return
-        }
-        if (!globalTransactionDetailsProvider) {
-            vscode.window.showErrorMessage(`Transaction details provider is not set`)
-            return
-        }
-
-        const deployedContracts = globalSandboxTreeProvider?.getDeployedContracts() ?? []
-
-        let account: HexString | undefined
-        let stateInit: {code: Base64String; data: Base64String} | undefined
-        let abi: ContractAbi | undefined
-        let resultString = args.resultString
-
-        try {
-            const contractInfo = await loadContractInfo(args.contractAddress)
-            if (contractInfo.success) {
-                account = contractInfo.data.account
-                stateInit = contractInfo.data.stateInit
-                abi = contractInfo.data.abi
-            }
-        } catch (error) {
-            vscode.window.showErrorMessage(`Failed to fetch contract info from server: ${error}`)
-            console.warn("Failed to fetch contract info from server:", error)
-        }
-
-        if (!resultString) {
-            try {
-                const latestOperationResult = await loadLatestOperationResult()
-                if (latestOperationResult.success) {
-                    resultString = latestOperationResult.data.resultString
-                } else {
-                    const message = `Failed to load latest operation result: ${latestOperationResult.error}`
-                    vscode.window.showErrorMessage(message)
-                    console.warn(message)
-                }
-            } catch (error) {
-                vscode.window.showErrorMessage(
-                    `Failed to fetch latest operation result from daemon: ${error}`,
-                )
-                console.warn("Failed to fetch latest operation result from daemon:", error)
-            }
-        }
-
-        const transaction: TransactionDetailsInfo = {
-            contractAddress: args.contractAddress,
-            methodName: args.methodName,
-            transactionId: args.transactionId,
-            timestamp: args.timestamp,
-            status: args.status,
-            resultString,
-            deployedContracts,
-            account,
-            stateInit,
-            abi,
-        }
-
-        globalTransactionDetailsProvider.showTransactionDetails(transaction)
-    }
-    const disposable = vscode.commands.registerCommand("ton.sandbox.showTransactionDetails", cmd)
-    disposables.push(disposable)
-}
-
-function registerAddTransactionsToDetailsCommand(disposables: vscode.Disposable[]): void {
-    const cmd = (resultString: string): void => {
-        if (!globalTransactionDetailsProvider) {
-            vscode.window.showErrorMessage(`Transaction details provider is not set`)
-            return
-        }
-
-        globalTransactionDetailsProvider.addTransactions(resultString)
-    }
-    const disposable = vscode.commands.registerCommand("ton.sandbox.addTransactionsToDetails", cmd)
-    disposables.push(disposable)
 }

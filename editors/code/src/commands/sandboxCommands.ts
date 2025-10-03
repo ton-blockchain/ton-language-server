@@ -2,6 +2,8 @@
 //  Copyright © 2025 TON Studio
 import * as vscode from "vscode"
 
+import {ContractAbi} from "@shared/abi"
+
 import {SandboxTreeProvider} from "../providers/sandbox/SandboxTreeProvider"
 import {SandboxActionsProvider, TransactionInfo} from "../providers/sandbox/SandboxActionsProvider"
 import {HistoryWebviewProvider} from "../providers/sandbox/HistoryWebviewProvider"
@@ -12,15 +14,25 @@ import {
     deleteMessageTemplate,
     exportTrace,
     importTrace,
+    loadContractInfo,
+    loadLatestOperationResult,
     OperationTrace,
     redeployContract,
 } from "../providers/sandbox/methods"
-import {Operation} from "../webview-ui/src/views/actions/sandbox-actions-types"
+import {
+    Operation,
+    ShowTransactionDetailsCommand,
+} from "../webview-ui/src/views/actions/sandbox-actions-types"
+import {TransactionDetailsProvider} from "../providers/sandbox/TransactionDetailsProvider"
+import {HexString} from "../common/hex-string"
+import {Base64String} from "../common/base64-string"
+import {TransactionDetailsInfo} from "../common/types/transaction"
 
 export function registerSandboxCommands(
     treeProvider: SandboxTreeProvider,
     formProvider: SandboxActionsProvider,
     historyProvider: HistoryWebviewProvider,
+    transactionDetailsProvider: TransactionDetailsProvider,
 ): vscode.Disposable[] {
     const disposables: vscode.Disposable[] = []
 
@@ -386,6 +398,77 @@ export function registerSandboxCommands(
                 )
             }
         }),
+        vscode.commands.registerCommand(
+            "ton.sandbox.showTransactionDetails",
+            async (args?: ShowTransactionDetailsCommand): Promise<void> => {
+                if (!args) {
+                    vscode.window.showErrorMessage(
+                        `Missing arguments for showTransactionDetails command`,
+                    )
+                    return
+                }
+
+                const deployedContracts = treeProvider.getDeployedContracts()
+
+                let account: HexString | undefined
+                let stateInit: {code: Base64String; data: Base64String} | undefined
+                let abi: ContractAbi | undefined
+                let resultString = args.resultString
+
+                try {
+                    const contractInfo = await loadContractInfo(args.contractAddress)
+                    if (contractInfo.success) {
+                        account = contractInfo.data.account
+                        stateInit = contractInfo.data.stateInit
+                        abi = contractInfo.data.abi
+                    }
+                } catch (error) {
+                    vscode.window.showErrorMessage(
+                        `Failed to fetch contract info from server: ${error}`,
+                    )
+                    console.warn("Failed to fetch contract info from server:", error)
+                }
+
+                if (!resultString) {
+                    try {
+                        const latestOperationResult = await loadLatestOperationResult()
+                        if (latestOperationResult.success) {
+                            resultString = latestOperationResult.data.resultString
+                        } else {
+                            const message = `Failed to load latest operation result: ${latestOperationResult.error}`
+                            vscode.window.showErrorMessage(message)
+                            console.warn(message)
+                        }
+                    } catch (error) {
+                        vscode.window.showErrorMessage(
+                            `Failed to fetch latest operation result from daemon: ${error}`,
+                        )
+                        console.warn("Failed to fetch latest operation result from daemon:", error)
+                    }
+                }
+
+                const transaction: TransactionDetailsInfo = {
+                    contractAddress: args.contractAddress,
+                    methodName: args.methodName,
+                    transactionId: args.transactionId,
+                    timestamp: args.timestamp,
+                    status: args.status,
+                    resultString,
+                    deployedContracts,
+                    account,
+                    stateInit,
+                    abi,
+                }
+
+                transactionDetailsProvider.showTransactionDetails(transaction)
+            },
+        ),
+        vscode.commands.registerCommand(
+            "ton.sandbox.addTransactionsToDetails",
+            (resultString: string): void => {
+                transactionDetailsProvider.addTransactions(resultString)
+            },
+        ),
     )
 
     return disposables
