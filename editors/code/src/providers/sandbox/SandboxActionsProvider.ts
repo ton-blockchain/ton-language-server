@@ -81,6 +81,7 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
     private currentOperation?: Operation
     private selectedContractAddress?: string
     private deployAbi?: ContractAbi
+    private isConnected?: boolean
 
     private sequentialDebugQueue: TransactionInfo[] = []
     private isSequentialDebugRunning: boolean = false
@@ -273,6 +274,7 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
     }
 
     public updateConnectionStatus(isConnected: boolean): void {
+        this.isConnected = isConnected
         if (this.view) {
             const message = {
                 type: "updateConnectionStatus" as const,
@@ -280,6 +282,7 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
             }
             void this.view.webview.postMessage(message)
         }
+        this.persistState()
     }
 
     private async handleSendExternalMessage(command: SendExternalMessageCommand): Promise<void> {
@@ -860,6 +863,9 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
         if (state.deployAbi) {
             this.deployAbi = state.deployAbi
         }
+        if (state.isConnected !== undefined) {
+            this.isConnected = state.isConnected
+        }
 
         if (this.view) {
             setTimeout(() => {
@@ -881,6 +887,7 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
                 currentOperation: this.currentOperation,
                 selectedContractAddress: this.selectedContractAddress,
                 deployAbi: this.deployAbi,
+                isConnected: this.isConnected,
             }
 
             const message: PersistStateMessage = {

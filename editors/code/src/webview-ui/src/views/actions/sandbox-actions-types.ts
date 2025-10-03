@@ -85,6 +85,7 @@ export interface SandboxPersistedState {
   readonly currentOperation?: Operation
   readonly selectedContractAddress?: string
   readonly deployAbi?: ContractAbi
+  readonly isConnected?: boolean
 }
 
 export interface RestoreStateMessage {

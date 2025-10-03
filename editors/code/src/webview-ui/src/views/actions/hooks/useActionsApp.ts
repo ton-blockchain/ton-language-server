@@ -34,7 +34,7 @@ export function useActionsApp({vscode}: UseActionsAppParams): UseActionsAppRetur
   const operations = useOperations()
   const contractData = useContractData()
   const messageTemplates = useMessageTemplates()
-  const [isConnected, setIsConnected] = useState(false)
+  const [isConnected, setIsConnected] = useState(true)
 
   useVSCodeMessaging({
     vscode,

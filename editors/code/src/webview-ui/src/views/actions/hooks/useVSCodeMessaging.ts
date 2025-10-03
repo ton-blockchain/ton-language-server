@@ -62,8 +62,11 @@ export function useVSCodeMessaging(params: UseVSCodeMessagingParams): UseVSCodeM
       if (state.deployAbi) {
         setContractAbi(state.deployAbi)
       }
+      if (state.isConnected !== undefined) {
+        setIsConnected(state.isConnected)
+      }
     },
-    [setContracts, setActiveOperation, setSelectedContract, setContractAbi],
+    [setContracts, setActiveOperation, setSelectedContract, setContractAbi, setIsConnected],
   )
 
   const handleMessage = useCallback(
