@@ -12,7 +12,7 @@ import {formatAddress} from "../../../../components/format/format"
 
 import {LoadingSpinner} from "../../../../components/common"
 
-import {StorageFieldsView} from "./StorageFieldsView"
+import {StorageFieldsView} from "./StorageFieldsView/StorageFieldsView"
 
 import styles from "./ContractInfo.module.css"
 

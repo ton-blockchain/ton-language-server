@@ -100,6 +100,9 @@ export function registerSandboxCommands(
         vscode.commands.registerCommand("ton.sandbox.history.refresh", () => {
             void historyProvider.handleLoadOperations()
         }),
+        vscode.commands.registerCommand("ton.sandbox.history.reset", () => {
+            void historyProvider.handleResetState()
+        }),
         vscode.commands.registerCommand("ton.sandbox.history.exportTrace", async () => {
             try {
                 const result = await exportTrace()
@@ -139,9 +142,6 @@ export function registerSandboxCommands(
                 console.error("Failed to export trace:", error)
                 void vscode.window.showErrorMessage("Failed to export trace")
             }
-        }),
-        vscode.commands.registerCommand("ton.sandbox.history.reset", () => {
-            void historyProvider.handleResetState()
         }),
         vscode.commands.registerCommand("ton.sandbox.history.importTrace", async () => {
             try {

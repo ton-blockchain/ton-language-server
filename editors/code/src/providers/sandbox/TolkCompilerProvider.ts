@@ -1,5 +1,5 @@
 //  SPDX-License-Identifier: MIT
-//  Copyright © 2025 TON Studio
+//  Copyright © 2025 TON Core
 import {promisify} from "node:util"
 
 import {execFile} from "node:child_process"

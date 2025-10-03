@@ -1,6 +1,6 @@
 import React, {useState, useCallback, useEffect} from "react"
 
-import {DeployedContract} from "../../../../../../common/types/contract"
+import {DeployedContract} from "../../../../../../../common/types/contract"
 
 import styles from "./ContractAddressChip.module.css"
 

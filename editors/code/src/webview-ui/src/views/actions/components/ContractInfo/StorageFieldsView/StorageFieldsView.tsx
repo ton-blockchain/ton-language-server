@@ -1,13 +1,13 @@
 import React from "react"
 import {Address, Cell, ExternalAddress, Slice} from "@ton/core"
 
-import {DeployedContract} from "../../../../../../common/types/contract"
-import {AddressNone, ParsedObject, ParsedSlice} from "../../../../../../common/binary"
+import {DeployedContract} from "../../../../../../../common/types/contract"
+import {AddressNone, ParsedObject, ParsedSlice} from "../../../../../../../common/binary"
 
-import * as binary from "../../../../../../common/binary"
+import * as binary from "../../../../../../../common/binary"
 
-import {ContractAddressChip} from "./ContractAddressChip"
-import {BinaryValueChip} from "./BinaryValueChip"
+import {ContractAddressChip} from "../ContractAddressChip/ContractAddressChip"
+import {BinaryValueChip} from "../BinaryValueChip/BinaryValueChip"
 
 import styles from "./StorageFieldsView.module.css"
 

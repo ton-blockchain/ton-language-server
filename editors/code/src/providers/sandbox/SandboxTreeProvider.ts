@@ -1,5 +1,5 @@
 //  SPDX-License-Identifier: MIT
-//  Copyright © 2025 TON Studio
+//  Copyright © 2025 TON Core
 import * as child_process from "node:child_process"
 
 import * as vscode from "vscode"

@@ -687,7 +687,7 @@ export async function callGetMethodDirectly(
 ): Promise<void> {
     const getMethod = contract.abi?.getMethods.find(method => method.id === methodId)
     if (getMethod?.parameters?.length !== 0) {
-        // For get methods with parameters open sidebar with filled contract and method id
+        // For get methods with parameters open the sidebar with filled contract and method id
         void vscode.commands.executeCommand(
             "ton.sandbox.openContractGetMethodSend",
             contract.address,

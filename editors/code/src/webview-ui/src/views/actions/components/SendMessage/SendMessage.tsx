@@ -6,7 +6,7 @@ import {DeployedContract} from "../../../../../../common/types/contract"
 import * as binary from "../../../../../../common/binary"
 
 import {MessageTemplate, ResultData, VSCodeAPI} from "../../sandbox-actions-types"
-import {SendModeSelector} from "../SendModeSelector/SendModeSelector"
+
 import {Button, Input, Select, OperationResultDisplay} from "../../../../components/common"
 import {AbiFieldsForm} from "../AbiFieldsForm/AbiFieldsForm"
 import {Base64String} from "../../../../../../common/base64-string"
@@ -14,6 +14,8 @@ import {Base64String} from "../../../../../../common/base64-string"
 import {RawStringObject, rawStringObjectToParsedObject} from "../../../../../../common/binary"
 
 import {formatAddress} from "../../../../components/format/format"
+
+import {SendModeSelector} from "./SendModeSelector/SendModeSelector"
 
 import styles from "./SendMessage.module.css"
 
