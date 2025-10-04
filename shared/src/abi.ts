@@ -65,10 +65,11 @@ export interface GetMethod {
 export interface ExitCodeInfo {
     readonly constantName: string
     readonly value: number
-    readonly pos: Pos | undefined
+    readonly usagePositions: Pos[]
 }
 
 export interface Pos {
     readonly row: number
     readonly column: number
+    readonly uri: string
 }

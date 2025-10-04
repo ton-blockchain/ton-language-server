@@ -1,6 +1,6 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Studio
-import * as vscode from "vscode"
+import vscode from "vscode"
 
 import {ContractAbi} from "@shared/abi"
 
@@ -490,4 +490,15 @@ export function registerSandboxCommands(
     )
 
     return disposables
+}
+
+export function openFileAtPosition(uri: string, row: number, column: number): void {
+    const fileUri = vscode.Uri.parse(uri)
+    const position = new vscode.Position(row, column)
+
+    vscode.workspace.openTextDocument(fileUri).then(document => {
+        void vscode.window.showTextDocument(document, {
+            selection: new vscode.Range(position, position),
+        })
+    })
 }

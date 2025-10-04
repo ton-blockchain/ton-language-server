@@ -23,15 +23,29 @@ export function contractAbi(file: TolkFile): ContractAbi | undefined {
 
     for (const func of file.getFunctions()) {
         if (func.name() === "onInternalMessage") {
-            entryPoint = {
-                pos: func.nameIdentifier()?.startPosition,
+            const nameIdentifier = func.nameIdentifier()
+            if (nameIdentifier) {
+                entryPoint = {
+                    pos: {
+                        row: nameIdentifier.startPosition.row,
+                        column: nameIdentifier.startPosition.column,
+                        uri: file.uri,
+                    },
+                }
             }
         }
     }
     for (const func of file.getFunctions()) {
         if (func.name() === "onExternalMessage") {
-            externalEntryPoint = {
-                pos: func.nameIdentifier()?.startPosition,
+            const nameIdentifier = func.nameIdentifier()
+            if (nameIdentifier) {
+                externalEntryPoint = {
+                    pos: {
+                        row: nameIdentifier.startPosition.row,
+                        column: nameIdentifier.startPosition.column,
+                        uri: file.uri,
+                    },
+                }
             }
         }
     }
@@ -55,10 +69,17 @@ export function contractAbi(file: TolkFile): ContractAbi | undefined {
                 }
             })
 
+            const nameIdentifier = method.nameIdentifier()
             getMethods.push({
                 name: method.name(),
                 id: method.computeMethodId(),
-                pos: method.nameIdentifier()?.startPosition,
+                pos: nameIdentifier
+                    ? {
+                          row: nameIdentifier.startPosition.row,
+                          column: nameIdentifier.startPosition.column,
+                          uri: currentFile.uri,
+                      }
+                    : undefined,
                 returnType: convertTyToTypeInfo(returnTy ?? VoidTy.VOID),
                 parameters,
             })
@@ -155,16 +176,13 @@ export function collectImportedFiles(file: TolkFile): TolkFile[] {
 }
 
 function collectExitCodes(files: TolkFile[], exitCodes: ExitCodeInfo[]): void {
-    const constantMap: Map<string, {value: number; pos: Pos | undefined}> = new Map()
+    const constantMap: Map<string, number> = new Map()
 
     for (const file of files) {
         for (const constant of file.getConstants()) {
             const value = extractConstantValue(constant)
             if (value !== undefined) {
-                constantMap.set(constant.name(), {
-                    value,
-                    pos: constant.nameIdentifier()?.startPosition,
-                })
+                constantMap.set(constant.name(), value)
             }
         }
     }
@@ -176,13 +194,19 @@ function collectExitCodes(files: TolkFile[], exitCodes: ExitCodeInfo[]): void {
                 if (!throwNode) {
                     return true
                 }
-                const exitCode = extractThrowCode(throwNode, constantMap)
-                if (!exitCode) {
+                const exitCodeInfo = extractThrowCode(throwNode, constantMap, file.uri)
+                if (!exitCodeInfo) {
                     return true
                 }
-                const existing = exitCodes.find(ec => ec.constantName === exitCode.constantName)
-                if (!existing) {
-                    exitCodes.push(exitCode)
+                const existing = exitCodes.find(ec => ec.constantName === exitCodeInfo.constantName)
+                if (existing) {
+                    existing.usagePositions.push(exitCodeInfo.usagePosition)
+                } else {
+                    exitCodes.push({
+                        constantName: exitCodeInfo.constantName,
+                        value: exitCodeInfo.value,
+                        usagePositions: [exitCodeInfo.usagePosition],
+                    })
                 }
                 return true
             }
@@ -203,22 +227,21 @@ function extractConstantValue(constant: Constant): number | undefined {
 
 function extractThrowCode(
     throwNode: SyntaxNode,
-    constantMap: Map<
-        string,
-        {
-            value: number
-            pos: Pos | undefined
-        }
-    >,
-): ExitCodeInfo | undefined {
+    constantMap: Map<string, number>,
+    fileUri: string,
+): {constantName: string; value: number; usagePosition: Pos} | undefined {
     if (throwNode.type === "identifier") {
         const constantName = throwNode.text
-        const constantInfo = constantMap.get(constantName)
-        if (constantInfo) {
+        const value = constantMap.get(constantName)
+        if (value !== undefined) {
             return {
                 constantName,
-                value: constantInfo.value,
-                pos: constantInfo.pos,
+                value,
+                usagePosition: {
+                    row: throwNode.startPosition.row,
+                    column: throwNode.startPosition.column,
+                    uri: fileUri,
+                },
             }
         }
     }

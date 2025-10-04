@@ -12,6 +12,8 @@ import {
 import {ContractData} from "../../../../common/types/contract"
 import {LoadingSpinner} from "../../components/common"
 
+import {VSCodeTransactionDetailsAPI} from "./transaction-details-types"
+
 import {TransactionTree} from "./components"
 
 import styles from "./TransactionDetails.module.css"
@@ -27,9 +29,7 @@ interface AddTransactionsMessage {
 }
 
 interface Props {
-  readonly vscode: {
-    readonly postMessage: (message: unknown) => void
-  }
+  readonly vscode: VSCodeTransactionDetailsAPI
 }
 
 export default function TransactionDetails({vscode}: Props): JSX.Element {
@@ -132,7 +132,9 @@ export default function TransactionDetails({vscode}: Props): JSX.Element {
 
   return (
     <div className={styles.container}>
-      {transactions && <TransactionTree transactions={transactions} contracts={contracts} />}
+      {transactions && (
+        <TransactionTree vscode={vscode} transactions={transactions} contracts={contracts} />
+      )}
     </div>
   )
 }

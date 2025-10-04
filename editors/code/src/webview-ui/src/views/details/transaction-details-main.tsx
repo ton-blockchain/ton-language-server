@@ -2,15 +2,12 @@ import React from "react"
 import {createRoot} from "react-dom/client"
 
 import TransactionDetails from "./TransactionDetails"
+import {VSCodeTransactionDetailsAPI} from "./transaction-details-types"
 
 import "../../main.css"
 import "../../index.css"
 
-declare function acquireVsCodeApi(): {
-  readonly postMessage: (msg: unknown) => void
-  readonly setState: (state: unknown) => void
-  readonly getState: () => unknown
-}
+declare function acquireVsCodeApi(): VSCodeTransactionDetailsAPI
 
 const vscode = acquireVsCodeApi()
 

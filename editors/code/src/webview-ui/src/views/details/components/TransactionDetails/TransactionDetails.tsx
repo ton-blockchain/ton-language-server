@@ -14,6 +14,7 @@ import {formatCurrency, formatNumber} from "../../../../components/format/format
 import {ContractData} from "../../../../../../common/types/contract"
 import {computeSendMode, type TransactionInfo} from "../../../../../../common/types/transaction"
 import {parseData, ParsedObject} from "../../../../../../common/binary"
+import {VSCodeTransactionDetailsAPI} from "../../transaction-details-types"
 
 import {ActionsSummary} from "./ActionsSummary"
 
@@ -88,6 +89,7 @@ export interface TransactionShortInfoProps {
   readonly transactions: TransactionInfo[]
   readonly contracts: Map<string, ContractData>
   readonly onContractClick?: (address: string) => void
+  readonly vscode: VSCodeTransactionDetailsAPI
 }
 
 export function TransactionDetails({
@@ -95,6 +97,7 @@ export function TransactionDetails({
   contracts,
   onContractClick,
   transactions,
+  vscode,
 }: TransactionShortInfoProps): React.JSX.Element {
   const [showActions, setShowActions] = useState(false)
   const [showParsedData, setShowParsedData] = useState(false)
@@ -120,6 +123,15 @@ export function TransactionDetails({
   const sendMode = computeSendMode(tx, transactions)
 
   const thisAddress = tx.address
+
+  const handleOpenFile = (uri: string, row: number, column: number): void => {
+    vscode.postMessage({
+      type: "openFileAtPosition",
+      uri,
+      row,
+      column,
+    })
+  }
   const targetContract = thisAddress ? contracts.get(thisAddress.toString()) : undefined
   const typeAbi = targetContract?.abi?.messages.find(it => it.opcode === tx.opcode)
   const opcodeNane = typeAbi?.name
@@ -288,6 +300,7 @@ export function TransactionDetails({
                       exitCode={computeInfo.exitCode}
                       abi={undefined}
                       exitCodes={knownExitCodes}
+                      onOpenFile={handleOpenFile}
                     />
                   </div>
                 </div>

@@ -1,6 +1,7 @@
 import type {ContractABI} from "@ton/core"
 
 import React from "react"
+import {FiExternalLink} from "react-icons/fi"
 
 import {ExitCodeInfo} from "@shared/abi"
 
@@ -13,9 +14,15 @@ interface ExitCodeViewerProps {
   readonly exitCode: number | undefined
   readonly abi: ContractABI | undefined
   readonly exitCodes?: readonly ExitCodeInfo[]
+  readonly onOpenFile?: (uri: string, row: number, column: number) => void
 }
 
-export function ExitCodeChip({exitCode, abi, exitCodes}: ExitCodeViewerProps): React.JSX.Element {
+export function ExitCodeChip({
+  exitCode,
+  abi,
+  exitCodes,
+  onOpenFile,
+}: ExitCodeViewerProps): React.JSX.Element {
   if (exitCode === undefined) {
     return <span className={styles.exitCode}>—</span>
   }
@@ -55,11 +62,26 @@ export function ExitCodeChip({exitCode, abi, exitCodes}: ExitCodeViewerProps): R
   const isSuccess = exitCode === 0 || exitCode === 1
   const className = `${styles.exitCode} ${isSuccess ? styles.success : styles.error}`
 
+  const hasUsagePositions = exitCodeInfo?.usagePositions && exitCodeInfo.usagePositions.length > 0
+
   return (
     <Tooltip content={tooltipContent} variant="hover">
       <span className={className}>
         {exitCode}
         {exitCode !== 0 && <span className={styles.exitCodeName}> ({displayName})</span>}
+        {hasUsagePositions && onOpenFile && (
+          <button
+            className={styles.openFileButton}
+            onClick={e => {
+              e.stopPropagation()
+              const firstPosition = exitCodeInfo.usagePositions[0]
+              onOpenFile(firstPosition.uri, firstPosition.row, firstPosition.column)
+            }}
+            title="Open source file"
+          >
+            <FiExternalLink size={12} />
+          </button>
+        )}
       </span>
     </Tooltip>
   )
