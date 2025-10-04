@@ -814,7 +814,10 @@ function registerBocWatcher(bocDecompilerProvider: BocDecompilerProvider): FileS
 
 async function checkConflictingExtensions(): Promise<void> {
     const conflictingExtensions = [
-        {id: "tonwhales.func-vscode", name: "FunC"},
+        {id: "dotcypress.language-fift", name: "Fift"},
+        {id: "tonwhales.func-vscode", name: "FunC Language Support"},
+        {id: "raiym.func", name: "FunC"},
+        {id: "natiiix.func-language-support", name: "FunC Language Support"},
         {id: "ton-core.tolk-vscode", name: "Tolk"},
         {id: "krigga.tvm-debugger", name: "TVM Debugger"},
     ]
