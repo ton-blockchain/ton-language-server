@@ -3,8 +3,8 @@
 import * as vscode from "vscode"
 
 import {TransactionDetailsInfo} from "../../common/types/transaction"
-import {OpenFileAtPositionMessage} from "../../webview-ui/src/views/actions/sandbox-actions-types"
 import {openFileAtPosition} from "../../commands/sandboxCommands"
+import {OpenFileAtPositionCommand} from "../../webview-ui/src/views/details/transaction-details-types"
 
 export class TransactionDetailsProvider {
     public static readonly viewType: string = "tonTransactionDetails"
@@ -44,7 +44,7 @@ export class TransactionDetailsProvider {
 
             this.panel.webview.html = this.getHtmlForWebview(this.panel.webview)
 
-            this.panel.webview.onDidReceiveMessage((message: OpenFileAtPositionMessage) => {
+            this.panel.webview.onDidReceiveMessage((message: OpenFileAtPositionCommand) => {
                 // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
                 if (message.type === "openFileAtPosition") {
                     openFileAtPosition(message.uri, message.row, message.column)
