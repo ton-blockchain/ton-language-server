@@ -8,6 +8,7 @@ import {TransactionDetails} from "../index"
 import {formatCurrency} from "../../../../components/format/format"
 import {ContractData} from "../../../../../../common/types/contract"
 import {TransactionInfo} from "../../../../../../common/types/transaction"
+import {VSCodeTransactionDetailsAPI} from "../../transaction-details-types"
 
 import {ParsedDataView} from "../ParsedDataView/ParsedDataView"
 
@@ -36,6 +37,7 @@ interface TransactionTooltipData {
 interface TransactionTreeProps {
   readonly transactions: TransactionInfo[]
   readonly contracts: ContractData[]
+  readonly vscode: VSCodeTransactionDetailsAPI
 }
 
 const formatAddress = (
@@ -152,6 +154,7 @@ function NodeTooltipContent({
 export function TransactionTree({
   transactions,
   contracts,
+  vscode,
 }: TransactionTreeProps): React.JSX.Element {
   const {
     tooltip,
@@ -678,6 +681,7 @@ export function TransactionTree({
             transactions={transactions}
             contracts={contractsMap}
             onContractClick={handleContractClick}
+            vscode={vscode}
           />
         </div>
       )}
