@@ -38,3 +38,6 @@ jobs:
 
       - name: Run eslint
         run: yarn run lint
+
+      - name: Run stylelint
+        run: yarn run stylelint:check
