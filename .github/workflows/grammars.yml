@@ -46,9 +46,12 @@ jobs:
 
       - name: Setup EMSDK
         uses: pyodide/setup-emsdk@v15
+        env:
+          EMSDK_VERSION: 4.0.15
         with:
-          version: 4.0.15
+          version: ${{ env.EMSDK_VERSION }}
           actions-cache-folder: "emsdk-cache"
+          cache-key: emsdk-cache-${{ runner.os }}-${{ runner.arch }}-${{ env.EMSDK_VERSION }}
 
       - name: Install dependencies
         env:
