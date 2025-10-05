@@ -30,10 +30,13 @@ jobs:
         run: yarn install --immutable
 
       - name: Setup EMSDK
-        uses: mymindstorm/setup-emsdk@v14
+        uses: pyodide/setup-emsdk@v15
+        env:
+          EMSDK_VERSION: 4.0.15
         with:
-          version: 3.1.54
+          version: ${{ env.EMSDK_VERSION }}
           actions-cache-folder: "emsdk-cache"
+          cache-key: emsdk-cache-${{ runner.os }}-${{ runner.arch }}-${{ env.EMSDK_VERSION }}
 
       - name: Build WASM
         run: yarn grammar:wasm
