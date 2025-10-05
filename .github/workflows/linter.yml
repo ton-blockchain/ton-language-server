@@ -37,7 +37,7 @@ jobs:
         run: yarn run fmt:check
 
       - name: Run eslint
-        run: yarn run lint
+        run: yarn run lint:ts
 
       - name: Run stylelint
-        run: yarn run stylelint:check
+        run: yarn run lint:css
