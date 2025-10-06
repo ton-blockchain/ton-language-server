@@ -454,6 +454,10 @@
                 {
                     "command": "ton.sandbox.copyContractAddressFromTree",
                     "when": "false"
+                },
+                {
+                    "command": "ton.test.openTestSource",
+                    "when": "false"
                 }
             ],
             "explorer/context": [

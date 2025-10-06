@@ -18,8 +18,6 @@ export class WebSocketServer {
             this.wss = new Server({port: this.port})
 
             this.wss.on("connection", (ws: WebSocket) => {
-                console.log("Blockchain WebSocket connected")
-
                 ws.on("message", (data: Buffer) => {
                     try {
                         const message = JSON.parse(data.toString()) as TestDataMessage

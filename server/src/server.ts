@@ -5,6 +5,7 @@ import * as path from "node:path"
 import {fileURLToPath} from "node:url"
 
 import * as lsp from "vscode-languageserver"
+
 import {DidChangeWatchedFilesParams, FileChangeType, RenameFilesParams} from "vscode-languageserver"
 
 import {WorkspaceEdit} from "vscode-languageserver-types"

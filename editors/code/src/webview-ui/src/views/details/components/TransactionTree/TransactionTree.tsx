@@ -8,12 +8,11 @@ import {TransactionDetails} from "../index"
 import {formatCurrency} from "../../../../components/format/format"
 import {ContractData} from "../../../../../../common/types/contract"
 import {TransactionInfo} from "../../../../../../common/types/transaction"
+import {VSCodeTransactionDetailsAPI} from "../../transaction-details-types"
 
 import {ParsedDataView} from "../ParsedDataView/ParsedDataView"
 
 import {parseData, ParsedObject} from "../../../../../../common/binary"
-
-import {VSCodeTransactionDetailsAPI} from "../../transaction-details-types"
 
 import {useTooltip} from "./useTooltip"
 import {SmartTooltip} from "./SmartTooltip"
@@ -70,13 +69,7 @@ const formatAddressShort = (address: Address | undefined): string => {
   return addressStr.slice(0, 6) + "..." + addressStr.slice(-6)
 }
 
-function TransactionTooltipContent({
-  data,
-  vscode,
-}: {
-  data: TransactionTooltipData
-  vscode: VSCodeTransactionDetailsAPI
-}): React.JSX.Element {
+function TransactionTooltipContent({data}: {data: TransactionTooltipData}): React.JSX.Element {
   return (
     <div className={styles.tooltipContent}>
       <div className={styles.tooltipField}>
@@ -279,7 +272,7 @@ export function TransactionTree({
     showTooltip({
       x: rect.left,
       y: rect.top,
-      content: <TransactionTooltipContent data={tooltipData} vscode={vscode} />,
+      content: <TransactionTooltipContent data={tooltipData} />,
     })
   }
 
