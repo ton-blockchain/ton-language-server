@@ -43,6 +43,7 @@ export interface RawTransactionInfo {
     readonly childrenIds: string[]
     readonly oldStorage: HexString | undefined
     readonly newStorage: HexString | undefined
+    readonly callStack: string | undefined
 }
 
 // temp type only for building
@@ -63,6 +64,7 @@ interface MutableTransactionInfo {
     readonly contractName: string | undefined
     readonly oldStorage: Cell | undefined
     readonly newStorage: Cell | undefined
+    readonly callStack: string | undefined
     parent: TransactionInfo | undefined
     children: TransactionInfo[]
 }
@@ -141,6 +143,7 @@ const processRawTx = (
         children: [],
         oldStorage: tx.oldStorage ? Cell.fromHex(tx.oldStorage) : undefined,
         newStorage: tx.newStorage ? Cell.fromHex(tx.newStorage) : undefined,
+        callStack: tx.callStack,
     }
     visited.set(tx, result)
 

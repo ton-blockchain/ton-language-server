@@ -2,17 +2,21 @@
 import React, {useMemo, useState, useRef, useEffect} from "react"
 import {Orientation, RawNodeDatum, TreeLinkDatum, Tree} from "react-d3-tree"
 import {Address} from "@ton/core"
+import {FiExternalLink} from "react-icons/fi"
 
 import {TransactionDetails} from "../index"
 
 import {formatCurrency} from "../../../../components/format/format"
 import {ContractData} from "../../../../../../common/types/contract"
 import {TransactionInfo} from "../../../../../../common/types/transaction"
-import {VSCodeTransactionDetailsAPI} from "../../transaction-details-types"
 
 import {ParsedDataView} from "../ParsedDataView/ParsedDataView"
 
 import {parseData, ParsedObject} from "../../../../../../common/binary"
+
+import {CallStackEntry, parseCallStack} from "../../../../../../common/call-stack-parser"
+
+import {VSCodeTransactionDetailsAPI} from "../../transaction-details-types"
 
 import {useTooltip} from "./useTooltip"
 import {SmartTooltip} from "./SmartTooltip"
@@ -32,6 +36,7 @@ interface TransactionTooltipData {
     readonly totalFees: bigint
   }
   readonly sentTotal: bigint
+  readonly callStackPosition?: CallStackEntry
 }
 
 interface TransactionTreeProps {
@@ -69,7 +74,13 @@ const formatAddressShort = (address: Address | undefined): string => {
   return addressStr.slice(0, 6) + "..." + addressStr.slice(-6)
 }
 
-function TransactionTooltipContent({data}: {data: TransactionTooltipData}): React.JSX.Element {
+function TransactionTooltipContent({
+  data,
+  vscode,
+}: {
+  data: TransactionTooltipData
+  vscode: VSCodeTransactionDetailsAPI
+}): React.JSX.Element {
   return (
     <div className={styles.tooltipContent}>
       <div className={styles.tooltipField}>
@@ -114,6 +125,23 @@ function TransactionTooltipContent({data}: {data: TransactionTooltipData}): Reac
           )}
         </div>
       </div>
+
+      {data.callStackPosition && (
+        <button
+          className={styles.callStackButton}
+          onClick={() => {
+            vscode.postMessage({
+              type: "openFileAtPosition",
+              uri: data.callStackPosition?.file ?? "",
+              row: (data.callStackPosition?.line ?? 1) - 1,
+              column: (data.callStackPosition?.column ?? 1) - 1,
+            })
+          }}
+          title="Open file"
+        >
+          <FiExternalLink size={12} />
+        </button>
+      )}
     </div>
   )
 }
@@ -262,17 +290,20 @@ export function TransactionTree({
     const srcAddress = tx.transaction.inMessage?.info.src
     const fromAddressStr = srcAddress ? formatAddressShort(srcAddress as Address) : "unknown"
 
+    const parsedCallStack = parseCallStack(tx.callStack)
+
     const tooltipData: TransactionTooltipData = {
       fromAddress: fromAddressStr,
       computePhase,
       fees,
       sentTotal: tx.money.sentTotal,
+      callStackPosition: parsedCallStack.length > 0 ? parsedCallStack.at(-1) : undefined,
     }
 
     showTooltip({
       x: rect.left,
       y: rect.top,
-      content: <TransactionTooltipContent data={tooltipData} />,
+      content: <TransactionTooltipContent data={tooltipData} vscode={vscode} />,
     })
   }
 
@@ -356,6 +387,9 @@ export function TransactionTree({
 
       const lt = tx.transaction.lt.toString()
       const isSelected = selectedTransaction?.transaction.lt.toString() === lt
+
+      const parsedCallStack = parseCallStack(tx.callStack)
+      const firstEntry = parsedCallStack.length > 0 ? parsedCallStack[0] : undefined
 
       const hasExternalOut = tx.transaction.outMessages.values().some(outMsg => {
         return outMsg.info.type === "external-out"

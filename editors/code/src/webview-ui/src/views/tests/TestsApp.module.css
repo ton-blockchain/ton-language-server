@@ -1,0 +1,116 @@
+.container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--vscode-panel-border);
+  background-color: var(--vscode-editor-background);
+}
+
+.header h2 {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--vscode-foreground);
+}
+
+.content {
+  flex: 1;
+  overflow: auto;
+}
+
+.testItem {
+  display: flex;
+  align-items: center;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--vscode-list-inactiveSelectionBackground);
+  cursor: pointer;
+}
+
+.testItem:hover {
+  background-color: var(--vscode-list-hoverBackground);
+}
+
+.testIcon {
+  margin-right: 8px;
+  color: var(--vscode-foreground);
+}
+
+.testInfo {
+  flex: 1;
+}
+
+.testName {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--vscode-foreground);
+}
+
+.testTime {
+  font-size: 11px;
+  color: var(--vscode-descriptionForeground);
+}
+
+.transactionItem {
+  display: flex;
+  align-items: center;
+  padding: 6px 16px 6px 32px;
+  border-bottom: 1px solid var(--vscode-list-inactiveSelectionBackground);
+  cursor: pointer;
+}
+
+.transactionItem:hover {
+  background-color: var(--vscode-list-hoverBackground);
+}
+
+.transactionIcon {
+  margin-right: 8px;
+}
+
+.transactionInfo {
+  flex: 1;
+}
+
+.transactionAddress {
+  font-size: 12px;
+  font-family: var(--vscode-editor-font-family);
+  color: var(--vscode-foreground);
+}
+
+.transactionLt {
+  font-size: 10px;
+  color: var(--vscode-descriptionForeground);
+}
+
+.toolbar {
+  display: flex;
+  gap: 8px;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--vscode-panel-border);
+}
+
+.button {
+  padding: 4px 8px;
+  font-size: 11px;
+  border: 1px solid var(--vscode-button-border);
+  background-color: var(--vscode-button-background);
+  color: var(--vscode-button-foreground);
+  border-radius: 3px;
+  cursor: pointer;
+}
+
+.button:hover {
+  background-color: var(--vscode-button-hoverBackground);
+}
+
+.button.secondary {
+  background-color: var(--vscode-button-secondaryBackground);
+  color: var(--vscode-button-secondaryForeground);
+}
+
+.button.secondary:hover {
+  background-color: var(--vscode-button-secondaryHoverBackground);
+}

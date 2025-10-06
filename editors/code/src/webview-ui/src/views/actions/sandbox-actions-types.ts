@@ -242,6 +242,13 @@ export interface UpdateConnectionStatusMessage {
   readonly isConnected: boolean
 }
 
+export interface OpenFileAtPositionMessage {
+  readonly type: "openFileAtPosition"
+  readonly uri: string
+  readonly row: number
+  readonly column: number
+}
+
 export type VSCodeMessage =
   | UpdateContractsMessage
   | ShowResultMessage
@@ -257,6 +264,7 @@ export type VSCodeMessage =
   | TemplateUpdatedMessage
   | TemplateDeletedMessage
   | UpdateConnectionStatusMessage
+  | OpenFileAtPositionMessage
 
 export type VSCodeCommand =
   | SendExternalMessageCommand

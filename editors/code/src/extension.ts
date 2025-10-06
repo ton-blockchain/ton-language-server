@@ -13,8 +13,11 @@ import {
     TransportKind,
 } from "vscode-languageclient/node"
 
+import {Cell, loadStateInit} from "@ton/core"
+
 import {
     DocumentationAtPositionRequest,
+    GetWorkspaceContractsAbiResponse,
     GetContractAbiParams,
     GetContractAbiResponse,
     SetToolchainVersionNotification,
@@ -22,6 +25,7 @@ import {
     TypeAtPositionParams,
     TypeAtPositionRequest,
     TypeAtPositionResponse,
+    WorkspaceContractInfo,
 } from "@shared/shared-msgtypes"
 
 import type {ClientOptions} from "@shared/config-scheme"
@@ -37,17 +41,35 @@ import {BocEditorProvider} from "./providers/boc/BocEditorProvider"
 import {BocFileSystemProvider} from "./providers/boc/BocFileSystemProvider"
 import {BocDecompilerProvider} from "./providers/boc/BocDecompilerProvider"
 import {registerSaveBocDecompiledCommand} from "./commands/saveBocDecompiledCommand"
-import {registerSandboxCommands} from "./commands/sandboxCommands"
+import {registerSandboxCommands, openFileAtPosition} from "./commands/sandboxCommands"
+import {parseCallStack} from "./common/call-stack-parser"
 import {SandboxTreeProvider} from "./providers/sandbox/SandboxTreeProvider"
 import {SandboxActionsProvider} from "./providers/sandbox/SandboxActionsProvider"
 import {HistoryWebviewProvider} from "./providers/sandbox/HistoryWebviewProvider"
 import {TransactionDetailsProvider} from "./providers/sandbox/TransactionDetailsProvider"
 import {SandboxCodeLensProvider} from "./providers/sandbox/SandboxCodeLensProvider"
+import {TestTreeProvider} from "./providers/sandbox/TestTreeProvider"
+import {TestWebviewProvider} from "./providers/sandbox/TestWebviewProvider"
+import {WebSocketServer} from "./providers/sandbox/WebSocketServer"
 
 import {configureDebugging} from "./debugging"
+import {ContractData, TestRun} from "./providers/sandbox/test-types"
+import {TransactionDetailsInfo} from "./common/types/transaction"
+import {DeployedContract} from "./common/types/contract"
+import {Base64String} from "./common/base64-string"
 
 let client: LanguageClient | undefined = undefined
 let cachedToolchainInfo: SetToolchainVersionParams | undefined = undefined
+
+function sameNameContract(it: WorkspaceContractInfo, contract: ContractData | undefined): boolean {
+    const leftName = it.name
+    const rightName = contract?.meta?.wrapperName ?? ""
+
+    const normalizedLeft = leftName.toLowerCase().replace("-contract", "").replace(/-/g, "")
+    const normalizedRight = rightName.toLowerCase().replace("-contract", "").replace(/-/g, "")
+
+    return normalizedLeft === normalizedRight
+}
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
     await checkConflictingExtensions()
@@ -90,6 +112,123 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
     const transactionDetailsProvider = new TransactionDetailsProvider(context.extensionUri)
 
+    const testTreeProvider = new TestTreeProvider()
+    context.subscriptions.push(
+        vscode.window.createTreeView("tonTestResultsTree", {
+            treeDataProvider: testTreeProvider,
+            showCollapseAll: false,
+        }),
+    )
+
+    const testWebviewProvider = new TestWebviewProvider(context.extensionUri, testTreeProvider)
+    context.subscriptions.push(
+        vscode.window.registerWebviewViewProvider(
+            TestWebviewProvider.viewType,
+            testWebviewProvider,
+        ),
+        vscode.commands.registerCommand(
+            "ton.test.showTransactionDetails",
+            async (testRun: TestRun) => {
+                const workspaceContracts =
+                    await vscode.commands.executeCommand<GetWorkspaceContractsAbiResponse>(
+                        "tolk.getWorkspaceContractsAbi",
+                    )
+
+                console.log("workspaceContracts", workspaceContracts.contracts.length)
+                console.log(
+                    "workspaceContracts",
+                    workspaceContracts.contracts.filter(it => it.name.includes("jetton")),
+                )
+
+                console.log(`txs of ${testRun.id}`, testRun.transactions)
+
+                // TODO: redone
+                const transaction = testRun.transactions.at(1) ?? testRun.transactions.at(0)
+                if (transaction) {
+                    const contract = testRun.contracts.find(
+                        it => it.address === transaction.address?.toString(),
+                    )
+
+                    const stateInit = loadStateInit(
+                        Cell.fromHex(contract?.stateInit ?? "").asSlice(),
+                    )
+
+                    const workspaceContract = workspaceContracts.contracts.find(it =>
+                        sameNameContract(it, contract),
+                    )
+                    const abi = workspaceContract?.abi
+                    console.log("contract data", contract)
+                    console.log("workspaceContract", workspaceContract)
+                    console.log("abi", abi)
+
+                    const transactionDetailsInfo: TransactionDetailsInfo = {
+                        contractAddress: transaction.address?.toString() ?? "unknown",
+                        methodName: "test-transaction",
+                        transactionId: transaction.transaction.lt.toString(),
+                        timestamp: new Date().toISOString(),
+                        status: "success" as const, // For now, assume success
+                        resultString: testRun.resultString,
+                        deployedContracts: testRun.contracts.map((contract): DeployedContract => {
+                            const workspaceContract = workspaceContracts.contracts.find(it =>
+                                sameNameContract(it, contract),
+                            )
+                            return {
+                                abi: workspaceContract?.abi,
+                                sourceMap: undefined,
+                                address: contract.address,
+                                deployTime: undefined,
+                                name: contract.meta?.wrapperName ?? "unknown",
+                                sourceUri: "",
+                            }
+                        }),
+                        account: contract?.account,
+                        stateInit: {
+                            code: (stateInit.code ?? new Cell())
+                                .toBoc()
+                                .toString("base64") as Base64String,
+                            data: (stateInit.data ?? new Cell())
+                                .toBoc()
+                                .toString("base64") as Base64String,
+                        },
+                        abi,
+                    }
+
+                    console.log("transactionDetailsInfo", transactionDetailsInfo)
+                    transactionDetailsProvider.showTransactionDetails(transactionDetailsInfo)
+                }
+            },
+        ),
+        vscode.commands.registerCommand(
+            "ton.test.openTestSource",
+            (treeItem: {command?: vscode.Command}) => {
+                const testRun = treeItem.command?.arguments?.[0] as TestRun | undefined
+                if (!testRun) {
+                    console.error("No testRun found in tree item arguments")
+                    return
+                }
+
+                const transactionWithCallStack = testRun.transactions.find(tx => tx.callStack)
+                if (transactionWithCallStack?.callStack) {
+                    const parsedCallStack = parseCallStack(transactionWithCallStack.callStack)
+                    if (parsedCallStack.length > 0) {
+                        const lastEntry = parsedCallStack.at(-1)
+                        if (
+                            lastEntry?.file &&
+                            lastEntry.line !== undefined &&
+                            lastEntry.column !== undefined
+                        ) {
+                            openFileAtPosition(
+                                lastEntry.file,
+                                lastEntry.line - 1,
+                                lastEntry.column - 1,
+                            )
+                        }
+                    }
+                }
+            },
+        ),
+    )
+
     const sandboxCodeLensProvider = new SandboxCodeLensProvider(sandboxTreeProvider)
     context.subscriptions.push(
         vscode.languages.registerCodeLensProvider({language: "tolk"}, sandboxCodeLensProvider),
@@ -98,7 +237,16 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     sandboxTreeProvider.setActionsProvider(sandboxActionsProvider)
     sandboxTreeProvider.setCodeLensProvider(sandboxCodeLensProvider)
 
+    const wsServer = new WebSocketServer()
+    wsServer.start()
+    wsServer.setTestWebviewProvider(testWebviewProvider)
+
     context.subscriptions.push(
+        {
+            dispose: () => {
+                wsServer.dispose()
+            },
+        },
         vscode.window.onDidChangeActiveTextEditor(editor => {
             if (editor) {
                 const document = {
@@ -128,6 +276,11 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
                 return client?.sendRequest<GetContractAbiResponse>("tolk.getContractAbi", params)
             },
         ),
+        vscode.commands.registerCommand("tolk.getWorkspaceContractsAbi", async () => {
+            return client?.sendRequest<GetWorkspaceContractsAbiResponse>(
+                "tolk.getWorkspaceContractsAbi",
+            )
+        }),
         ...sandboxCommands,
     )
 

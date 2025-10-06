@@ -124,6 +124,7 @@ const webviewConfig = {
         "transaction-details":
             "./editors/code/src/webview-ui/src/views/details/transaction-details-main.tsx",
         history: "./editors/code/src/webview-ui/src/views/history/history-main.tsx",
+        tests: "./editors/code/src/webview-ui/src/views/tests/tests-main.tsx",
     },
     output: {
         path: path.join(distDir, "webview-ui"),

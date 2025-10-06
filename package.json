@@ -248,6 +248,11 @@
                 "category": "Tolk"
             },
             {
+                "command": "tolk.getWorkspaceContractsAbi",
+                "title": "Get Workspace Contracts ABI",
+                "category": "Tolk"
+            },
+            {
                 "command": "tolk.executeHoverProvider",
                 "title": "Get Documentation At Position",
                 "category": "Tolk"
@@ -355,6 +360,12 @@
                 "icon": "$(copy)"
             },
             {
+                "command": "ton.test.openTestSource",
+                "title": "Open Test Source",
+                "category": "TON",
+                "icon": "$(go-to-file)"
+            },
+            {
                 "command": "ton.sandbox.installServer",
                 "title": "Install TON Sandbox Server",
                 "category": "TON",
@@ -398,6 +409,19 @@
                     "name": "History",
                     "when": "true"
                 }
+            ],
+            "tonTestContainer": [
+                {
+                    "id": "tonTestResultsTree",
+                    "name": "Tests Tree",
+                    "when": "true"
+                },
+                {
+                    "id": "tonTestResults",
+                    "type": "webview",
+                    "name": "Test Results",
+                    "when": "true"
+                }
             ]
         },
         "viewsContainers": {
@@ -406,6 +430,11 @@
                     "id": "tonSandboxContainer",
                     "title": "TON Sandbox",
                     "icon": "$(rocket)"
+                },
+                {
+                    "id": "tonTestContainer",
+                    "title": "TON Tests",
+                    "icon": "$(beaker)"
                 }
             ]
         },
@@ -496,6 +525,11 @@
                 {
                     "command": "ton.sandbox.copyContractAddressFromTree",
                     "when": "view == tonSandbox && viewItem == deployed-contract",
+                    "group": "inline"
+                },
+                {
+                    "command": "ton.test.openTestSource",
+                    "when": "view == tonTestResultsTree && viewItem == testRun",
                     "group": "inline"
                 }
             ]
@@ -785,7 +819,8 @@
         "vscode-languageserver": "^8.0.2",
         "vscode-languageserver-textdocument": "^1.0.7",
         "vscode-uri": "^3.0.7",
-        "web-tree-sitter": "^0.25.0"
+        "web-tree-sitter": "^0.25.0",
+        "ws": "^8.18.3"
     },
     "devDependencies": {
         "@babel/core": "^7.26.0",
@@ -798,6 +833,7 @@
         "@types/react": "^18.3.3",
         "@types/react-dom": "^18.3.0",
         "@types/vscode": "^1.63.0",
+        "@types/ws": "^8",
         "@vscode/test-cli": "^0.0.10",
         "@vscode/test-electron": "^2.4.1",
         "@vscode/vsce": "^3.6.0",

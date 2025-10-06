@@ -45,6 +45,7 @@ export interface TransactionInfo {
     readonly children: readonly TransactionInfo[]
     readonly oldStorage: Cell | undefined
     readonly newStorage: Cell | undefined
+    readonly callStack: string | undefined
 }
 
 export type TransactionInfoData = InternalTransactionInfoData | ExternalTransactionInfoData
