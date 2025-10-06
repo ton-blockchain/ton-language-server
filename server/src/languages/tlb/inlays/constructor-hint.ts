@@ -6,9 +6,10 @@ import type {Node as SyntaxNode} from "web-tree-sitter"
 
 import {crc32} from "@server/utils/crc32"
 
-import {ConstructorTag} from "./constructor-tag"
 import {FileDiff} from "@server/utils/FileDiff"
 import {TlbFile} from "@server/languages/tlb/psi/TlbFile"
+
+import {ConstructorTag} from "./constructor-tag"
 
 function printConstructor(
     constructorNode: SyntaxNode,
