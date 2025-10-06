@@ -43,6 +43,7 @@ import {BocDecompilerProvider} from "./providers/boc/BocDecompilerProvider"
 import {registerSaveBocDecompiledCommand} from "./commands/saveBocDecompiledCommand"
 import {registerSandboxCommands, openFileAtPosition} from "./commands/sandboxCommands"
 import {parseCallStack} from "./common/call-stack-parser"
+
 import {SandboxTreeProvider} from "./providers/sandbox/SandboxTreeProvider"
 import {SandboxActionsProvider} from "./providers/sandbox/SandboxActionsProvider"
 import {HistoryWebviewProvider} from "./providers/sandbox/HistoryWebviewProvider"

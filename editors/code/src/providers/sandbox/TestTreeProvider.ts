@@ -2,6 +2,8 @@
 //  Copyright © 2025 TON Core
 import * as vscode from "vscode"
 
+import {parseCallStack} from "../../common/call-stack-parser"
+
 import {processTxString, TestDataMessage, TestRun} from "./test-types"
 
 interface TestTreeItem {
@@ -60,12 +62,11 @@ export class TestTreeProvider implements vscode.TreeDataProvider<TestTreeItem> {
 
     public getChildren(element?: TestTreeItem): Thenable<TestTreeItem[]> {
         if (!element) {
-            // Корень дерева: возвращаем уникальные имена тестов
             return Promise.resolve(
                 [...this.testRunsByName.keys()].map(testName => ({
                     id: `test-group-${testName}`,
                     label: testName,
-                    description: `${this.testRunsByName.get(testName)?.length ?? 0} runs`,
+                    description: `${this.testRunsByName.get(testName)?.length ?? 0} transactions`,
                     contextValue: "testGroup",
                     iconPath: new vscode.ThemeIcon("beaker"),
                     collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
@@ -75,29 +76,42 @@ export class TestTreeProvider implements vscode.TreeDataProvider<TestTreeItem> {
         }
 
         if (element.type === "testName") {
-            // Для имени теста возвращаем test run как "Transaction #1", "#2", etc.
             const testRuns = this.testRunsByName.get(element.label) ?? []
-            console.log("testRuns", testRuns.length)
-            return Promise.resolve(
-                testRuns.map((testRun, index) => ({
-                    id: `${element.id}-run-${index}`,
-                    label: `Transaction #${index}`,
-                    description: new Date(testRun.timestamp).toLocaleTimeString(),
-                    contextValue: "testRun",
-                    iconPath: new vscode.ThemeIcon("check"),
-                    collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
-                    type: "testRun" as const,
-                    command: {
-                        command: "ton.test.showTransactionDetails",
-                        title: "Show Test Run Details",
-                        arguments: [testRun],
-                    },
-                })),
+            return Promise.all(
+                testRuns.map(async (testRun, index) => {
+                    const extractedName = await extractTransactionName(testRun)
+                    const exitCode = getTestRunExitCode(testRun)
+                    const baseLabel = extractedName ?? `Transaction #${index}`
+                    const label = exitCode === 0 ? baseLabel : `${baseLabel} (exit: ${exitCode})`
+
+                    return {
+                        id: `${element.id}-run-${index}`,
+                        label,
+                        description: new Date(testRun.timestamp).toLocaleTimeString(),
+                        contextValue: "testRun",
+                        iconPath:
+                            exitCode === 0
+                                ? new vscode.ThemeIcon(
+                                      "pass",
+                                      new vscode.ThemeColor("testing.iconPassed"),
+                                  )
+                                : new vscode.ThemeIcon(
+                                      "error",
+                                      new vscode.ThemeColor("testing.iconFailed"),
+                                  ),
+                        collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
+                        type: "testRun" as const,
+                        command: {
+                            command: "ton.test.showTransactionDetails",
+                            title: "Show Test Run Details",
+                            arguments: [testRun],
+                        },
+                    }
+                }),
             )
         }
 
         if (element.type === "testRun") {
-            // Для test run возвращаем сообщения внутри транзакции
             const testName = element.id.split("-run-")[0].replace("test-group-", "")
             const runIndexStr = element.id.split("-run-")[1]
             const runIndex = Number.parseInt(runIndexStr)
@@ -106,7 +120,6 @@ export class TestTreeProvider implements vscode.TreeDataProvider<TestTreeItem> {
 
             const messageItems: TestTreeItem[] = []
 
-            // Добавляем входящее сообщение, если оно есть
             if (testRun) {
                 testRun.transactions.forEach((tx, txIndex) => {
                     if (tx.transaction.inMessage) {
@@ -121,7 +134,6 @@ export class TestTreeProvider implements vscode.TreeDataProvider<TestTreeItem> {
                         })
                     }
 
-                    // Добавляем исходящие действия
                     tx.outActions.forEach((action, actionIndex) => {
                         messageItems.push({
                             id: `${element.id}-tx-${txIndex}-out-${actionIndex}`,
@@ -166,4 +178,89 @@ export class TestTreeProvider implements vscode.TreeDataProvider<TestTreeItem> {
         }
         this._onDidChangeTreeData.fire(undefined)
     }
+}
+
+async function extractTransactionName(testRun: TestRun): Promise<string | undefined> {
+    const transactionWithCallStack = testRun.transactions.find(tx => tx.callStack)
+    if (!transactionWithCallStack?.callStack) {
+        return undefined
+    }
+
+    const parsedCallStack = parseCallStack(transactionWithCallStack.callStack)
+    if (parsedCallStack.length === 0) {
+        return undefined
+    }
+
+    const lastEntry = parsedCallStack.at(-1)
+    if (!lastEntry?.file || lastEntry.line === undefined) {
+        return undefined
+    }
+
+    try {
+        const uri = vscode.Uri.file(lastEntry.file)
+        const document = await vscode.workspace.openTextDocument(uri)
+        const lines = document.getText().split("\n")
+
+        const lineIndex = lastEntry.line - 1
+        if (lineIndex < 0 || lineIndex >= lines.length) {
+            return undefined
+        }
+
+        const line = lines[lineIndex].trim()
+
+        const patterns = [
+            // await object.sendMethod(
+            /await\s+(\w+)\.(\w+)\s*\(/,
+            // object.sendMethod(
+            /(\w+)\.(\w+)\s*\(/,
+            // sendMethod(
+            /(\w+)\s*\(/,
+        ]
+
+        for (const pattern of patterns) {
+            const match = line.match(pattern)
+            if (match) {
+                // Если нашли object.method, возвращаем object.method
+                if (match[2]) {
+                    return `${match[1]}.${match[2]}`
+                }
+                // Иначе просто method
+                return match[1]
+            }
+        }
+
+        for (let i = 1; i <= 3; i++) {
+            const prevLineIndex = lineIndex - i
+            if (prevLineIndex >= 0) {
+                const prevLine = lines[prevLineIndex].trim()
+                for (const pattern of patterns) {
+                    const match = prevLine.match(pattern)
+                    if (match) {
+                        if (match[2]) {
+                            return `${match[1]}.${match[2]}`
+                        }
+                        return match[1]
+                    }
+                }
+            }
+        }
+    } catch (error) {
+        console.error("Error reading file for transaction name:", error)
+    }
+
+    return undefined
+}
+
+function getTestRunExitCode(testRun: TestRun): number {
+    const failedTransaction = testRun.transactions.find(tx => {
+        if (tx.computeInfo === "skipped") return false
+        const exitCode = tx.computeInfo.exitCode
+        return exitCode !== 0 && exitCode !== 1
+    })
+
+    if (!failedTransaction || failedTransaction.computeInfo === "skipped") {
+        return 0
+    }
+
+    return failedTransaction.computeInfo.exitCode
 }
