@@ -121,6 +121,7 @@ import {
 } from "@server/languages/func/symbols"
 import {provideFuncDocumentation} from "@server/languages/func/documentation"
 import {collectFuncInlays} from "@server/languages/func/inlays"
+import {collectTlbInlays} from "@server/languages/tlb/inlays"
 import {provideFuncFoldingRanges} from "@server/languages/func/foldings"
 import {runFuncInspections} from "@server/languages/func/inspections"
 import {
@@ -809,6 +810,11 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
             if (isFuncFile(uri)) {
                 const file = await findFuncFile(uri)
                 return collectFuncInlays(file, settings.func.hints)
+            }
+
+            if (isTlbFile(uri)) {
+                const file = await findTlbFile(uri)
+                return collectTlbInlays(file, settings.tlb.hints)
             }
 
             return null

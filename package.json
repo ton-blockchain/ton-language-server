@@ -601,6 +601,16 @@
                         "type": "boolean",
                         "default": true,
                         "description": "Show type hints for constants without explicit type"
+                    },
+                    "ton.tlb.hints.disable": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Disable all inlay hints for TL-B"
+                    },
+                    "ton.tlb.hints.showConstructorTag": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Show constructor tag hints for TL-B constructors without explicit tags"
                     }
                 }
             },
