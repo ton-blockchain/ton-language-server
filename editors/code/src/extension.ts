@@ -58,16 +58,6 @@ import {DeployedContract} from "./common/types/contract"
 let client: LanguageClient | undefined = undefined
 let cachedToolchainInfo: SetToolchainVersionParams | undefined = undefined
 
-function sameNameContract(it: WorkspaceContractInfo, contract: ContractData | undefined): boolean {
-    const leftName = it.name
-    const rightName = contract?.meta?.wrapperName ?? ""
-
-    const normalizedLeft = leftName.toLowerCase().replace("-contract", "").replace(/-/g, "")
-    const normalizedRight = rightName.toLowerCase().replace("-contract", "").replace(/-/g, "")
-
-    return normalizedLeft === normalizedRight
-}
-
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
     await checkConflictingExtensions()
 
@@ -118,6 +108,19 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         vscode.commands.registerCommand(
             "ton.test.showTransactionDetails",
             async (txRun: TransactionRun) => {
+                const normalizeName = (name: string): string => {
+                    return name.toLowerCase().replace("-contract", "").replace(/[_-]/g, "")
+                }
+                // a bit hacky :)
+                const sameNameContract = (
+                    workspaceContract: WorkspaceContractInfo,
+                    contract: ContractData | undefined,
+                ): boolean => {
+                    const leftName = workspaceContract.name
+                    const rightName = contract?.meta?.wrapperName ?? ""
+                    return normalizeName(leftName) === normalizeName(rightName)
+                }
+
                 const workspaceContracts =
                     await vscode.commands.executeCommand<GetWorkspaceContractsAbiResponse>(
                         "tolk.getWorkspaceContractsAbi",
@@ -126,8 +129,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
                 const transactionDetailsInfo: TransactionDetailsInfo = {
                     serializedResult: txRun.serializedResult,
                     deployedContracts: txRun.contracts.map((contract): DeployedContract => {
-                        const workspaceContract = workspaceContracts.contracts.find(it =>
-                            sameNameContract(it, contract),
+                        const workspaceContract = workspaceContracts.contracts.find(
+                            workspaceContract => sameNameContract(workspaceContract, contract),
                         )
                         return {
                             abi: workspaceContract?.abi,
