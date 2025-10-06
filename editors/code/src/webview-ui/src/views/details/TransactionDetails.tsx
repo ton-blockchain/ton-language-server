@@ -1,13 +1,9 @@
 import React, {JSX, useEffect, useMemo, useState} from "react"
 
-import {Address, Cell, loadShardAccount, loadTransaction} from "@ton/core"
+import {Address, Cell, loadShardAccount} from "@ton/core"
 
 import {TransactionDetailsInfo, TransactionInfo} from "../../../../common/types/transaction"
-import {
-  processRawTransactions,
-  RawTransactionInfo,
-  RawTransactions,
-} from "../../../../common/types/raw-transaction"
+import {processTxString} from "../../../../common/types/raw-transaction"
 
 import {ContractData} from "../../../../common/types/contract"
 import {LoadingSpinner} from "../../components/common"
@@ -137,29 +133,4 @@ export default function TransactionDetails({vscode}: Props): JSX.Element {
       )}
     </div>
   )
-}
-
-function parseTransactions(data: string): RawTransactions | undefined {
-  try {
-    return JSON.parse(data) as RawTransactions
-  } catch {
-    return undefined
-  }
-}
-
-function processTxString(resultString: string): TransactionInfo[] | undefined {
-  const rawTxs = parseTransactions(resultString)
-  if (!rawTxs) {
-    return undefined
-  }
-
-  const parsedTransactions = rawTxs.transactions.map(
-    (it): RawTransactionInfo => ({
-      ...it,
-      transaction: it.transaction,
-      parsedTransaction: loadTransaction(Cell.fromHex(it.transaction).asSlice()),
-    }),
-  )
-
-  return processRawTransactions(parsedTransactions)
 }

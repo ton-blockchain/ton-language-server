@@ -3,8 +3,9 @@
 import * as vscode from "vscode"
 
 import {parseCallStack} from "../../common/call-stack-parser"
+import {processTxString} from "../../common/types/raw-transaction"
 
-import {processTxString, TestDataMessage, TransactionRun} from "./test-types"
+import {TestDataMessage, TransactionRun} from "./test-types"
 
 interface TestTreeItem {
     readonly id: string
@@ -32,7 +33,7 @@ export class TestTreeProvider implements vscode.TreeDataProvider<TestTreeItem> {
             id: `test-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
             name: data.testName,
             timestamp: Date.now(),
-            transactions: transactions,
+            transactions: transactions ?? [],
             contracts: data.contracts,
             resultString: data.transactions,
         }

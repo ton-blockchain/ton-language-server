@@ -293,3 +293,28 @@ const computeFinalData = (
 export const processRawTransactions = (txs: RawTransactionInfo[]): TransactionInfo[] => {
     return txs.map(tx => processRawTx(tx, txs, new Map()))
 }
+
+function parseTransactions(data: string): RawTransactions | undefined {
+    try {
+        return JSON.parse(data) as RawTransactions
+    } catch {
+        return undefined
+    }
+}
+
+export function processTxString(resultString: string): TransactionInfo[] | undefined {
+    const rawTxs = parseTransactions(resultString)
+    if (!rawTxs) {
+        return undefined
+    }
+
+    const parsedTransactions = rawTxs.transactions.map(
+        (it): RawTransactionInfo => ({
+            ...it,
+            transaction: it.transaction,
+            parsedTransaction: loadTransaction(Cell.fromHex(it.transaction).asSlice()),
+        }),
+    )
+
+    return processRawTransactions(parsedTransactions)
+}
