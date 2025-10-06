@@ -16,15 +16,15 @@ function printConstructor(
     skipTag: boolean,
     showBraces: boolean,
 ): string {
-    let current: SyntaxNode | null = constructorNode
-    while (current && current.type !== "declaration") {
-        current = current.parent
+    let decl: SyntaxNode | null = constructorNode
+    while (decl && decl.type !== "declaration") {
+        decl = decl.parent
     }
 
-    if (!current) return ""
+    if (!decl) return ""
 
-    const constructor = current.childForFieldName("constructor")
-    const combinator = current.childForFieldName("combinator")
+    const constructor = decl.childForFieldName("constructor")
+    const combinator = decl.childForFieldName("combinator")
 
     if (!constructor || !combinator) return ""
 
@@ -41,8 +41,8 @@ function printConstructor(
     }
 
     const fields: string[] = []
-    for (const child of current.namedChildren) {
-        if (child && child.type === "field") {
+    for (const child of decl.namedChildren) {
+        if (child?.type === "field") {
             fields.push(printField(child, showBraces))
         }
     }
@@ -60,9 +60,8 @@ function printConstructor(
 
     const params: string[] = []
     for (const param of combinator.childrenForFieldName("params")) {
-        if (param) {
-            params.push(printTypeExpression(param, 100, !showBraces, false))
-        }
+        if (!param) continue
+        params.push(printTypeExpression(param, 100, !showBraces, false))
     }
 
     if (params.length > 0) {
