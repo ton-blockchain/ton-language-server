@@ -397,7 +397,6 @@ function printTypeExpression(
 
         case "curly_expression": {
             // curly_expression: compare_expr | identifier
-            // Print with braces if not skipping parens
             const child = node.namedChildren[0]
             const inner = child
                 ? printTypeExpression(child, priority, skipParens, normalizeBinExpr)
