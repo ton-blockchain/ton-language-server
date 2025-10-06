@@ -415,12 +415,6 @@
                     "id": "tonTestResultsTree",
                     "name": "Tests Tree",
                     "when": "true"
-                },
-                {
-                    "id": "tonTestResults",
-                    "type": "webview",
-                    "name": "Test Results",
-                    "when": "true"
                 }
             ]
         },

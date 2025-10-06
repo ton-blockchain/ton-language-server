@@ -50,7 +50,6 @@ import {HistoryWebviewProvider} from "./providers/sandbox/HistoryWebviewProvider
 import {TransactionDetailsProvider} from "./providers/sandbox/TransactionDetailsProvider"
 import {SandboxCodeLensProvider} from "./providers/sandbox/SandboxCodeLensProvider"
 import {TestTreeProvider} from "./providers/sandbox/TestTreeProvider"
-import {TestWebviewProvider} from "./providers/sandbox/TestWebviewProvider"
 import {WebSocketServer} from "./providers/sandbox/WebSocketServer"
 
 import {configureDebugging} from "./debugging"
@@ -119,14 +118,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
             treeDataProvider: testTreeProvider,
             showCollapseAll: false,
         }),
-    )
-
-    const testWebviewProvider = new TestWebviewProvider(context.extensionUri, testTreeProvider)
-    context.subscriptions.push(
-        vscode.window.registerWebviewViewProvider(
-            TestWebviewProvider.viewType,
-            testWebviewProvider,
-        ),
         vscode.commands.registerCommand(
             "ton.test.showTransactionDetails",
             async (testRun: TestRun) => {
@@ -238,9 +229,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     sandboxTreeProvider.setActionsProvider(sandboxActionsProvider)
     sandboxTreeProvider.setCodeLensProvider(sandboxCodeLensProvider)
 
-    const wsServer = new WebSocketServer()
+    const wsServer = new WebSocketServer(testTreeProvider)
     wsServer.start()
-    wsServer.setTestWebviewProvider(testWebviewProvider)
 
     context.subscriptions.push(
         {

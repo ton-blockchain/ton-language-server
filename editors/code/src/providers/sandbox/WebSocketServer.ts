@@ -2,22 +2,19 @@ import * as vscode from "vscode"
 import {WebSocket, Server} from "ws"
 
 import {TestDataMessage} from "./test-types"
+import {TestTreeProvider} from "./TestTreeProvider"
 
 export class WebSocketServer {
     private wss: Server | null = null
     private disposables: vscode.Disposable[] = []
-    private testWebviewProvider?: {addTestData: (data: TestDataMessage) => void}
 
     public constructor(
+        private readonly treeProvider: TestTreeProvider,
         private readonly port: number = Number.parseInt(
             process.env.VSCODE_WEBSOCKET_PORT ?? "7743",
             10,
         ),
     ) {}
-
-    public setTestWebviewProvider(provider: {addTestData: (data: TestDataMessage) => void}): void {
-        this.testWebviewProvider = provider
-    }
 
     public start(): void {
         try {
@@ -56,7 +53,7 @@ export class WebSocketServer {
     }
 
     private handleTestData(message: TestDataMessage): void {
-        this.testWebviewProvider?.addTestData(message)
+        this.treeProvider.addTestData(message)
     }
 
     public stop(): void {
