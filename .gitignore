@@ -22,5 +22,8 @@ yarn-error.log
 # eslint
 .eslintcache
 
+# stylelint
+.stylelintcache
+
 # coverage
 coverage/

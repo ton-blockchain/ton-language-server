@@ -38,8 +38,9 @@
         "test": "yarn jest",
         "build": "webpack && node ./.scripts/set-executable.js ./dist/server.js",
         "package": "npx vsce package --no-yarn --readme-path editors/code/README.md",
-        "lint": "eslint --cache .",
-        "lint:css": "npx stylelint \"editors/**/*.css\"",
+        "lint": "yarn run lint:ts && yarn run lint:css",
+        "lint:ts": "eslint --cache .",
+        "lint:css": "stylelint 'editors/**/*.css' --cache",
         "fmt": "prettier --write -l --cache .",
         "fmt:check": "prettier --check --cache .",
         "grammar:wasm": "yarn grammar:tolk:wasm && yarn grammar:func:wasm && yarn grammar:fift:wasm && yarn grammar:tlb:wasm",
@@ -48,7 +49,7 @@
         "grammar:fift:wasm": "cd server/src/languages/fift/tree-sitter-fift && tree-sitter generate && tree-sitter build --wasm",
         "grammar:tlb:wasm": "cd server/src/languages/tlb/tree-sitter-tlb && tree-sitter generate && tree-sitter build --wasm",
         "watch": "webpack --watch",
-        "precommit": "yarn build && yarn fmt && yarn lint --fix && yarn run lint:css --fix",
+        "precommit": "yarn build && yarn fmt && yarn lint:ts --fix && yarn run lint:css --fix",
         "test:grammars": "yarn test:grammars:tolk && yarn test:grammars:func && yarn test:grammars:fift && yarn test:grammars:tlb",
         "test:grammars:tolk": "cd ./server/src/languages/tolk/tree-sitter-tolk/ && tree-sitter test",
         "test:grammars:func": "cd ./server/src/languages/func/tree-sitter-func/ && tree-sitter test",
@@ -632,6 +633,16 @@
                         "type": "boolean",
                         "default": true,
                         "description": "Show type hints for constants without explicit type"
+                    },
+                    "ton.tlb.hints.disable": {
+                        "type": "boolean",
+                        "default": false,
+                        "description": "Disable all inlay hints for TL-B"
+                    },
+                    "ton.tlb.hints.showConstructorTag": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Show constructor tag hints for TL-B constructors without explicit tags"
                     }
                 }
             },
@@ -892,7 +903,7 @@
             "built": true
         }
     },
-    "packageManager": "yarn@4.6.0",
+    "packageManager": "yarn@4.10.3+sha512.c38cafb5c7bb273f3926d04e55e1d8c9dfa7d9c3ea1f36a4868fa028b9e5f72298f0b7f401ad5eb921749eb012eb1c3bb74bf7503df3ee43fd600d14a018266f",
     "prettier": {
         "arrowParens": "avoid",
         "bracketSpacing": false,

@@ -4,9 +4,13 @@ on:
   pull_request:
     branches:
       - main
+    paths:
+      - "server/src/languages/**/tree-sitter-**/**"
   push:
     branches:
       - main
+    paths:
+      - "server/src/languages/**/tree-sitter-**/**"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -16,8 +20,8 @@ env:
   HUSKY: 0
 
 jobs:
-  tests:
-    name: Test (${{ matrix.os }})
+  tree-sitter-grammars:
+    name: Building tree-sitter (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
@@ -45,10 +49,13 @@ jobs:
           cache: "yarn"
 
       - name: Setup EMSDK
-        uses: mymindstorm/setup-emsdk@v14
+        uses: pyodide/setup-emsdk@v15
+        env:
+          EMSDK_VERSION: 4.0.15
         with:
-          version: 3.1.54
+          version: ${{ env.EMSDK_VERSION }}
           actions-cache-folder: "emsdk-cache"
+          cache-key: emsdk-cache-${{ runner.os }}-${{ runner.arch }}-${{ env.EMSDK_VERSION }}
 
       - name: Install dependencies
         env:

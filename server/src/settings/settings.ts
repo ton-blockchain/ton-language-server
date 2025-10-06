@@ -51,6 +51,13 @@ export interface TolkSettings {
     }
 }
 
+export interface TlbSettings {
+    readonly hints: {
+        readonly disable: boolean
+        readonly showConstructorTag: boolean
+    }
+}
+
 export interface FuncSettings {
     readonly hints: {
         readonly disable: boolean
@@ -66,6 +73,7 @@ export interface ServerSettings {
     readonly tolk: TolkSettings
     readonly func: FuncSettings
     readonly fift: FiftSettings
+    readonly tlb: TlbSettings
 }
 
 const tolkDefaultSettings: TolkSettings = {
@@ -124,6 +132,12 @@ const defaultSettings: ServerSettings = {
         },
         semanticHighlighting: {
             enabled: true,
+        },
+    },
+    tlb: {
+        hints: {
+            disable: false,
+            showConstructorTag: true,
         },
     },
 }
@@ -208,6 +222,14 @@ function mergeSettings(vsSettings: Partial<ServerSettings>): ServerSettings {
                 enabled:
                     vsSettings.fift?.semanticHighlighting.enabled ??
                     defaultSettings.fift.semanticHighlighting.enabled,
+            },
+        },
+        tlb: {
+            hints: {
+                disable: vsSettings.tlb?.hints.disable ?? defaultSettings.tlb.hints.disable,
+                showConstructorTag:
+                    vsSettings.tlb?.hints.showConstructorTag ??
+                    defaultSettings.tlb.hints.showConstructorTag,
             },
         },
     }
