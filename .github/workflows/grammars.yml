@@ -4,9 +4,13 @@ on:
   pull_request:
     branches:
       - main
+    paths:
+      - "server/src/languages/**/tree-sitter-**/**"
   push:
     branches:
       - main
+    paths:
+      - "server/src/languages/**/tree-sitter-**/**"
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -16,8 +20,8 @@ env:
   HUSKY: 0
 
 jobs:
-  tests:
-    name: Test (${{ matrix.os }})
+  tree-sitter-grammars:
+    name: Building tree-sitter (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
