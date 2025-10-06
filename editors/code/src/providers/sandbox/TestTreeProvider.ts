@@ -28,8 +28,6 @@ export class TestTreeProvider implements vscode.TreeDataProvider<TestTreeItem> {
     public addTestData(data: TestDataMessage): void {
         const transactions = processTxString(data.transactions)
 
-        console.log(data, "with", transactions.length, "transactions")
-
         const testRun: TestRun = {
             id: `test-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
             name: data.testName,

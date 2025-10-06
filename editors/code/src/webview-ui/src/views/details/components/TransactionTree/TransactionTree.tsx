@@ -2,7 +2,6 @@
 import React, {useMemo, useState, useRef, useEffect} from "react"
 import {Orientation, RawNodeDatum, TreeLinkDatum, Tree} from "react-d3-tree"
 import {Address} from "@ton/core"
-import {FiExternalLink} from "react-icons/fi"
 
 import {TransactionDetails} from "../index"
 
@@ -13,8 +12,6 @@ import {TransactionInfo} from "../../../../../../common/types/transaction"
 import {ParsedDataView} from "../ParsedDataView/ParsedDataView"
 
 import {parseData, ParsedObject} from "../../../../../../common/binary"
-
-import {CallStackEntry, parseCallStack} from "../../../../../../common/call-stack-parser"
 
 import {VSCodeTransactionDetailsAPI} from "../../transaction-details-types"
 
@@ -36,7 +33,6 @@ interface TransactionTooltipData {
     readonly totalFees: bigint
   }
   readonly sentTotal: bigint
-  readonly callStackPosition?: CallStackEntry
 }
 
 interface TransactionTreeProps {
@@ -125,23 +121,6 @@ function TransactionTooltipContent({
           )}
         </div>
       </div>
-
-      {data.callStackPosition && (
-        <button
-          className={styles.callStackButton}
-          onClick={() => {
-            vscode.postMessage({
-              type: "openFileAtPosition",
-              uri: data.callStackPosition?.file ?? "",
-              row: (data.callStackPosition?.line ?? 1) - 1,
-              column: (data.callStackPosition?.column ?? 1) - 1,
-            })
-          }}
-          title="Open file"
-        >
-          <FiExternalLink size={12} />
-        </button>
-      )}
     </div>
   )
 }
@@ -290,14 +269,11 @@ export function TransactionTree({
     const srcAddress = tx.transaction.inMessage?.info.src
     const fromAddressStr = srcAddress ? formatAddressShort(srcAddress as Address) : "unknown"
 
-    const parsedCallStack = parseCallStack(tx.callStack)
-
     const tooltipData: TransactionTooltipData = {
       fromAddress: fromAddressStr,
       computePhase,
       fees,
       sentTotal: tx.money.sentTotal,
-      callStackPosition: parsedCallStack.length > 0 ? parsedCallStack.at(-1) : undefined,
     }
 
     showTooltip({
@@ -387,9 +363,6 @@ export function TransactionTree({
 
       const lt = tx.transaction.lt.toString()
       const isSelected = selectedTransaction?.transaction.lt.toString() === lt
-
-      const parsedCallStack = parseCallStack(tx.callStack)
-      const firstEntry = parsedCallStack.length > 0 ? parsedCallStack[0] : undefined
 
       const hasExternalOut = tx.transaction.outMessages.values().some(outMsg => {
         return outMsg.info.type === "external-out"
