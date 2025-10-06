@@ -99,7 +99,7 @@ export class TestTreeProvider implements vscode.TreeDataProvider<TestTreeItem> {
                                       "error",
                                       new vscode.ThemeColor("testing.iconFailed"),
                                   ),
-                        collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
+                        collapsibleState: vscode.TreeItemCollapsibleState.None,
                         type: "testRun" as const,
                         command: {
                             command: "ton.test.showTransactionDetails",
@@ -109,46 +109,6 @@ export class TestTreeProvider implements vscode.TreeDataProvider<TestTreeItem> {
                     }
                 }),
             )
-        }
-
-        if (element.type === "testRun") {
-            const testName = element.id.split("-run-")[0].replace("test-group-", "")
-            const runIndexStr = element.id.split("-run-")[1]
-            const runIndex = Number.parseInt(runIndexStr)
-            const testRuns = this.testRunsByName.get(testName) ?? []
-            const testRun = testRuns.at(runIndex) // Обратный порядок из-за unshift
-
-            const messageItems: TestTreeItem[] = []
-
-            if (testRun) {
-                testRun.transactions.forEach((tx, txIndex) => {
-                    if (tx.transaction.inMessage) {
-                        messageItems.push({
-                            id: `${element.id}-tx-${txIndex}-in`,
-                            label: `Incoming Message`,
-                            description: `To: ${tx.address?.toString().slice(0, 10) ?? "unknown"}...`,
-                            contextValue: "message",
-                            iconPath: new vscode.ThemeIcon("arrow-right"),
-                            collapsibleState: vscode.TreeItemCollapsibleState.None,
-                            type: "message" as const,
-                        })
-                    }
-
-                    tx.outActions.forEach((action, actionIndex) => {
-                        messageItems.push({
-                            id: `${element.id}-tx-${txIndex}-out-${actionIndex}`,
-                            label: `Outgoing Action: ${action.type}`,
-                            description: action.type === "sendMsg" ? "Send Message" : action.type,
-                            contextValue: "message",
-                            iconPath: new vscode.ThemeIcon("arrow-left"),
-                            collapsibleState: vscode.TreeItemCollapsibleState.None,
-                            type: "message" as const,
-                        })
-                    })
-                })
-            }
-
-            return Promise.resolve(messageItems)
         }
 
         return Promise.resolve([])
