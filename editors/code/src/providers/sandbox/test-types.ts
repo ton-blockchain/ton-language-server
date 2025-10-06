@@ -30,7 +30,7 @@ export interface TransactionRun {
     readonly id: string
     readonly name: string
     readonly timestamp: number
-    readonly resultString: string
+    readonly serializedResult: string
     readonly transactions: readonly TransactionInfo[]
     readonly contracts: readonly ContractData[]
 }

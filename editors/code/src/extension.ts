@@ -13,8 +13,6 @@ import {
     TransportKind,
 } from "vscode-languageclient/node"
 
-import {Cell, loadStateInit} from "@ton/core"
-
 import {
     DocumentationAtPositionRequest,
     GetWorkspaceContractsAbiResponse,
@@ -56,7 +54,6 @@ import {configureDebugging} from "./debugging"
 import {ContractData, TransactionRun} from "./providers/sandbox/test-types"
 import {TransactionDetailsInfo} from "./common/types/transaction"
 import {DeployedContract} from "./common/types/contract"
-import {Base64String} from "./common/base64-string"
 
 let client: LanguageClient | undefined = undefined
 let cachedToolchainInfo: SetToolchainVersionParams | undefined = undefined
@@ -126,57 +123,24 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
                         "tolk.getWorkspaceContractsAbi",
                     )
 
-                // TODO: redone
-                const transaction = txRun.transactions.at(1) ?? txRun.transactions.at(0)
-                if (transaction) {
-                    const contract = txRun.contracts.find(
-                        it => it.address === transaction.address?.toString(),
-                    )
-
-                    const stateInit = loadStateInit(
-                        Cell.fromHex(contract?.stateInit ?? "").asSlice(),
-                    )
-
-                    const workspaceContract = workspaceContracts.contracts.find(it =>
-                        sameNameContract(it, contract),
-                    )
-                    const abi = workspaceContract?.abi
-
-                    const transactionDetailsInfo: TransactionDetailsInfo = {
-                        contractAddress: transaction.address?.toString() ?? "unknown",
-                        methodName: "test-transaction",
-                        transactionId: transaction.transaction.lt.toString(),
-                        timestamp: new Date().toISOString(),
-                        status: "success" as const, // For now, assume success
-                        resultString: txRun.resultString,
-                        deployedContracts: txRun.contracts.map((contract): DeployedContract => {
-                            const workspaceContract = workspaceContracts.contracts.find(it =>
-                                sameNameContract(it, contract),
-                            )
-                            return {
-                                abi: workspaceContract?.abi,
-                                sourceMap: undefined,
-                                address: contract.address,
-                                deployTime: undefined,
-                                name: contract.meta?.wrapperName ?? "unknown",
-                                sourceUri: "",
-                            }
-                        }),
-                        account: contract?.account,
-                        stateInit: {
-                            code: (stateInit.code ?? new Cell())
-                                .toBoc()
-                                .toString("base64") as Base64String,
-                            data: (stateInit.data ?? new Cell())
-                                .toBoc()
-                                .toString("base64") as Base64String,
-                        },
-                        abi,
-                    }
-
-                    console.log("transactionDetailsInfo", transactionDetailsInfo)
-                    transactionDetailsProvider.showTransactionDetails(transactionDetailsInfo)
+                const transactionDetailsInfo: TransactionDetailsInfo = {
+                    serializedResult: txRun.serializedResult,
+                    deployedContracts: txRun.contracts.map((contract): DeployedContract => {
+                        const workspaceContract = workspaceContracts.contracts.find(it =>
+                            sameNameContract(it, contract),
+                        )
+                        return {
+                            abi: workspaceContract?.abi,
+                            sourceMap: undefined,
+                            address: contract.address,
+                            deployTime: undefined,
+                            name: contract.meta?.wrapperName ?? "unknown",
+                            sourceUri: workspaceContract?.path ?? "",
+                        }
+                    }),
                 }
+
+                transactionDetailsProvider.showTransactionDetails(transactionDetailsInfo)
             },
         ),
         vscode.commands.registerCommand(

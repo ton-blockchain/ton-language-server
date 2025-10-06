@@ -302,8 +302,8 @@ function parseTransactions(data: string): RawTransactions | undefined {
     }
 }
 
-export function processTxString(resultString: string): TransactionInfo[] | undefined {
-    const rawTxs = parseTransactions(resultString)
+export function processTxString(serializedResult: string): TransactionInfo[] | undefined {
+    const rawTxs = parseTransactions(serializedResult)
     if (!rawTxs) {
         return undefined
     }

@@ -35,7 +35,7 @@ export class TestTreeProvider implements vscode.TreeDataProvider<TestTreeItem> {
             timestamp: Date.now(),
             transactions: transactions ?? [],
             contracts: data.contracts,
-            resultString: data.transactions,
+            serializedResult: data.transactions,
         }
 
         const existingRuns = this.txRunsByName.get(data.testName) ?? []
@@ -153,11 +153,9 @@ async function extractTransactionName(txRun: TransactionRun): Promise<string | u
         for (const pattern of patterns) {
             const match = line.match(pattern)
             if (match) {
-                // Если нашли object.method, возвращаем object.method
                 if (match[2]) {
                     return `${match[1]}.${match[2]}`
                 }
-                // Иначе просто method
                 return match[1]
             }
         }
