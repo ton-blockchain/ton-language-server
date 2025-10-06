@@ -24,29 +24,20 @@ export interface ContractData {
     readonly meta?: ContractMeta
 }
 
-export interface StateChange {
-    readonly address: string
-    readonly lt: string
-    readonly before: string
-    readonly after: string
-}
-
 export interface TestDataMessage {
     readonly $: "test-data"
     readonly testName: string
     readonly transactions: string
     readonly contracts: readonly ContractData[]
-    readonly changes: readonly StateChange[]
 }
 
-export interface TestRun {
+export interface TransactionRun {
     readonly id: string
     readonly name: string
     readonly timestamp: number
     readonly resultString: string
     readonly transactions: readonly TransactionInfo[]
     readonly contracts: readonly ContractData[]
-    readonly changes: readonly StateChange[]
 }
 
 function parseTransactions(data: string): RawTransactions | undefined {

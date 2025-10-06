@@ -53,7 +53,7 @@ import {TestTreeProvider} from "./providers/sandbox/TestTreeProvider"
 import {WebSocketServer} from "./providers/sandbox/WebSocketServer"
 
 import {configureDebugging} from "./debugging"
-import {ContractData, TestRun} from "./providers/sandbox/test-types"
+import {ContractData, TransactionRun} from "./providers/sandbox/test-types"
 import {TransactionDetailsInfo} from "./common/types/transaction"
 import {DeployedContract} from "./common/types/contract"
 import {Base64String} from "./common/base64-string"
@@ -120,24 +120,16 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         }),
         vscode.commands.registerCommand(
             "ton.test.showTransactionDetails",
-            async (testRun: TestRun) => {
+            async (txRun: TransactionRun) => {
                 const workspaceContracts =
                     await vscode.commands.executeCommand<GetWorkspaceContractsAbiResponse>(
                         "tolk.getWorkspaceContractsAbi",
                     )
 
-                console.log("workspaceContracts", workspaceContracts.contracts.length)
-                console.log(
-                    "workspaceContracts",
-                    workspaceContracts.contracts.filter(it => it.name.includes("jetton")),
-                )
-
-                console.log(`txs of ${testRun.id}`, testRun.transactions)
-
                 // TODO: redone
-                const transaction = testRun.transactions.at(1) ?? testRun.transactions.at(0)
+                const transaction = txRun.transactions.at(1) ?? txRun.transactions.at(0)
                 if (transaction) {
-                    const contract = testRun.contracts.find(
+                    const contract = txRun.contracts.find(
                         it => it.address === transaction.address?.toString(),
                     )
 
@@ -149,9 +141,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
                         sameNameContract(it, contract),
                     )
                     const abi = workspaceContract?.abi
-                    console.log("contract data", contract)
-                    console.log("workspaceContract", workspaceContract)
-                    console.log("abi", abi)
 
                     const transactionDetailsInfo: TransactionDetailsInfo = {
                         contractAddress: transaction.address?.toString() ?? "unknown",
@@ -159,8 +148,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
                         transactionId: transaction.transaction.lt.toString(),
                         timestamp: new Date().toISOString(),
                         status: "success" as const, // For now, assume success
-                        resultString: testRun.resultString,
-                        deployedContracts: testRun.contracts.map((contract): DeployedContract => {
+                        resultString: txRun.resultString,
+                        deployedContracts: txRun.contracts.map((contract): DeployedContract => {
                             const workspaceContract = workspaceContracts.contracts.find(it =>
                                 sameNameContract(it, contract),
                             )
@@ -193,28 +182,24 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         vscode.commands.registerCommand(
             "ton.test.openTestSource",
             (treeItem: {command?: vscode.Command}) => {
-                const testRun = treeItem.command?.arguments?.[0] as TestRun | undefined
-                if (!testRun) {
-                    console.error("No testRun found in tree item arguments")
+                const txRun = treeItem.command?.arguments?.[0] as TransactionRun | undefined
+                if (!txRun) {
+                    console.error("No txRun found in tree item arguments")
                     return
                 }
 
-                const transactionWithCallStack = testRun.transactions.find(tx => tx.callStack)
-                if (transactionWithCallStack?.callStack) {
-                    const parsedCallStack = parseCallStack(transactionWithCallStack.callStack)
-                    if (parsedCallStack.length > 0) {
-                        const lastEntry = parsedCallStack.at(-1)
-                        if (
-                            lastEntry?.file &&
-                            lastEntry.line !== undefined &&
-                            lastEntry.column !== undefined
-                        ) {
-                            openFileAtPosition(
-                                lastEntry.file,
-                                lastEntry.line - 1,
-                                lastEntry.column - 1,
-                            )
-                        }
+                const transactionWithCallStack = txRun.transactions.find(tx => tx.callStack)
+                if (!transactionWithCallStack?.callStack) return
+
+                const parsedCallStack = parseCallStack(transactionWithCallStack.callStack)
+                if (parsedCallStack.length > 0) {
+                    const lastEntry = parsedCallStack.at(-1)
+                    if (
+                        lastEntry?.file &&
+                        lastEntry.line !== undefined &&
+                        lastEntry.column !== undefined
+                    ) {
+                        openFileAtPosition(lastEntry.file, lastEntry.line - 1, lastEntry.column - 1)
                     }
                 }
             },

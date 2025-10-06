@@ -4,7 +4,7 @@ import * as vscode from "vscode"
 
 import {parseCallStack} from "../../common/call-stack-parser"
 
-import {processTxString, TestDataMessage, TestRun} from "./test-types"
+import {processTxString, TestDataMessage, TransactionRun} from "./test-types"
 
 interface TestTreeItem {
     readonly id: string
@@ -23,25 +23,24 @@ export class TestTreeProvider implements vscode.TreeDataProvider<TestTreeItem> {
     public readonly onDidChangeTreeData: vscode.Event<TestTreeItem | undefined | null> =
         this._onDidChangeTreeData.event
 
-    private readonly testRunsByName: Map<string, TestRun[]> = new Map()
+    private readonly txRunsByName: Map<string, TransactionRun[]> = new Map()
 
     public addTestData(data: TestDataMessage): void {
         const transactions = processTxString(data.transactions)
 
-        const testRun: TestRun = {
+        const txRun: TransactionRun = {
             id: `test-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
             name: data.testName,
             timestamp: Date.now(),
             transactions: transactions,
             contracts: data.contracts,
-            changes: data.changes,
             resultString: data.transactions,
         }
 
-        const existingRuns = this.testRunsByName.get(data.testName) ?? []
-        existingRuns.push(testRun)
+        const existingRuns = this.txRunsByName.get(data.testName) ?? []
+        existingRuns.push(txRun)
 
-        this.testRunsByName.set(data.testName, existingRuns)
+        this.txRunsByName.set(data.testName, existingRuns)
 
         this._onDidChangeTreeData.fire(undefined)
     }
@@ -61,10 +60,10 @@ export class TestTreeProvider implements vscode.TreeDataProvider<TestTreeItem> {
     public getChildren(element?: TestTreeItem): Thenable<TestTreeItem[]> {
         if (!element) {
             return Promise.resolve(
-                [...this.testRunsByName.keys()].map(testName => ({
+                [...this.txRunsByName.keys()].map(testName => ({
                     id: `test-group-${testName}`,
                     label: testName,
-                    description: `${this.testRunsByName.get(testName)?.length ?? 0} transactions`,
+                    description: `${this.txRunsByName.get(testName)?.length ?? 0} transactions`,
                     contextValue: "testGroup",
                     iconPath: new vscode.ThemeIcon("beaker"),
                     collapsibleState: vscode.TreeItemCollapsibleState.Collapsed,
@@ -74,11 +73,11 @@ export class TestTreeProvider implements vscode.TreeDataProvider<TestTreeItem> {
         }
 
         if (element.type === "testName") {
-            const testRuns = this.testRunsByName.get(element.label) ?? []
+            const txRuns = this.txRunsByName.get(element.label) ?? []
             return Promise.all(
-                testRuns.map(async (testRun, index) => {
+                txRuns.map(async (testRun, index) => {
                     const extractedName = await extractTransactionName(testRun)
-                    const exitCode = getTestRunExitCode(testRun)
+                    const exitCode = getTxRunExitCode(testRun)
                     const baseLabel = extractedName ?? `Transaction #${index}`
                     const label = exitCode === 0 ? baseLabel : `${baseLabel} (exit: ${exitCode})`
 
@@ -111,40 +110,15 @@ export class TestTreeProvider implements vscode.TreeDataProvider<TestTreeItem> {
 
         return Promise.resolve([])
     }
-
-    public getTestRun(testRunId: string): TestRun | undefined {
-        for (const testRuns of this.testRunsByName.values()) {
-            const found = testRuns.find(run => run.id === testRunId)
-            if (found) return found
-        }
-        return undefined
-    }
-
-    public clearAllTests(): void {
-        this.testRunsByName.clear()
-        this._onDidChangeTreeData.fire(undefined)
-    }
-
-    public removeTestRun(testRunId: string): void {
-        for (const [testName, testRuns] of this.testRunsByName.entries()) {
-            const filteredRuns = testRuns.filter(run => run.id !== testRunId)
-            if (filteredRuns.length === 0) {
-                this.testRunsByName.delete(testName)
-            } else {
-                this.testRunsByName.set(testName, filteredRuns)
-            }
-        }
-        this._onDidChangeTreeData.fire(undefined)
-    }
 }
 
-async function extractTransactionName(testRun: TestRun): Promise<string | undefined> {
-    const transactionWithCallStack = testRun.transactions.find(tx => tx.callStack)
-    if (!transactionWithCallStack?.callStack) {
+async function extractTransactionName(txRun: TransactionRun): Promise<string | undefined> {
+    const txWithCallStack = txRun.transactions.find(tx => tx.callStack)
+    if (!txWithCallStack?.callStack) {
         return undefined
     }
 
-    const parsedCallStack = parseCallStack(transactionWithCallStack.callStack)
+    const parsedCallStack = parseCallStack(txWithCallStack.callStack)
     if (parsedCallStack.length === 0) {
         return undefined
     }
@@ -209,8 +183,8 @@ async function extractTransactionName(testRun: TestRun): Promise<string | undefi
     return undefined
 }
 
-function getTestRunExitCode(testRun: TestRun): number {
-    const failedTransaction = testRun.transactions.find(tx => {
+function getTxRunExitCode(txRun: TransactionRun): number {
+    const failedTransaction = txRun.transactions.find(tx => {
         if (tx.computeInfo === "skipped") return false
         const exitCode = tx.computeInfo.exitCode
         return exitCode !== 0 && exitCode !== 1
