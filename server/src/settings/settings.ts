@@ -56,9 +56,6 @@ export interface TlbSettings {
         readonly disable: boolean
         readonly showConstructorTag: boolean
     }
-    readonly inspections: {
-        readonly disabled: readonly string[]
-    }
 }
 
 export interface FuncSettings {
@@ -141,9 +138,6 @@ const defaultSettings: ServerSettings = {
         hints: {
             disable: false,
             showConstructorTag: true,
-        },
-        inspections: {
-            disabled: [], // no disabled inspections by default
         },
     },
 }
@@ -236,11 +230,6 @@ function mergeSettings(vsSettings: Partial<ServerSettings>): ServerSettings {
                 showConstructorTag:
                     vsSettings.tlb?.hints.showConstructorTag ??
                     defaultSettings.tlb.hints.showConstructorTag,
-            },
-            inspections: {
-                disabled:
-                    vsSettings.tlb?.inspections.disabled ??
-                    defaultSettings.tlb.inspections.disabled,
             },
         },
     }
