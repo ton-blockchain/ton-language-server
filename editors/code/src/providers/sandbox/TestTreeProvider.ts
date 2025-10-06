@@ -27,21 +27,27 @@ export class TestTreeProvider implements vscode.TreeDataProvider<TestTreeItem> {
     private readonly txRunsByName: Map<string, TransactionRun[]> = new Map()
 
     public addTestData(data: TestDataMessage): void {
-        const transactions = processTxString(data.transactions)
+        const transactions = processTxString(data.transactions) ?? []
 
         const txRun: TransactionRun = {
             id: `test-${Date.now()}-${Math.random().toString(36).slice(2, 11)}`,
             name: data.testName,
             timestamp: Date.now(),
-            transactions: transactions ?? [],
+            transactions: transactions,
             contracts: data.contracts,
             serializedResult: data.transactions,
         }
 
         const existingRuns = this.txRunsByName.get(data.testName) ?? []
-        existingRuns.push(txRun)
+        const lastRun = existingRuns.at(-1)
 
-        this.txRunsByName.set(data.testName, existingRuns)
+        // Consider all transactions as a new test run after 20 seconds
+        if (lastRun && Date.now() - lastRun.timestamp > 20 * 1000) {
+            this.txRunsByName.set(data.testName, [txRun])
+        } else {
+            existingRuns.push(txRun)
+            this.txRunsByName.set(data.testName, existingRuns)
+        }
 
         this._onDidChangeTreeData.fire(undefined)
     }
