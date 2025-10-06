@@ -791,6 +791,12 @@
                 "type": "blueprint-build-and-test-all",
                 "properties": {}
             }
+        ],
+        "viewsWelcome": [
+            {
+                "view": "tonTestResultsTree",
+                "contents": "No test results yet. Run tests to see results here."
+            }
         ]
     },
     "dependencies": {
