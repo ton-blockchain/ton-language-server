@@ -21,7 +21,7 @@ interface Message {
 
 interface AddTransactionsMessage {
   readonly type: "addTransactions"
-  readonly resultString: string
+  readonly serializedResult: string
 }
 
 interface Props {
@@ -42,8 +42,8 @@ export default function TransactionDetails({vscode}: Props): JSX.Element {
     setTransactions(transactionInfos)
   }, [transaction, setTransactions])
 
-  const addTransactions = (resultString: string): void => {
-    const newTransactionInfos = processTxString(resultString)
+  const addTransactions = (serializedResult: string): void => {
+    const newTransactionInfos = processTxString(serializedResult)
     if (!newTransactionInfos) {
       return
     }
@@ -70,7 +70,7 @@ export default function TransactionDetails({vscode}: Props): JSX.Element {
       if (message.type === "updateTransactionDetails") {
         setTransaction(message.transaction)
       } else {
-        addTransactions(message.resultString)
+        addTransactions(message.serializedResult)
       }
     }
 

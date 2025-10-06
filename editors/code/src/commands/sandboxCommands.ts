@@ -453,8 +453,8 @@ export function registerSandboxCommands(
         ),
         vscode.commands.registerCommand(
             "ton.sandbox.addTransactionsToDetails",
-            (resultString: string): void => {
-                transactionDetailsProvider.addTransactions(resultString)
+            (serializedResult: string): void => {
+                transactionDetailsProvider.addTransactions(serializedResult)
             },
         ),
     )
