@@ -428,7 +428,7 @@
                 {
                     "id": "tonTestContainer",
                     "title": "TON Tests",
-                    "icon": "$(beaker)"
+                    "icon": "./dist/icons/test-icon.svg"
                 }
             ]
         },
