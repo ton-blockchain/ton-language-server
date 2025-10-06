@@ -229,7 +229,10 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     sandboxTreeProvider.setActionsProvider(sandboxActionsProvider)
     sandboxTreeProvider.setCodeLensProvider(sandboxCodeLensProvider)
 
-    const wsServer = new WebSocketServer(testTreeProvider)
+    const websocketPort = vscode.workspace
+        .getConfiguration("ton.sandbox")
+        .get("websocketPort", 7743)
+    const wsServer = new WebSocketServer(testTreeProvider, websocketPort)
     wsServer.start()
 
     context.subscriptions.push(

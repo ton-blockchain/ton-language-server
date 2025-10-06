@@ -758,6 +758,11 @@
                         "type": "string",
                         "default": "./node_modules/.bin/ton-sandbox-server",
                         "description": "Path to the TON Sandbox server binary"
+                    },
+                    "ton.sandbox.websocketPort": {
+                        "type": "number",
+                        "default": 7743,
+                        "description": "Port for the WebSocket server used for test communication"
                     }
                 }
             }

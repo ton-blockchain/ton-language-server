@@ -10,10 +10,7 @@ export class WebSocketServer {
 
     public constructor(
         private readonly treeProvider: TestTreeProvider,
-        private readonly port: number = Number.parseInt(
-            process.env.VSCODE_WEBSOCKET_PORT ?? "7743",
-            10,
-        ),
+        private readonly port: number,
     ) {}
 
     public start(): void {
