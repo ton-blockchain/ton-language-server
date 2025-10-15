@@ -4,11 +4,12 @@ import type {InlayHint} from "vscode-languageserver"
 
 import {InlayHintKind} from "vscode-languageserver-types"
 
-import {AsyncRecursiveVisitor} from "@server/visitor/visitor"
+import {RecursiveVisitor} from "@server/visitor/visitor"
 import {FiftFile} from "@server/languages/fift/psi/FiftFile"
-import {findInstruction} from "@server/languages/fift/asm/types"
+import {findInstruction, formatGasRanges} from "@server/languages/fift/asm/types"
 import {instructionPresentation} from "@server/languages/fift/asm/gas"
 
+// eslint-disable-next-line @typescript-eslint/require-await
 export async function provideFiftInlayHints(
     file: FiftFile,
     gasFormat: string,
@@ -18,16 +19,15 @@ export async function provideFiftInlayHints(
 ): Promise<InlayHint[]> {
     const result: InlayHint[] = []
 
-    await AsyncRecursiveVisitor.visit(file.rootNode, async (n): Promise<boolean> => {
+    RecursiveVisitor.visit(file.rootNode, (n): boolean => {
         if (n.type === "identifier" && settings.showGasConsumption) {
-            const instruction = await findInstruction(n.text)
+            const instruction = findInstruction(n.text)
             if (!instruction) return true
 
-            const presentation = instructionPresentation(
-                instruction.doc.gas,
-                instruction.doc.stack,
-                gasFormat,
-            )
+            const gas = formatGasRanges(instruction.instruction.description.gas)
+            const stack = instruction.instruction.signature?.stack_string ?? ""
+
+            const presentation = instructionPresentation(gas, stack, gasFormat)
 
             result.push({
                 kind: InlayHintKind.Type,
