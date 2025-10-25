@@ -15,7 +15,11 @@ import type {Node as SyntaxNode} from "web-tree-sitter"
 import {TextDocument} from "vscode-languageserver-textdocument"
 
 import {asParserPoint} from "@server/utils/position"
-import {index as tolkIndex, IndexRoot as TolkIndexRoot} from "@server/languages/tolk/indexes"
+import {
+    index as tolkIndex,
+    IndexKey,
+    IndexRoot as TolkIndexRoot,
+} from "@server/languages/tolk/indexes"
 import {index as funcIndex, IndexRoot as FuncIndexRoot} from "@server/languages/func/indexes"
 
 import {globalVFS} from "@server/vfs/global"
@@ -24,13 +28,16 @@ import type {ClientOptions} from "@shared/config-scheme"
 import {
     ContractAbiRequest,
     DocumentationAtPositionRequest,
+    GetAllContractsAbiRequest,
     GetContractAbiParams,
     GetContractAbiResponse,
+    GetWorkspaceContractsAbiResponse,
     SetToolchainVersionNotification,
     SetToolchainVersionParams,
     TypeAtPositionParams,
     TypeAtPositionRequest,
     TypeAtPositionResponse,
+    WorkspaceContractInfo,
 } from "@shared/shared-msgtypes"
 import {Logger} from "@server/utils/logger"
 import {clearDocumentSettings, getDocumentSettings, ServerSettings} from "@server/settings/settings"
@@ -1129,6 +1136,48 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
             }
         },
     )
+
+    connection.onRequest(GetAllContractsAbiRequest, (): GetWorkspaceContractsAbiResponse => {
+        const contracts: WorkspaceContractInfo[] = []
+
+        if (!workspaceFolders || workspaceFolders.length === 0) {
+            return {contracts: []}
+        }
+
+        const workspaceIndexRoot = tolkIndex.roots.find(root => root.name === "workspace")
+        if (!workspaceIndexRoot) {
+            return {contracts: []}
+        }
+
+        for (const [uri, fileIndex] of workspaceIndexRoot.files) {
+            const file = TOLK_PARSED_FILES_CACHE.get(uri)
+            if (!file) continue
+
+            if (fileIndex.elementByName(IndexKey.Funcs, "onInternalMessage") === null) {
+                // not a root contract file
+                continue
+            }
+
+            try {
+                const abi = contractAbi(file)
+                if (!abi) continue
+
+                const filePath = fileURLToPath(uri)
+                const contractName = path.basename(filePath, path.extname(filePath))
+
+                contracts.push({
+                    name: contractName,
+                    path: uri,
+                    abi,
+                })
+            } catch {
+                console.log(`Cannot get contract abi for ${file.uri}`)
+                // do nothing
+            }
+        }
+
+        return {contracts}
+    })
 
     connection.onRequest(DocumentationAtPositionRequest, provideDocumentation)
 
