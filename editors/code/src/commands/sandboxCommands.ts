@@ -27,6 +27,7 @@ import {TransactionDetailsProvider} from "../providers/sandbox/TransactionDetail
 import {HexString} from "../common/hex-string"
 import {Base64String} from "../common/base64-string"
 import {TransactionDetailsInfo} from "../common/types/transaction"
+import {TolkTestController} from "../providers/sandbox/TolkTestController"
 import {
     detectPackageManager,
     getInstallCommand,
@@ -38,6 +39,7 @@ export function registerSandboxCommands(
     formProvider: SandboxActionsProvider,
     historyProvider: HistoryWebviewProvider,
     transactionDetailsProvider: TransactionDetailsProvider,
+    testController: TolkTestController,
 ): vscode.Disposable[] {
     const disposables: vscode.Disposable[] = []
 
@@ -487,6 +489,82 @@ export function registerSandboxCommands(
                 transactionDetailsProvider.addTransactions(resultString)
             },
         ),
+        vscode.commands.registerCommand(
+            "ton.debugTest",
+            async (filePath: string, testName: string) => {
+                try {
+                    const workspaceFolder = vscode.workspace.workspaceFolders?.[0]
+                    if (!workspaceFolder) {
+                        void vscode.window.showErrorMessage("No workspace folder found")
+                        return
+                    }
+
+                    const terminal =
+                        vscode.window.terminals.find(t => t.name === "TON Test Runner") ??
+                        vscode.window.createTerminal({
+                            name: "TON Test Runner",
+                            cwd: workspaceFolder.uri.fsPath,
+                        })
+
+                    terminal.show()
+                    terminal.sendText(
+                        `./target/debug/acton test "${filePath}" --filter "${testName}" --debug`,
+                    )
+
+                    await new Promise(resolve => setTimeout(resolve, 800))
+
+                    const success = await vscode.debug.startDebugging(undefined, {
+                        type: "tolk",
+                        name: `Debug Test: ${testName}`,
+                        request: "launch",
+                        filePath: filePath,
+                        testName: testName,
+                        stopOnEntry: true,
+                    })
+
+                    if (!success) {
+                        console.error("Failed to start test debugging session")
+                    }
+                } catch (error) {
+                    void vscode.window.showErrorMessage(
+                        `Failed to run test: ${error instanceof Error ? error.message : "Unknown error"}`,
+                    )
+                }
+            },
+        ),
+        vscode.commands.registerCommand("ton.runTest", async (testItem?: vscode.TestItem) => {
+            try {
+                if (testItem) {
+                    // Run single test
+                    const request = new vscode.TestRunRequest([testItem])
+                    await testController.runTests(
+                        request,
+                        new vscode.CancellationTokenSource().token,
+                    )
+                } else {
+                    // Run all tests
+                    const request = new vscode.TestRunRequest()
+                    await testController.runTests(
+                        request,
+                        new vscode.CancellationTokenSource().token,
+                    )
+                }
+            } catch (error) {
+                void vscode.window.showErrorMessage(
+                    `Failed to run test: ${error instanceof Error ? error.message : "Unknown error"}`,
+                )
+            }
+        }),
+        vscode.commands.registerCommand("ton.debug.showVariableValue", (variable: unknown) => {
+            const varData = variable as {variable?: {value?: string}} | undefined
+            if (varData?.variable?.value) {
+                void vscode.window.showInformationMessage(
+                    `Variable value: ${varData.variable.value}`,
+                )
+            } else {
+                void vscode.window.showWarningMessage("No variable value available")
+            }
+        }),
     )
 
     return disposables

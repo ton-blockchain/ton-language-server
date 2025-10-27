@@ -43,6 +43,7 @@ import {SandboxActionsProvider} from "./providers/sandbox/SandboxActionsProvider
 import {HistoryWebviewProvider} from "./providers/sandbox/HistoryWebviewProvider"
 import {TransactionDetailsProvider} from "./providers/sandbox/TransactionDetailsProvider"
 import {SandboxCodeLensProvider} from "./providers/sandbox/SandboxCodeLensProvider"
+import {TolkTestController} from "./providers/sandbox/TolkTestController"
 
 import {configureDebugging} from "./debugging"
 
@@ -95,6 +96,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         vscode.languages.registerCodeLensProvider({language: "tolk"}, sandboxCodeLensProvider),
     )
 
+    const testController = new TolkTestController()
+    context.subscriptions.push(testController)
+
     sandboxTreeProvider.setActionsProvider(sandboxActionsProvider)
     sandboxTreeProvider.setCodeLensProvider(sandboxCodeLensProvider)
 
@@ -118,6 +122,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         sandboxActionsProvider,
         historyWebviewProvider,
         transactionDetailsProvider,
+        testController,
     )
 
     context.subscriptions.push(

@@ -9,8 +9,11 @@ import {
     IntTy,
     NullTy,
     StructTy,
+    TensorTy,
+    TupleTy,
     Ty,
     TypeAliasTy,
+    TypeParameterTy,
     UnionTy,
     UnknownTy,
     VarIntNTy,
@@ -32,7 +35,10 @@ export function convertTyToTypeInfo(ty: Ty): TypeInfo {
                 humanReadable: ty.name(),
             }
         }
-        throw new Error(`Unsupported union type: ${ty.name()}`)
+
+        // TODO
+        return convertTyToTypeInfo(ty.elements[0])
+        // throw new Error(`Unsupported union type: ${ty.name()}`)
     }
 
     if (ty instanceof TypeAliasTy) {
@@ -46,6 +52,14 @@ export function convertTyToTypeInfo(ty: Ty): TypeInfo {
     }
 
     if (ty instanceof StructTy) {
+        return {
+            name: "struct",
+            structName: ty.name(),
+            humanReadable: ty.name(),
+        }
+    }
+
+    if (ty instanceof InstantiationTy) {
         return {
             name: "struct",
             structName: ty.name(),
@@ -176,6 +190,14 @@ function convertTyToBaseTypeInfo(ty: Ty): BaseTypeInfo & {humanReadable: string}
     }
 
     if (ty instanceof NullTy) {
+        return {name: "void", humanReadable}
+    }
+
+    if (ty instanceof TypeParameterTy) {
+        return {name: "void", humanReadable}
+    }
+
+    if (ty instanceof TensorTy || ty instanceof TupleTy) {
         return {name: "void", humanReadable}
     }
 

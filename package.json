@@ -308,6 +308,11 @@
                 "title": "TON: Debug contract"
             },
             {
+                "command": "ton.debug.showVariableValue",
+                "title": "Show Variable Value",
+                "category": "Debug"
+            },
+            {
                 "command": "ton.sandbox.refresh",
                 "title": "Refresh",
                 "category": "TON",
@@ -498,6 +503,13 @@
                     "command": "ton.sandbox.copyContractAddressFromTree",
                     "when": "view == tonSandbox && viewItem == deployed-contract",
                     "group": "inline"
+                }
+            ],
+            "debug/variables/context": [
+                {
+                    "command": "ton.debug.showVariableValue",
+                    "group": "navigation@100",
+                    "when": "debugState == 'stopped'"
                 }
             ]
         },
