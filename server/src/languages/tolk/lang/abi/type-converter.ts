@@ -170,6 +170,9 @@ function convertTyToBaseTypeInfo(ty: Ty): BaseTypeInfo & {humanReadable: string}
             case "slice": {
                 return {name: "slice", humanReadable}
             }
+            case "tuple": {
+                return {name: "tuple", humanReadable}
+            }
         }
     }
 

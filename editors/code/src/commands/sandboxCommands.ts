@@ -33,6 +33,7 @@ import {
     getInstallCommand,
     getLocalBinaryPath,
 } from "../common/package-manager"
+import {RawTransactions} from "../common/types/raw-transaction"
 
 export function registerSandboxCommands(
     treeProvider: SandboxTreeProvider,
@@ -511,7 +512,7 @@ export function registerSandboxCommands(
                         `./target/debug/acton test "${filePath}" --filter "${testName}" --debug`,
                     )
 
-                    await new Promise(resolve => setTimeout(resolve, 800))
+                    await new Promise(resolve => setTimeout(resolve, 1500))
 
                     const success = await vscode.debug.startDebugging(undefined, {
                         type: "tolk",
@@ -557,10 +558,38 @@ export function registerSandboxCommands(
         }),
         vscode.commands.registerCommand("ton.debug.showVariableValue", (variable: unknown) => {
             const varData = variable as {variable?: {value?: string}} | undefined
-            if (varData?.variable?.value) {
-                void vscode.window.showInformationMessage(
-                    `Variable value: ${varData.variable.value}`,
-                )
+            const value = varData?.variable?.value
+            if (value) {
+                const txs = value.startsWith("(")
+                    ? value
+                          .slice(1, -1)
+                          .split(",")
+                          .map(tx => tx.trim())
+                    : [value]
+                transactionDetailsProvider.showTransactionDetails({
+                    methodName: "",
+                    status: "success",
+                    timestamp: "",
+                    contractAddress: "",
+                    resultString: JSON.stringify({
+                        transactions: txs.map(tx => ({
+                            transaction: tx,
+                            parsedTransaction: undefined,
+                            fields: {},
+                            code: undefined,
+                            sourceMap: undefined,
+                            contractName: undefined,
+                            parentId: undefined,
+                            childrenIds: [],
+                            oldStorage: undefined,
+                            newStorage: undefined,
+                        })),
+                    } satisfies RawTransactions),
+                })
+
+                // void vscode.window.showInformationMessage(
+                //     `Variable value: ${varData.variable.value}`,
+                // )
             } else {
                 void vscode.window.showWarningMessage("No variable value available")
             }

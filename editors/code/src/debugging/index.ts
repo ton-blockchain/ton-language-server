@@ -159,50 +159,5 @@ export function configureDebugging(context: vscode.ExtensionContext): void {
                 }
             },
         ),
-        vscode.commands.registerCommand(
-            "ton.debugTestFromCodeLens",
-            async (filePath: string, testName: string) => {
-                console.log("start debugging test", filePath, testName)
-
-                try {
-                    const workspaceFolder = vscode.workspace.workspaceFolders?.[0]
-                    if (!workspaceFolder) {
-                        void vscode.window.showErrorMessage("No workspace folder found")
-                        return
-                    }
-
-                    const terminal =
-                        vscode.window.terminals.find(t => t.name === "TON Test Debugger") ??
-                        vscode.window.createTerminal({
-                            name: "TON Test Debugger",
-                            cwd: workspaceFolder.uri.fsPath,
-                            isTransient: false,
-                            hideFromUser: false,
-                        })
-
-                    terminal.sendText(`./target/debug/acton test "${filePath}" --debug`)
-
-                    await new Promise(resolve => setTimeout(resolve, 800))
-
-                    const success = await vscode.debug.startDebugging(undefined, {
-                        type: "tolk",
-                        name: `Debug Test: ${testName}`,
-                        request: "launch",
-                        filePath: filePath,
-                        testName: testName,
-                        stopOnEntry: true,
-                    })
-
-                    if (!success) {
-                        console.error("Failed to start test debugging session")
-                    }
-                } catch (error) {
-                    console.error("Error starting test debugging:", error)
-                    void vscode.window.showErrorMessage(
-                        `Failed to start test debugging: ${error instanceof Error ? error.message : String(error)}`,
-                    )
-                }
-            },
-        ),
     )
 }

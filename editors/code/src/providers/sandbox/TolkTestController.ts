@@ -97,11 +97,14 @@ export class TolkTestController implements Disposable {
         this.testItems.clear()
 
         // Find all .tolk files in workspace
-        const tolkFiles = await vscode.workspace.findFiles("**/*.tolk")
+        const tolkFiles = await vscode.workspace.findFiles("**/*.tolk", "**/node_modules/**")
         const files = [...tolkFiles]
 
         for (const uri of files) {
-            if (uri.fsPath.includes("_test.tolk_test.tolk")) {
+            if (
+                uri.fsPath.includes("_test.tolk_test.tolk") ||
+                uri.fsPath.includes("node_modules")
+            ) {
                 continue
             }
             await this.updateTestsForFile(uri)
@@ -242,9 +245,9 @@ export class TolkTestController implements Disposable {
 
             let actonPath = "acton"
             const possiblePaths = [
-                "./target/debug/acton",
-                "../emulator-rs/target/debug/acton",
-                "../../emulator-rs/target/debug/acton",
+                "./target/release/acton",
+                "../emulator-rs/target/release/acton",
+                "../../emulator-rs/target/release/acton",
             ]
 
             for (const path of possiblePaths) {

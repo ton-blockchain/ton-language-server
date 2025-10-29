@@ -4,6 +4,7 @@ export type BaseTypeInfo =
     | {readonly name: "uint"; readonly width: number}
     | {readonly name: "coins"}
     | {readonly name: "bool"}
+    | {readonly name: "tuple"}
     | {readonly name: "address"}
     | {readonly name: "bits"; readonly width: number}
     | {readonly name: "cell"; readonly innerType?: TypeInfo}
