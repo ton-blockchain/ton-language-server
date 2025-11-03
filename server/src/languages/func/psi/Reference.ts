@@ -331,9 +331,11 @@ export class Reference {
                 }
                 if (firstChild?.type === "tensor_expression") {
                     // (int foo, cell bar) = (42, someCall())
-                    for (let childDeclaration of firstChild.descendantsOfType("local_vars_declaration")) {
+                    for (const childDeclaration of firstChild.descendantsOfType(
+                        "local_vars_declaration",
+                    )) {
                         if (!childDeclaration) {
-                            continue;
+                            continue
                         }
                         const lhs = childDeclaration.childForFieldName("lhs")
                         if (lhs) {
@@ -369,7 +371,11 @@ export class Reference {
             if (!proc.execute(new VarDeclaration(lhs, file), state)) return false
         }
 
-        if (lhs.type === "tuple_vars_declaration" || lhs.type === "tensor_vars_declaration" || lhs.type === "nested_tensor_declaration") {
+        if (
+            lhs.type === "tuple_vars_declaration" ||
+            lhs.type === "tensor_vars_declaration" ||
+            lhs.type === "nested_tensor_declaration"
+        ) {
             const vars = lhs.childrenForFieldName("vars")
             for (const variable of vars) {
                 if (!variable) continue
