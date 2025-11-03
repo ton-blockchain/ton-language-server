@@ -105,6 +105,10 @@ export class FunctionBase extends NamedNode {
         const methodId = specifiers?.children.find(it => it?.type === "method_id") ?? null
         return methodId !== null
     }
+    public get isImpure(): boolean {
+        const specifiers = this.node.childForFieldName("specifiers");
+        return Boolean(specifiers?.children.find(it => it?.type === "impure"));
+    }
 
     public get hasExplicitMethodId(): boolean {
         // check for
