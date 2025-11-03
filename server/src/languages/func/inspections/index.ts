@@ -1,12 +1,13 @@
 import * as lsp from "vscode-languageserver"
 
-import {connection} from "@server/connection"
-import {getDocumentSettings} from "@server/settings/settings"
-import {FuncFile} from "@server/languages/func/psi/FuncFile"
-import {UnusedParameterInspection} from "@server/languages/func/inspections/UnusedParameterInspection"
-import {UnusedVariableInspection} from "@server/languages/func/inspections/UnusedVariableInspection"
-import {UnusedImportInspection} from "@server/languages/func/inspections/UnusedImportInspection"
-import {UnusedTypeParameterInspection} from "@server/languages/func/inspections/UnusedTypeParameterInspection"
+import { connection } from "@server/connection"
+import { getDocumentSettings } from "@server/settings/settings"
+import { FuncFile } from "@server/languages/func/psi/FuncFile"
+import { UnusedParameterInspection } from "@server/languages/func/inspections/UnusedParameterInspection"
+import { UnusedVariableInspection } from "@server/languages/func/inspections/UnusedVariableInspection"
+import { UnusedImportInspection } from "@server/languages/func/inspections/UnusedImportInspection"
+import { UnusedTypeParameterInspection } from "@server/languages/func/inspections/UnusedTypeParameterInspection"
+import { UnusedImpureInspection } from "./UnusedImpure"
 
 export async function runFuncInspections(
     uri: string,
@@ -18,10 +19,12 @@ export async function runFuncInspections(
         new UnusedTypeParameterInspection(),
         new UnusedVariableInspection(),
         new UnusedImportInspection(),
+        new UnusedImpureInspection(),
     ]
 
     const settings = await getDocumentSettings(uri)
     const diagnostics: lsp.Diagnostic[] = []
+
 
     for (const inspection of inspections) {
         if (settings.func.inspections.disabled.includes(inspection.id)) {

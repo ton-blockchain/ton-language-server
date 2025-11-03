@@ -652,7 +652,8 @@
                                 "unused-parameter",
                                 "unused-type-parameter",
                                 "unused-variable",
-                                "unused-import"
+                                "unused-import",
+                                "unused-impure"
                             ]
                         },
                         "default": [],
