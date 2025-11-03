@@ -14,6 +14,9 @@ function commaSep1(rule) {
 function commaSep2(rule) {
     return seq(rule, repeat1(seq(",", rule)))
 }
+function commaSep1Trailing(rule) {
+    return seq(commaSep1(rule), optional(","))
+}
 
 const FUNC_GRAMMAR = {
     source_file: $ => repeat($._top_level_item),
@@ -72,7 +75,7 @@ const FUNC_GRAMMAR = {
         seq(
             field("type_parameters", optional($.type_parameters)),
             field("return_type", $._type_hint),
-            field("name", $.identifier),
+            field("name", $.function_name),
             choice(
                 seq(
                     field("parameters", $.parameter_list),
@@ -302,16 +305,65 @@ const FUNC_GRAMMAR = {
                 ),
             ),
         ),
-    local_vars_declaration: $ => prec.dynamic(90, field("lhs", $._var_declaration_lhs)),
+
+    // ------------------------------------------------------------------
+    // local vars
+    var_declaration: $ => seq(field("type", optional($._type_hint)), field("name", $.identifier)),
+
+    nested_tensor_declaration: $ =>
+        prec(
+            101,
+            seq(
+                "(",
+                field(
+                    "vars",
+                    commaSep1Trailing(
+                        choice(
+                            $.nested_tensor_declaration,
+                            $.var_declaration,
+                            $.tuple_vars_declaration,
+                            $.underscore,
+                        ),
+                    ),
+                ),
+                ")",
+            ),
+        ),
+    tensor_vars_declaration: $ =>
+        prec(
+            101,
+            seq(
+                field("type", $._type_hint), // e.g. `var`
+                "(",
+                field(
+                    "vars",
+                    commaSep1Trailing(
+                        choice(
+                            $.nested_tensor_declaration,
+                            $.var_declaration,
+                            $.tuple_vars_declaration,
+                            $.underscore,
+                        ),
+                    ),
+                ),
+                ")",
+            ),
+        ),
+
+    _multiple_vars_declaration: $ =>
+        prec.left(90, seq(choice($.tensor_vars_declaration, $.tuple_vars_declaration))),
+    local_vars_declaration: $ =>
+        field("lhs", choice($._multiple_vars_declaration, $.var_declaration)),
+    //local_vars_declaration: $ => prec.dynamic(90, field("lhs", $._var_declaration_lhs)),
 
     tuple_vars_declaration: $ =>
-        prec(100, seq("[", field("vars", commaSep1($._var_declaration_lhs)), optional(","), "]")),
-    tensor_vars_declaration: $ =>
-        prec(100, seq("(", field("vars", commaSep1($._var_declaration_lhs)), optional(","), ")")),
-    var_declaration: $ => seq(field("type", $._type_hint), field("name", $.identifier)),
+        prec(101, seq("[", field("vars", commaSep1Trailing($.var_declaration)), "]")),
+    // tensor_vars_declaration: $ =>
+    //     prec(100, seq("(", field("vars", commaSep1Trailing($._var_declaration_lhs)), optional(","), ")")),
+    // var_declaration: $ => seq(field("type", $._type_hint), field("name", $.identifier)),
 
-    _var_declaration_lhs: $ =>
-        choice($.tuple_vars_declaration, $.tensor_vars_declaration, $.var_declaration),
+    // _var_declaration_lhs: $ =>
+    //     choice($.tuple_vars_declaration, $.tensor_vars_declaration, $.var_declaration),
 
     type_expression: $ =>
         prec(
@@ -367,15 +419,15 @@ const FUNC_GRAMMAR = {
             $.type_identifier,
             $.tensor_type,
             $.tuple_type,
-            $._parenthesized_type,
+            // $._parenthesized_type,
         ),
 
-    _parenthesized_type: $ => seq("(", $._type_hint, ")"),
+    // _parenthesized_type: $ => alias(seq("(", $._type_hint, ")"), $.tensor_type),
 
     primitive_type: $ => choice("int", "cell", "slice", "builder", "cont", "tuple"),
     // constant_type: $ => choice("int", "slice"),
 
-    tensor_type: $ => choice(seq("(", ")"), seq("(", field("types", commaSep2($._type_hint)), ")")),
+    tensor_type: $ => choice(seq("(", ")"), seq("(", field("types", commaSep1($._type_hint)), ")")),
 
     tuple_type: $ => seq("[", field("types", commaSep($._type_hint)), "]"),
 
@@ -400,6 +452,7 @@ const FUNC_GRAMMAR = {
     // actually, FunC identifiers are much more flexible
     identifier: _ => /`[^`]+`|[a-zA-Z0-9_\$%][^\s\+\-\*\/%,\.;\(\)\{\}\[\]=\|\^\~]*/,
     underscore: _ => "_",
+    function_name: $ => /(`.*`)|((\.|~)?(([$%a-zA-Z0-9_](\w|['?:$%!])+)|([a-zA-Z%$])))/,
 
     // multiline_comment: $ => seq('{-', repeat(choice(/./, $.multiline_comment)), '-}'),
     // unfortunately getting panic while generating parser with support for nested comments
@@ -429,5 +482,6 @@ module.exports = grammar({
         [$.parameter_list_relaxed, $.parameter_list],
         [$.tensor_expression, $.tensor_type],
         [$.typed_tuple, $.tuple_type],
+        [$.var_declaration, $.type_identifier],
     ],
 })
