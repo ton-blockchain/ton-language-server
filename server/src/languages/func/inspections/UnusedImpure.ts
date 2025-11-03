@@ -115,6 +115,7 @@ export class UnusedImpureInspection extends UnusedInspection implements Inspecti
                 const range = asLspRange(node);
                 diagnostics.push({
                     severity: lsp.DiagnosticSeverity.Error,
+                    code: 'unused-impure',
                     range,
                     message: "This call will be dropped due to lack of impure specifier!",
                     source: "func"
