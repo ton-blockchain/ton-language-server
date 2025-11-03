@@ -9,15 +9,15 @@ import {Expression} from "./FuncNode"
 import {FuncFile} from "./FuncFile"
 
 interface Binding {
-    identifier: SyntaxNode
-    producer_exp: SyntaxNode[]
+    readonly identifier: SyntaxNode
+    readonly producer_exp: SyntaxNode[]
 }
 
 interface BindingResult {
-    expression: Expression
-    lhs: SyntaxNode[]
-    rhs: SyntaxNode[]
-    bindings: Map<string, Binding>
+    readonly expression: Expression
+    readonly lhs: SyntaxNode[]
+    readonly rhs: SyntaxNode[]
+    readonly bindings: Map<string, Binding>
 }
 
 export class FunCBindingResolver {
