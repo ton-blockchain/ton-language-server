@@ -161,7 +161,7 @@ const FUNC_GRAMMAR = {
 
     return_statement: $ => seq("return", $._expression, ";"),
     block_statement: $ => seq("{", repeat($._statement), "}"),
-    expression_statement: $ => prec.right(seq($._expression, optional(";"))),
+    expression_statement: $ => prec.right(seq($._expression, ";")),
     empty_statement: _ => ";",
     repeat_statement: $ =>
         seq("repeat", field("count", $._expression), field("body", $.block_statement)),
@@ -201,7 +201,7 @@ const FUNC_GRAMMAR = {
     _expression: $ => $._expr10,
 
     _expr10: $ =>
-        prec(
+        prec.right(
             10,
             seq(
                 $._expr13,
@@ -232,7 +232,22 @@ const FUNC_GRAMMAR = {
             ),
         ),
 
-    _expr13: $ => prec(13, seq($._expr15, optional(seq("?", $._expression, ":", $._expr13)))),
+    ternary_condition: $ => $._expr15,
+    ternary_expression: $ =>
+        prec.right(
+            13,
+            seq(
+                field("condition", $.ternary_condition),
+                "?",
+                field("consequent", $._expression),
+                ":",
+                field("alternative", $._expression),
+            ),
+        ),
+
+    _expr13: $ => prec(13, choice($._expr15, $.ternary_expression)),
+
+    // _expr13: $ => prec(13, seq($._expr15, optional(seq("?", $._expression, ":", $._expr13)))),
 
     _expr15: $ =>
         prec(
