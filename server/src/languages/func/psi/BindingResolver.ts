@@ -3,6 +3,7 @@ import { FuncFile } from "./FuncFile";
 import { Func } from "@server/languages/func/psi/Decls";
 import { Expression } from "./FuncNode";
 import { closestNamedSibling } from "@server/psi/utils";
+import { FUNC_PARSED_FILES_CACHE } from "@server/files";
 
 type Binding = {
     identifier: SyntaxNode,
@@ -21,14 +22,37 @@ export class FunCBindingResolver {
 
     protected funcMap: Map<string, Func>;
     protected bindings: Map<string, Binding>;
+    protected assignmentOps: Set<string>;
 
     constructor(readonly file: FuncFile) {
         this.bindings = new Map();
         this.funcMap = new Map();
+        this.assignmentOps = new Set([
+            "=",
+            "+=",
+            "-=",
+            "*=",
+            "/=",
+            "~/=",
+            "^/=",
+            "%=",
+            "~%=",
+            "^%=",
+            "<<=",
+            ">>=",
+            "~>>=",
+            "^>>=",
+            "&=",
+            "|=",
+            "^=",
+        ]);
 
-        file.getFunctions().forEach((f => {
-            this.funcMap.set(f.name(), f);
-        }))
+
+        FUNC_PARSED_FILES_CACHE.forEach(parsedFile => {
+            parsedFile.getFunctions().forEach(f => {
+                this.funcMap.set(f.name(), f);
+            })
+        });
     }
 
     resolve(expression: SyntaxNode): BindingResult {
@@ -42,23 +66,13 @@ export class FunCBindingResolver {
                 continue;
             }
 
-            if (curChild.text == '=') {
+            if (this.assignmentOps.has(curChild.text)) {
                 equalsFound = true;
                 if (lhs.length == 0) {
                     throw RangeError("Equals encountered before first lhs identifier");
                 }
             }
             if (curChild.isNamed) {
-                // If modirying method call
-                /*
-                if (curChild.type == "method_call" && curChild.children[0]?.text == "~") {
-                    const firstArg = closestNamedSibling(curChild, 'prev', (sibling => sibling.type == "identifier"))
-                    if (firstArg) {
-                        // Not really lhs, but semantically it is
-                        lhs.push(firstArg)
-                    }
-                }
-                */
                 if (equalsFound) {
                     rhs.push(curChild);
                 } else {
@@ -73,16 +87,22 @@ export class FunCBindingResolver {
             rhs,
             bindings: new Map()
         }
-        if (!equalsFound || lhs[0].type == "underscore") {
+        if (lhs[0].type == "underscore") {
             return bindRes;
         }
-        if (lhs.length > 1) {
+        if (lhs.length > 1 && rhs.length > 0) {
             // Do we even need dat?
             throw new RangeError("TODO multi lhs bindings");
         }
 
         const pattern = lhs[0]
-        this.walkPattern(pattern, rhs);
+        if (rhs.length > 0) {
+            this.walkPattern(pattern, rhs);
+        } else {
+            // Without rhs there still may be method calls on left.
+            // ds~skip_bits(32); ;; Stuff like that
+            this.bindModifyingCalls(lhs);
+        }
 
         // Copy the map for the output
         for (let [k, v] of this.bindings.entries()) {
@@ -93,7 +113,7 @@ export class FunCBindingResolver {
         return bindRes;
     }
 
-    private walkPattern(pattern: SyntaxNode, value: SyntaxNode[]) {
+    protected walkPattern(pattern: SyntaxNode, value: SyntaxNode[]) {
         if (!pattern || pattern.type == "underscore") {
             return
         }
@@ -127,20 +147,32 @@ export class FunCBindingResolver {
         }
     }
 
-    private bindIdentifier(target: SyntaxNode, value: SyntaxNode[], checkMethodRhs: boolean = true) {
-        if (checkMethodRhs) {
-            value.forEach(curNode => {
-                if (curNode.type == "method_call") {
-                    this.bindToMethodCall(target, curNode);
-                } else {
-                    // In case  calls are in tensor expressions
-                    curNode.descendantsOfType("method_call").forEach(methodCall => {
-                        if (methodCall) {
-                            this.bindToMethodCall(target, methodCall);
-                        }
-                    })
+    protected bindModifyingCalls(value: SyntaxNode[]) {
+        value.forEach(curNode => {
+            if (curNode.type == "method_call") {
+                // Only modifying calls
+                if (curNode.children[0]?.text == "~") {
+                    const identifier = curNode.previousNamedSibling;
+                    if (identifier && identifier.type == "identifier") {
+                        this.bindToMethodCall(identifier, curNode);
+                    }
                 }
-            })
+            } else {
+                // In case  calls are in tensor expressions
+                curNode.descendantsOfType("method_call").forEach(methodCall => {
+                    if (methodCall && methodCall.children[0]?.text == "~") {
+                        const identifier = curNode.previousNamedSibling;
+                        if (identifier && identifier.type == "identifier") {
+                            this.bindToMethodCall(identifier, curNode);
+                        }
+                    }
+                })
+            }
+        })
+    }
+    protected bindIdentifier(target: SyntaxNode, value: SyntaxNode[], checkMethodRhs: boolean = true) {
+        if (checkMethodRhs) {
+            this.bindModifyingCalls(value);
         }
         this.bindings.set(target.text, {
             identifier: target,
@@ -197,19 +229,25 @@ export class FunCBindingResolver {
         if (!retType) {
             throw new Error(`Method ${methodName} has no return type`)
         }
-        if (retType.node.type !== "tensor_type") {
-            throw new TypeError(`Expected tensor_type for modifying method return type got ${retType.node.type}`)
-        }
 
         // For non-modofiying method bind as normal function call;
         let bindScope = retType.node;
 
         if (isModifying) {
+            if (retType.node.type !== "tensor_type") {
+                throw new TypeError(`Expected tensor_type for modifying method return type got ${retType.node.type}`)
+            }
+
             const firstArg = closestNamedSibling(value, 'prev', (sybl => sybl.type == "identifier"));
             if (!firstArg) {
                 throw new Error(`First arg not found for modifying method call ${value}`)
             }
             this.bindIdentifier(firstArg, [value], false);
+            // If firstArg is same as target, we're done here.
+            if (firstArg.id == target.id) {
+                return;
+            }
+
             // Next tensor type
             let retTensor: SyntaxNode | undefined;
             const childrenCount = bindScope.namedChildCount;
