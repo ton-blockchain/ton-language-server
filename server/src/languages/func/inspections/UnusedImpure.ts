@@ -12,7 +12,7 @@ import { Func } from "@server/languages/func/psi/Decls";
 import { asLspRange } from "@server/utils/position"
 import { closestNamedSibling, parentOfType, parentOfTypeWithCb } from "@server/psi/utils"
 import { Referent } from "@server/languages/func/psi/Referent"
-import { FunCBindingResolver } from "../psi/BindingResolver"
+import { FunCBindingResolver } from "@server/languages/func/psi/BindingResolver";
 import { FUNC_PARSED_FILES_CACHE } from "@server/files"
 
 
