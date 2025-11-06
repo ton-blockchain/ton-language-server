@@ -205,8 +205,16 @@ export class FunCBindingResolver {
             if (curValueType == "function_application") {
                 this.bindToFunctionCall(target, curValue)
             } else if (curValueType == "tensor_expression" || curValueType == "tuple_expression") {
-                for (let i = 0; i < target.namedChildCount; i++) {
-                    const nextTarget = target.namedChildren[i]
+                const filteredTarget =
+                    target.type == "tensor_vars_declaration"
+                        ? target.childrenForFieldName("vars").filter(c => c?.isNamed)
+                        : target.namedChildren
+                if (filteredTarget.length != curValue.namedChildCount) {
+                    throw new Error(
+                        `Arity error binding ${target.toString()} to ${curValue.toString()}`,
+                    )
+                }
+                for (const [i, nextTarget] of filteredTarget.entries()) {
                     if (!nextTarget) {
                         continue
                     }
