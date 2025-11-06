@@ -214,6 +214,10 @@ export class UnusedImpureInspection extends UnusedInspection implements Inspecti
         // const affectedIdentifiers = resolvedBinding.bindings.values()
 
         for (const boundValue of resolvedBinding.bindings.values()) {
+            // Bound is expression wide. Process only call specific parts of bind.
+            if (!boundValue.producer_exp.some(n => n.id == node.id)) {
+                continue
+            }
             // Find references to the bound variables from below the current expression.
             const references = new Referent(boundValue.identifier, file)
                 .findReferences({limit: Infinity})
