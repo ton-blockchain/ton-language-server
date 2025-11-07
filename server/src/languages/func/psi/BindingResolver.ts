@@ -140,7 +140,7 @@ export class FunCBindingResolver {
                 }
                 case "tensor_vars_declaration":
                 case "tensor_expression":
-                case "tuple_expression":
+                case "typed_tuple":
                 case "parenthesized_expression":
                 case "nested_tensor_declaration":
                 case "tuple_vars_declaration": {
@@ -204,9 +204,10 @@ export class FunCBindingResolver {
             const curValueType = curValue.type
             if (curValueType == "function_application") {
                 this.bindToFunctionCall(target, curValue)
-            } else if (curValueType == "tensor_expression" || curValueType == "tuple_expression") {
+            } else if (curValueType == "tensor_expression" || curValueType == "typed_tuple") {
                 const filteredTarget =
-                    target.type == "tensor_vars_declaration"
+                    target.type == "tensor_vars_declaration" ||
+                    target.type === "tuple_vars_declaration"
                         ? target.childrenForFieldName("vars").filter(c => c?.isNamed)
                         : target.namedChildren
                 if (filteredTarget.length != curValue.namedChildCount) {
