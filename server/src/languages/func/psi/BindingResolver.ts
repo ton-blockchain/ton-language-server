@@ -143,6 +143,7 @@ export class FunCBindingResolver {
                 case "typed_tuple":
                 case "parenthesized_expression":
                 case "nested_tensor_declaration":
+                case "grouped_expression":
                 case "tuple_vars_declaration": {
                     this.bindCollection(pattern, value)
                     break
@@ -204,30 +205,40 @@ export class FunCBindingResolver {
             const curValueType = curValue.type
             if (curValueType == "function_application") {
                 this.bindToFunctionCall(target, curValue)
-            } else if (curValueType == "tensor_expression" || curValueType == "typed_tuple") {
-                const filteredTarget =
-                    target.type == "tensor_vars_declaration" ||
-                    target.type === "tuple_vars_declaration"
-                        ? target.childrenForFieldName("vars").filter(c => c?.isNamed)
-                        : target.namedChildren
-                if (filteredTarget.length != curValue.namedChildCount) {
-                    throw new Error(
-                        `Arity error binding ${target.toString()} to ${curValue.toString()}`,
-                    )
+                return
+            }
+            const filteredTarget =
+                target.type == "tensor_vars_declaration" || target.type == "tuple_vars_declaration"
+                    ? target.childrenForFieldName("vars").filter(c => c?.isNamed)
+                    : target.namedChildren
+            if (filteredTarget.length != curValue.namedChildCount) {
+                throw new Error(
+                    `Arity error binding ${target.toString()} to ${curValue.toString()}`,
+                )
+            }
+            for (const [i, nextTarget] of filteredTarget.entries()) {
+                const actualTarget =
+                    nextTarget?.type == "grouped_expression"
+                        ? nextTarget.firstNamedChild
+                        : nextTarget
+                if (!actualTarget) {
+                    continue
                 }
-                for (const [i, nextTarget] of filteredTarget.entries()) {
-                    if (!nextTarget) {
-                        continue
-                    }
-                    const nextValue = curValue.namedChildren[i]
-                    if (!nextValue) {
-                        throw new Error(`Undefined next value ${curValue.toString()}`)
-                    }
-                    this.walkPattern(nextTarget, [nextValue])
+
+                const nextValue = curValue.namedChildren[i]
+                const actualValue =
+                    nextValue?.type == "grouped_expression" ? nextValue.firstNamedChild : nextValue
+                if (!actualValue) {
+                    throw new Error(`Undefined next value ${curValue.toString()}`)
                 }
+
+                this.walkPattern(actualTarget, [actualValue])
+            }
+            /*
             } else {
                 throw new TypeError(`Type ${curValueType} is not yet supported!`)
             }
+            */
         }
     }
 
@@ -279,7 +290,15 @@ export class FunCBindingResolver {
             // First is bound to the first method arg already
             for (let i = 1; i < childrenCount; i++) {
                 const curChild = bindScope.namedChild(i)
-                if (curChild?.type == "tensor_type") {
+                if (!curChild) {
+                    continue
+                }
+                const childType = curChild.type
+                if (childType == "primitive_type") {
+                    this.bindIdentifier(curChild, [value], false)
+                    return
+                }
+                if (childType == "tensor_type" || childType == "tuple_type") {
                     retTensor = curChild
                     break
                 }
@@ -324,18 +343,27 @@ export class FunCBindingResolver {
         const targetType = target.type
         let targetFiltered: (SyntaxNode | null)[]
         // Hacky,but drop types
-        if (targetType == "tensor_vars_declaration") {
+        if (targetType == "tensor_vars_declaration" || targetType == "tuple_vars_declaration") {
             targetFiltered = target.childrenForFieldName("vars").filter(v => v?.isNamed)
         } else if (targetType == "var_declaration" || targetType == "identifier") {
             // Name is only part of var declaration
             const identifierNode = target.childForFieldName("name") ?? target
             this.bindIdentifier(identifierNode, [callNode], checkMethodRhs)
             return
+        } else if (targetType == "grouped_expression") {
+            targetFiltered = target.firstNamedChild?.namedChildren ?? []
         } else {
             targetFiltered = target.namedChildren
         }
 
         if (targetFiltered.length != retType.namedChildCount) {
+            if (targetFiltered.length == 1 && retType.type == "primitive_type") {
+                const targetNode = targetFiltered[0]
+                if (targetNode) {
+                    this.bindIdentifier(targetNode, [callNode], checkMethodRhs)
+                    return
+                }
+            }
             throw new Error(`Return type arity error ${target.toString()} ${retType.toString()}`)
         }
 
@@ -367,6 +395,14 @@ export class FunCBindingResolver {
                         throw new Error(`No lhs in local_vars_declaration. Broken grammar`)
                     }
                     this.bindToReturnType(lhs, callNode, bindRhs, checkMethodRhs)
+                    break
+                }
+                case "grouped_expression": {
+                    const nextChild = pattern.firstNamedChild
+                    if (!nextChild) {
+                        throw new Error("No child for grouped_expression. Borken grammar")
+                    }
+                    this.bindToReturnType(nextChild, callNode, bindRhs)
                     break
                 }
                 case "tensor_var_declaration":
