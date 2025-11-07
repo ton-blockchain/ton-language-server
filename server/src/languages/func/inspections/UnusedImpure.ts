@@ -146,32 +146,11 @@ export class UnusedImpureInspection extends UnusedInspection implements Inspecti
         })
     }
 
-    private checkCallWillDrop(
+    private checkRecursiveReference(
         node: Node,
         file: FuncFile,
         bindResolver: FunCBindingResolver,
     ): boolean {
-        const cachedRes = this.getCache(node)
-        if (cachedRes !== undefined) {
-            return cachedRes
-        }
-
-        const definition = this.getCallDef(node, "dropable")
-
-        if (!definition) {
-            // If no dropable def found, check that impure is implicit just in case
-            const willDrop = !(this.getCallDef(node, "impure") ?? this.isImpureBuiltIn(node))
-            this.setCache(node, willDrop)
-            return willDrop
-        }
-
-        const returnExp = definition.returnType()
-        if (returnExp !== null) {
-            // If return type of a function is empty tensor - check  no more.
-            if (returnExp.node.text == "()") {
-                return true
-            }
-        }
         const expressionParent = parentOfTypeWithCb<{parent: Node; origin: Node}>(
             node,
             (parent, origin) => {
@@ -221,7 +200,7 @@ export class UnusedImpureInspection extends UnusedInspection implements Inspecti
             // Find references to the bound variables from below the current expression.
             const references = new Referent(boundValue.identifier, file)
                 .findReferences({limit: Infinity})
-                .filter(ref => ref.node.startIndex >= expressionParent.parent.endIndex)
+                .filter(ref => ref.node.startIndex >= node.endIndex)
             // Has to be referenced in non impure call, conditional or return statement to not drop
             for (const ref of references) {
                 const parent = parentOfType(
@@ -257,9 +236,44 @@ export class UnusedImpureInspection extends UnusedInspection implements Inspecti
                     if (!this.checkCallWillDrop(refSibling, file, bindResolver)) {
                         return false
                     }
+                } else {
+                    if (!this.checkRecursiveReference(ref.node, ref.file, bindResolver)) {
+                        return false
+                    }
                 }
             }
         }
         return true
+    }
+
+    private checkCallWillDrop(
+        node: Node,
+        file: FuncFile,
+        bindResolver: FunCBindingResolver,
+    ): boolean {
+        const cachedRes = this.getCache(node)
+        if (cachedRes !== undefined) {
+            return cachedRes
+        }
+
+        const definition = this.getCallDef(node, "dropable")
+
+        if (!definition) {
+            // If no dropable def found, check that impure is implicit just in case
+            const willDrop = !(this.getCallDef(node, "impure") ?? this.isImpureBuiltIn(node))
+            this.setCache(node, willDrop)
+            return willDrop
+        }
+
+        const returnExp = definition.returnType()
+        if (returnExp !== null) {
+            // If return type of a function is empty tensor - check  no more.
+            if (returnExp.node.text == "()") {
+                return true
+            }
+        }
+        const dropRes = this.checkRecursiveReference(node, file, bindResolver)
+        this.setCache(node, dropRes)
+        return dropRes
     }
 }
