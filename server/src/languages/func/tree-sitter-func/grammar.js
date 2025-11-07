@@ -416,10 +416,12 @@ const FUNC_GRAMMAR = {
 
     _expr100: $ => prec(100, choice($._nontype_expr100)),
 
+    // We need named not here, otherwise all children will be glued into expressions fileds individually
+    grouped_expression: $ => $._expression,
     parenthesized_expression: $ => seq("(", $._expression, ")"),
     tensor_expression: $ =>
-        choice(seq("(", ")"), seq("(", field("expressions", commaSep2($._expression)), ")")),
-    typed_tuple: $ => seq("[", field("expressions", commaSep($._expression)), "]"),
+        choice(seq("(", ")"), seq("(", field("expressions", commaSep2($.grouped_expression)), ")")),
+    typed_tuple: $ => seq("[", field("expressions", commaSep($.grouped_expression)), "]"),
 
     // ----------------------------------------------------------
     // type system
