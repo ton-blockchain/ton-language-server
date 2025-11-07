@@ -333,7 +333,7 @@ const FUNC_GRAMMAR = {
         prec(
             101,
             seq(
-                field("type", $._type_hint), // e.g. `var`
+                field("type", $.var_type), // e.g. `var`
                 "(",
                 field(
                     "vars",
@@ -357,7 +357,24 @@ const FUNC_GRAMMAR = {
     //local_vars_declaration: $ => prec.dynamic(90, field("lhs", $._var_declaration_lhs)),
 
     tuple_vars_declaration: $ =>
-        prec(101, seq("[", field("vars", commaSep1Trailing($.var_declaration)), "]")),
+        prec(
+            101,
+            seq(
+                field("type", optional($.var_type)),
+                "[",
+                field(
+                    "vars",
+                    commaSep1Trailing(
+                        choice(
+                            $.var_declaration,
+                            $.nested_tensor_declaration,
+                            $.tuple_vars_declaration,
+                        ),
+                    ),
+                ),
+                "]",
+            ),
+        ),
     // tensor_vars_declaration: $ =>
     //     prec(100, seq("(", field("vars", commaSep1Trailing($._var_declaration_lhs)), optional(","), ")")),
     // var_declaration: $ => seq(field("type", $._type_hint), field("name", $.identifier)),
