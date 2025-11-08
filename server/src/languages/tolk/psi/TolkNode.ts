@@ -8,6 +8,8 @@ import {parentOfType} from "@server/psi/utils"
 import {extractCommentsDoc} from "@server/psi/comments"
 import {typeOf} from "@server/languages/tolk/type-inference"
 
+import {Parameter} from "@server/languages/tolk/psi/Decls"
+
 import {TolkFile} from "./TolkFile"
 
 export class TolkNode extends BaseNode {
@@ -267,5 +269,17 @@ export class VarDeclaration extends NamedNode {
 
     public isRedef(): boolean {
         return this.node.childForFieldName("redef") !== null
+    }
+}
+
+export class Lambda extends TolkNode {
+    public parameters(): Parameter[] {
+        const parametersNode = this.node.childForFieldName("parameters")
+        if (!parametersNode) return []
+
+        return parametersNode.children
+            .filter(value => value?.type === "parameter_declaration")
+            .filter(value => value !== null)
+            .map(value => new Parameter(value, this.file))
     }
 }
