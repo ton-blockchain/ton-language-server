@@ -789,7 +789,7 @@
         "react-dom": "^18.3.1",
         "react-icons": "^5.5.0",
         "react-markdown": "^10.1.0",
-        "tolkfmt-test-dev": "0.0.21",
+        "tolkfmt-test-dev": "0.0.23",
         "ton-assembly": "0.4.0",
         "ton-source-map": "^0.2.2",
         "vscode-languageclient": "^8.0.2",
