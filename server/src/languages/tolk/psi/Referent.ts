@@ -173,9 +173,10 @@ export class Referent extends BaseReferent<NamedNode> {
             if (
                 grand?.type === "function_declaration" ||
                 grand?.type === "method_declaration" ||
-                grand?.type === "get_method_declaration"
+                grand?.type === "get_method_declaration" ||
+                grand?.type === "lambda_expression"
             ) {
-                // search in function body
+                // search in the function body
                 return Referent.localSearchScope(grand.lastChild)
             }
         }

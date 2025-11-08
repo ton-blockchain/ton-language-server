@@ -390,6 +390,7 @@ const TOLK_GRAMMAR = {
             $.object_literal,
             $.tensor_expression,
             $.typed_tuple,
+            $.lambda_expression,
             $.number_literal,
             $.string_literal,
             $.boolean_literal,
@@ -583,6 +584,16 @@ const TOLK_GRAMMAR = {
     tensor_expression: $ =>
         choice(seq("(", ")"), seq("(", commaSep2($._expression), optional(","), ")")),
     typed_tuple: $ => seq("[", commaSep($._expression), optional(","), "]"),
+
+    lambda_expression: $ =>
+        prec.right(
+            seq(
+                "fun",
+                field("parameters", $.parameter_list),
+                optional(seq(":", field("return_type", optional($._type_hint)))),
+                optional(field("body", $._function_body)),
+            ),
+        ),
 
     // ----------------------------------------------------------
     // type system

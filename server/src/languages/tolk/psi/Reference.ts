@@ -590,11 +590,12 @@ export class Reference {
                 }
             }
 
-            // process parameters of function
+            // process parameters of a function
             const isFunction =
                 descendant.type === "function_declaration" ||
                 descendant.type === "method_declaration" ||
-                descendant.type === "get_method_declaration"
+                descendant.type === "get_method_declaration" ||
+                descendant.type === "lambda_expression"
 
             if (isFunction && (!this.forTypes || this.element.node.text === "self")) {
                 const rawParameters = descendant.childForFieldName("parameters")
