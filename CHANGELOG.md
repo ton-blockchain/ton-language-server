@@ -2,6 +2,41 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.5.1] - 09.11.2025
+
+### Added
+
+- Sandbox by @i582 in https://github.com/ton-blockchain/ton-language-server/pull/177
+- feat(vscode): added more `TON`-related extensions to the conflicting by @Danil42Russia in https://github.com/ton-blockchain/ton-language-server/pull/179
+- feat(sandbox): add a go-to-exit code throw position button if available by @i582 in https://github.com/ton-blockchain/ton-language-server/pull/181
+- feat(tlb): add an inlay hint with calculated type hash by @i582 in https://github.com/ton-blockchain/ton-language-server/pull/189
+- feat: use the latest TVM specification by @i582 in https://github.com/ton-blockchain/ton-language-server/pull/193
+- feat(tolk): support lambdas from Tolk 1.2 by @i582 in https://github.com/ton-blockchain/ton-language-server/pull/202
+
+### Other
+
+- chore(utils): migration from `jssha` to the standard `crypto` library by @Danil42Russia in https://github.com/ton-blockchain/ton-language-server/pull/170
+- chore(deps): bump the npm_and_yarn group across 3 directories with 1 update by @dependabot[bot] in https://github.com/ton-blockchain/ton-language-server/pull/173
+- chore(grammar): removed unnecessary dependencies by @Danil42Russia in https://github.com/ton-blockchain/ton-language-server/pull/175
+- refactor(all): reformat imports by @i582 in https://github.com/ton-blockchain/ton-language-server/pull/178
+- feat(ci): disable grammar synchronization for forks by @Danil42Russia in https://github.com/ton-blockchain/ton-language-server/pull/180
+- fix(all): rules in editorconfig by @Danil42Russia in https://github.com/ton-blockchain/ton-language-server/pull/182
+- chore(all): updated yarn to version 4.10.3 by @Danil42Russia in https://github.com/ton-blockchain/ton-language-server/pull/183
+- fix(ci): `setup-emsdk` action by @Danil42Russia in https://github.com/ton-blockchain/ton-language-server/pull/184
+- chore(ci): check `stylelint` by @Danil42Russia in https://github.com/ton-blockchain/ton-language-server/pull/185
+- feat(ci): removed unnecessary launches for building `tree-sitter` by @Danil42Russia in https://github.com/ton-blockchain/ton-language-server/pull/186
+- chore(ci): for branches, run security checks only when changes are made by @Danil42Russia in https://github.com/ton-blockchain/ton-language-server/pull/190
+- chore(ci): updated actions versions by @Danil42Russia in https://github.com/ton-blockchain/ton-language-server/pull/191
+- feat(tree-sitter-tolk): add Rust bindings by @i582 in https://github.com/ton-blockchain/ton-language-server/pull/194
+- fix(tree-sitter-tolk): fix Rust bindings by @i582 in https://github.com/ton-blockchain/ton-language-server/pull/195
+- fix(tree-sitter-tolk): remove the target folder by @Danil42Russia in https://github.com/ton-blockchain/ton-language-server/pull/197
+- Remove artifacts and ignore by @Trinketer22 in https://github.com/ton-blockchain/ton-language-server/pull/200
+- feat(tolk/fmt): bump tolkfmt version to 0.0.23 by @i582 in https://github.com/ton-blockchain/ton-language-server/pull/203
+
+## New Contributors
+
+- @Trinketer22 made their first contribution in https://github.com/ton-blockchain/ton-language-server/pull/200
+
 ## [0.5.0] - 19.09.2025
 
 ### Tolk
