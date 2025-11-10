@@ -94,8 +94,11 @@ export class FunCBindingResolver {
             throw new RangeError("TODO multi lhs bindings")
         }
 
-        const pattern = lhs[0]
+        const pattern = this.simplifyNested(lhs[0])
         if (rhs.length > 0) {
+            if (rhs.length == 1) {
+                rhs[0] = this.simplifyNested(rhs[0])
+            }
             this.walkPattern(pattern, rhs)
         } else {
             // Without rhs there still may be method calls on left.
@@ -110,6 +113,56 @@ export class FunCBindingResolver {
         // Free up the map
         this.bindings.clear()
         return bindRes
+    }
+
+    protected simplifyNested(node: SyntaxNode): SyntaxNode {
+        /*
+         * Dirty code for dirty issues.
+         * Heplfull in cases  like
+         * (int a, int b) foo() {
+         *   return (42, 43);
+         * }
+         * This shit, unfortunately  is perfectly legal expression.
+         *
+         * var (((((a, b))))) = foo();
+         * One could even write
+         * int ((((a)))) = b; ;; Why are u doing dat to me?
+         * Or
+         * b = (((((a))))); ;; Why, dawg!!
+         *
+         * And we need to get to the bottom of this without processing
+         * it all over honest binding mechanism.
+         * Besides, this simplification singificantly speeds binding up.
+         */
+        try {
+            const childNode = node.firstNamedChild
+            // If there is no named children, we're already at the bottom of this.
+            if (childNode) {
+                const nodeType = node.type
+                // Theese types have two named children, one of which is type,
+                // so binding part is usually a level lower
+                const specialType =
+                    nodeType == "tensor_vars_declaration" || nodeType == "tuple_vars_declaration"
+                // If there is more named children, that is where actual binding begins
+                if (node.namedChildCount == 1 || specialType) {
+                    let nextNode = childNode
+                    if (specialType) {
+                        const specialChildren = node
+                            .childrenForFieldName("vars")
+                            .filter(c => c !== null)
+                        if (specialChildren.length == 1) {
+                            nextNode = specialChildren[0]
+                        } else {
+                            return node
+                        }
+                    }
+                    return this.simplifyNested(nextNode)
+                }
+            }
+        } catch (error) {
+            console.log(error)
+        }
+        return node
     }
 
     protected walkPattern(pattern: SyntaxNode, value: SyntaxNode[]): void {
