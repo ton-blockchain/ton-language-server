@@ -370,7 +370,7 @@ export class FunCBindingResolver {
             bindScope = retTensor
         }
 
-        this.bindToReturnType(target, value, bindScope, false)
+        this.bindToReturnType(target, value, this.simplifyNested(bindScope), false)
     }
     private bindToFunctionCall(target: SyntaxNode, value: SyntaxNode): void {
         const funcIdentifier = value.childForFieldName("callee")
@@ -386,7 +386,7 @@ export class FunCBindingResolver {
         if (!retType) {
             throw new Error(`Function ${funcName} without return type. Grammar failure?`)
         }
-        this.bindToReturnType(target, value, retType.node)
+        this.bindToReturnType(target, value, this.simplifyNested(retType.node))
     }
     private bindToReturnType(
         target: SyntaxNode,
@@ -448,7 +448,12 @@ export class FunCBindingResolver {
                     if (!lhs) {
                         throw new Error(`No lhs in local_vars_declaration. Broken grammar`)
                     }
-                    this.bindToReturnType(lhs, callNode, bindRhs, checkMethodRhs)
+                    this.bindToReturnType(
+                        this.simplifyNested(lhs),
+                        callNode,
+                        this.simplifyNested(bindRhs),
+                        checkMethodRhs,
+                    )
                     break
                 }
                 case "grouped_expression": {
@@ -456,7 +461,12 @@ export class FunCBindingResolver {
                     if (!nextChild) {
                         throw new Error("No child for grouped_expression. Borken grammar")
                     }
-                    this.bindToReturnType(nextChild, callNode, bindRhs)
+                    this.bindToReturnType(
+                        this.simplifyNested(nextChild),
+                        callNode,
+                        this.simplifyNested(bindRhs),
+                        checkMethodRhs,
+                    )
                     break
                 }
                 case "tensor_var_declaration":
