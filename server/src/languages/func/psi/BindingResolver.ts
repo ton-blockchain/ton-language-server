@@ -91,7 +91,8 @@ export class FunCBindingResolver {
         }
         if (lhs.length > 1 && rhs.length > 0) {
             // Do we even need dat?
-            throw new RangeError("TODO multi lhs bindings")
+            console.log("TOTO multi lhs bindings")
+            return bindRes
         }
 
         const pattern = this.simplifyNested(lhs[0])
