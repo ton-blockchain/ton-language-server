@@ -8,7 +8,7 @@ import {CompletionItem} from "vscode"
 
 import type {TestCase} from "../common/TestParser"
 
-import {BaseTestSuite} from "./BaseTestSuite"
+import {BaseTestSuite} from "../common/BaseTestSuite"
 
 suite("Completion Test Suite", () => {
     const testSuite = new (class extends BaseTestSuite {

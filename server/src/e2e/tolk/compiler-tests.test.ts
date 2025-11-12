@@ -7,7 +7,7 @@ import * as path from "node:path"
 import * as vscode from "vscode"
 import {glob} from "glob"
 
-import {BaseTestSuite} from "./BaseTestSuite"
+import {BaseTestSuite} from "../common/BaseTestSuite"
 
 interface UnresolvedIdentifier {
     readonly name: string
