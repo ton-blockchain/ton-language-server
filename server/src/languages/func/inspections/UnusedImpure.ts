@@ -221,7 +221,11 @@ export class UnusedImpureInspection extends UnusedInspection implements Inspecti
                     let willDrop = false
                     if (this.isCall(parent)) {
                         willDrop = this.checkCallWillDrop(parent, file, bindResolver)
-                        this.setCache(parent, willDrop)
+                    }
+                    this.setCache(parent, willDrop)
+                    // Only return here in case the call will not drop, otherwise continue
+                    if (willDrop) {
+                        continue
                     }
                     return willDrop
                 }
