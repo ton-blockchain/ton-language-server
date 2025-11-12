@@ -348,7 +348,7 @@
                     "name": "name",
                     "content": {
                         "type": "SYMBOL",
-                        "name": "function_name"
+                        "name": "identifier"
                     }
                 },
                 {
@@ -979,8 +979,16 @@
                         "name": "_expression"
                     },
                     {
-                        "type": "STRING",
-                        "value": ";"
+                        "type": "CHOICE",
+                        "members": [
+                            {
+                                "type": "STRING",
+                                "value": ";"
+                            },
+                            {
+                                "type": "BLANK"
+                            }
+                        ]
                     }
                 ]
             }
@@ -1222,7 +1230,7 @@
             "name": "_expr10"
         },
         "_expr10": {
-            "type": "PREC_RIGHT",
+            "type": "PREC",
             "value": 10,
             "content": {
                 "type": "SEQ",
@@ -1324,64 +1332,44 @@
                 ]
             }
         },
-        "ternary_condition": {
-            "type": "SYMBOL",
-            "name": "_expr15"
-        },
-        "ternary_expression": {
-            "type": "PREC_RIGHT",
-            "value": 13,
-            "content": {
-                "type": "SEQ",
-                "members": [
-                    {
-                        "type": "FIELD",
-                        "name": "condition",
-                        "content": {
-                            "type": "SYMBOL",
-                            "name": "ternary_condition"
-                        }
-                    },
-                    {
-                        "type": "STRING",
-                        "value": "?"
-                    },
-                    {
-                        "type": "FIELD",
-                        "name": "consequent",
-                        "content": {
-                            "type": "SYMBOL",
-                            "name": "_expression"
-                        }
-                    },
-                    {
-                        "type": "STRING",
-                        "value": ":"
-                    },
-                    {
-                        "type": "FIELD",
-                        "name": "alternative",
-                        "content": {
-                            "type": "SYMBOL",
-                            "name": "_expression"
-                        }
-                    }
-                ]
-            }
-        },
         "_expr13": {
             "type": "PREC",
             "value": 13,
             "content": {
-                "type": "CHOICE",
+                "type": "SEQ",
                 "members": [
                     {
                         "type": "SYMBOL",
                         "name": "_expr15"
                     },
                     {
-                        "type": "SYMBOL",
-                        "name": "ternary_expression"
+                        "type": "CHOICE",
+                        "members": [
+                            {
+                                "type": "SEQ",
+                                "members": [
+                                    {
+                                        "type": "STRING",
+                                        "value": "?"
+                                    },
+                                    {
+                                        "type": "SYMBOL",
+                                        "name": "_expression"
+                                    },
+                                    {
+                                        "type": "STRING",
+                                        "value": ":"
+                                    },
+                                    {
+                                        "type": "SYMBOL",
+                                        "name": "_expr13"
+                                    }
+                                ]
+                            },
+                            {
+                                "type": "BLANK"
+                            }
+                        ]
                     }
                 ]
             }
@@ -1764,279 +1752,21 @@
                 ]
             }
         },
-        "var_declaration": {
-            "type": "SEQ",
-            "members": [
-                {
-                    "type": "FIELD",
-                    "name": "type",
-                    "content": {
-                        "type": "CHOICE",
-                        "members": [
-                            {
-                                "type": "SYMBOL",
-                                "name": "_type_hint"
-                            },
-                            {
-                                "type": "BLANK"
-                            }
-                        ]
-                    }
-                },
-                {
-                    "type": "FIELD",
-                    "name": "name",
-                    "content": {
-                        "type": "SYMBOL",
-                        "name": "identifier"
-                    }
-                }
-            ]
-        },
-        "nested_tensor_declaration": {
-            "type": "PREC",
-            "value": 101,
-            "content": {
-                "type": "SEQ",
-                "members": [
-                    {
-                        "type": "STRING",
-                        "value": "("
-                    },
-                    {
-                        "type": "FIELD",
-                        "name": "vars",
-                        "content": {
-                            "type": "SEQ",
-                            "members": [
-                                {
-                                    "type": "SEQ",
-                                    "members": [
-                                        {
-                                            "type": "CHOICE",
-                                            "members": [
-                                                {
-                                                    "type": "SYMBOL",
-                                                    "name": "nested_tensor_declaration"
-                                                },
-                                                {
-                                                    "type": "SYMBOL",
-                                                    "name": "var_declaration"
-                                                },
-                                                {
-                                                    "type": "SYMBOL",
-                                                    "name": "tuple_vars_declaration"
-                                                },
-                                                {
-                                                    "type": "SYMBOL",
-                                                    "name": "underscore"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "type": "REPEAT",
-                                            "content": {
-                                                "type": "SEQ",
-                                                "members": [
-                                                    {
-                                                        "type": "STRING",
-                                                        "value": ","
-                                                    },
-                                                    {
-                                                        "type": "CHOICE",
-                                                        "members": [
-                                                            {
-                                                                "type": "SYMBOL",
-                                                                "name": "nested_tensor_declaration"
-                                                            },
-                                                            {
-                                                                "type": "SYMBOL",
-                                                                "name": "var_declaration"
-                                                            },
-                                                            {
-                                                                "type": "SYMBOL",
-                                                                "name": "tuple_vars_declaration"
-                                                            },
-                                                            {
-                                                                "type": "SYMBOL",
-                                                                "name": "underscore"
-                                                            }
-                                                        ]
-                                                    }
-                                                ]
-                                            }
-                                        }
-                                    ]
-                                },
-                                {
-                                    "type": "CHOICE",
-                                    "members": [
-                                        {
-                                            "type": "STRING",
-                                            "value": ","
-                                        },
-                                        {
-                                            "type": "BLANK"
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    },
-                    {
-                        "type": "STRING",
-                        "value": ")"
-                    }
-                ]
-            }
-        },
-        "tensor_vars_declaration": {
-            "type": "PREC",
-            "value": 101,
-            "content": {
-                "type": "SEQ",
-                "members": [
-                    {
-                        "type": "FIELD",
-                        "name": "type",
-                        "content": {
-                            "type": "SYMBOL",
-                            "name": "_type_hint"
-                        }
-                    },
-                    {
-                        "type": "STRING",
-                        "value": "("
-                    },
-                    {
-                        "type": "FIELD",
-                        "name": "vars",
-                        "content": {
-                            "type": "SEQ",
-                            "members": [
-                                {
-                                    "type": "SEQ",
-                                    "members": [
-                                        {
-                                            "type": "CHOICE",
-                                            "members": [
-                                                {
-                                                    "type": "SYMBOL",
-                                                    "name": "nested_tensor_declaration"
-                                                },
-                                                {
-                                                    "type": "SYMBOL",
-                                                    "name": "var_declaration"
-                                                },
-                                                {
-                                                    "type": "SYMBOL",
-                                                    "name": "tuple_vars_declaration"
-                                                },
-                                                {
-                                                    "type": "SYMBOL",
-                                                    "name": "underscore"
-                                                }
-                                            ]
-                                        },
-                                        {
-                                            "type": "REPEAT",
-                                            "content": {
-                                                "type": "SEQ",
-                                                "members": [
-                                                    {
-                                                        "type": "STRING",
-                                                        "value": ","
-                                                    },
-                                                    {
-                                                        "type": "CHOICE",
-                                                        "members": [
-                                                            {
-                                                                "type": "SYMBOL",
-                                                                "name": "nested_tensor_declaration"
-                                                            },
-                                                            {
-                                                                "type": "SYMBOL",
-                                                                "name": "var_declaration"
-                                                            },
-                                                            {
-                                                                "type": "SYMBOL",
-                                                                "name": "tuple_vars_declaration"
-                                                            },
-                                                            {
-                                                                "type": "SYMBOL",
-                                                                "name": "underscore"
-                                                            }
-                                                        ]
-                                                    }
-                                                ]
-                                            }
-                                        }
-                                    ]
-                                },
-                                {
-                                    "type": "CHOICE",
-                                    "members": [
-                                        {
-                                            "type": "STRING",
-                                            "value": ","
-                                        },
-                                        {
-                                            "type": "BLANK"
-                                        }
-                                    ]
-                                }
-                            ]
-                        }
-                    },
-                    {
-                        "type": "STRING",
-                        "value": ")"
-                    }
-                ]
-            }
-        },
-        "_multiple_vars_declaration": {
-            "type": "PREC_LEFT",
+        "local_vars_declaration": {
+            "type": "PREC_DYNAMIC",
             "value": 90,
             "content": {
-                "type": "SEQ",
-                "members": [
-                    {
-                        "type": "CHOICE",
-                        "members": [
-                            {
-                                "type": "SYMBOL",
-                                "name": "tensor_vars_declaration"
-                            },
-                            {
-                                "type": "SYMBOL",
-                                "name": "tuple_vars_declaration"
-                            }
-                        ]
-                    }
-                ]
-            }
-        },
-        "local_vars_declaration": {
-            "type": "FIELD",
-            "name": "lhs",
-            "content": {
-                "type": "CHOICE",
-                "members": [
-                    {
-                        "type": "SYMBOL",
-                        "name": "_multiple_vars_declaration"
-                    },
-                    {
-                        "type": "SYMBOL",
-                        "name": "var_declaration"
-                    }
-                ]
+                "type": "FIELD",
+                "name": "lhs",
+                "content": {
+                    "type": "SYMBOL",
+                    "name": "_var_declaration_lhs"
+                }
             }
         },
         "tuple_vars_declaration": {
             "type": "PREC",
-            "value": 101,
+            "value": 100,
             "content": {
                 "type": "SEQ",
                 "members": [
@@ -2051,44 +1781,39 @@
                             "type": "SEQ",
                             "members": [
                                 {
-                                    "type": "SEQ",
-                                    "members": [
-                                        {
-                                            "type": "SYMBOL",
-                                            "name": "var_declaration"
-                                        },
-                                        {
-                                            "type": "REPEAT",
-                                            "content": {
-                                                "type": "SEQ",
-                                                "members": [
-                                                    {
-                                                        "type": "STRING",
-                                                        "value": ","
-                                                    },
-                                                    {
-                                                        "type": "SYMBOL",
-                                                        "name": "var_declaration"
-                                                    }
-                                                ]
-                                            }
-                                        }
-                                    ]
+                                    "type": "SYMBOL",
+                                    "name": "_var_declaration_lhs"
                                 },
                                 {
-                                    "type": "CHOICE",
-                                    "members": [
-                                        {
-                                            "type": "STRING",
-                                            "value": ","
-                                        },
-                                        {
-                                            "type": "BLANK"
-                                        }
-                                    ]
+                                    "type": "REPEAT",
+                                    "content": {
+                                        "type": "SEQ",
+                                        "members": [
+                                            {
+                                                "type": "STRING",
+                                                "value": ","
+                                            },
+                                            {
+                                                "type": "SYMBOL",
+                                                "name": "_var_declaration_lhs"
+                                            }
+                                        ]
+                                    }
                                 }
                             ]
                         }
+                    },
+                    {
+                        "type": "CHOICE",
+                        "members": [
+                            {
+                                "type": "STRING",
+                                "value": ","
+                            },
+                            {
+                                "type": "BLANK"
+                            }
+                        ]
                     },
                     {
                         "type": "STRING",
@@ -2096,6 +1821,102 @@
                     }
                 ]
             }
+        },
+        "tensor_vars_declaration": {
+            "type": "PREC",
+            "value": 100,
+            "content": {
+                "type": "SEQ",
+                "members": [
+                    {
+                        "type": "STRING",
+                        "value": "("
+                    },
+                    {
+                        "type": "FIELD",
+                        "name": "vars",
+                        "content": {
+                            "type": "SEQ",
+                            "members": [
+                                {
+                                    "type": "SYMBOL",
+                                    "name": "_var_declaration_lhs"
+                                },
+                                {
+                                    "type": "REPEAT",
+                                    "content": {
+                                        "type": "SEQ",
+                                        "members": [
+                                            {
+                                                "type": "STRING",
+                                                "value": ","
+                                            },
+                                            {
+                                                "type": "SYMBOL",
+                                                "name": "_var_declaration_lhs"
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "type": "CHOICE",
+                        "members": [
+                            {
+                                "type": "STRING",
+                                "value": ","
+                            },
+                            {
+                                "type": "BLANK"
+                            }
+                        ]
+                    },
+                    {
+                        "type": "STRING",
+                        "value": ")"
+                    }
+                ]
+            }
+        },
+        "var_declaration": {
+            "type": "SEQ",
+            "members": [
+                {
+                    "type": "FIELD",
+                    "name": "type",
+                    "content": {
+                        "type": "SYMBOL",
+                        "name": "_type_hint"
+                    }
+                },
+                {
+                    "type": "FIELD",
+                    "name": "name",
+                    "content": {
+                        "type": "SYMBOL",
+                        "name": "identifier"
+                    }
+                }
+            ]
+        },
+        "_var_declaration_lhs": {
+            "type": "CHOICE",
+            "members": [
+                {
+                    "type": "SYMBOL",
+                    "name": "tuple_vars_declaration"
+                },
+                {
+                    "type": "SYMBOL",
+                    "name": "tensor_vars_declaration"
+                },
+                {
+                    "type": "SYMBOL",
+                    "name": "var_declaration"
+                }
+            ]
         },
         "type_expression": {
             "type": "PREC",
@@ -2480,6 +2301,27 @@
                 {
                     "type": "SYMBOL",
                     "name": "tuple_type"
+                },
+                {
+                    "type": "SYMBOL",
+                    "name": "_parenthesized_type"
+                }
+            ]
+        },
+        "_parenthesized_type": {
+            "type": "SEQ",
+            "members": [
+                {
+                    "type": "STRING",
+                    "value": "("
+                },
+                {
+                    "type": "SYMBOL",
+                    "name": "_type_hint"
+                },
+                {
+                    "type": "STRING",
+                    "value": ")"
                 }
             ]
         },
@@ -2546,7 +2388,7 @@
                                         "name": "_type_hint"
                                     },
                                     {
-                                        "type": "REPEAT",
+                                        "type": "REPEAT1",
                                         "content": {
                                             "type": "SEQ",
                                             "members": [
@@ -2715,10 +2557,6 @@
             "type": "STRING",
             "value": "_"
         },
-        "function_name": {
-            "type": "PATTERN",
-            "value": "(`.*`)|((\\.|~)?(([$%a-zA-Z0-9_](\\w|['?:$%!])+)|([a-zA-Z%$])))"
-        },
         "comment": {
             "type": "TOKEN",
             "content": {
@@ -2803,8 +2641,7 @@
         ["parameter_list_relaxed", "hole_type"],
         ["parameter_list_relaxed", "parameter_list"],
         ["tensor_expression", "tensor_type"],
-        ["typed_tuple", "tuple_type"],
-        ["var_declaration", "type_identifier"]
+        ["typed_tuple", "tuple_type"]
     ],
     "precedences": [],
     "externals": [],
