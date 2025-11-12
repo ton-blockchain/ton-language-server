@@ -11,6 +11,7 @@ import {FuncFile} from "./FuncFile"
 interface Binding {
     readonly identifier: SyntaxNode
     readonly producer_exp: SyntaxNode[]
+    readonly type?: string
 }
 
 interface BindingResult {
@@ -237,6 +238,7 @@ export class FunCBindingResolver {
         target: SyntaxNode,
         value: SyntaxNode[],
         checkMethodRhs: boolean = true,
+        type?: string,
     ): void {
         if (checkMethodRhs) {
             this.bindModifyingCalls(value)
@@ -244,6 +246,7 @@ export class FunCBindingResolver {
         this.bindings.set(target.text, {
             identifier: target,
             producer_exp: value,
+            type,
         })
     }
 
@@ -485,11 +488,11 @@ export class FunCBindingResolver {
                             `No variable name in var_declaration. Broken grammar ${pattern.toString()}`,
                         )
                     }
-                    this.bindIdentifier(varName, [callNode], checkMethodRhs)
+                    this.bindIdentifier(varName, [callNode], checkMethodRhs, bindType)
                     break
                 }
                 case "identifier": {
-                    this.bindIdentifier(pattern, [callNode], checkMethodRhs)
+                    this.bindIdentifier(pattern, [callNode], checkMethodRhs, bindType)
                     break
                 }
             }
