@@ -1,0 +1,473 @@
+========================================================================
+Should drop non-impure call if no result is returned
+========================================================================
+() bar(int a) {
+    throw(a);
+}
+
+(int) foo() {
+    bar(42);
+    return 123;
+}
+------------------------------------------------------------------------
+5:4 to 5:11
+
+
+========================================================================
+Should not drop explicitly impure call
+========================================================================
+() bar(int a) impure {
+    throw(a);
+}
+
+(int) foo() {
+    bar(42);
+    return 123;
+}
+------------------------------------------------------------------------
+no issues
+
+========================================================================
+If function has return value, but it is not used, should drop call
+========================================================================
+(int) bar(int a) {
+    return a * a;
+}
+
+(int) foo() impure {
+    bar(42);
+    return 43;
+}
+------------------------------------------------------------------------
+5:4 to 5:11
+
+========================================================================
+If return value is used in impure constructs, should not drop call
+========================================================================
+(int) bar(int a) {
+    return a * a;
+}
+
+() used_in_if() {
+    var a = bar(100);
+    if(a) {
+    }
+}
+
+() used_in_while() {
+    var a = bar(100);
+    while(a > 0) {
+        a = a - 1;
+    }
+}
+
+() used_in_do_while() {
+    var a = bar(100);
+    do {
+        a = a - 1;
+    } until(a > 0);
+}
+
+() used_in_repeat() {
+    var b = 2;
+    var a = bar(100);
+    repeat(a){
+        b = b * b;
+    }
+}
+(int) used_in_return() {
+    var a = bar(100);
+    return a;
+}
+------------------------------------------------------------------------
+no issues
+
+========================================================================
+If result is used only in block expr of conditional construct, shouldn't be exampt from impure
+========================================================================
+(int) bar(int a) {
+    return a * a;
+}
+
+() used_in_if() {
+    var b = true;
+    var a = bar(100);
+    if(b) {
+        a = a + 1;
+    }
+}
+
+() used_in_while() {
+    var b = true;
+    var a = bar(100);
+
+    while(b) {
+        a = a + 1;
+    }
+}
+
+() used_in_do_while() {
+    var b = true;
+    var a = bar(100);
+    do {
+        a = a + 1;
+    } until(b);
+}
+
+() used_in_repeat() {
+    var b = 2;
+    var a = bar(100);
+    repeat(b){
+        a = a * a;
+    }
+}
+------------------------------------------------------------------------
+6:12 to 6:20
+14:12 to 14:20
+23:12 to 23:20
+31:12 to 31:20
+
+========================================================================
+Should drop if non-impure call to stdlib function is made and result is not used
+========================================================================
+
+(int) not_bound(slice addr) {
+    parse_std_addr(addr);
+}
+
+() bound_not_used(slice addr) {
+    var (wc, hash) = parse_std_addr(addr);
+}
+
+() bound_and_used(slice addr) {
+    var (wc, hash) = parse_std_addr(addr);
+    throw_if(42, wc == -1);
+}
+------------------------------------------------------------------------
+1:4 to 1:24
+5:21 to 5:41
+
+========================================================================
+Should not drop call if result is referenced in impure call
+========================================================================
+() check_wc(int a) impure {
+    throw_unless(42, a == 0);
+}
+
+() test_func_call(slice test_addr) {
+    var (wc, hash) = parse_std_addr(test_addr);
+    check_wc(wc);
+}
+() test_method_call(slice test_addr) {
+    var (wc, hash) = parse_std_addr(test_addr);
+    wc.check_wc();
+}
+() test_mod_method_call(slice test_addr) {
+    var (wc, hash) = parse_std_addr(test_addr);
+    wc~check_wc();
+}
+------------------------------------------------------------------------
+no issues
+
+========================================================================
+Should drop call if only result reference is in non-impure call
+========================================================================
+() check_wc(int a) {
+    throw_unless(42, a == 0);
+}
+() test_func_call(slice test_addr) {
+    var (wc, hash) = parse_std_addr(test_addr);
+    check_wc(wc);
+}
+() test_method_call(slice test_addr) {
+    var (wc, hash) = parse_std_addr(test_addr);
+    wc.check_wc();
+}
+() test_mod_method_call(slice test_addr) {
+    var (wc, hash) = parse_std_addr(test_addr);
+    wc~check_wc();
+}
+------------------------------------------------------------------------
+4:21 to 4:46
+5:4 to 5:16
+8:21 to 8:46
+9:6 to 9:17
+12:21 to 12:46
+13:6 to 13:17
+
+
+========================================================================
+Should not drop result if it is used in impure built-in
+========================================================================
+(int) bar(int a) {
+    return a * a;
+}
+
+(int) throw_case() {
+    int foo = bar();
+    throw(foo);
+}
+
+(int) throw_if_case() {
+    int foo = bar();
+    throw_if(42, foo);
+}
+
+(int) throw_unless_case() {
+    int foo = bar();
+    throw_unless(42, foo);
+}
+(int) dump_case() {
+    int foo = bar();
+    foo~dump();
+}
+
+------------------------------------------------------------------------
+no issues
+
+
+
+
+========================================================================
+Should correctly identify bindings in nested tensor var declaration
+========================================================================
+(int, int) bar() {
+    return (42, 84);
+}
+
+(int) foo() {
+    return (42)
+}
+(int) drop_foo() {
+    var ((a, b), c) = (bar(), foo());
+    return a;
+}
+(int) drop_bar() {
+    var ((a, b), c) = (bar(), foo());
+    return c;
+}
+------------------------------------------------------------------------
+8:30 to 8:35
+12:23 to 12:28
+
+========================================================================
+Should correctly identify bindings in nested tensor explicit type declaration
+========================================================================
+(int, int) bar() {
+    return (42, 84);
+}
+
+(int) foo() {
+    return (42)
+}
+(int) drop_foo() {
+    ((int a, int b), int c) = (bar(), foo());
+    return b;
+}
+(int) drop_bar() {
+    ((int a, int b), int c) = (bar(), foo());
+    return c;
+}
+------------------------------------------------------------------------
+8:38 to 8:43
+12:31 to 12:36
+
+========================================================================
+Should correctly identify bindings in nested tensor expression assignment
+========================================================================
+(int, int) bar() {
+    return (42, 84);
+}
+
+(int) foo() {
+    return (42)
+}
+
+(int) drop_foo(int a, int b, int c) {
+    ((a, b), c) = (bar(), foo());
+    return b;
+}
+
+(int) drop_bar(int a, int b, int c) {
+    ((a, b), c) = (bar(), foo());
+    return c;
+}
+------------------------------------------------------------------------
+9:26 to 9:31
+14:19 to 14:24
+
+========================================================================
+Should correctly identify bindings in generic (forall) declarations
+========================================================================
+forall X, Y -> (X, Y) bar() {
+    return (42, 84);
+}
+
+forall X -> (X) foo() {
+    return (42)
+}
+
+(int) drop_foo(int a, int b, int c) {
+    ((a, b), c) = (bar(), foo());
+    return b;
+}
+
+(int) drop_bar(int a, int b, int c) {
+    ((a, b), c) = (bar(), foo());
+    return c;
+}
+------------------------------------------------------------------------
+9:26 to 9:31
+14:19 to 14:24
+
+
+========================================================================
+Should drop call if result is dropped via _
+========================================================================
+(int, int) bar() {
+    return (42, 84);
+}
+(int) foo() {
+    return (42)
+}
+
+(int) drop_foo(int a, int b, int c) {
+    ((a, b), _) = (bar(), foo());
+    return b;
+}
+
+(int) drop_bar(int a, int b, int c) {
+    ((_, _), c) = (bar(), foo());
+    return c;
+}
+------------------------------------------------------------------------
+8:26 to 8:31
+13:19 to 13:24
+
+========================================================================
+Should correctly identify bindings in nested tuple assignment
+========================================================================
+[int, int] bar(int a) {
+    return [a * 42, a * 84];
+}
+
+[int, int] foo() {
+    return 42
+}
+(int) drop_foo() {
+    var ([a, b], [c, d]) = [bar(), foo()];
+    return b;
+}
+(int) drop_bar() {
+    var ([a, b], [c, d]) = [bar(), foo()];
+    return c;
+}
+------------------------------------------------------------------------
+8:35 to 8:40
+12:28 to 12:33
+
+========================================================================
+Should not drop if any element of complex tensor is referenced
+========================================================================
+() foo(int a, int, b) impure {
+    throw(a * b);
+}
+
+(int, [int, cell, (int, int)]) bar(int a) {
+    return (a * 42, begin_cell().store_uint(a, 32).end_cell(), (a * 84, a *a));
+}
+
+() main() {
+    var (a, [b, c, d]) = bar(42);
+    ;; d should bound to (int, int) tensor
+    foo(d);
+}
+------------------------------------------------------------------------
+no issues
+
+========================================================================
+Should correctly bind return in modifying method call
+========================================================================
+(int, (int, int)) ~powa(int a) {
+    var b = a * a;
+    return (b, (b * a, b * b))
+}
+
+(int) foo() {
+    return (42)
+}
+
+(int) used_ret() {
+    var a = foo();
+    (int c, int d) = a~powa();
+    return d; ;; Used, shouldn't drop
+}
+
+(int) used_modifier() {
+    var a = foo();
+    (int c, int d) =a~powa();
+    return a; ;; Used, shouldn't drop
+}
+------------------------------------------------------------------------
+no issues
+
+========================================================================
+Should drop if none of modifyint method resulst are used
+========================================================================
+(int, (int, int)) ~powa(int a) {
+    var b = a * a;
+    return (b, (b * a, b * b))
+}
+
+(int) foo() {
+    return (42)
+}
+
+(int) not_used() {
+    var a = 42;
+    (int c, int d) = a~powa();
+    return foo();
+}
+
+------------------------------------------------------------------------
+11:22 to 11:29
+
+========================================================================
+Should not drop if chain of non-modifying method calls result is used
+========================================================================
+;; Note store ops are impure
+(cell) build_payload(int a) {
+    cell res = begin_cell().store_ref(
+        begin_cell().store_uint(12345, 32).store_uint(a, 64).end_cell()
+    ).end_cell();
+    return res;
+}
+
+------------------------------------------------------------------------
+no issues
+
+========================================================================
+Should not drop if result if used in multi-assingment logic
+========================================================================
+
+(int) foo(int a) {
+	return a * a;
+}
+
+(cell) bar(int a, int b) {
+	return begin_cell().store_uint(a, 32).store_uint(b, 64).end_cell();
+}
+
+(cell) main() {
+    int c;
+	var a = foo(42);
+	var b = a + 100;
+    if(b > 10) {
+        c = bar(a, b);
+    }
+	return c;
+}
+
+------------------------------------------------------------------------
+no issues
+

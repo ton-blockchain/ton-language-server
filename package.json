@@ -80,6 +80,8 @@
         "test:e2e:tolk:multifile-completion-select:update": "yarn test:e2e:compile && ts-node server/src/e2e/runLangTest.ts --suite multifile-completion-select --update-snapshots",
         "test:e2e:tolk:multifile-inspections:update": "yarn test:e2e:compile && ts-node server/src/e2e/runLangTest.ts --suite multifile-inspections --update-snapshots",
         "test:e2e:tolk:compiler-tests:update": "yarn test:e2e:compile && ts-node server/src/e2e/runLangTest.ts --suite compiler-tests --verbose --update-snapshots",
+        "test:e2e:func": "yarn test:e2e:compile && ts-node server/src/e2e/runLangTest.ts --lang FunC --update-snapshots",
+        "test:e2e:func:impure-inspection": "yarn test:e2e:compile && ts-node server/src/e2e/runLangTest.ts --lang FunC --suite ImpureInspection --update-snapshots",
         "pack:ls": "cd dist && npm pack",
         "publish:ls": "cd dist && npm publish",
         "build-server-package-and-publish": "yarn build && yarn pack:ls && yarn publish:ls",
