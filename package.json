@@ -21,7 +21,8 @@
         "onLanguage:tolk",
         "onLanguage:func",
         "onLanguage:tasm",
-        "onLanguage:fif",
+        "onLanguage:fift",
+        "onLanguage:boc",
         "onLanguage:tlb"
     ],
     "categories": [
