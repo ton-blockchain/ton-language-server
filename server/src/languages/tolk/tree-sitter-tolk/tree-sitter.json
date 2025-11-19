@@ -1,18 +1,21 @@
 {
+    "$schema": "https://tree-sitter.github.io/tree-sitter/assets/schemas/config.schema.json",
     "grammars": [
         {
             "name": "tolk",
             "camelcase": "Tolk",
+            "title": "Tolk",
             "scope": "source.tolk",
-            "path": ".",
             "file-types": ["tolk"],
-            "highlights": "queries/highlights.scm"
+            "highlights": ["queries/highlights.scm"],
+            "injection-regex": "^tolk$",
+            "class-name": "TreeSitterTolk"
         }
     ],
     "metadata": {
         "version": "0.4.5",
         "license": "MIT",
-        "description": "A tree-sitter grammar for the Tolk assembly programming language",
+        "description": "Tolk grammar for tree-sitter",
         "authors": [
             {
                 "name": "TON Blockchain"
@@ -28,6 +31,7 @@
         "node": true,
         "python": true,
         "rust": true,
-        "swift": true
+        "swift": true,
+        "zig": false
     }
 }

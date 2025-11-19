@@ -1,9 +1,9 @@
-interface BaseNode {
+type BaseNode = {
     type: string
     named: boolean
 }
 
-interface ChildNode {
+type ChildNode = {
     multiple: boolean
     required: boolean
     types: BaseNode[]
@@ -14,12 +14,11 @@ type NodeInfo =
           subtypes: BaseNode[]
       })
     | (BaseNode & {
-          fields: Record<string, ChildNode>
+          fields: {[name: string]: ChildNode}
           children: ChildNode[]
       })
 
-interface Language {
-    name: string
+type Language = {
     language: unknown
     nodeTypeInfo: NodeInfo[]
 }

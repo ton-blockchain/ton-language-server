@@ -1,5 +1,11 @@
-// It's a main grammar description, `tree-sitter generate` works based on this file.
-// This grammar describes the latest version of the Tolk language for TON Blockchain.
+/**
+ * @file Tolk grammar for tree-sitter
+ * @author TON Blockchain
+ * @license MIT
+ */
+
+/// <reference types="tree-sitter-cli/dsl" />
+// @ts-check
 
 function commaSep(rule) {
     return optional(commaSep1(rule))
