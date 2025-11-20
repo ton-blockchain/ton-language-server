@@ -2,6 +2,8 @@ import {fileURLToPath} from "node:url"
 
 import * as path from "node:path"
 
+import * as fs from "node:fs"
+
 import {glob} from "glob"
 
 import {filePathToUri} from "@server/files"
@@ -40,6 +42,10 @@ export abstract class IndexingRoot {
             ignore: ignore,
         })
         if (files.length === 0) {
+            if (!this.checkReadAccess(this.root)) {
+                console.warn(`Can't access ${this.root}`)
+            }
+
             console.warn(`No file to index in ${this.root}`)
         }
         for (const filePath of files) {
@@ -47,6 +53,15 @@ export abstract class IndexingRoot {
             const absPath = path.join(rootDir, filePath)
             const uri = filePathToUri(absPath)
             await this.onFile(uri)
+        }
+    }
+
+    private checkReadAccess(path: string): boolean {
+        try {
+            fs.accessSync(path, fs.constants.R_OK)
+            return true
+        } catch {
+            return false
         }
     }
 
