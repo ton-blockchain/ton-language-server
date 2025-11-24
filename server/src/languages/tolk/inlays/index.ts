@@ -15,6 +15,7 @@ import {constantValueHint} from "@server/languages/tolk/inlays/constant-value-hi
 import {getMethodId} from "@server/languages/tolk/inlays/get-method-id"
 import {FunctionBase} from "@server/languages/tolk/psi/Decls"
 import {typeOf} from "@server/languages/tolk/type-inference"
+import {lambdaParametersHints} from "@server/languages/tolk/inlays/lambda-parameters-hints"
 
 export function collectTolkInlays(
     file: TolkFile,
@@ -35,6 +36,11 @@ export function collectTolkInlays(
 
         if (type === "function_call" && hints.parameters) {
             parametersHints(n, file, result)
+            return true
+        }
+
+        if (type === "lambda_expression" && hints.parameters) {
+            lambdaParametersHints(n, file, result)
             return true
         }
 

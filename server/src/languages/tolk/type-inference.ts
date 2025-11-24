@@ -43,7 +43,7 @@ import {
     TypeAlias,
     TypeParameter,
 } from "@server/languages/tolk/psi/Decls"
-import {CallLike, NamedNode} from "@server/languages/tolk/psi/TolkNode"
+import {CallLike, Lambda, NamedNode} from "@server/languages/tolk/psi/TolkNode"
 import {TolkFile} from "@server/languages/tolk/psi/TolkFile"
 import {Reference, ScopeProcessor} from "@server/languages/tolk/psi/Reference"
 import {index, IndexFinder, IndexKey} from "@server/languages/tolk/indexes"
@@ -423,6 +423,10 @@ class InferenceWalker {
             // infers as null, TODO
             // const exprType = this.ctx.getType(defaultValue)
             // this.ctx.setType(field.node, exprType)
+
+            this.ctx.setType(field.nameNode()?.node, typeHintTy)
+            this.ctx.setType(field.node, typeHintTy)
+            this.ctx.setResolved(field.node, field)
             return flowAfterExpression.outFlow
         }
 
@@ -517,7 +521,7 @@ class InferenceWalker {
         // for example, in type-hints.ts
 
         const parameters = func.parameters(true)
-        const returnType = this.ctx.declaredReturnType ?? this.inferReturnType()
+        const returnType = this.ctx.declaredReturnType ?? this.inferReturnType(flow)
 
         const parametersTypes = parameters.map(it => this.ctx.getType(it.node) ?? UnknownTy.UNKNOWN)
 
@@ -538,9 +542,14 @@ class InferenceWalker {
         return flow
     }
 
-    public inferReturnType(): Ty {
+    public inferReturnType(nextFlow: FlowContext): Ty {
         const returnTypes = this.ctx.returnTypes
-        if (returnTypes.length === 0) return VoidTy.VOID
+        if (returnTypes.length === 0) {
+            if (nextFlow.unreachable) {
+                return NeverTy.NEVER
+            }
+            return VoidTy.VOID
+        }
         if (returnTypes.length === 1) return returnTypes[0]
 
         let joined: Ty | null = null
@@ -833,6 +842,9 @@ class InferenceWalker {
             case "lazy_expression": {
                 return this.inferLazyExpression(node, flow, usedAsCondition, hint)
             }
+            case "lambda_expression": {
+                return this.inferLambdaExpression(node, flow, hint)
+            }
             case "underscore": {
                 this.ctx.setType(node, UnknownTy.UNKNOWN)
                 return ExprFlow.create(flow, usedAsCondition)
@@ -869,6 +881,95 @@ class InferenceWalker {
 
         this.ctx.setType(node, this.ctx.getType(argument))
         return ExprFlow.create(flowAfterArgument, usedAsCondition)
+    }
+
+    private inferLambdaExpression(node: SyntaxNode, flow: FlowContext, hint: Ty | null): ExprFlow {
+        const unwrappedHint = hint?.unwrapAlias()
+        const callableTy = unwrappedHint instanceof FuncTy ? unwrappedHint : undefined
+        const lambda = new Lambda(node, this.ctx.file)
+
+        // Since lambda parameters can omit types, we need to infer it from the hint type
+        // > fun call(f: (int) -> slice) { ... }
+        // > call(fun(i) { ... })
+        // then type of i is int
+        const paramTypes: Ty[] = []
+        const parameters = lambda.parameters()
+
+        for (const [index, parameter] of parameters.entries()) {
+            const typeNode = parameter.node.childForFieldName("type")
+            if (typeNode) {
+                const paramType = InferenceWalker.convertType(typeNode, this.ctx.file)
+                if (paramType) {
+                    paramTypes.push(paramType)
+                }
+            } else if (
+                callableTy &&
+                index < callableTy.params.length &&
+                !callableTy.params[index].hasGenerics()
+            ) {
+                paramTypes.push(callableTy.params[index])
+            }
+        }
+
+        // Same for return type
+        // > fun call(f: (int) -> slice) { ... }
+        // > call(fun(i) { ... })
+        // return type is slice
+        let explicitReturnType: Ty | null = null
+        const returnTypeNode = node.childForFieldName("return_type")
+        if (returnTypeNode) {
+            explicitReturnType = InferenceWalker.convertType(returnTypeNode, this.ctx.file)
+        } else if (callableTy && !callableTy.returnTy.hasGenerics()) {
+            explicitReturnType = callableTy.returnTy
+        }
+
+        for (const [index, parameter] of parameters.entries()) {
+            const parameterType = paramTypes[index] ?? UnknownTy.UNKNOWN
+            this.ctx.setType(parameter.node, parameterType)
+
+            const nameNode = parameter.node.childForFieldName("name")
+            if (nameNode) {
+                this.ctx.setType(nameNode, parameterType)
+            }
+        }
+
+        let nextFlow = flow
+
+        for (const [index, parameter] of parameters.entries()) {
+            const parameterType = paramTypes[index] ?? UnknownTy.UNKNOWN
+            nextFlow.setSymbol(parameter, parameterType)
+        }
+
+        // Save an old state to restore it after lambda is processed
+        const oldReturnTypes = [...this.ctx.returnTypes]
+        const oldUnreachable = flow.unreachable
+        this.ctx.returnTypes = []
+
+        const body = node.childForFieldName("body")
+        if (body) {
+            nextFlow = this.processBlockStatement(body, nextFlow)
+        }
+
+        // Here we infer the return type in the same way as for standalone functions
+        const returnTy = explicitReturnType ?? this.inferReturnType(nextFlow)
+
+        // And after body inference restore the old state
+        this.ctx.returnTypes = oldReturnTypes
+        nextFlow.unreachable = oldUnreachable
+
+        const finalType = new FuncTy(paramTypes, returnTy)
+        this.ctx.setType(node, finalType)
+
+        return ExprFlow.create(nextFlow, false)
+    }
+
+    public lambdaParameters(lambda: SyntaxNode): SyntaxNode[] {
+        const parametersNode = lambda.childForFieldName("parameters")
+        if (!parametersNode) return []
+
+        return parametersNode.children
+            .filter(value => value?.type === "parameter_declaration")
+            .filter(value => value !== null)
     }
 
     private inferGenericInstantiation(

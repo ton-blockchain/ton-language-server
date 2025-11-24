@@ -12,7 +12,7 @@
         "BoC",
         "TL-B"
     ],
-    "version": "0.5.0",
+    "version": "0.5.1",
     "engines": {
         "vscode": "^1.63.0"
     },
@@ -21,7 +21,8 @@
         "onLanguage:tolk",
         "onLanguage:func",
         "onLanguage:tasm",
-        "onLanguage:fif",
+        "onLanguage:fift",
+        "onLanguage:boc",
         "onLanguage:tlb"
     ],
     "categories": [
@@ -801,7 +802,7 @@
         "react-dom": "^18.3.1",
         "react-icons": "^5.5.0",
         "react-markdown": "^10.1.0",
-        "tolkfmt-test-dev": "0.0.21",
+        "tolkfmt-test-dev": "0.0.23",
         "ton-assembly": "0.4.0",
         "ton-source-map": "^0.2.2",
         "vscode-languageclient": "^8.0.2",
