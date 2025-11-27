@@ -6318,7 +6318,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"glob@npm:11.1.0, glob@npm:^11.0.0, glob@npm:^11.0.1":
+"glob@npm:11.1.0, glob@npm:^11.0.0, glob@npm:^11.1.0":
   version: 11.1.0
   resolution: "glob@npm:11.1.0"
   dependencies:
@@ -12276,7 +12276,7 @@ __metadata:
     eslint-plugin-react-refresh: "npm:^0.4.22"
     eslint-plugin-unicorn: "npm:^56.0.1"
     eslint-plugin-unused-imports: "npm:^4.1.4"
-    glob: "npm:^11.0.1"
+    glob: "npm:^11.1.0"
     husky: "npm:^9.1.7"
     jest: "npm:^29.7.0"
     jssha: "npm:^3.3.1"
