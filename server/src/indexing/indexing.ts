@@ -44,7 +44,7 @@ export abstract class IndexingRoot {
         })
         if (files.length === 0) {
             if (!this.checkReadAccess(this.root)) {
-                const message = `Can't access ${this.root}`
+                const message = `Can't access the '${this.root}' folder in the Tolk standard library.\n`
 
                 showErrorMessage(message)
                 console.error(message)
