@@ -11447,16 +11447,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tolkfmt-test-dev@npm:0.0.23":
-  version: 0.0.23
-  resolution: "tolkfmt-test-dev@npm:0.0.23"
+"tolkfmt-test-dev@npm:0.0.24":
+  version: 0.0.24
+  resolution: "tolkfmt-test-dev@npm:0.0.24"
   dependencies:
     cac: "npm:^6.7.14"
     glob: "npm:^10.3.10"
     web-tree-sitter: "npm:^0.25.6"
   bin:
     tolkfmt: bin/tolkfmt
-  checksum: 10c0/448977a011dfc1c78f1a112423b2f3bb924141ba94d47e6aaa844bcdfe411ae344ecd2b0202c4e222c06e99eddefc68d14a3615b78a80c7b0bb60028d496e11f
+  checksum: 10c0/8362a19a0f17408c8312aafc46c39d456f90beea87898021d56fbb7cad3b7b9e8858a56ccf33bfb72f0cd25e3af3a48b5c228dca496446f0f6d7863343f2ff1d
   languageName: node
   linkType: hard
 
@@ -12291,7 +12291,7 @@ __metadata:
     style-loader: "npm:^4.0.0"
     stylelint: "npm:^16.24.0"
     stylelint-config-standard: "npm:^39.0.0"
-    tolkfmt-test-dev: "npm:0.0.23"
+    tolkfmt-test-dev: "npm:0.0.24"
     ton-assembly: "npm:0.4.0"
     ton-source-map: "npm:^0.2.2"
     tree-sitter-cli: "npm:^0.25.8"
