@@ -7,7 +7,7 @@ import * as fs from "node:fs"
 import {glob} from "glob"
 
 import {filePathToUri} from "@server/files"
-import {showErrorMessage} from "@server/utils/notify"
+import {showErrorMessage, troubleshootingLink} from "@server/utils/notify"
 
 export enum IndexingRootKind {
     Stdlib = "stdlib",
@@ -44,7 +44,8 @@ export abstract class IndexingRoot {
         })
         if (files.length === 0) {
             if (!this.checkReadAccess(this.root)) {
-                const message = `Can't access the '${this.root}' folder in the Tolk standard library.\n`
+                const see = troubleshootingLink("cant-access-the-tolk-standard-library-folder")
+                const message = `Can't access the '${this.root}' folder in the Tolk standard library.\nSee: ${see}`
 
                 showErrorMessage(message)
                 console.error(message)

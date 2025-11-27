@@ -8,3 +8,14 @@ export const showErrorMessage = (msg: string): void => {
         message: msg,
     })
 }
+
+export const troubleshootingLink = (section?: string): string => {
+    const troubleshootingDocsLink =
+        "https://github.com/ton-blockchain/ton-language-server/blob/main/docs/manual/troubleshooting.md"
+
+    if (section == undefined) {
+        return `${troubleshootingDocsLink}#${section}`
+    }
+
+    return troubleshootingDocsLink
+}
