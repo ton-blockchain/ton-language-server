@@ -277,6 +277,9 @@ fun foo() asm """
     BAZ
 """
 get fun foo() asm "FOO"
+get fun foo() asm (-> 1 0) "FOO"
+get fun foo() asm (a b) "FOO"
+get fun foo() asm (a b -> 1 0) "FOO"
 
 ------------------------------------------------------------------------
 
@@ -312,4 +315,34 @@ get fun foo() asm "FOO"
     (identifier)
     (parameter_list)
     (asm_body
+      (string_literal)))
+  (get_method_declaration
+    (identifier)
+    (parameter_list)
+    (asm_body
+      (asm_body_rearrange
+        (asm_body_rearrange_return
+          (number_literal)
+          (number_literal)))
+      (string_literal)))
+  (get_method_declaration
+    (identifier)
+    (parameter_list)
+    (asm_body
+      (asm_body_rearrange
+        (asm_body_rearrange_params
+          (identifier)
+          (identifier)))
+      (string_literal)))
+  (get_method_declaration
+    (identifier)
+    (parameter_list)
+    (asm_body
+      (asm_body_rearrange
+        (asm_body_rearrange_params
+          (identifier)
+          (identifier))
+        (asm_body_rearrange_return
+          (number_literal)
+          (number_literal)))
       (string_literal))))
