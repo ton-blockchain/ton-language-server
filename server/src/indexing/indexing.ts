@@ -7,6 +7,7 @@ import * as fs from "node:fs"
 import {glob} from "glob"
 
 import {filePathToUri} from "@server/files"
+import {showErrorMessage} from "@server/utils/notify"
 
 export enum IndexingRootKind {
     Stdlib = "stdlib",
@@ -43,7 +44,10 @@ export abstract class IndexingRoot {
         })
         if (files.length === 0) {
             if (!this.checkReadAccess(this.root)) {
-                console.warn(`Can't access ${this.root}`)
+                const message = `Can't access ${this.root}`
+
+                showErrorMessage(message)
+                console.error(message)
             }
 
             console.warn(`No file to index in ${this.root}`)
