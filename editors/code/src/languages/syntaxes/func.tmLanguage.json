@@ -1,20 +1,42 @@
 {
     "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
-    "name": "FunC",
+    "name": "func",
     "scopeName": "source.func",
     "fileTypes": ["fc", "func"],
     "patterns": [
-        {"include": "#comments"},
-        {"include": "#strings"},
-        {"include": "#numbers"},
-        {"include": "#directives"},
-        {"include": "#keywords"},
-        {"include": "#types"},
-        {"include": "#specifiers"},
-        {"include": "#operators"},
-        {"include": "#function-calls"},
-        {"include": "#punctuation"},
-        {"include": "#identifiers"}
+        {
+            "include": "#comments"
+        },
+        {
+            "include": "#strings"
+        },
+        {
+            "include": "#numbers"
+        },
+        {
+            "include": "#directives"
+        },
+        {
+            "include": "#keywords"
+        },
+        {
+            "include": "#types"
+        },
+        {
+            "include": "#specifiers"
+        },
+        {
+            "include": "#operators"
+        },
+        {
+            "include": "#function-calls"
+        },
+        {
+            "include": "#punctuation"
+        },
+        {
+            "include": "#identifiers"
+        }
     ],
     "repository": {
         "comments": {
@@ -27,7 +49,11 @@
                     "name": "comment.block.func",
                     "begin": "\\{-",
                     "end": "-\\}",
-                    "patterns": [{"include": "#comments"}]
+                    "patterns": [
+                        {
+                            "include": "#comments"
+                        }
+                    ]
                 }
             ]
         },
@@ -109,14 +135,18 @@
                     "name": "meta.function-call.builtin.func",
                     "match": "(?x)\\b(?:throw_unless|equal_slices|send_raw_message|accept_message)\\b(?=\\s*\\()",
                     "captures": {
-                        "0": {"name": "support.function.builtin.func"}
+                        "0": {
+                            "name": "support.function.builtin.func"
+                        }
                     }
                 },
                 {
                     "name": "meta.function-call.method.func",
                     "begin": "(?<=\\.|~)\\s*(`[^`]+`|[A-Za-z_\\$][^\\s+\\-*\\/%,.;(){}\\[\\]=<>|\\^~]*)\\s*(?=\\()",
                     "beginCaptures": {
-                        "1": {"name": "support.function.method.func"}
+                        "1": {
+                            "name": "support.function.method.func"
+                        }
                     },
                     "end": "(?=)",
                     "patterns": []
@@ -125,7 +155,9 @@
                     "name": "meta.function-call.func",
                     "begin": "(?x)(?<![\\.\\$~])(`[^`]+`|[A-Za-z_\\$][^\\s+\\-*\\/%,.;(){}\\[\\]=<>|\\^~]*)\\s*(?=\\()",
                     "beginCaptures": {
-                        "1": {"name": "support.function.call.func"}
+                        "1": {
+                            "name": "support.function.call.func"
+                        }
                     },
                     "end": "(?=)",
                     "patterns": []

@@ -1,10 +1,10 @@
 {
-    "name": "TASM",
-    "displayName": "TASM",
+    "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
+    "name": "tasm",
     "scopeName": "source.tasm",
-    "fileTypes": ["tasm"],
     "foldingStartMarker": "\\{\\s*$",
     "foldingStopMarker": "^\\s*\\}",
+    "fileTypes": ["tasm"],
     "patterns": [
         {
             "include": "#comment"
@@ -115,11 +115,15 @@
                     "comment": "String literal",
                     "begin": "\"",
                     "beginCaptures": {
-                        "0": {"name": "punctuation.definition.string.begin.tasm"}
+                        "0": {
+                            "name": "punctuation.definition.string.begin.tasm"
+                        }
                     },
                     "end": "\"",
                     "endCaptures": {
-                        "0": {"name": "punctuation.definition.string.end.tasm"}
+                        "0": {
+                            "name": "punctuation.definition.string.end.tasm"
+                        }
                     },
                     "name": "string.quoted.double.tasm",
                     "patterns": [
@@ -149,24 +153,36 @@
             "comment": "Code blocks { ... }",
             "begin": "\\{",
             "beginCaptures": {
-                "0": {"name": "punctuation.section.code.begin.tasm"}
+                "0": {
+                    "name": "punctuation.section.code.begin.tasm"
+                }
             },
             "end": "\\}",
             "endCaptures": {
-                "0": {"name": "punctuation.section.code.end.tasm"}
+                "0": {
+                    "name": "punctuation.section.code.end.tasm"
+                }
             },
             "name": "meta.code-block.tasm",
-            "patterns": [{"include": "$self"}]
+            "patterns": [
+                {
+                    "include": "$self"
+                }
+            ]
         },
         "dictionary": {
             "comment": "Dictionaries [ ... ]",
             "begin": "\\[",
             "beginCaptures": {
-                "0": {"name": "punctuation.section.dictionary.begin.tasm"}
+                "0": {
+                    "name": "punctuation.section.dictionary.begin.tasm"
+                }
             },
             "end": "\\]",
             "endCaptures": {
-                "0": {"name": "punctuation.section.dictionary.end.tasm"}
+                "0": {
+                    "name": "punctuation.section.dictionary.end.tasm"
+                }
             },
             "name": "meta.dictionary.tasm",
             "patterns": [
@@ -175,9 +191,15 @@
                     "match": "=>",
                     "name": "keyword.operator.mapsto.tasm"
                 },
-                {"include": "#literal"},
-                {"include": "#code_block"},
-                {"include": "#punctuation"}
+                {
+                    "include": "#literal"
+                },
+                {
+                    "include": "#code_block"
+                },
+                {
+                    "include": "#punctuation"
+                }
             ]
         },
         "punctuation": {
