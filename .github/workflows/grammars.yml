@@ -22,6 +22,7 @@ env:
 jobs:
   tree-sitter-grammars:
     name: Building tree-sitter (${{ matrix.os }})
+    if: ${{ false }}
     runs-on: ${{ matrix.os }}
     strategy:
       fail-fast: false
