@@ -1,4 +1,4 @@
-module github.com/tree-sitter/tree-sitter-tlb
+module github.com/ton-blockchain/ton-language-server
 
 go 1.22
 

@@ -1,9 +1,7 @@
 /**
- * @file A tree-sitter grammar for the TL-B language
- * @author Petr Makhnev
+ * @file TL-B grammar for tree-sitter
+ * @author TON Blockchain
  * @license MIT
- *
- * Based on https://github.com/ton-community/tlb-parser/blob/master/src/grammar/tlb.ts
  */
 
 /// <reference types="tree-sitter-cli/dsl" />
