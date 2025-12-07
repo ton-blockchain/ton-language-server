@@ -1,4 +1,4 @@
-"""Func grammar for tree-sitter"""
+"""FunC grammar for tree-sitter"""
 
 from importlib.resources import files as _files
 

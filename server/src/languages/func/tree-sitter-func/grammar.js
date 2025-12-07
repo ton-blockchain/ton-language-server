@@ -1,7 +1,11 @@
-// It's a main grammar description, `tree-sitter generate` works based on this file.
-// This grammar describes the latest version of the FunC language for TON Blockchain.
-// Originally taken from this repo: https://github.com/akifoq/tree-sitter-func
-// and slightly modified to cover all FunC grammar.
+/**
+ * @file FunC grammar for tree-sitter
+ * @author TON Blockchain
+ * @license MIT
+ */
+
+/// <reference types="tree-sitter-cli/dsl" />
+// @ts-check
 
 function commaSep(rule) {
     return optional(commaSep1(rule))
@@ -402,12 +406,6 @@ const FUNC_GRAMMAR = {
 module.exports = grammar({
     name: "func",
 
-    extras: $ => [/\s/, $.comment],
-
-    word: $ => $.identifier,
-
-    rules: FUNC_GRAMMAR,
-
     conflicts: $ => [
         [$.parameter_list_relaxed, $.type_identifier],
         [$.parameter_list_relaxed, $.hole_type],
@@ -415,4 +413,10 @@ module.exports = grammar({
         [$.tensor_expression, $.tensor_type],
         [$.typed_tuple, $.tuple_type],
     ],
+
+    extras: $ => [/\s/, $.comment],
+
+    word: $ => $.identifier,
+
+    rules: FUNC_GRAMMAR,
 })
