@@ -6,7 +6,7 @@ import * as vscode from "vscode"
 
 import type {TestCase} from "../common/TestParser"
 
-import {BaseTestSuite} from "./BaseTestSuite"
+import {BaseTestSuite} from "../common/BaseTestSuite"
 
 export interface GetTypeAtPositionParams {
     readonly textDocument: {
