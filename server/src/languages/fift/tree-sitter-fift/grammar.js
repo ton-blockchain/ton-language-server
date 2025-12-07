@@ -1,5 +1,12 @@
-//  SPDX-License-Identifier: MIT
-//  Copyright © 2025 TON Studio
+/**
+ * @file Fift grammar for tree-sitter
+ * @author TON Blockchain
+ * @license MIT
+ */
+
+/// <reference types="tree-sitter-cli/dsl" />
+// @ts-check
+
 module.exports = grammar({
     name: "fift",
 

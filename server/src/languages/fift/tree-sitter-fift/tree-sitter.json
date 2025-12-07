@@ -4,6 +4,7 @@
         {
             "name": "fift",
             "camelcase": "Fift",
+            "title": "Fift",
             "scope": "source.fift",
             "file-types": ["fif"],
             "injection-regex": "^fift$",
@@ -13,11 +14,10 @@
     "metadata": {
         "version": "0.1.0",
         "license": "MIT",
-        "description": "A tree-sitter grammar for the Fift assembly programming language",
+        "description": "Fift grammar for tree-sitter",
         "authors": [
             {
-                "name": "Petr Makhnev",
-                "email": "mr.makhneff@gmail.com"
+                "name": "TON Blockchain"
             }
         ],
         "links": {

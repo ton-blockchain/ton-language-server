@@ -1,4 +1,4 @@
-"""A tree-sitter grammar for the Fift assembly programming language"""
+"""Fift grammar for tree-sitter"""
 
 from importlib.resources import files as _files
 
