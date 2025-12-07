@@ -1,4 +1,4 @@
-"""A tree-sitter grammar for the TL-B language"""
+"""TL-B grammar for tree-sitter"""
 
 from importlib.resources import files as _files
 

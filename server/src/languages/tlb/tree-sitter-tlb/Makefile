@@ -3,7 +3,7 @@ $(error Windows is not supported)
 endif
 
 LANGUAGE_NAME := tree-sitter-tlb
-HOMEPAGE_URL := https://github.com/tree-sitter/tree-sitter-tlb
+HOMEPAGE_URL := https://github.com/ton-blockchain/ton-language-server
 VERSION := 0.1.0
 
 # repository
@@ -77,7 +77,9 @@ install: all
 	install -m755 lib$(LANGUAGE_NAME).$(SOEXT) '$(DESTDIR)$(LIBDIR)'/lib$(LANGUAGE_NAME).$(SOEXTVER)
 	ln -sf lib$(LANGUAGE_NAME).$(SOEXTVER) '$(DESTDIR)$(LIBDIR)'/lib$(LANGUAGE_NAME).$(SOEXTVER_MAJOR)
 	ln -sf lib$(LANGUAGE_NAME).$(SOEXTVER_MAJOR) '$(DESTDIR)$(LIBDIR)'/lib$(LANGUAGE_NAME).$(SOEXT)
+ifneq ($(wildcard queries/*.scm),)
 	install -m644 queries/*.scm '$(DESTDIR)$(DATADIR)'/tree-sitter/queries/tlb
+endif
 
 uninstall:
 	$(RM) '$(DESTDIR)$(LIBDIR)'/lib$(LANGUAGE_NAME).a \
