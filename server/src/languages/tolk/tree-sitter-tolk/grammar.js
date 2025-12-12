@@ -214,18 +214,22 @@ const TOLK_GRAMMAR = {
         prec.right(
             seq(
                 "asm",
-                optional(
-                    seq(
-                        "(",
-                        repeat($.identifier),
-                        optional(seq("->", repeat($.number_literal))),
-                        ")",
-                    ),
-                ),
+                optional(field("rearrange", $.asm_body_rearrange)),
                 repeat1($.string_literal),
                 optional(";"),
             ),
         ),
+
+    asm_body_rearrange: $ =>
+        seq(
+            "(",
+            optional(field("params", $.asm_body_rearrange_params)),
+            optional(field("return", $.asm_body_rearrange_return)),
+            ")",
+        ),
+
+    asm_body_rearrange_params: $ => repeat1($.identifier),
+    asm_body_rearrange_return: $ => seq("->", repeat($.number_literal)),
 
     builtin_specifier: $ => "builtin",
 
