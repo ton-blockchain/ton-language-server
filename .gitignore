@@ -8,24 +8,9 @@ test-workspace/
 .vscode-test/
 *.wasm
 !**/tree-sitter-tolk/tree-sitter-tolk.wasm
-**/tree-sitter-tolk/src/grammar.json
-**/tree-sitter-tolk/src/parser.c
-**/tree-sitter-tolk/src/node-types.json
-
 !**/tree-sitter-func/tree-sitter-func.wasm
-**/tree-sitter-func/src/grammar.json
-**/tree-sitter-func/src/parser.c
-**/tree-sitter-func/src/node-types.json
-
 !**/tree-sitter-fift/tree-sitter-fift.wasm
-**/tree-sitter-fift/src/grammar.json
-**/tree-sitter-fift/src/parser.c
-**/tree-sitter-fift/src/node-types.json
-
 !**/tree-sitter-tlb/tree-sitter-tlb.wasm
-**/tree-sitter-tlb/src/grammar.json
-**/tree-sitter-tlb/src/parser.c
-**/tree-sitter-tlb/src/node-types.json
 
 # tests
 server/src/e2e/out
