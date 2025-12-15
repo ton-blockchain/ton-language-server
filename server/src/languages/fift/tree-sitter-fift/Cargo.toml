@@ -2,7 +2,10 @@
 name = "tree-sitter-fift"
 description = "Fift grammar for tree-sitter"
 version = "0.1.0"
-authors = ["TON Blockchain"]
+authors = [
+  "TON Core",
+  "TON Studio"
+]
 license = "MIT"
 readme = "README.md"
 keywords = ["incremental", "parsing", "tree-sitter", "fift"]

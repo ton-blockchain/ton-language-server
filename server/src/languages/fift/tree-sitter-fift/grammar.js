@@ -1,6 +1,7 @@
 /**
  * @file Fift grammar for tree-sitter
- * @author TON Blockchain
+ * @author TON Core
+ * @author TON Studio
  * @license MIT
  */
 

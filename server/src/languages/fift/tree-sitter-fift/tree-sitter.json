@@ -17,7 +17,11 @@
         "description": "Fift grammar for tree-sitter",
         "authors": [
             {
-                "name": "TON Blockchain"
+                "name": "TON Core"
+            },
+            {
+                "name": "TON Studio",
+                "url": "https://tonstudio.io"
             }
         ],
         "links": {
