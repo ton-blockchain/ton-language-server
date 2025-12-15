@@ -10,7 +10,7 @@ import {Referent} from "@server/languages/tolk/psi/Referent"
 
 export abstract class UnusedInspection {
     public inspect(file: TolkFile): lsp.Diagnostic[] {
-        if (file.fromStdlib) return []
+        if (file.fromStdlib || file.fromStubs || file.fromActon) return []
         const diagnostics: lsp.Diagnostic[] = []
         this.checkFile(file, diagnostics)
         return diagnostics

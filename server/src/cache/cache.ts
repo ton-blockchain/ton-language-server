@@ -16,6 +16,21 @@ export class Cache<TKey, TValue> {
         return value
     }
 
+    public cachedIf(key: TKey, reevaluateIfValue: TValue, cb: () => TValue): TValue {
+        const cached = this.data.get(key)
+        if (cached !== undefined && cached !== reevaluateIfValue) {
+            return cached
+        }
+
+        const value = cb()
+        this.data.set(key, value)
+        return value
+    }
+
+    public setValue(key: TKey, value: TValue): void {
+        this.data.set(key, value)
+    }
+
     public clear(): void {
         this.data.clear()
     }

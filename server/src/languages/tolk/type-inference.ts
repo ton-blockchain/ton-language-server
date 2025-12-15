@@ -1262,7 +1262,7 @@ class InferenceWalker {
         this.processMethods(searchName, method => {
             const receiverTypeString = method.receiverTypeString()
             if (qualifierTypeString === receiverTypeString) {
-                // fast path, if types are equal it is exact match, no need to search more methods
+                // fast path, if types are equal, it is an exact match, no need to search for more methods
                 result.push(method)
                 return false
             }
@@ -1278,7 +1278,7 @@ class InferenceWalker {
         this.processMethods(searchName, method => {
             const receiverTypeNode = method.receiverTypeNode()
             if (!receiverTypeNode) return true
-            const receiverType = typeOf(receiverTypeNode, method.file)
+            const receiverType = InferenceWalker.convertType(receiverTypeNode, this.ctx.file)
 
             if (!receiverType?.hasGenerics() && receiverType?.equals(qualifierType)) {
                 result.push(method)
@@ -1295,7 +1295,7 @@ class InferenceWalker {
         this.processMethods(searchName, method => {
             const receiverTypeNode = method.receiverTypeNode()
             if (!receiverTypeNode) return true
-            const receiverType = typeOf(receiverTypeNode, method.file)
+            const receiverType = InferenceWalker.convertType(receiverTypeNode, this.ctx.file)
 
             if (!receiverType?.hasGenerics() && receiverType?.canRhsBeAssigned(qualifierType)) {
                 result.push(method)
@@ -1313,7 +1313,7 @@ class InferenceWalker {
         this.processMethods(searchName, method => {
             const receiverTypeNode = method.receiverTypeNode()
             if (!receiverTypeNode) return true
-            const receiverType = typeOf(receiverTypeNode, method.file)
+            const receiverType = InferenceWalker.convertType(receiverTypeNode, this.ctx.file)
 
             // Foo<T>, but not T
             if (receiverType?.hasGenerics() && !(receiverType instanceof TypeParameterTy)) {
@@ -1345,7 +1345,7 @@ class InferenceWalker {
         this.processMethods(searchName, method => {
             const receiverTypeNode = method.receiverTypeNode()
             if (!receiverTypeNode) return true
-            const receiverType = typeOf(receiverTypeNode, method.file)
+            const receiverType = InferenceWalker.convertType(receiverTypeNode, this.ctx.file)
 
             if (receiverType instanceof TypeParameterTy) {
                 result.push(method)
@@ -2071,9 +2071,11 @@ class InferenceWalker {
         file: TolkFile | null | undefined,
     ): Ty | null {
         if (!typeNode || !file) return null
-        return TOLK_CACHE.typeCache.cached(typeNode.id, () =>
-            InferenceWalker.convertTypeImpl(typeNode, file),
-        )
+        return TOLK_CACHE.typeCache.cached(typeNode.id, () => {
+            // add unknown type to avoid recursion
+            TOLK_CACHE.typeCache.setValue(typeNode.id, UnknownTy.UNKNOWN)
+            return InferenceWalker.convertTypeImpl(typeNode, file)
+        })
     }
 
     private static convertTypeImpl(node: SyntaxNode | null | undefined, file: TolkFile): Ty | null {
@@ -2223,6 +2225,12 @@ class InferenceWalker {
     }
 
     public static namedNodeType(node: NamedNode): Ty | null {
+        return TOLK_CACHE.typeCache.cachedIf(node.node.id, UnknownTy.UNKNOWN, () =>
+            InferenceWalker.namedNodeTypeImpl(node),
+        )
+    }
+
+    public static namedNodeTypeImpl(node: NamedNode): Ty | null {
         if (node instanceof Struct) {
             const fieldTypes = node.fields().map(it => {
                 try {
@@ -2262,10 +2270,9 @@ class InferenceWalker {
             const underlyingType = node.underlyingType()
             if (underlyingType === null) return null
 
-            const underlyingTypeName = underlyingType.text
-            if (underlyingTypeName === "builtin") {
+            if (underlyingType.type === "builtin_specifier") {
                 const name = node.name()
-                const type = InferenceWalker.asPrimitiveType(node.name())
+                const type = InferenceWalker.asPrimitiveType(name)
                 if (type) {
                     return type
                 }

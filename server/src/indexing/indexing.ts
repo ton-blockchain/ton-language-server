@@ -38,6 +38,7 @@ export abstract class IndexingRoot {
         const files = await glob(`**/*.${globPattern}`, {
             cwd: rootDir,
             ignore: ignore,
+            dot: true, // we need it for .acton/ folder
         })
         if (files.length === 0) {
             console.warn(`No file to index in ${this.root}`)
