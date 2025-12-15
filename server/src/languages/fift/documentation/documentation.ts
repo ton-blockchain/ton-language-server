@@ -9,13 +9,14 @@ import {generateAsmDoc} from "@server/languages/fift/documentation/asm_documenta
 
 const CODE_FENCE = "```"
 
+// eslint-disable-next-line @typescript-eslint/require-await
 export async function generateFiftDocFor(node: SyntaxNode, file: FiftFile): Promise<string | null> {
     const def = FiftReference.resolve(node, file)
     if (def) {
         return `${CODE_FENCE}fift\n${def.parent?.text}\n${CODE_FENCE}`
     }
 
-    const instr = await findInstruction(node.text, [])
+    const instr = findInstruction(node.text, [])
     if (!instr) return null
 
     const doc = generateAsmDoc(instr)

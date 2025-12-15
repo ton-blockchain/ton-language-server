@@ -1,88 +1,44 @@
 //  SPDX-License-Identifier: MIT
-//  Copyright © 2025 TON Studio
-import * as path from "node:path"
-
-import {pathToFileURL} from "node:url"
-
+//  Copyright © 2025 TON Core
 import {Node as SyntaxNode} from "web-tree-sitter"
 
-import {globalVFS, readFileVFS} from "@server/vfs/files-adapter"
+import type {
+    FiftInstruction,
+    GasConsumptionEntry,
+    Instruction,
+    Specification,
+} from "./specification-schema.ts"
+
+import tvmSpecData from "./tvm-specification.json"
 
 export interface AsmInstruction {
-    readonly mnemonic: string
-    readonly doc: {
-        readonly opcode: string
-        readonly stack: string
-        readonly category: string
-        readonly description: string
-        readonly gas: string
-        readonly fift: string
-        readonly fift_examples: {
-            readonly fift: string
-            readonly description: string
-        }[]
-    }
-    readonly since_version: number
-    readonly alias_info?: AsmAlias
+    readonly name: string
+    readonly instruction: Instruction
+    readonly fiftInstruction?: FiftInstruction
 }
 
-export interface AsmAlias {
-    readonly mnemonic: string
-    readonly alias_of: string
-    readonly doc_fift?: string
-    readonly doc_stack?: string
-    readonly description?: string
-    readonly operands: Record<string, number | string>
+export function instructionSpecification(): Specification {
+    return tvmSpecData as unknown as Specification
 }
 
-export interface AsmData {
-    readonly instructions: AsmInstruction[]
-    readonly aliases: AsmAlias[]
-}
-
-let data: AsmData | null = null
-
-export async function asmData(): Promise<AsmData> {
-    if (data !== null) {
-        return data
-    }
-
-    const filePath = path.join(__dirname, "asm.json")
-    const content = await readFileVFS(globalVFS, filePathToUri(filePath))
-    if (content === undefined) return {instructions: [], aliases: []}
-    data = JSON.parse(content) as AsmData
-    return data
-}
-
-export const filePathToUri = (filePath: string): string => {
-    const url = pathToFileURL(filePath).toString()
-    return url.replace(/c:/g, "c%3A").replace(/d:/g, "d%3A")
-}
-
-export async function findInstruction(
-    name: string,
-    args: SyntaxNode[] = [],
-): Promise<AsmInstruction | null> {
-    const data = await asmData()
+export function findInstruction(name: string, args: SyntaxNode[] = []): AsmInstruction | undefined {
+    const data = instructionSpecification()
 
     const realName = adjustName(name, args)
-    const instruction = data.instructions.find(i => i.mnemonic === realName)
+    const instruction = data.instructions.find(i => i.name === realName)
     if (instruction) {
-        return instruction
+        return {name: realName, instruction}
     }
 
-    const alias = data.aliases.find(i => i.mnemonic === name)
-    if (alias) {
-        const instruction = data.instructions.find(i => i.mnemonic === alias.alias_of)
+    const fiftInstruction = data.fift_instructions.find(i => i.name === realName)
+    if (fiftInstruction) {
+        const instruction = data.instructions.find(i => i.name === fiftInstruction.actual_name)
         if (instruction) {
-            return {
-                ...instruction,
-                alias_info: alias,
-            }
+            return {name: realName, instruction, fiftInstruction}
         }
     }
 
-    return null
+    return undefined
 }
 
 function adjustName(name: string, args: SyntaxNode[]): string {
@@ -117,11 +73,36 @@ function adjustName(name: string, args: SyntaxNode[]): string {
     return name
 }
 
-export function getStackPresentation(rawStack: string | undefined): string {
-    if (!rawStack) return ""
-    const trimmedStack = rawStack.trim()
-    const prefix = trimmedStack.startsWith("-") ? "∅ " : ""
-    const suffix = trimmedStack.endsWith("-") ? " ∅" : ""
-    const stack = prefix + rawStack.replace("-", "→") + suffix
-    return `(${stack})`
+export function formatGasRanges(gasCosts: readonly GasConsumptionEntry[] | undefined): string {
+    if (!gasCosts || gasCosts.length === 0) {
+        return "N/A"
+    }
+
+    const formula = gasCosts.find(it => it.formula !== undefined)
+    const nonFormulaCosts = gasCosts.filter(it => it.formula === undefined)
+
+    if (nonFormulaCosts.length === 0 && formula?.formula !== undefined) {
+        return formula.formula
+    }
+    const numericValues = nonFormulaCosts.map(it => it.value)
+    const sortedCosts = [...numericValues].sort((a, b) => a - b)
+
+    const resultParts: string[] = []
+    let startIndex = 0
+
+    for (let i = 0; i < sortedCosts.length; i++) {
+        if (i === sortedCosts.length - 1 || sortedCosts[i + 1] !== sortedCosts[i] + 1) {
+            if (startIndex === i) {
+                resultParts.push(sortedCosts[i].toString())
+            } else {
+                resultParts.push(`${sortedCosts[startIndex]}-${sortedCosts[i]}`)
+            }
+            startIndex = i + 1
+        }
+    }
+    const baseGas = resultParts.filter(it => it !== "36").join(" | ")
+    if (formula) {
+        return `${baseGas} + ${formula.formula}`
+    }
+    return baseGas
 }

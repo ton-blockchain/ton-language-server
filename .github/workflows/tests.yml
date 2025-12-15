@@ -28,7 +28,7 @@ jobs:
           - macos-latest
     steps:
       - name: Fetch Sources
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Enable Corepack
         if: matrix.os == 'windows-latest'
@@ -39,7 +39,7 @@ jobs:
         run: corepack enable
 
       - name: Setup Node.js 22.x
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v5
         with:
           node-version: 22.x
           cache: "yarn"

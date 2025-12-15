@@ -1,50 +1,50 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Studio
-import {AsmInstruction, getStackPresentation} from "@server/languages/fift/asm/types"
-
-function formatOperands(operands: Record<string, number | string>): string {
-    return Object.entries(operands)
-        .map(([_, value]) => value.toString())
-        .join(" ")
-}
+import {AsmInstruction, formatGasRanges} from "@server/languages/fift/asm/types"
 
 export function generateAsmDoc(instruction: AsmInstruction): string | null {
-    const stackInfo = instruction.doc.stack
-        ? `- Stack (top is on the right): \`${getStackPresentation(instruction.doc.stack)}\``
+    const stackInfo = instruction.instruction.signature?.stack_string
+        ? `- Stack (top is on the right): \`${instruction.instruction.signature.stack_string.replace("->", "→")}\``
         : ""
 
-    const gas = instruction.doc.gas.length > 0 ? instruction.doc.gas : `unknown`
+    const gas = formatGasRanges(instruction.instruction.description.gas ?? [])
+
+    const rawShort = instruction.instruction.description.short
+    const rawLong = instruction.instruction.description.long
+
+    const short = rawShort === "" ? rawLong : rawShort
+    const details = short === rawLong ? "" : rawLong
+    const args = instruction.instruction.description.operands.map(it => `[${it}]`).join(" ")
 
     const actualInstructionDescription = [
         "```",
-        instruction.mnemonic,
+        instruction.name + " " + args,
         "```",
         stackInfo,
         `- Gas: \`${gas}\``,
+        `- Opcode: \`${instruction.instruction.layout.prefix_str}\``,
         "",
-        instruction.doc.description,
+        short,
         "",
+        details ? "**Details:**\n\n" + details : "",
         "",
     ]
 
-    if (instruction.alias_info) {
-        const operandsStr = formatOperands(instruction.alias_info.operands) + " "
-        const aliasInfoDescription = ` (alias of ${operandsStr}${instruction.alias_info.alias_of})`
-
-        const alias = instruction.alias_info
-        const stackInfo = alias.doc_stack
-            ? `- Stack (top is on the right): \`${getStackPresentation(alias.doc_stack)}\``
-            : ""
+    if (instruction.fiftInstruction) {
+        const operandsStr = instruction.fiftInstruction.arguments
+            .map(arg => arg.toString())
+            .join(" ")
+        const fiftInfoDescription = ` alias of ${instruction.fiftInstruction.actual_name} ${operandsStr}`
 
         return [
             "```",
-            alias.mnemonic + aliasInfoDescription,
+            instruction.fiftInstruction.actual_name + fiftInfoDescription,
             "```",
-            stackInfo,
             "",
-            alias.description ?? "",
+            instruction.fiftInstruction.description ?? "",
             "",
             "---",
+            "",
             "Aliased instruction info:",
             "",
             ...actualInstructionDescription,

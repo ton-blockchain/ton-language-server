@@ -1,5 +1,11 @@
-// It's a main grammar description, `tree-sitter generate` works based on this file.
-// This grammar describes the latest version of the Tolk language for TON Blockchain.
+/**
+ * @file Tolk grammar for tree-sitter
+ * @author TON Blockchain
+ * @license MIT
+ */
+
+/// <reference types="tree-sitter-cli/dsl" />
+// @ts-check
 
 function commaSep(rule) {
     return optional(commaSep1(rule))
@@ -208,18 +214,22 @@ const TOLK_GRAMMAR = {
         prec.right(
             seq(
                 "asm",
-                optional(
-                    seq(
-                        "(",
-                        repeat($.identifier),
-                        optional(seq("->", repeat($.number_literal))),
-                        ")",
-                    ),
-                ),
+                optional(field("rearrange", $.asm_body_rearrange)),
                 repeat1($.string_literal),
                 optional(";"),
             ),
         ),
+
+    asm_body_rearrange: $ =>
+        seq(
+            "(",
+            optional(field("params", $.asm_body_rearrange_params)),
+            optional(field("return", $.asm_body_rearrange_return)),
+            ")",
+        ),
+
+    asm_body_rearrange_params: $ => repeat1($.identifier),
+    asm_body_rearrange_return: $ => seq("->", repeat($.number_literal)),
 
     builtin_specifier: $ => "builtin",
 
@@ -390,6 +400,7 @@ const TOLK_GRAMMAR = {
             $.object_literal,
             $.tensor_expression,
             $.typed_tuple,
+            $.lambda_expression,
             $.number_literal,
             $.string_literal,
             $.boolean_literal,
@@ -583,6 +594,16 @@ const TOLK_GRAMMAR = {
     tensor_expression: $ =>
         choice(seq("(", ")"), seq("(", commaSep2($._expression), optional(","), ")")),
     typed_tuple: $ => seq("[", commaSep($._expression), optional(","), "]"),
+
+    lambda_expression: $ =>
+        prec.right(
+            seq(
+                "fun",
+                field("parameters", $.parameter_list),
+                optional(seq(":", field("return_type", optional($._type_hint)))),
+                optional(field("body", $._function_body)),
+            ),
+        ),
 
     // ----------------------------------------------------------
     // type system
