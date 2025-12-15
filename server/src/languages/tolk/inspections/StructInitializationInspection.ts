@@ -9,7 +9,7 @@ import {asLspRange} from "@server/utils/position"
 import type {TolkFile} from "@server/languages/tolk/psi/TolkFile"
 
 import {Field} from "@server/languages/tolk/psi/Decls"
-import {NeverTy, StructTy, TypeParameterTy} from "@server/languages/tolk/types/ty"
+import {NeverTy, StructTy, TypeParameterTy, VoidTy} from "@server/languages/tolk/types/ty"
 import {typeOf} from "@server/languages/tolk/type-inference"
 import {trimBackticks} from "@server/languages/tolk/lang/names-util"
 
@@ -90,7 +90,10 @@ export class StructInitializationInspection implements Inspection {
         const nameNode = f.nameNode()?.node
         if (!nameNode) return false
         const type = typeOf(nameNode, f.file)?.baseType()
-        if (type instanceof TypeParameterTy && type.defaultType instanceof NeverTy) {
+        if (
+            type instanceof TypeParameterTy &&
+            (type.defaultType instanceof NeverTy || type.defaultType instanceof VoidTy)
+        ) {
             return true
         }
 
