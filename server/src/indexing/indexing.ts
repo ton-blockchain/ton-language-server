@@ -28,6 +28,7 @@ export abstract class IndexingRoot {
                       "**/node_modules/**",
                       "**/dist/**",
                       "**/__testdata/**",
+                      ".acton/tolk-stdlib/**", // already indexed in stdlib root
                   ]
 
         const rootDir = fileURLToPath(this.root)

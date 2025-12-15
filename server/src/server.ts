@@ -245,6 +245,7 @@ async function findTolkStdlib(settings: ServerSettings, rootDir: string): Promis
     const tolkStdlibEnv = process.env["TOLK_STDLIB"]
 
     const searchDirs = [
+        `${rootDir}/.acton/tolk-stdlib`,
         `${rootDir}/node_modules/@ton/tolk-js/dist/tolk-stdlib`,
         `${rootDir}/stdlib`,
         `${rootDir}/tolk-stdlib`,
