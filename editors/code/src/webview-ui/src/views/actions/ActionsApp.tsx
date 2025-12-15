@@ -123,13 +123,9 @@ export default function ActionsApp({vscode}: Props): JSX.Element {
               })
             }}
             handleShowTransactionDetails={tx => {
+              // serializedResult and deployedContracts will be loaded on demand
               vscode.postMessage({
                 type: "showTransactionDetails",
-                contractAddress: tx.contractAddress,
-                methodName: tx.methodName,
-                transactionId: tx.transactionId,
-                timestamp: tx.timestamp,
-                status: "success",
               })
             }}
             result={

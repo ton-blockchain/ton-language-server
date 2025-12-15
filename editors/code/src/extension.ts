@@ -15,6 +15,7 @@ import {
 
 import {
     DocumentationAtPositionRequest,
+    GetWorkspaceContractsAbiResponse,
     GetContractAbiParams,
     GetContractAbiResponse,
     SetToolchainVersionNotification,
@@ -22,6 +23,7 @@ import {
     TypeAtPositionParams,
     TypeAtPositionRequest,
     TypeAtPositionResponse,
+    WorkspaceContractInfo,
 } from "@shared/shared-msgtypes"
 
 import type {ClientOptions} from "@shared/config-scheme"
@@ -37,14 +39,21 @@ import {BocEditorProvider} from "./providers/boc/BocEditorProvider"
 import {BocFileSystemProvider} from "./providers/boc/BocFileSystemProvider"
 import {BocDecompilerProvider} from "./providers/boc/BocDecompilerProvider"
 import {registerSaveBocDecompiledCommand} from "./commands/saveBocDecompiledCommand"
-import {registerSandboxCommands} from "./commands/sandboxCommands"
+import {registerSandboxCommands, openFileAtPosition} from "./commands/sandboxCommands"
+import {parseCallStack} from "./common/call-stack-parser"
+
 import {SandboxTreeProvider} from "./providers/sandbox/SandboxTreeProvider"
 import {SandboxActionsProvider} from "./providers/sandbox/SandboxActionsProvider"
 import {HistoryWebviewProvider} from "./providers/sandbox/HistoryWebviewProvider"
 import {TransactionDetailsProvider} from "./providers/sandbox/TransactionDetailsProvider"
 import {SandboxCodeLensProvider} from "./providers/sandbox/SandboxCodeLensProvider"
+import {TestTreeProvider} from "./providers/sandbox/TestTreeProvider"
+import {WebSocketServer} from "./providers/sandbox/WebSocketServer"
 
 import {configureDebugging} from "./debugging"
+import {ContractData, TransactionRun} from "./providers/sandbox/test-types"
+import {TransactionDetailsInfo} from "./common/types/transaction"
+import {DeployedContract} from "./common/types/contract"
 
 let client: LanguageClient | undefined = undefined
 let cachedToolchainInfo: SetToolchainVersionParams | undefined = undefined
@@ -90,6 +99,80 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
     const transactionDetailsProvider = new TransactionDetailsProvider(context.extensionUri)
 
+    const testTreeProvider = new TestTreeProvider()
+    context.subscriptions.push(
+        vscode.window.createTreeView("tonTestResultsTree", {
+            treeDataProvider: testTreeProvider,
+            showCollapseAll: false,
+        }),
+        vscode.commands.registerCommand(
+            "ton.test.showTransactionDetails",
+            async (txRun: TransactionRun) => {
+                const normalizeName = (name: string): string => {
+                    return name.toLowerCase().replace("-contract", "").replace(/[_-]/g, "")
+                }
+                // a bit hacky :)
+                const sameNameContract = (
+                    workspaceContract: WorkspaceContractInfo,
+                    contract: ContractData | undefined,
+                ): boolean => {
+                    const leftName = workspaceContract.name
+                    const rightName = contract?.meta?.wrapperName ?? ""
+                    return normalizeName(leftName) === normalizeName(rightName)
+                }
+
+                const workspaceContracts =
+                    await vscode.commands.executeCommand<GetWorkspaceContractsAbiResponse>(
+                        "tolk.getWorkspaceContractsAbi",
+                    )
+
+                const transactionDetailsInfo: TransactionDetailsInfo = {
+                    serializedResult: txRun.serializedResult,
+                    deployedContracts: txRun.contracts.map((contract): DeployedContract => {
+                        const workspaceContract = workspaceContracts.contracts.find(
+                            workspaceContract => sameNameContract(workspaceContract, contract),
+                        )
+                        return {
+                            abi: workspaceContract?.abi,
+                            sourceMap: undefined,
+                            address: contract.address,
+                            deployTime: undefined,
+                            name: contract.meta?.wrapperName ?? "unknown",
+                            sourceUri: workspaceContract?.path ?? "",
+                        }
+                    }),
+                }
+
+                transactionDetailsProvider.showTransactionDetails(transactionDetailsInfo)
+            },
+        ),
+        vscode.commands.registerCommand(
+            "ton.test.openTestSource",
+            (treeItem: {command?: vscode.Command}) => {
+                const txRun = treeItem.command?.arguments?.[0] as TransactionRun | undefined
+                if (!txRun) {
+                    console.error("No txRun found in tree item arguments")
+                    return
+                }
+
+                const transactionWithCallStack = txRun.transactions.find(tx => tx.callStack)
+                if (!transactionWithCallStack?.callStack) return
+
+                const parsedCallStack = parseCallStack(transactionWithCallStack.callStack)
+                if (parsedCallStack.length > 0) {
+                    const lastEntry = parsedCallStack.at(-1)
+                    if (
+                        lastEntry?.file &&
+                        lastEntry.line !== undefined &&
+                        lastEntry.column !== undefined
+                    ) {
+                        openFileAtPosition(lastEntry.file, lastEntry.line - 1, lastEntry.column - 1)
+                    }
+                }
+            },
+        ),
+    )
+
     const sandboxCodeLensProvider = new SandboxCodeLensProvider(sandboxTreeProvider)
     context.subscriptions.push(
         vscode.languages.registerCodeLensProvider({language: "tolk"}, sandboxCodeLensProvider),
@@ -98,7 +181,18 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     sandboxTreeProvider.setActionsProvider(sandboxActionsProvider)
     sandboxTreeProvider.setCodeLensProvider(sandboxCodeLensProvider)
 
+    const websocketPort = vscode.workspace
+        .getConfiguration("ton.sandbox")
+        .get("websocketPort", 7743)
+    const wsServer = new WebSocketServer(testTreeProvider, websocketPort)
+    wsServer.start()
+
     context.subscriptions.push(
+        {
+            dispose: () => {
+                wsServer.dispose()
+            },
+        },
         vscode.window.onDidChangeActiveTextEditor(editor => {
             if (editor) {
                 const document = {
@@ -128,6 +222,11 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
                 return client?.sendRequest<GetContractAbiResponse>("tolk.getContractAbi", params)
             },
         ),
+        vscode.commands.registerCommand("tolk.getWorkspaceContractsAbi", async () => {
+            return client?.sendRequest<GetWorkspaceContractsAbiResponse>(
+                "tolk.getWorkspaceContractsAbi",
+            )
+        }),
         ...sandboxCommands,
     )
 
