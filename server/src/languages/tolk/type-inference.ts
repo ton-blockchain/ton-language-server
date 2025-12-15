@@ -963,15 +963,6 @@ class InferenceWalker {
         return ExprFlow.create(nextFlow, false)
     }
 
-    public lambdaParameters(lambda: SyntaxNode): SyntaxNode[] {
-        const parametersNode = lambda.childForFieldName("parameters")
-        if (!parametersNode) return []
-
-        return parametersNode.children
-            .filter(value => value?.type === "parameter_declaration")
-            .filter(value => value !== null)
-    }
-
     private inferGenericInstantiation(
         node: SyntaxNode,
         flow: FlowContext,

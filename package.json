@@ -384,6 +384,16 @@
                 "title": "Open Sandbox Terminal",
                 "category": "TON",
                 "icon": "$(terminal)"
+            },
+            {
+                "command": "acton.run",
+                "title": "Acton: Run script",
+                "category": "Acton"
+            },
+            {
+                "command": "acton.runBroadcast",
+                "title": "Acton: Run script with broadcast",
+                "category": "Acton"
             }
         ],
         "views": {
@@ -754,6 +764,16 @@
                         "type": "string",
                         "default": "./node_modules/.bin/ton-sandbox-server",
                         "description": "Path to the TON Sandbox server binary"
+                    }
+                }
+            },
+            {
+                "title": "Acton",
+                "properties": {
+                    "ton.acton.binaryPath": {
+                        "type": "string",
+                        "default": "",
+                        "description": "Path to the Acton binary. If empty, tries to use 'acton' from PATH."
                     }
                 }
             }

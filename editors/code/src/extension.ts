@@ -44,6 +44,8 @@ import {HistoryWebviewProvider} from "./providers/sandbox/HistoryWebviewProvider
 import {TransactionDetailsProvider} from "./providers/sandbox/TransactionDetailsProvider"
 import {SandboxCodeLensProvider} from "./providers/sandbox/SandboxCodeLensProvider"
 import {TolkTestController} from "./providers/sandbox/TolkTestController"
+import {ActonCodeLensProvider} from "./acton/ActonCodeLensProvider"
+import {actonRunner} from "./acton/ActonRunner"
 
 import {configureDebugging} from "./debugging"
 
@@ -94,6 +96,27 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     const sandboxCodeLensProvider = new SandboxCodeLensProvider(sandboxTreeProvider)
     context.subscriptions.push(
         vscode.languages.registerCodeLensProvider({language: "tolk"}, sandboxCodeLensProvider),
+    )
+
+    const actonCodeLensProvider = new ActonCodeLensProvider()
+    context.subscriptions.push(
+        vscode.languages.registerCodeLensProvider({language: "tolk"}, actonCodeLensProvider),
+        vscode.commands.registerCommand("acton.run", (scriptPath: string | undefined) => {
+            const targetPath = scriptPath ?? vscode.window.activeTextEditor?.document.uri.fsPath
+            if (targetPath) {
+                actonRunner.run(targetPath, false)
+            } else {
+                vscode.window.showErrorMessage("No script path provided and no active editor")
+            }
+        }),
+        vscode.commands.registerCommand("acton.runBroadcast", (scriptPath: string | undefined) => {
+            const targetPath = scriptPath ?? vscode.window.activeTextEditor?.document.uri.fsPath
+            if (targetPath) {
+                actonRunner.run(targetPath, true)
+            } else {
+                vscode.window.showErrorMessage("No script path provided and no active editor")
+            }
+        }),
     )
 
     const testController = new TolkTestController()
