@@ -17,11 +17,11 @@
         "description": "FunC grammar for tree-sitter",
         "authors": [
             {
-                "name": "akifog and TON Blockchain"
+                "name": "TON Blockchain"
             }
         ],
         "links": {
-            "repository": "https://github.com/ton-blockchain/tree-sitter-func"
+            "repository": "https://github.com/ton-blockchain/ton-language-server"
         }
     },
     "bindings": {

@@ -8,6 +8,7 @@ export const TypeAtPositionRequest = "tolk.getTypeAtPosition"
 export const DocumentationAtPositionRequest = "tolk.executeHoverProvider"
 export const SetToolchainVersionNotification = "tolk.setToolchainVersion"
 export const ContractAbiRequest = "tolk.getContractAbi"
+export const GetAllContractsAbiRequest = "tolk.getWorkspaceContractsAbi"
 
 export interface TypeAtPositionParams {
     readonly textDocument: {
@@ -27,6 +28,16 @@ export interface GetContractAbiParams {
 
 export interface GetContractAbiResponse {
     readonly abi: ContractAbi | undefined
+}
+
+export interface GetWorkspaceContractsAbiResponse {
+    readonly contracts: WorkspaceContractInfo[]
+}
+
+export interface WorkspaceContractInfo {
+    readonly name: string
+    readonly path: string
+    readonly abi: ContractAbi
 }
 
 export interface EnvironmentInfo {

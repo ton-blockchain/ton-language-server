@@ -68,11 +68,11 @@ export class TransactionDetailsProvider {
         }
     }
 
-    public addTransactions(resultString: string): void {
+    public addTransactions(serializedResult: string): void {
         if (this.panel) {
             void this.panel.webview.postMessage({
                 type: "addTransactions",
-                resultString,
+                serializedResult,
             })
         }
     }

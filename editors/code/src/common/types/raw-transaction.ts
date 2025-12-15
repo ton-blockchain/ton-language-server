@@ -43,6 +43,7 @@ export interface RawTransactionInfo {
     readonly childrenIds: string[]
     readonly oldStorage: HexString | undefined
     readonly newStorage: HexString | undefined
+    readonly callStack: string | undefined
 }
 
 // temp type only for building
@@ -63,6 +64,7 @@ interface MutableTransactionInfo {
     readonly contractName: string | undefined
     readonly oldStorage: Cell | undefined
     readonly newStorage: Cell | undefined
+    readonly callStack: string | undefined
     parent: TransactionInfo | undefined
     children: TransactionInfo[]
 }
@@ -141,6 +143,7 @@ const processRawTx = (
         children: [],
         oldStorage: tx.oldStorage ? Cell.fromHex(tx.oldStorage) : undefined,
         newStorage: tx.newStorage ? Cell.fromHex(tx.newStorage) : undefined,
+        callStack: tx.callStack,
     }
     visited.set(tx, result)
 
@@ -289,4 +292,29 @@ const computeFinalData = (
  */
 export const processRawTransactions = (txs: RawTransactionInfo[]): TransactionInfo[] => {
     return txs.map(tx => processRawTx(tx, txs, new Map()))
+}
+
+function parseTransactions(data: string): RawTransactions | undefined {
+    try {
+        return JSON.parse(data) as RawTransactions
+    } catch {
+        return undefined
+    }
+}
+
+export function processTxString(serializedResult: string): TransactionInfo[] | undefined {
+    const rawTxs = parseTransactions(serializedResult)
+    if (!rawTxs) {
+        return undefined
+    }
+
+    const parsedTransactions = rawTxs.transactions.map(
+        (it): RawTransactionInfo => ({
+            ...it,
+            transaction: it.transaction,
+            parsedTransaction: loadTransaction(Cell.fromHex(it.transaction).asSlice()),
+        }),
+    )
+
+    return processRawTransactions(parsedTransactions)
 }

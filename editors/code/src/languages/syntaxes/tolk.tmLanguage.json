@@ -1,8 +1,10 @@
 {
     "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
     "name": "tolk",
+    "scopeName": "source.tolk",
     "foldingStartMarker": "\\{\\s*$",
     "foldingStopMarker": "^\\s*\\}",
+    "fileTypes": ["tolk"],
     "patterns": [
         {
             "name": "comment.line.double-slash",
@@ -77,5 +79,5 @@
             "match": "\\b[A-Z][a-zA-Z0-9]*\\b"
         }
     ],
-    "scopeName": "source.tolk"
+    "repository": {}
 }
