@@ -5,7 +5,7 @@
     "repository": "https://github.com/ton-blockchain/tree-sitter-tolk",
     "license": "MIT",
     "author": {
-        "name": "TON Blockchain"
+        "name": "TON Core"
     },
     "main": "bindings/node",
     "types": "bindings/node",

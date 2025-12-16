@@ -17,7 +17,11 @@
         "description": "FunC grammar for tree-sitter",
         "authors": [
             {
-                "name": "TON Blockchain"
+                "name": "TON Core"
+            },
+            {
+                "name": "akifoq",
+                "url": "https://github.com/akifoq"
             }
         ],
         "links": {

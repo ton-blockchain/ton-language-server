@@ -1,6 +1,6 @@
 /**
  * @file Tolk grammar for tree-sitter
- * @author TON Blockchain
+ * @author TON Core
  * @license MIT
  */
 
