@@ -537,11 +537,7 @@ export function registerSandboxCommands(
                           .map(tx => tx.trim())
                     : [value]
                 transactionDetailsProvider.showTransactionDetails({
-                    methodName: "",
-                    status: "success",
-                    timestamp: "",
-                    contractAddress: "",
-                    resultString: JSON.stringify({
+                    serializedResult: JSON.stringify({
                         transactions: txs.map(tx => ({
                             transaction: tx,
                             parsedTransaction: undefined,
@@ -553,8 +549,10 @@ export function registerSandboxCommands(
                             childrenIds: [],
                             oldStorage: undefined,
                             newStorage: undefined,
+                            callStack: "",
                         })),
                     } satisfies RawTransactions),
+                    deployedContracts: [],
                 })
 
                 // void vscode.window.showInformationMessage(

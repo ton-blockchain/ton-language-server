@@ -702,7 +702,8 @@
                                 "cannot-reassign",
                                 "need-not-null-unwrapping",
                                 "missed-semicolon",
-                                "call-arguments-count-mismatch"
+                                "call-arguments-count-mismatch",
+                                "missing-fields"
                             ]
                         },
                         "default": [

@@ -90,19 +90,17 @@ export class TolkTestController implements Disposable {
     }
 
     private async discoverAllTests(): Promise<void> {
-        // Clear existing tests
         this.controller.items.forEach(item => {
             this.controller.items.delete(item.id)
         })
         this.testItems.clear()
 
-        // Find all .tolk files in workspace
-        const tolkFiles = await vscode.workspace.findFiles("**/*.tolk", "**/node_modules/**")
+        const tolkFiles = await vscode.workspace.findFiles("**/*.test.tolk", "**/node_modules/**")
         const files = [...tolkFiles]
 
         for (const uri of files) {
             if (
-                uri.fsPath.includes("_test.tolk_test.tolk") ||
+                uri.fsPath.includes(".test.tolk.test.tolk") ||
                 uri.fsPath.includes("node_modules")
             ) {
                 continue
@@ -154,7 +152,11 @@ export class TolkTestController implements Disposable {
     }
 
     private isTestMethod(getMethod: GetMethod): boolean {
-        return getMethod.name.startsWith("test_") || getMethod.name.startsWith("test-")
+        return (
+            getMethod.name.startsWith("test ") ||
+            getMethod.name.startsWith("test_") ||
+            getMethod.name.startsWith("test-")
+        )
     }
 
     private createTestItem(getMethod: GetMethod, uri: vscode.Uri): void {

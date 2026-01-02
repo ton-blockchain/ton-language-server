@@ -1,9 +1,15 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
 import * as vscode from "vscode"
+import {Cell, loadTransaction} from "@ton/core"
+import {SourceMap} from "ton-source-map"
 
 import {parseCallStack} from "../../common/call-stack-parser"
-import {processTxString} from "../../common/types/raw-transaction"
+import {
+    processTxString,
+    processRawTransactions,
+    RawTransactionInfo,
+} from "../../common/types/raw-transaction"
 
 import {TestDataMessage, TransactionRun} from "./test-types"
 
@@ -18,6 +24,37 @@ interface TestTreeItem {
     readonly type: "testName" | "testRun" | "message"
 }
 
+interface ActonTrace {
+    readonly name: string
+    readonly pos: {
+        readonly row: number
+        readonly column: number
+        readonly uri: string
+    }
+    readonly txs: {
+        readonly transactions: readonly ActonTransaction[]
+    }
+    readonly contracts: readonly ActonContract[]
+}
+
+interface ActonTransaction {
+    readonly raw_transaction: string
+    readonly parent_transaction: string | null
+    readonly child_transactions: readonly string[]
+    readonly shard_account_before: string
+    readonly shard_account: string
+    readonly vm_log_diff: string
+    readonly logs: string
+    readonly actions: string | null
+    readonly dest_contract_info: string | null
+}
+
+interface ActonContract {
+    readonly name: string
+    readonly code_boc64: string
+    readonly source_map: SourceMap | undefined
+}
+
 export class TestTreeProvider implements vscode.TreeDataProvider<TestTreeItem> {
     private readonly _onDidChangeTreeData: vscode.EventEmitter<TestTreeItem | undefined | null> =
         new vscode.EventEmitter<TestTreeItem | undefined | null>()
@@ -25,6 +62,110 @@ export class TestTreeProvider implements vscode.TreeDataProvider<TestTreeItem> {
         this._onDidChangeTreeData.event
 
     private readonly txRunsByName: Map<string, TransactionRun[]> = new Map()
+
+    public constructor() {
+        this.initWatcher()
+    }
+
+    private initWatcher(): void {
+        const workspaceRoot = vscode.workspace.workspaceFolders?.[0]?.uri.fsPath
+        if (!workspaceRoot) return
+
+        const watcher = vscode.workspace.createFileSystemWatcher(
+            new vscode.RelativePattern(workspaceRoot, ".acton/traces/*.json"),
+        )
+
+        watcher.onDidCreate(uri => {
+            void this.loadTraceFile(uri)
+        })
+        watcher.onDidChange(uri => {
+            void this.loadTraceFile(uri)
+        })
+
+        // Initial scan
+        vscode.workspace
+            .findFiles(new vscode.RelativePattern(workspaceRoot, ".acton/traces/*.json"))
+            .then(uris => {
+                for (const uri of uris) {
+                    void this.loadTraceFile(uri)
+                }
+            })
+    }
+
+    private async loadTraceFile(uri: vscode.Uri): Promise<void> {
+        try {
+            const content = await vscode.workspace.fs.readFile(uri)
+            const json = JSON.parse(Buffer.from(content).toString("utf8")) as ActonTrace
+
+            this.processActonTrace(json)
+        } catch (error) {
+            console.error(`Failed to load trace file ${uri.fsPath}:`, error)
+        }
+    }
+
+    private processActonTrace(trace: ActonTrace): void {
+        const contractCodeHashes: Map<string, ActonContract> = new Map()
+        for (const contract of trace.contracts) {
+            try {
+                const cell = Cell.fromBase64(contract.code_boc64)
+                contractCodeHashes.set(cell.hash().toString("hex"), contract)
+            } catch (error: unknown) {
+                console.error("Failed to parse contract code:", error)
+            }
+        }
+
+        const rawTxs: RawTransactionInfo[] = trace.txs.transactions.map(actonTx => {
+            const transactionHex = Buffer.from(actonTx.raw_transaction, "base64").toString("hex")
+            const parsedTx = loadTransaction(Cell.fromHex(transactionHex).asSlice())
+
+            let code: string | undefined
+            let sourceMap: SourceMap | undefined
+            let contractName: string | undefined
+
+            const contract = trace.contracts.find(c => c.name === actonTx.dest_contract_info)
+
+            if (contract) {
+                code = Buffer.from(contract.code_boc64, "base64").toString("hex")
+                sourceMap = contract.source_map ?? undefined
+                contractName = contract.name
+            }
+
+            return {
+                transaction: transactionHex,
+                parsedTransaction: parsedTx,
+                fields: {vmLogs: actonTx.logs},
+                code,
+                sourceMap,
+                contractName,
+                parentId: actonTx.parent_transaction ?? undefined,
+                childrenIds: [...actonTx.child_transactions],
+                oldStorage: undefined,
+                newStorage: undefined,
+                callStack: undefined,
+            } satisfies RawTransactionInfo
+        })
+
+        const processedTxs = processRawTransactions(rawTxs)
+
+        const serializedResult = JSON.stringify({
+            transactions: rawTxs.map(tx => ({
+                ...tx,
+                parsedTransaction: undefined,
+            })),
+        })
+
+        const txRun: TransactionRun = {
+            id: `test-${trace.name}-${Date.now()}`,
+            name: trace.name,
+            timestamp: Date.now(),
+            transactions: processedTxs,
+            contracts: [],
+            serializedResult: serializedResult,
+        }
+
+        this.txRunsByName.set(trace.name, [txRun])
+        this._onDidChangeTreeData.fire(undefined)
+    }
 
     public addTestData(data: TestDataMessage): void {
         const transactions = processTxString(data.transactions) ?? []

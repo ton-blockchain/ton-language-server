@@ -104,10 +104,10 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
     const testTreeProvider = new TestTreeProvider()
     context.subscriptions.push(
-        vscode.window.createTreeView("tonTestResultsTree", {
-            treeDataProvider: testTreeProvider,
-            showCollapseAll: false,
-        }),
+        // vscode.window.createTreeView("tonTestResultsTree", {
+        //     treeDataProvider: testTreeProvider,
+        //     showCollapseAll: false,
+        // }),
         vscode.commands.registerCommand(
             "ton.test.showTransactionDetails",
             async (txRun: TransactionRun) => {
