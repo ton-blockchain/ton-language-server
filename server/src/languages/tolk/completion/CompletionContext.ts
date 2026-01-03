@@ -27,6 +27,7 @@ export class CompletionContext {
     public isMethodName: boolean = false
     public expectFieldModifier: boolean = false
     public isEnumMemberName: boolean = false
+    public insideString: boolean = false
 
     // struct fields
     public inNameOfFieldInit: boolean = false
@@ -181,6 +182,10 @@ export class CompletionContext {
         if (parent.type === "import_directive") {
             this.insideImport = true
         }
+
+        if (element.node.type === "string_literal") {
+            this.insideString = true
+        }
     }
 
     public expression(): boolean {
@@ -196,7 +201,8 @@ export class CompletionContext {
             !this.isFunctionName &&
             !this.isMethodName &&
             !this.expectFieldModifier &&
-            !this.isAnnotationName
+            !this.isAnnotationName &&
+            !this.insideString
         )
     }
 }
