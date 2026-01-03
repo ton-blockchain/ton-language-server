@@ -163,6 +163,9 @@ export class TopLevelCompletionProvider implements CompletionProvider<Completion
         if (ctx.element.file.isTestFile) {
             result.add({
                 label: `get fun test`,
+                labelDetails: {
+                    detail: "() {}",
+                },
                 kind: CompletionItemKind.Keyword,
                 insertText: "get fun `test $1`() {$0}",
                 insertTextFormat: InsertTextFormat.Snippet,
