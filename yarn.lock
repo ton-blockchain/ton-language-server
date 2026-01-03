@@ -10797,13 +10797,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"smol-toml@npm:^1.6.0":
-  version: 1.6.0
-  resolution: "smol-toml@npm:1.6.0"
-  checksum: 10c0/baf33bb6cd914d481329e31998a12829cd126541458ba400791212c80f1245d5b27dac04a56a52c02b287d2a494f1628c05fc19643286b258b2e0bb9fe67747c
-  languageName: node
-  linkType: hard
-
 "socks-proxy-agent@npm:^8.0.3":
   version: 8.0.5
   resolution: "socks-proxy-agent@npm:8.0.5"
@@ -12346,7 +12339,6 @@ __metadata:
     react-dom: "npm:^18.3.1"
     react-icons: "npm:^5.5.0"
     react-markdown: "npm:^10.1.0"
-    smol-toml: "npm:^1.6.0"
     style-loader: "npm:^4.0.0"
     stylelint: "npm:^16.24.0"
     stylelint-config-standard: "npm:^39.0.0"
