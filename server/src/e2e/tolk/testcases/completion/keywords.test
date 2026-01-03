@@ -36,9 +36,6 @@ fun foo() {
 2  _^/_(x: int, y: int): int
 2  _^>>_(x: int, y: int): int
 2  _^_(x: int, y: int): int
-2  __expect_inline<T>(value: T)
-2  __expect_lazy<T>(value: T)
-2  __expect_type<T>(actual: T, expect: slice)
 2  _|_(x: int, y: int): int
 2  _~/_(x: int, y: int): int
 2  _~>>_(x: int, y: int): int
@@ -227,9 +224,6 @@ fun foo() {
 2  _^/_(x: int, y: int): int
 2  _^>>_(x: int, y: int): int
 2  _^_(x: int, y: int): int
-2  __expect_inline<T>(value: T)
-2  __expect_lazy<T>(value: T)
-2  __expect_type<T>(actual: T, expect: slice)
 2  _|_(x: int, y: int): int
 2  _~/_(x: int, y: int): int
 2  _~>>_(x: int, y: int): int
@@ -407,9 +401,6 @@ fun foo() {
 2  _^/_(x: int, y: int): int
 2  _^>>_(x: int, y: int): int
 2  _^_(x: int, y: int): int
-2  __expect_inline<T>(value: T)
-2  __expect_lazy<T>(value: T)
-2  __expect_type<T>(actual: T, expect: slice)
 2  _|_(x: int, y: int): int
 2  _~/_(x: int, y: int): int
 2  _~>>_(x: int, y: int): int

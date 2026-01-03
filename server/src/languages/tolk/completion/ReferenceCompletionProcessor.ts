@@ -56,6 +56,9 @@ export class ReferenceCompletionProcessor implements ScopeProcessor {
             if (name === "__toTuple" || name === "estimatePackSize") {
                 return false
             }
+            if (name.startsWith("__")) {
+                return false
+            }
         }
 
         if (node instanceof TypeParameter) return false
