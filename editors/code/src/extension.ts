@@ -50,6 +50,8 @@ import {SandboxCodeLensProvider} from "./providers/sandbox/SandboxCodeLensProvid
 import {TestTreeProvider} from "./providers/sandbox/TestTreeProvider"
 import {WebSocketServer} from "./providers/sandbox/WebSocketServer"
 
+import {ActonTomlCodeLensProvider} from "./acton/toml/ActonTomlCodeLensProvider"
+import {ActonTomlHoverProvider} from "./acton/toml/ActonTomlHoverProvider"
 import {configureDebugging} from "./debugging"
 import {ContractData, TransactionRun} from "./providers/sandbox/test-types"
 import {TransactionDetailsInfo} from "./common/types/transaction"
@@ -174,9 +176,19 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     )
 
     const sandboxCodeLensProvider = new SandboxCodeLensProvider(sandboxTreeProvider)
+
+    // Acton integration
+    const actonTomlCodeLensProvider = new ActonTomlCodeLensProvider()
+    const actonTomlHoverProvider = new ActonTomlHoverProvider()
     context.subscriptions.push(
         vscode.languages.registerCodeLensProvider({language: "tolk"}, sandboxCodeLensProvider),
+        vscode.languages.registerCodeLensProvider(
+            {pattern: "**/Acton.toml"},
+            actonTomlCodeLensProvider,
+        ),
+        vscode.languages.registerHoverProvider({pattern: "**/Acton.toml"}, actonTomlHoverProvider),
     )
+    ActonTomlCodeLensProvider.registerCommands(context)
 
     sandboxTreeProvider.setActionsProvider(sandboxActionsProvider)
     sandboxTreeProvider.setCodeLensProvider(sandboxCodeLensProvider)
