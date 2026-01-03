@@ -31,13 +31,13 @@ jobs:
 
     steps:
       - name: Checkout source repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           fetch-depth: 0
           path: source
 
       - name: Checkout target repository
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           repository: ${{ env.GRAMMAR_REPO }}
           token: ${{ secrets.GRAMMAR_SYNC_TOKEN }}

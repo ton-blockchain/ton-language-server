@@ -14,13 +14,13 @@ jobs:
 
     steps:
       - name: Fetch Sources
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       - name: Enable Corepack
         run: corepack enable
 
       - name: Setup Node.js 22.x
-        uses: actions/setup-node@v5
+        uses: actions/setup-node@v6
         with:
           node-version: 22.x
           cache: "yarn"
@@ -31,7 +31,7 @@ jobs:
         run: yarn install --immutable
 
       - name: Setup EMSDK
-        uses: pyodide/setup-emsdk@v15
+        uses: pyodide/setup-emsdk@ca2dd8aef8c2a0e11743c5c36f0b430ddb694b5c # v15
         env:
           EMSDK_VERSION: 4.0.15
         with:
