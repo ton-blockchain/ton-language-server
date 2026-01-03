@@ -8,7 +8,7 @@ import type {TextDocumentPositionParams} from "vscode-languageserver"
 
 import type {TestCase} from "../common/TestParser"
 
-import {BaseTestSuite} from "./BaseTestSuite"
+import {BaseTestSuite} from "../common/BaseTestSuite"
 
 suite("References Test Suite", () => {
     const testSuite = new (class extends BaseTestSuite {
