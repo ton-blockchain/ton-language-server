@@ -11,6 +11,7 @@ import {
     EnumMember,
     Field,
     Func,
+    GetMethod,
     GlobalVariable,
     InstanceMethod,
     Parameter,
@@ -58,6 +59,11 @@ export class ReferenceCompletionProcessor implements ScopeProcessor {
         }
 
         if (node instanceof TypeParameter) return false
+
+        if (node instanceof GetMethod && node.isTestFunction()) {
+            // we don't want to show `test-something` functions in completions
+            return false
+        }
 
         // since structs can be created like `Foo{}` we allow them
         if (node instanceof Struct) return true
