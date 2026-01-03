@@ -313,6 +313,11 @@ export class GetMethod extends FunctionBase {
     public override kindName(): string {
         return "get fun"
     }
+
+    public isTestFunction(): boolean {
+        const name = this.name(true)
+        return name.startsWith("test ") || name.startsWith("test_") || name.startsWith("test-")
+    }
 }
 
 export class Parameter extends NamedNode {
