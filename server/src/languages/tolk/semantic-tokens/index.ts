@@ -114,6 +114,14 @@ export function provideTolkSemanticTokens(file: TolkFile): SemanticTokens {
             const name = n.childForFieldName("name")
             if (!name) return true
 
+            if (name.endIndex - name.startIndex == 4 && name.text === "self") {
+                tokens.node(
+                    name,
+                    lsp.SemanticTokenTypes.keyword,
+                    isMutable ? [lsp.SemanticTokenModifiers.modification] : [],
+                )
+                return true
+            }
             tokens.node(
                 name,
                 lsp.SemanticTokenTypes.parameter,
@@ -131,6 +139,15 @@ export function provideTolkSemanticTokens(file: TolkFile): SemanticTokens {
             switch (resolvedType) {
                 case "parameter_declaration": {
                     const isMutable = resolved.node.childForFieldName("mutate") !== null
+
+                    if (n.endIndex - n.startIndex == 4 && n.text === "self") {
+                        tokens.node(
+                            n,
+                            lsp.SemanticTokenTypes.keyword,
+                            isMutable ? [lsp.SemanticTokenModifiers.modification] : [],
+                        )
+                        return true
+                    }
 
                     tokens.node(
                         n,
