@@ -13,7 +13,7 @@ export class ActonTolkCodeLensProvider implements vscode.CodeLensProvider {
         document: vscode.TextDocument,
         _token: vscode.CancellationToken,
     ): vscode.CodeLens[] {
-        if (document.languageId !== "tolk") {
+        if (document.languageId !== "tolk" || document.uri.fsPath.endsWith(".test.tolk")) {
             return []
         }
 
