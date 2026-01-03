@@ -833,7 +833,7 @@
     "dependencies": {
         "@ton/core": "0.61.0",
         "@ton/crypto": "^3.3.0",
-        "@vscode/debugadapter": "^1.51.0",
+        "@vscode/debugadapter": "^1.68.0",
         "@vscode/debugprotocol": "^1.68.0",
         "buffer": "^6.0.3",
         "glob": "^11.1.0",
