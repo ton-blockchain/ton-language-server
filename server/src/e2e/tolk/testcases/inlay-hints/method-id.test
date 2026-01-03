@@ -47,3 +47,26 @@ get fun data(): int {
 get/* (0x18762) */ fun data(): int {
     return 0
 }
+
+========================================================================
+Get method id hint for test get method
+========================================================================
+get fun `test foo`(): int {
+    return 0
+}
+get fun `test-foo`(): int {
+    return 0
+}
+get fun `test_foo`(): int {
+    return 0
+}
+------------------------------------------------------------------------
+get fun `test foo`(): int {
+    return 0
+}
+get fun `test-foo`(): int {
+    return 0
+}
+get fun `test_foo`(): int {
+    return 0
+}
