@@ -23,7 +23,7 @@ export class CallArgumentsCountMismatchInspection implements Inspection {
         InspectionIds.CALL_ARGUMENTS_COUNT_MISMATCH
 
     public inspect(file: TolkFile): lsp.Diagnostic[] {
-        if (file.fromStdlib) return []
+        if (file.fromStdlib || file.fromActon) return []
         const diagnostics: lsp.Diagnostic[] = []
 
         RecursiveVisitor.visit(file.rootNode, node => {

@@ -14,7 +14,7 @@ export class UnusedImportInspection implements Inspection {
     public readonly id: "unused-import" = InspectionIds.UNUSED_IMPORT
 
     public inspect(file: TolkFile): lsp.Diagnostic[] {
-        if (file.fromStdlib) return []
+        if (file.fromStdlib || file.fromActon) return []
         const diagnostics: lsp.Diagnostic[] = []
 
         const imports: Map<
