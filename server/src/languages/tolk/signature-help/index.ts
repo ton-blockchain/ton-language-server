@@ -10,6 +10,7 @@ import {Reference} from "@server/languages/tolk/psi/Reference"
 import {File} from "@server/psi/File"
 import {asParserPoint} from "@server/utils/position"
 import {findTolkFile} from "@server/files"
+import {inferenceOf} from "@server/languages/tolk/type-inference"
 
 export async function provideTolkSignatureInfo(
     params: lsp.SignatureHelpParams,
@@ -164,7 +165,8 @@ export function findSignatureHelpTarget(
     const calleeName = call.calleeName()
     if (!calleeName) return null
 
-    const res = Reference.resolve(new NamedNode(calleeName, file))
+    const inference = inferenceOf(callNode, file)
+    const res = inference?.resolve(calleeName) ?? Reference.resolve(new NamedNode(calleeName, file))
     if (res === null) return null
 
     const parameters = findParameters(res)
