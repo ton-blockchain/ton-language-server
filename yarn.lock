@@ -2676,10 +2676,10 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/vscode@npm:^1.63.0":
-  version: 1.104.0
-  resolution: "@types/vscode@npm:1.104.0"
-  checksum: 10c0/6d9dd470a8d430c65ce5069bc504b9b3f500fcfe13dc7e5df23994f70ea569707ea005936cf706d325b3abf28bfdc402eb8b8449c548b7428f1a6ebfe0d264b9
+"@types/vscode@npm:^1.88.0":
+  version: 1.107.0
+  resolution: "@types/vscode@npm:1.107.0"
+  checksum: 10c0/91dcefaa646bb586189f80f64e2d63f3d2189ff521ce44872652ffbb80d4420fede685a6dbd1fa274fb5ef54501bff23e66ee5f15df9205b12c5bd6d8429988f
   languageName: node
   linkType: hard
 
@@ -2998,7 +2998,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@vscode/debugadapter@npm:^1.51.0":
+"@vscode/debugadapter@npm:^1.68.0":
   version: 1.68.0
   resolution: "@vscode/debugadapter@npm:1.68.0"
   dependencies:
@@ -12304,9 +12304,9 @@ __metadata:
     "@types/node": "npm:^22.2.0"
     "@types/react": "npm:^18.3.3"
     "@types/react-dom": "npm:^18.3.0"
-    "@types/vscode": "npm:^1.63.0"
+    "@types/vscode": "npm:^1.88.0"
     "@types/ws": "npm:^8"
-    "@vscode/debugadapter": "npm:^1.51.0"
+    "@vscode/debugadapter": "npm:^1.68.0"
     "@vscode/debugprotocol": "npm:^1.68.0"
     "@vscode/test-cli": "npm:^0.0.12"
     "@vscode/test-electron": "npm:^2.4.1"

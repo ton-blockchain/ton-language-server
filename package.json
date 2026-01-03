@@ -14,7 +14,7 @@
     ],
     "version": "0.5.1",
     "engines": {
-        "vscode": "^1.63.0"
+        "vscode": "^1.88.0"
     },
     "icon": "editors/code/src/assets/logo.png",
     "activationEvents": [
@@ -833,7 +833,7 @@
     "dependencies": {
         "@ton/core": "0.61.0",
         "@ton/crypto": "^3.3.0",
-        "@vscode/debugadapter": "^1.51.0",
+        "@vscode/debugadapter": "^1.68.0",
         "@vscode/debugprotocol": "^1.68.0",
         "buffer": "^6.0.3",
         "glob": "^11.1.0",
@@ -863,7 +863,7 @@
         "@types/node": "^22.2.0",
         "@types/react": "^18.3.3",
         "@types/react-dom": "^18.3.0",
-        "@types/vscode": "^1.63.0",
+        "@types/vscode": "^1.88.0",
         "@types/ws": "^8",
         "@vscode/test-cli": "^0.0.12",
         "@vscode/test-electron": "^2.4.1",
