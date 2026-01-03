@@ -17,27 +17,27 @@ export class ActonTolkCodeLensProvider implements vscode.CodeLensProvider {
             return []
         }
 
-        const text = document.getText()
-        const mainRegex = /fun\s+main\s*\(/g
         const lenses: vscode.CodeLens[] = []
-        let match: RegExpExecArray | null
 
-        while ((match = mainRegex.exec(text)) !== null) {
-            const line = document.positionAt(match.index).line
-            const range = new vscode.Range(line, 0, line, 0)
+        for (let i = 0; i < document.lineCount; i++) {
+            const line = document.lineAt(i)
+            const text = line.text
 
-            lenses.push(
-                new vscode.CodeLens(range, {
-                    title: "$(play) Emulate",
-                    command: "ton.acton.run",
-                    arguments: [document.uri],
-                }),
-                new vscode.CodeLens(range, {
-                    title: "Broadcast",
-                    command: "ton.acton.runBroadcast",
-                    arguments: [document.uri],
-                }),
-            )
+            if (/fun\s+main\s*\(/i.test(text)) {
+                const range = new vscode.Range(i, 0, i, text.length)
+                lenses.push(
+                    new vscode.CodeLens(range, {
+                        title: "$(play) Emulate",
+                        command: "ton.acton.run",
+                        arguments: [document.uri],
+                    }),
+                    new vscode.CodeLens(range, {
+                        title: "Broadcast",
+                        command: "ton.acton.runBroadcast",
+                        arguments: [document.uri],
+                    }),
+                )
+            }
         }
 
         return lenses
