@@ -11,7 +11,7 @@ export class TopLevelCompletionProvider implements CompletionProvider<Completion
         return ctx.topLevel
     }
 
-    public addCompletion(_ctx: CompletionContext, result: CompletionResult): void {
+    public addCompletion(ctx: CompletionContext, result: CompletionResult): void {
         result.add({
             label: `import`,
             labelDetails: {
@@ -159,5 +159,15 @@ export class TopLevelCompletionProvider implements CompletionProvider<Completion
             insertTextFormat: InsertTextFormat.Snippet,
             weight: CompletionWeight.KEYWORD,
         })
+
+        if (ctx.element.file.isTestFile) {
+            result.add({
+                label: `get fun test`,
+                kind: CompletionItemKind.Keyword,
+                insertText: "get fun `test $1`() {$0}",
+                insertTextFormat: InsertTextFormat.Snippet,
+                weight: CompletionWeight.KEYWORD,
+            })
+        }
     }
 }
