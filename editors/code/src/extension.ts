@@ -53,6 +53,7 @@ import {WebSocketServer} from "./providers/sandbox/WebSocketServer"
 import {ActonTomlCodeLensProvider} from "./acton/toml/ActonTomlCodeLensProvider"
 import {ActonTomlHoverProvider} from "./acton/toml/ActonTomlHoverProvider"
 import {ActonTolkCodeLensProvider} from "./acton/tolk/ActonTolkCodeLensProvider"
+import {ActonTestController} from "./acton/ActonTestController"
 import {configureDebugging} from "./debugging"
 import {ContractData, TransactionRun} from "./providers/sandbox/test-types"
 import {TransactionDetailsInfo} from "./common/types/transaction"
@@ -182,7 +183,9 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     const actonTolkCodeLensProvider = new ActonTolkCodeLensProvider()
     const actonTomlCodeLensProvider = new ActonTomlCodeLensProvider()
     const actonTomlHoverProvider = new ActonTomlHoverProvider()
+    const actonTestController = new ActonTestController()
     context.subscriptions.push(
+        actonTestController,
         vscode.languages.registerCodeLensProvider({language: "tolk"}, sandboxCodeLensProvider),
         vscode.languages.registerCodeLensProvider({language: "tolk"}, actonTolkCodeLensProvider),
         vscode.languages.registerCodeLensProvider(

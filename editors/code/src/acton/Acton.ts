@@ -2,6 +2,7 @@
 //  Copyright © 2026 TON Core
 
 import * as path from "node:path"
+import * as child_process from "node:child_process"
 
 import vscode from "vscode"
 
@@ -47,6 +48,47 @@ export class Acton {
         }
 
         await vscode.tasks.executeTask(task)
+    }
+
+    public async spawn(
+        command: ActonCommand,
+        workingDirectory?: string,
+        outputChannel?: vscode.OutputChannel,
+        onOutput?: (data: string) => void,
+    ): Promise<{exitCode: number | null; stdout: string; stderr: string}> {
+        const actonPath = this.getActonPath()
+        const args = [command.name, ...command.getArguments()]
+
+        return new Promise((resolve, reject) => {
+            const child = child_process.spawn(actonPath, args, {
+                cwd: workingDirectory,
+            })
+
+            let stdout = ""
+            let stderr = ""
+
+            child.stdout.on("data", (data: Buffer) => {
+                const str = data.toString()
+                stdout += str
+                outputChannel?.append(str)
+                onOutput?.(str)
+            })
+
+            child.stderr.on("data", (data: Buffer) => {
+                const str = data.toString()
+                stderr += str
+                outputChannel?.append(str)
+                onOutput?.(str)
+            })
+
+            child.on("close", (code: number | null) => {
+                resolve({exitCode: code, stdout, stderr})
+            })
+
+            child.on("error", (err: Error) => {
+                reject(err)
+            })
+        })
     }
 
     private getActonPath(): string {
