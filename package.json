@@ -781,6 +781,16 @@
                         "description": "Port for the WebSocket server used for test communication"
                     }
                 }
+            },
+            {
+                "title": "Acton",
+                "properties": {
+                    "ton.acton.path": {
+                        "type": "string",
+                        "default": "acton",
+                        "description": "Path to the Acton executable"
+                    }
+                }
             }
         ],
         "customEditors": [
