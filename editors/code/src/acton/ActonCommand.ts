@@ -41,6 +41,9 @@ export class TestCommand extends ActonCommand {
         public target: string = "",
         public functionName: string = "",
         public clearCache: boolean = false,
+        public coverage: boolean = false,
+        public coverageFormat: string = "lcov",
+        public coverageFile: string = "",
     ) {
         super("test")
     }
@@ -48,6 +51,12 @@ export class TestCommand extends ActonCommand {
     public override getArguments(): string[] {
         const args: string[] = ["--reporter", "console"]
         if (this.clearCache) args.push("--clear-cache")
+        if (this.coverage) {
+            args.push("--coverage", "--coverage-format", this.coverageFormat)
+            if (this.coverageFile.trim() !== "") {
+                args.push("--coverage-file", this.coverageFile)
+            }
+        }
 
         switch (this.mode) {
             case TestMode.FUNCTION: {

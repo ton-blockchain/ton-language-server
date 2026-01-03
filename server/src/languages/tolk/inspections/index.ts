@@ -8,7 +8,6 @@ import {UnusedVariableInspection} from "@server/languages/tolk/inspections/Unuse
 import {DeprecatedSymbolUsageInspection} from "@server/languages/tolk/inspections/DeprecatedSymbolUsageInspection"
 import {UnusedImportInspection} from "@server/languages/tolk/inspections/UnusedImportInspection"
 import {StructInitializationInspection} from "@server/languages/tolk/inspections/StructInitializationInspection"
-import {TypeCompatibilityInspection} from "@server/languages/tolk/inspections/TypeCompatibilityInspection"
 import {CannotReassignInspection} from "@server/languages/tolk/inspections/CannotReassignInspection"
 import {UnusedTopLevelDeclarationInspection} from "@server/languages/tolk/inspections/UnusedTopLevelDeclarationInspection"
 import {UnusedTypeParameterInspection} from "@server/languages/tolk/inspections/UnusedTypeParameterInspection"
@@ -29,7 +28,7 @@ export async function runTolkInspections(
         new UnusedTopLevelDeclarationInspection(),
         new DeprecatedSymbolUsageInspection(),
         new StructInitializationInspection(),
-        new TypeCompatibilityInspection(),
+        // new TypeCompatibilityInspection(),
         new CannotReassignInspection(),
         new NeedNotNullUnwrappingInspection(),
         new MissedSemicolonInspection(),

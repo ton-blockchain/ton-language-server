@@ -1,9 +1,12 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2026 TON Core
 
+import * as fs from "node:fs/promises"
 import * as path from "node:path"
 
 import * as vscode from "vscode"
+
+import {FileCoverageDetail} from "vscode"
 
 import {Acton} from "./Acton"
 import {TestCommand, TestMode} from "./ActonCommand"
@@ -11,6 +14,7 @@ import {TestCommand, TestMode} from "./ActonCommand"
 export class ActonTestController implements Disposable {
     private readonly controller: vscode.TestController
     private readonly outputChannel: vscode.OutputChannel
+    private readonly coverageDetails: Map<string, vscode.StatementCoverage[]> = new Map()
 
     public constructor() {
         this.controller = vscode.tests.createTestController("actonTests", "Acton Tests")
@@ -24,6 +28,22 @@ export class ActonTestController implements Disposable {
             },
             true,
         )
+
+        const coverageProfile = this.controller.createRunProfile(
+            "Coverage",
+            vscode.TestRunProfileKind.Coverage,
+            async (request, token) => {
+                await this.runHandler(request, token, true)
+            },
+            true,
+        )
+
+        coverageProfile.loadDetailedCoverage = (
+            _testRun,
+            fileCoverage,
+        ): Thenable<FileCoverageDetail[]> => {
+            return Promise.resolve(this.coverageDetails.get(fileCoverage.uri.toString()) ?? [])
+        }
 
         this.controller.resolveHandler = async item => {
             await (item ? this.discoverTestsInItem(item) : this.discoverAllTests())
@@ -135,7 +155,11 @@ export class ActonTestController implements Disposable {
     private async runHandler(
         request: vscode.TestRunRequest,
         token: vscode.CancellationToken,
+        isCoverage: boolean = false,
     ): Promise<void> {
+        if (isCoverage) {
+            this.coverageDetails.clear()
+        }
         const run = this.controller.createTestRun(request)
         const queue: vscode.TestItem[] = []
 
@@ -154,7 +178,7 @@ export class ActonTestController implements Disposable {
                 break
             }
 
-            await this.runTestItem(test, run, token)
+            await this.runTestItem(test, run, token, isCoverage)
         }
 
         run.end()
@@ -164,6 +188,7 @@ export class ActonTestController implements Disposable {
         item: vscode.TestItem,
         run: vscode.TestRun,
         token: vscode.CancellationToken,
+        isCoverage: boolean = false,
     ): Promise<void> {
         if (token.isCancellationRequested) {
             return
@@ -181,10 +206,27 @@ export class ActonTestController implements Disposable {
         const workingDir = tomlUri ? path.dirname(tomlUri.fsPath) : path.dirname(uri.fsPath)
         const relativePath = path.relative(workingDir, uri.fsPath)
 
+        const coverageFile = isCoverage ? path.join(workingDir, "lcov.info") : ""
         const command =
             item.children.size > 0
-                ? new TestCommand(TestMode.FILE, relativePath)
-                : new TestCommand(TestMode.FUNCTION, relativePath, item.label)
+                ? new TestCommand(
+                      TestMode.FILE,
+                      relativePath,
+                      "",
+                      false,
+                      isCoverage,
+                      "lcov",
+                      coverageFile,
+                  )
+                : new TestCommand(
+                      TestMode.FUNCTION,
+                      relativePath,
+                      item.label,
+                      false,
+                      isCoverage,
+                      "lcov",
+                      coverageFile,
+                  )
 
         try {
             const {exitCode, stdout, stderr} = await Acton.getInstance().spawn(
@@ -199,6 +241,9 @@ export class ActonTestController implements Disposable {
 
             if (exitCode === 0) {
                 run.passed(item)
+                if (isCoverage && coverageFile) {
+                    await this.processCoverage(coverageFile, run, workingDir)
+                }
             } else {
                 const rawMessage = stderr || stdout || "Test failed"
 
@@ -218,6 +263,69 @@ export class ActonTestController implements Disposable {
         } catch (error) {
             run.failed(item, new vscode.TestMessage(String(error)))
         }
+    }
+
+    private async processCoverage(
+        coverageFile: string,
+        run: vscode.TestRun,
+        workingDir: string,
+    ): Promise<void> {
+        try {
+            const content = await fs.readFile(coverageFile, "utf8")
+            const files = this.parseLcov(content)
+
+            for (const fileData of files) {
+                const absolutePath = path.isAbsolute(fileData.file)
+                    ? fileData.file
+                    : path.join(workingDir, fileData.file)
+                const uri = vscode.Uri.file(absolutePath)
+
+                const statementCoverage: vscode.StatementCoverage[] = fileData.lines.map(line => {
+                    return new vscode.StatementCoverage(
+                        line.count,
+                        new vscode.Range(line.line - 1, 0, line.line - 1, 0),
+                    )
+                })
+
+                this.coverageDetails.set(uri.toString(), statementCoverage)
+
+                const coveredLines = fileData.lines.filter(l => l.count > 0).length
+                const totalLines = fileData.lines.length
+
+                const fileCoverage = new vscode.FileCoverage(
+                    uri,
+                    new vscode.TestCoverageCount(coveredLines, totalLines),
+                )
+
+                run.addCoverage(fileCoverage)
+            }
+        } catch (error) {
+            console.error("Failed to process coverage", error)
+        }
+    }
+
+    private parseLcov(content: string): {file: string; lines: {line: number; count: number}[]}[] {
+        const files: {file: string; lines: {line: number; count: number}[]}[] = []
+        let currentFile: {file: string; lines: {line: number; count: number}[]} | null = null
+
+        for (const line of content.split(/\r?\n/)) {
+            if (line.startsWith("SF:")) {
+                currentFile = {file: line.slice(3).trim(), lines: []}
+            } else if (line.startsWith("DA:") && currentFile) {
+                const parts = line.slice(3).split(",")
+                if (parts.length >= 2) {
+                    const lineNum = Number.parseInt(parts[0], 10)
+                    const count = Number.parseInt(parts[1], 10)
+                    if (!Number.isNaN(lineNum) && !Number.isNaN(count)) {
+                        currentFile.lines.push({line: lineNum, count})
+                    }
+                }
+            } else if (line.startsWith("end_of_record") && currentFile) {
+                files.push(currentFile)
+                currentFile = null
+            }
+        }
+        return files
     }
 
     private extractErrorLocation(cleanMessage: string): vscode.Location | undefined {
