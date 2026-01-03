@@ -71,6 +71,11 @@ export class ReferenceCompletionProcessor implements ScopeProcessor {
         // since structs can be created like `Foo{}` we allow them
         if (node instanceof Struct) return true
         if (node instanceof Enum) return true // for Color.Red
+
+        if (node instanceof Field) {
+            if (node.isPrivate()) return false
+        }
+
         return true
     }
 

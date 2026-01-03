@@ -491,6 +491,12 @@ export class Field extends NamedNode {
         return new Struct(ownerNode, this.file)
     }
 
+    public isPrivate(): boolean {
+        const modifiers = this.node.childForFieldName("modifiers")
+        if (!modifiers) return false
+        return modifiers.children.some(it => it?.text === "private")
+    }
+
     public modifiers(): string[] {
         const modifiers = this.node.childForFieldName("modifiers")
         if (!modifiers) return []

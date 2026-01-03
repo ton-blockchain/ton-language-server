@@ -177,3 +177,21 @@ struct Foo {
 ------------------------------------------------------------------------
 13 private
 13 readonly
+
+========================================================================
+Struct fields completion with private
+========================================================================
+struct Foo {
+    first: int,
+    private second: slice,
+}
+
+fun main() {
+    val foo = Foo {};
+    foo.<caret>;
+}
+------------------------------------------------------------------------
+9  first: int   of Foo
+1  forceLoadLazyObject(self): slice
+1  stackMoveToTop(mutate self): void
+1  toCell(self, options: PackOptions = {}): Cell<T>
