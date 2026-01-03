@@ -39,6 +39,10 @@ export class TolkFile extends File {
         return this.uri.includes(".acton")
     }
 
+    public get isTestFile(): boolean {
+        return this.uri.endsWith(".test.tolk")
+    }
+
     public symbolAt(offset: number): string {
         return this.content[offset] ?? ""
     }

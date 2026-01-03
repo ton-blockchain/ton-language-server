@@ -15,7 +15,7 @@ export class CannotReassignInspection implements Inspection {
     public readonly id: "cannot-reassign" = InspectionIds.CANNOT_REASSIGN
 
     public inspect(file: TolkFile): lsp.Diagnostic[] {
-        if (file.fromStdlib) return []
+        if (file.fromStdlib || file.fromActon) return []
         const diagnostics: lsp.Diagnostic[] = []
         this.checkFile(file, diagnostics)
         return diagnostics

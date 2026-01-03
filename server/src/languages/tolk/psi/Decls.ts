@@ -314,7 +314,7 @@ export class GetMethod extends FunctionBase {
         return "get fun"
     }
 
-    public isTest(): boolean {
+    public isTestFunction(): boolean {
         const name = this.name(true)
         return name.startsWith("test ") || name.startsWith("test_") || name.startsWith("test-")
     }

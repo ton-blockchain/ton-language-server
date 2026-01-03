@@ -79,7 +79,6 @@ struct Foo {
 24 RemainingBitsAndRefs
 24 address
 24 bits256
-24 bitsN
 24 bits{X}
 24 bool
 24 builder

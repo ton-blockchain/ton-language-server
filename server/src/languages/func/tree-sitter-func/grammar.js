@@ -1,6 +1,7 @@
 /**
  * @file FunC grammar for tree-sitter
- * @author TON Blockchain
+ * @author TON Core
+ * @author akifoq
  * @license MIT
  */
 

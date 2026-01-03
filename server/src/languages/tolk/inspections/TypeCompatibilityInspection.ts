@@ -16,7 +16,7 @@ export class TypeCompatibilityInspection implements Inspection {
     public readonly id: "type-compatibility" = InspectionIds.TYPE_COMPATIBILITY
 
     public inspect(file: TolkFile): lsp.Diagnostic[] {
-        if (file.fromStdlib) return []
+        if (file.fromStdlib || file.fromActon) return []
         const diagnostics: lsp.Diagnostic[] = []
 
         RecursiveVisitor.visit(file.rootNode, node => {

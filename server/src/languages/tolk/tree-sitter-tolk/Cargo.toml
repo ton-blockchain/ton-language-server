@@ -2,7 +2,7 @@
 name = "tree-sitter-tolk"
 description = "Tolk grammar for tree-sitter"
 version = "0.4.5"
-authors = ["TON Blockchain"]
+authors = ["TON Core"]
 license = "MIT"
 readme = "README.md"
 keywords = ["incremental", "parsing", "tree-sitter", "tolk"]

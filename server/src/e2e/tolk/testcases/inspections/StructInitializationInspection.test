@@ -302,3 +302,20 @@ fun foo() {
 3 2:4 to 2:8 Field 'y' is never used (tolk)
 3 5:4 to 5:7 Function 'foo' is never used (tolk)
 0 6:4 to 6:9 Field 'x' is required but not initialized (tolk)
+
+========================================================================
+Generic field with void default can be omitted
+========================================================================
+struct Point<T=void> {
+    x: int;
+    y: T;
+}
+
+fun foo() {
+    Point{};
+}
+------------------------------------------------------------------------
+3 1:4 to 1:10 Field 'x' is never used (tolk)
+3 2:4 to 2:8 Field 'y' is never used (tolk)
+3 5:4 to 5:7 Function 'foo' is never used (tolk)
+0 6:4 to 6:9 Field 'x' is required but not initialized (tolk)

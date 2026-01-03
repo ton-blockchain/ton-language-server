@@ -19,7 +19,7 @@ export class StructInitializationInspection implements Inspection {
     public readonly id: "struct-initialization" = InspectionIds.STRUCT_INITIALIZATION
 
     public inspect(file: TolkFile): lsp.Diagnostic[] {
-        if (file.fromStdlib) return []
+        if (file.fromStdlib || file.fromActon) return []
         const diagnostics: lsp.Diagnostic[] = []
 
         RecursiveVisitor.visit(file.rootNode, node => {

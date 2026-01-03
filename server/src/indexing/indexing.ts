@@ -27,6 +27,7 @@ export abstract class IndexingRoot {
                       "allure-results/**",
                       "**/node_modules/**",
                       "**/dist/**",
+                      "**/target/**",
                       "**/__testdata/**",
                       ".acton/tolk-stdlib/**", // already indexed in stdlib root
                   ]

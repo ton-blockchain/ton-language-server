@@ -9,7 +9,7 @@ import {GetMethod} from "@server/languages/tolk/psi/Decls"
 
 export function getMethodId(n: SyntaxNode, file: TolkFile, result: lsp.InlayHint[]): void {
     const func = new GetMethod(n, file)
-    if (func.hasExplicitMethodId || func.isTest()) return
+    if (func.hasExplicitMethodId || func.isTestFunction()) return
 
     const getKeyword = n.children.find(it => it?.text === "get")
     if (!getKeyword) return

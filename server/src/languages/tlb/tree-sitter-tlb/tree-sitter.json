@@ -14,14 +14,18 @@
     "metadata": {
         "version": "0.1.0",
         "license": "MIT",
-        "description": "A tree-sitter grammar for the TL-B language",
+        "description": "TL-B grammar for tree-sitter",
         "authors": [
             {
-                "name": "Petr Makhnev"
+                "name": "TON Core"
+            },
+            {
+                "name": "TON Studio",
+                "url": "https://tonstudio.io"
             }
         ],
         "links": {
-            "repository": "https://github.com/tree-sitter/tree-sitter-tlb"
+            "repository": "https://github.com/ton-blockchain/ton-language-server"
         }
     },
     "bindings": {
