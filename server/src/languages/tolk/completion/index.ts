@@ -37,6 +37,9 @@ import {FieldInitCompletionProvider} from "@server/languages/tolk/completion/pro
 import {FunctionNameCompletionProvider} from "@server/languages/tolk/completion/providers/FunctionNameCompletionProvider"
 import {StructFieldModifiersCompletionProvider} from "@server/languages/tolk/completion/providers/StructFieldModifiersCompletionProvider"
 import {EnumCompletionProvider} from "@server/languages/tolk/completion/providers/EnumCompletionProvider"
+import {ActonWalletNameCompletionProvider} from "@server/languages/tolk/completion/providers/ActonWalletNameCompletionProvider"
+import {ActonContractIdCompletionProvider} from "@server/languages/tolk/completion/providers/ActonContractIdCompletionProvider"
+import {ActonGetMethodCompletionProvider} from "@server/languages/tolk/completion/providers/ActonGetMethodCompletionProvider"
 
 export async function provideTolkCompletion(
     file: TolkFile,
@@ -130,6 +133,9 @@ export async function provideTolkCompletion(
 
     const asyncProviders: AsyncCompletionProvider<CompletionContext>[] = [
         new ImportPathCompletionProvider(),
+        new ActonWalletNameCompletionProvider(),
+        new ActonContractIdCompletionProvider(),
+        new ActonGetMethodCompletionProvider(),
     ]
 
     for (const provider of asyncProviders) {
