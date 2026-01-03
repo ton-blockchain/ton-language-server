@@ -19,7 +19,7 @@ export class NeedNotNullUnwrappingInspection implements Inspection {
     public readonly id: "need-not-null-unwrapping" = InspectionIds.NEED_NOT_NULL_UNWRAPPING
 
     public inspect(file: TolkFile): lsp.Diagnostic[] {
-        if (file.fromStdlib) return []
+        if (file.fromStdlib || file.fromActon) return []
         const diagnostics: lsp.Diagnostic[] = []
 
         RecursiveVisitor.visit(file.rootNode, node => {

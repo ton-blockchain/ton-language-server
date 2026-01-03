@@ -13,7 +13,7 @@ export class MissedSemicolonInspection implements Inspection {
     public readonly id: "missed-semicolon" = InspectionIds.MISSED_SEMICOLON
 
     public inspect(file: TolkFile): lsp.Diagnostic[] {
-        if (file.fromStdlib) return []
+        if (file.fromStdlib || file.fromActon) return []
         const diagnostics: lsp.Diagnostic[] = []
         this.checkFile(file, diagnostics)
         return diagnostics
