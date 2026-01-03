@@ -319,3 +319,31 @@ fun foo() {
 3 2:4 to 2:8 Field 'y' is never used (tolk)
 3 5:4 to 5:7 Function 'foo' is never used (tolk)
 0 6:4 to 6:9 Field 'x' is required but not initialized (tolk)
+
+========================================================================
+Complex method call with generics
+========================================================================
+struct SearchParams {
+    foo: int? = null
+}
+
+struct Expectation<T> {
+    value: T
+    location: slice = ""
+}
+
+fun expect<T>(value: T, location: slice = "") {
+    return Expectation<T> {
+        value,
+        location,
+    };
+}
+
+fun Expectation<int>.toHaveSuccessfulTx<Msg = never>(self, params: SearchParams = {}) {}
+
+fun main() {
+    expect(10).toHaveSuccessfulTx<int>({});
+}
+------------------------------------------------------------------------
+3 1:4 to 1:20 Field 'foo' is never used (tolk)
+3 16:40 to 16:43 Type parameter 'Msg' is never used (tolk)

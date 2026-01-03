@@ -1000,6 +1000,7 @@ class InferenceWalker {
 
             const substituted = exprType?.substitute(mapping) ?? null
             this.ctx.setType(node, substituted)
+            this.ctx.setResolved(node, resolved)
         }
 
         return ExprFlow.create(flowAfterExpression.outFlow, usedAsCondition)
