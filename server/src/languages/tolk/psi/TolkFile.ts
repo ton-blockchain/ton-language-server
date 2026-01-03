@@ -35,6 +35,10 @@ export class TolkFile extends File {
         return this.uri.endsWith("stubs.tolk")
     }
 
+    public get isTestFile(): boolean {
+        return this.uri.endsWith(".test.tolk")
+    }
+
     public symbolAt(offset: number): string {
         return this.content[offset] ?? ""
     }
