@@ -12356,7 +12356,7 @@ __metadata:
     vscode-languageserver: "npm:^8.0.2"
     vscode-languageserver-textdocument: "npm:^1.0.7"
     vscode-uri: "npm:^3.0.7"
-    web-tree-sitter: "npm:^0.26.3"
+    web-tree-sitter: "npm:^0.25.10"
     webpack: "npm:^5.92.1"
     webpack-cli: "npm:^5.1.4"
     ws: "npm:^8.18.3"
@@ -12406,7 +12406,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"web-tree-sitter@npm:^0.25.6":
+"web-tree-sitter@npm:^0.25.10, web-tree-sitter@npm:^0.25.6":
   version: 0.25.10
   resolution: "web-tree-sitter@npm:0.25.10"
   peerDependencies:
@@ -12415,13 +12415,6 @@ __metadata:
     "@types/emscripten":
       optional: true
   checksum: 10c0/8056263c75f59c8f992584386f85675fdce94f67eec506970f49d203a7d25effa96a4736eee5b06f06dc4d8f01339f68d9d4e97d713a6517d19db1f1c0954e06
-  languageName: node
-  linkType: hard
-
-"web-tree-sitter@npm:^0.26.3":
-  version: 0.26.3
-  resolution: "web-tree-sitter@npm:0.26.3"
-  checksum: 10c0/26e9033648772d03af228c721fcdf644734b51b3bcc40f3584677ba54efcda176c7989e9dbda1ebf3984024df0636e857cbbf3e71acc1023cf1d6ab7f42a71c2
   languageName: node
   linkType: hard
 
