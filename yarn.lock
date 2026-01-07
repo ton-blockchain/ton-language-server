@@ -11546,12 +11546,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tree-sitter-cli@npm:^0.25.8":
-  version: 0.25.10
-  resolution: "tree-sitter-cli@npm:0.25.10"
+"tree-sitter-cli@npm:^0.26.3":
+  version: 0.26.3
+  resolution: "tree-sitter-cli@npm:0.26.3"
   bin:
     tree-sitter: cli.js
-  checksum: 10c0/45a27f8b41addc1849a09c5f46017aead69c25656db75fea1fc99918a03dff1fbdb159c80b29f30009066772c8b417595fcb0964f3e2aa376d1952070ad16ca8
+  checksum: 10c0/5dfb6bbc5a2c148f53d6c21ab591be93f15b33ba247be28cfff2aa2d4b6b0307976e4d9a632ddcd4fd25f1ac99e5994f2b1239acf8627e8e3c36948f4ada1547
   languageName: node
   linkType: hard
 
@@ -12345,7 +12345,7 @@ __metadata:
     tolkfmt-test-dev: "npm:0.0.25"
     ton-assembly: "npm:0.4.0"
     ton-source-map: "npm:^0.2.2"
-    tree-sitter-cli: "npm:^0.25.8"
+    tree-sitter-cli: "npm:^0.26.3"
     ts-jest: "npm:^29.2.6"
     ts-loader: "npm:^9.5.1"
     ts-node: "npm:^10.9.2"
@@ -12356,12 +12356,12 @@ __metadata:
     vscode-languageserver: "npm:^8.0.2"
     vscode-languageserver-textdocument: "npm:^1.0.7"
     vscode-uri: "npm:^3.0.7"
-    web-tree-sitter: "npm:^0.25.0"
+    web-tree-sitter: "npm:^0.25.10"
     webpack: "npm:^5.92.1"
     webpack-cli: "npm:^5.1.4"
     ws: "npm:^8.18.3"
   peerDependencies:
-    tree-sitter: ^0.21.1
+    tree-sitter: ^0.25.0
   dependenciesMeta:
     tree-sitter-cli:
       built: true
@@ -12406,7 +12406,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"web-tree-sitter@npm:^0.25.0, web-tree-sitter@npm:^0.25.6":
+"web-tree-sitter@npm:^0.25.10, web-tree-sitter@npm:^0.25.6":
   version: 0.25.10
   resolution: "web-tree-sitter@npm:0.25.10"
   peerDependencies:

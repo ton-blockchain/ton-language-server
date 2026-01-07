@@ -850,7 +850,7 @@
         "vscode-languageserver": "^8.0.2",
         "vscode-languageserver-textdocument": "^1.0.7",
         "vscode-uri": "^3.0.7",
-        "web-tree-sitter": "^0.25.0",
+        "web-tree-sitter": "^0.25.10",
         "ws": "^8.18.3"
     },
     "devDependencies": {
@@ -891,7 +891,7 @@
         "style-loader": "^4.0.0",
         "stylelint": "^16.24.0",
         "stylelint-config-standard": "^39.0.0",
-        "tree-sitter-cli": "^0.25.8",
+        "tree-sitter-cli": "^0.26.3",
         "ts-jest": "^29.2.6",
         "ts-loader": "^9.5.1",
         "ts-node": "^10.9.2",
@@ -902,7 +902,7 @@
         "webpack-cli": "^5.1.4"
     },
     "peerDependencies": {
-        "tree-sitter": "^0.21.1"
+        "tree-sitter": "^0.25.0"
     },
     "peerDependenciesMeta": {
         "tree-sitter": {

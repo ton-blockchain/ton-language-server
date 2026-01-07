@@ -1,0 +1,11 @@
+server/src/languages/fift/tree-sitter-fift/build/
+server/src/languages/fift/tree-sitter-fift/target/
+
+server/src/languages/func/tree-sitter-fift/build/
+server/src/languages/func/tree-sitter-fift/target/
+
+server/src/languages/tlb/tree-sitter-fift/build/
+server/src/languages/tlb/tree-sitter-fift/target/
+
+server/src/languages/tolk/tree-sitter-fift/build/
+server/src/languages/tolk/tree-sitter-fift/target/
