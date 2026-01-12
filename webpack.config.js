@@ -99,10 +99,6 @@ const extensionConfig = {
                     to: path.join(distDir, "icons", "[name][ext]"),
                 },
                 {
-                    from: "server/src/languages/fift/asm/asm.json",
-                    to: distDir,
-                },
-                {
                     from: "./package.server.json",
                     to: path.join(distDir, "package.json"),
                 },
