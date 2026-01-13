@@ -1,21 +1,21 @@
 .container {
   display: flex;
   flex-direction: column;
-  height: 100vh; /* Use viewport height to ensure full coverage */
+  height: 100vh;
   padding: 16px;
   background-color: var(--vscode-sideBar-background);
   color: var(--vscode-sideBar-foreground);
-  font-family: var(--vscode-font-family);
+  font-family: var(--vscode-font-family), sans-serif;
   overflow-y: auto;
   box-sizing: border-box;
-  position: relative; /* For loading overlay positioning */
+  position: relative;
 }
 
 .walletList {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  flex-grow: 1; /* Push everything down if needed */
+  flex-grow: 1;
 }
 
 .loadingOverlay {
