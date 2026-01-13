@@ -390,9 +390,35 @@
                 "title": "Open Sandbox Terminal",
                 "category": "TON",
                 "icon": "$(terminal)"
+            },
+            {
+                "command": "ton.wallets.refresh",
+                "title": "Refresh Wallets",
+                "category": "TON",
+                "icon": "$(refresh)"
+            },
+            {
+                "command": "ton.wallets.import",
+                "title": "Import Wallet",
+                "category": "TON",
+                "icon": "$(repo-pull)"
+            },
+            {
+                "command": "ton.wallets.new",
+                "title": "New Wallet",
+                "category": "TON",
+                "icon": "$(add)"
             }
         ],
         "views": {
+            "tonWalletsContainer": [
+                {
+                    "id": "tonWallets",
+                    "type": "webview",
+                    "name": "Wallets",
+                    "when": "true"
+                }
+            ],
             "tonSandboxContainer": [
                 {
                     "id": "tonSandbox",
@@ -431,6 +457,11 @@
                     "id": "tonTestContainer",
                     "title": "TON Tests",
                     "icon": "./dist/icons/test-icon.svg"
+                },
+                {
+                    "id": "tonWalletsContainer",
+                    "title": "TON Wallets",
+                    "icon": "$(account)"
                 }
             ]
         },
@@ -513,6 +544,21 @@
                 {
                     "command": "ton.sandbox.openTerminal",
                     "when": "view == tonSandbox",
+                    "group": "navigation"
+                },
+                {
+                    "command": "ton.wallets.refresh",
+                    "when": "view == tonWallets",
+                    "group": "navigation"
+                },
+                {
+                    "command": "ton.wallets.import",
+                    "when": "view == tonWallets",
+                    "group": "navigation"
+                },
+                {
+                    "command": "ton.wallets.new",
+                    "when": "view == tonWallets",
                     "group": "navigation"
                 }
             ],

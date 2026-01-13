@@ -45,6 +45,7 @@ import {parseCallStack} from "./common/call-stack-parser"
 import {SandboxTreeProvider} from "./providers/sandbox/SandboxTreeProvider"
 import {SandboxActionsProvider} from "./providers/sandbox/SandboxActionsProvider"
 import {HistoryWebviewProvider} from "./providers/sandbox/HistoryWebviewProvider"
+import {WalletWebviewProvider} from "./providers/wallet/WalletWebviewProvider"
 import {TransactionDetailsProvider} from "./providers/sandbox/TransactionDetailsProvider"
 import {SandboxCodeLensProvider} from "./providers/sandbox/SandboxCodeLensProvider"
 import {TestTreeProvider} from "./providers/sandbox/TestTreeProvider"
@@ -86,6 +87,15 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
         vscode.window.registerWebviewViewProvider(
             HistoryWebviewProvider.viewType,
             historyWebviewProvider,
+        ),
+    )
+
+    const walletWebviewProvider = new WalletWebviewProvider(context.extensionUri)
+    walletWebviewProvider.registerCommands(context)
+    context.subscriptions.push(
+        vscode.window.registerWebviewViewProvider(
+            WalletWebviewProvider.viewType,
+            walletWebviewProvider,
         ),
     )
 
