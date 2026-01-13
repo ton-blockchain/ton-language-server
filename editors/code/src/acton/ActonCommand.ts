@@ -156,3 +156,87 @@ export class CustomCommand extends ActonCommand {
         return this.args
     }
 }
+
+export class WalletListCommand extends ActonCommand {
+    public constructor(public balance: boolean = false) {
+        super("wallet")
+    }
+
+    public override getArguments(): string[] {
+        const args = ["list", "--json"]
+        if (this.balance) args.push("--balance")
+        return args
+    }
+}
+
+export class WalletNewCommand extends ActonCommand {
+    public constructor(
+        public walletName: string,
+        public version: string = "v5r1",
+        public global: boolean = false,
+        public secure: boolean = true,
+    ) {
+        super("wallet")
+    }
+
+    public override getArguments(): string[] {
+        const args = ["new", "--json"]
+        if (this.walletName.trim() !== "") {
+            args.push("--name", this.walletName)
+        }
+        if (this.version.trim() !== "") {
+            args.push("--version", this.version)
+        }
+        if (this.global) {
+            args.push("--global")
+        } else {
+            args.push("--local")
+        }
+        args.push("--secure", this.secure.toString())
+        return args
+    }
+}
+
+export class WalletImportCommand extends ActonCommand {
+    public constructor(
+        public walletName: string,
+        public mnemonic: string,
+        public version: string = "v5r1",
+        public global: boolean = false,
+        public secure: boolean = true,
+    ) {
+        super("wallet")
+    }
+
+    public override getArguments(): string[] {
+        const args = ["import", "--json"]
+        if (this.walletName.trim() !== "") {
+            args.push("--name", this.walletName)
+        }
+        if (this.version.trim() !== "") {
+            args.push("--version", this.version)
+        }
+        if (this.global) {
+            args.push("--global")
+        } else {
+            args.push("--local")
+        }
+        args.push("--secure", this.secure.toString())
+
+        // Mnemonics are positional arguments at the end
+        const mnemonics = this.mnemonic.split(/\s+/).filter(w => w.length > 0)
+        args.push(...mnemonics)
+
+        return args
+    }
+}
+
+export class WalletAirdropCommand extends ActonCommand {
+    public constructor(public walletName: string) {
+        super("wallet")
+    }
+
+    public override getArguments(): string[] {
+        return ["airdrop", this.walletName, "--json"]
+    }
+}
