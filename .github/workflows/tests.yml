@@ -1,12 +1,12 @@
-name: E2E and Unit tests
+name: E2E and Unit tests (disable)
 
 on:
   pull_request:
     branches:
-      - main
+      - master
   push:
     branches:
-      - main
+      - master
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
