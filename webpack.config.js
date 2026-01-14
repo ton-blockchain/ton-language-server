@@ -49,7 +49,7 @@ const extensionConfig = {
                 exclude: /node_modules/,
                 use: [
                     {
-                        loader: "ts-loader",
+                        loader: "esbuild-loader",
                     },
                 ],
             },
@@ -148,17 +148,11 @@ const webviewConfig = {
                 exclude: /node_modules/,
                 use: [
                     {
-                        loader: "ts-loader",
+                        loader: "esbuild-loader",
                         options: {
-                            configFile: path.resolve(__dirname, "tsconfig.json"),
-                            compilerOptions: {
-                                jsx: "react-jsx",
-                                lib: ["ES2020", "DOM"],
-                                moduleResolution: "node",
-                                esModuleInterop: true,
-                                allowSyntheticDefaultImports: true,
-                                strict: false,
-                            },
+                            loader: "tsx",
+                            tsconfigRaw: require(path.resolve(__dirname, "tsconfig.json")),
+                            target: "es2015",
                         },
                     },
                 ],
