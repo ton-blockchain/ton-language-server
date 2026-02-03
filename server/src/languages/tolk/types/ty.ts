@@ -583,6 +583,41 @@ export class BuiltinTy extends NamedTy<TypeAlias> {
     }
 }
 
+export class ArrayTy extends NonNamedTy {
+    public constructor(public elementType: Ty) {
+        super()
+    }
+
+    public name(): string {
+        return `array<${this.elementType.name()}>`
+    }
+
+    public override equals(other: Ty): boolean {
+        if (!(other instanceof ArrayTy)) return false
+        return this.elementType.equals(other.elementType)
+    }
+
+    public override canRhsBeAssigned(other: Ty): boolean {
+        if (this === other) return true
+        if (other instanceof TypeAliasTy) return this.canRhsBeAssigned(other.innerTy)
+        if (other instanceof ArrayTy) {
+            return this.elementType.canRhsBeAssigned(other.elementType)
+        }
+        if (other instanceof TupleTy) {
+            return other.elements.every(it => this.elementType.canRhsBeAssigned(it))
+        }
+        return other instanceof NeverTy
+    }
+
+    public override hasGenerics(): boolean {
+        return this.elementType.hasGenerics()
+    }
+
+    public override substitute(mapping: Map<string, Ty>): Ty {
+        return new ArrayTy(this.elementType.substitute(mapping))
+    }
+}
+
 export class IntTy extends NonNamedTy {
     public name(): string {
         return "int"
@@ -878,6 +913,10 @@ export function joinTypes(left: Ty, right: Ty): Ty {
         }
 
         return new TupleTy(types)
+    }
+
+    if (left instanceof ArrayTy && right instanceof ArrayTy) {
+        return new ArrayTy(joinTypes(left.elementType, right.elementType))
     }
 
     if (left instanceof TypeAliasTy) return joinTypes(left.innerTy, right)

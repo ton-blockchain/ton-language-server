@@ -16,6 +16,7 @@ import {
     joinTypes,
     NeverTy,
     NullTy,
+    ArrayTy,
     StringTy,
     StructTy,
     subtractTypes,
@@ -127,6 +128,14 @@ export class GenericSubstitutions {
         ) {
             for (let i = 0; i < paramTy.elements.length; i++) {
                 this.deduceTo(mapping, paramTy.elements[i], argTy.elements[i])
+            }
+            return
+        }
+
+        if (paramTy instanceof ArrayTy) {
+            const unwrapped = argTy.unwrapAlias()
+            if (unwrapped instanceof ArrayTy) {
+                this.deduceTo(mapping, paramTy.elementType, unwrapped.elementType)
             }
             return
         }
@@ -832,7 +841,7 @@ class InferenceWalker {
                 return this.inferTensorExpression(node, flow, usedAsCondition, hint)
             }
             case "typed_tuple": {
-                return this.inferTupleExpression(node, flow, usedAsCondition, hint)
+                return this.inferArrayLiteralExpression(node, flow, usedAsCondition, hint)
             }
             case "cast_as_operator": {
                 return this.inferAsExpression(node, flow, usedAsCondition)
@@ -928,10 +937,11 @@ class InferenceWalker {
         // > fun call(f: (int) -> slice) { ... }
         // > call(fun(i) { ... })
         // return type is slice
-        let explicitReturnType: Ty | null = null
+        let explicitReturnType: Ty | undefined = undefined
         const returnTypeNode = node.childForFieldName("return_type")
         if (returnTypeNode) {
-            explicitReturnType = InferenceWalker.convertType(returnTypeNode, this.ctx.file)
+            explicitReturnType =
+                InferenceWalker.convertType(returnTypeNode, this.ctx.file) ?? undefined
         } else if (callableTy && !callableTy.returnTy.hasGenerics()) {
             explicitReturnType = callableTy.returnTy
         }
@@ -954,9 +964,11 @@ class InferenceWalker {
         }
 
         // Save an old state to restore it after lambda is processed
+        const oldDeclaredReturnType = this.ctx.declaredReturnType
         const oldReturnTypes = [...this.ctx.returnTypes]
         const oldUnreachable = flow.unreachable
         this.ctx.returnTypes = []
+        this.ctx.declaredReturnType = explicitReturnType
 
         const body = node.childForFieldName("body")
         if (body) {
@@ -968,6 +980,7 @@ class InferenceWalker {
 
         // And after body inference restore the old state
         this.ctx.returnTypes = oldReturnTypes
+        this.ctx.declaredReturnType = oldDeclaredReturnType
         nextFlow.unreachable = oldUnreachable
 
         const finalType = new FuncTy(paramTypes, returnTy)
@@ -1155,6 +1168,11 @@ class InferenceWalker {
             if (baseType instanceof TupleTy || baseType instanceof TensorTy) {
                 const idx = Number.parseInt(fieldNode.text)
                 const ty = baseType.elements.at(idx) ?? UnknownTy.UNKNOWN
+                this.ctx.setType(node, ty)
+                this.ctx.setType(fieldNode, ty)
+                return ExprFlow.create(flowAfterQualifier.outFlow, usedAsCondition)
+            } else if (baseType instanceof ArrayTy) {
+                const ty = baseType.elementType
                 this.ctx.setType(node, ty)
                 this.ctx.setType(fieldNode, ty)
                 return ExprFlow.create(flowAfterQualifier.outFlow, usedAsCondition)
@@ -2202,6 +2220,9 @@ class InferenceWalker {
                     mapping.set(param.name(), type)
                 }
 
+                if (resolved.name() === "array") {
+                    return new ArrayTy(argsTypes.at(0) ?? UnknownTy.UNKNOWN).substitute(mapping)
+                }
                 return new InstantiationTy(innerTy, argsTypes).substitute(mapping)
             }
 
@@ -2277,6 +2298,14 @@ class InferenceWalker {
 
     public static namedNodeTypeImpl(node: NamedNode): Ty | null {
         if (node instanceof Struct) {
+            if (node.name() === "array") {
+                const typeParameters = node.typeParameters()
+                const typeParameter = typeParameters.at(0)
+                if (typeParameter === undefined) {
+                    return new ArrayTy(UnknownTy.UNKNOWN)
+                }
+                return new ArrayTy(new TypeParameterTy(typeParameter))
+            }
             const fieldTypes = node.fields().map(it => {
                 try {
                     return (
@@ -2594,6 +2623,108 @@ class InferenceWalker {
         return innerResult
     }
 
+    // type hints from a user help inferring template arguments, object literal structs, etc.
+    // they occur in variables `var v: hint = ...`, parameters `fun f(v: hint)`, return values `fun f(): hint`, etc.
+    // example: `var v: (int, Point) = (2, {})` hint is a tensor, 1-th component `Point` infers `{}`
+    private tryPickTFromHint<T extends Ty>(
+        hint: Ty | null,
+        clazz: new (...args: unknown[]) => T,
+        optionalCallback: (t: T) => boolean = () => true,
+    ): T | null {
+        const unwrapped = hint?.unwrapAlias() ?? null
+        if (!unwrapped) return null
+
+        if (unwrapped instanceof clazz) {
+            if (optionalCallback(unwrapped)) {
+                return unwrapped
+            }
+        }
+
+        if (unwrapped instanceof UnionTy) {
+            let onlyVariant: T | null = null
+            for (const variant of unwrapped.elements) {
+                const okVariant = this.tryPickTFromHint(variant, clazz, optionalCallback)
+                if (okVariant !== null) {
+                    if (onlyVariant !== null) {
+                        return null // ambiguous
+                    }
+                    onlyVariant = okVariant
+                }
+            }
+            return onlyVariant
+        }
+
+        return null
+    }
+
+    private inferArrayLiteralExpression(
+        node: SyntaxNode,
+        flow: FlowContext,
+        usedAsCondition: boolean,
+        hint: Ty | null,
+    ): ExprFlow {
+        const typeNode = node.childForFieldName("type")
+        const explicitType = typeNode ? InferenceWalker.convertType(typeNode, this.ctx.file) : null
+
+        let effectiveHint = hint
+        if (!effectiveHint || effectiveHint instanceof UnknownTy) {
+            effectiveHint = explicitType
+        }
+
+        const hintArray = this.tryPickTFromHint(effectiveHint, ArrayTy)
+        const hintShaped = this.tryPickTFromHint(effectiveHint, TupleTy)
+        const hintLispList = this.tryPickTFromHint(
+            effectiveHint,
+            InstantiationTy,
+            el => el.baseType().name() === "lisp_list",
+        )
+
+        const elements = node
+            .childrenForFieldName("elements")
+            .filter(it => it !== null)
+            .filter(it => it.isNamed)
+        let nextFlow = flow
+        const elementTypes: Ty[] = []
+
+        for (const [i, item] of elements.entries()) {
+            let itemHint: Ty | null = null
+            if (hintArray !== null) {
+                itemHint = hintArray.elementType
+            } else if (hintLispList !== null) {
+                itemHint = hintLispList.types.at(0) ?? null
+            } else if (hintShaped !== null) {
+                itemHint = hintShaped.elements[i] ?? null
+            }
+
+            const itemFlow = this.inferExpression(item, nextFlow, false, itemHint)
+            nextFlow = itemFlow.outFlow
+            elementTypes.push(this.ctx.getType(item) ?? UnknownTy.UNKNOWN)
+        }
+
+        if (explicitType) {
+            this.ctx.setType(node, explicitType)
+            return ExprFlow.create(nextFlow, usedAsCondition)
+        }
+
+        if (hintShaped !== null || hintLispList !== null) {
+            // `var x: [int] = [0]` / `f([1,2])` (where f's param is `lisp_list<T>`)
+            const resultType = hintShaped === null ? hintLispList : new TupleTy(elementTypes)
+            this.ctx.setType(node, resultType)
+            return ExprFlow.create(nextFlow, usedAsCondition)
+        }
+
+        if (elements.length === 0) {
+            // just `[]` is `array<unknown>`, but for `[] as array<slice>` take it
+            this.ctx.setType(node, hintArray ?? new ArrayTy(UnknownTy.UNKNOWN))
+            return ExprFlow.create(nextFlow, usedAsCondition)
+        }
+
+        // for `[1, null]` infer `array<int?>` unless a hint is provided
+        const inferredElementType = elementTypes.reduce((acc, ty) => joinTypes(acc, ty))
+        this.ctx.setType(node, new ArrayTy(inferredElementType))
+        return ExprFlow.create(nextFlow, usedAsCondition)
+    }
+
     private inferTensorExpression(
         node: SyntaxNode,
         flow: FlowContext,
@@ -2618,33 +2749,6 @@ class InferenceWalker {
         }
 
         this.ctx.setType(node, new TensorTy(types))
-        return ExprFlow.create(nextFlow, usedAsCondition)
-    }
-
-    private inferTupleExpression(
-        node: SyntaxNode,
-        flow: FlowContext,
-        usedAsCondition: boolean,
-        hint: Ty | null,
-    ): ExprFlow {
-        const expressions = node.namedChildren
-        const types: Ty[] = []
-
-        const hintTuple = hint instanceof TupleTy ? hint : undefined
-
-        let nextFlow = flow
-        for (const [index, expr] of expressions.entries()) {
-            if (!expr) continue
-
-            const hintType =
-                hintTuple && index < hintTuple.elements.length ? hintTuple.elements[index] : null
-
-            nextFlow = this.inferExpression(expr, nextFlow, false, hintType).outFlow
-            const exprType = this.ctx.getType(expr) ?? UnknownTy.UNKNOWN
-            types.push(exprType)
-        }
-
-        this.ctx.setType(node, new TupleTy(types))
         return ExprFlow.create(nextFlow, usedAsCondition)
     }
 

@@ -32,6 +32,7 @@ import {
     UnionTy,
     NullTy,
     EnumTy,
+    ArrayTy,
 } from "@server/languages/tolk/types/ty"
 import {parentOfType} from "@server/psi/utils"
 import {inferenceOf, typeOf} from "@server/languages/tolk/type-inference"
@@ -444,6 +445,9 @@ export class Reference {
                             expected instanceof InstantiationTy
                         ) {
                             return receiverType.innerTy.name() === expected.innerTy.name()
+                        }
+                        if (receiverType instanceof ArrayTy && expected instanceof ArrayTy) {
+                            return true
                         }
                     }
 
