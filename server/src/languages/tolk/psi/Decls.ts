@@ -575,6 +575,33 @@ export class EnumMember extends NamedNode {
     }
 }
 
+export class ContractDefinition extends NamedNode {
+    public override kindName(): string {
+        return "contract"
+    }
+
+    public fields(): ContractField[] {
+        const body = this.node.childForFieldName("body")
+        if (!body) return []
+        return body.children
+            .filter(value => value?.type === "contract_field")
+            .filter(value => value !== null)
+            .map(value => new ContractField(value, this.file))
+    }
+}
+
+export class ContractField extends NamedNode {
+    public override kindName(): string {
+        return "contract field"
+    }
+
+    public value(): Expression | null {
+        const value = this.node.childForFieldName("value")
+        if (!value) return null
+        return new Expression(value, this.file)
+    }
+}
+
 export function isSpecialStruct(name: string): boolean {
     return name === "contract" || name === "blockchain" || name === "random" || name === "debug"
 }

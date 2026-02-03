@@ -51,7 +51,7 @@
         },
         {
             "name": "keyword.other",
-            "match": "\\b(import|export|true|false|null|redef|mutate|tolk|as|is|!is|private|readonly|string)\\b"
+            "match": "\\b(import|export|true|false|null|redef|mutate|tolk|as|is|!is|private|readonly|string|contract)\\b"
         },
         {
             "name": "keyword.other",
@@ -81,7 +81,7 @@
         },
         {
             "name": "storage.modifier",
-            "match": "\\b(global|const|var|val|fun|get|struct)\\b"
+            "match": "\\b(global|const|var|val|fun|get|struct|contract)\\b"
         },
         {
             "name": "entity.name.type",

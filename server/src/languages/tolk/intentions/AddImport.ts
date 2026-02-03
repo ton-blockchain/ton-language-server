@@ -23,6 +23,16 @@ export class AddImport implements Intention {
         const node = nodeAtPosition(ctx.position, ctx.file)
         if (node?.type !== "identifier" && node?.type !== "type_identifier") return undefined
 
+        const decl = AddImport.findDeclaration(node.text)
+        if (!decl) return undefined
+
+        if (node.parent?.type.endsWith("_declaration")) {
+            // if
+            // ```
+            // contract <caret>Foo {}
+            // ```
+            return undefined
+        }
         return AddImport.findDeclaration(node.text)
     }
 
@@ -63,6 +73,7 @@ export class AddImport implements Intention {
             index.elementByName(IndexKey.Structs, name) ??
             index.elementByName(IndexKey.Enums, name) ??
             index.elementByName(IndexKey.Constants, name) ??
+            index.elementByName(IndexKey.Contracts, name) ??
             undefined
         )
     }

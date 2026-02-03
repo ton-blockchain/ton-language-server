@@ -31,6 +31,8 @@ import {
 } from "@server/languages/tolk/types/ty"
 import {
     Constant,
+    ContractDefinition,
+    ContractField,
     Enum,
     EnumMember,
     Field,
@@ -456,6 +458,16 @@ class InferenceWalker {
         }
 
         this.ctx.setResolved(member.node, member)
+        return flow
+    }
+
+    public inferContractDefinition(contract: ContractDefinition, flow: FlowContext): FlowContext {
+        for (const field of contract.fields()) {
+            const value = field.value()?.node
+            if (value) {
+                this.inferExpression(value, flow, false)
+            }
+        }
         return flow
     }
 
@@ -3098,6 +3110,9 @@ function inferImpl(decl: NamedNode): InferenceResult {
     if (decl instanceof EnumMember) {
         walker.inferEnumMember(decl, flow)
     }
+    if (decl instanceof ContractDefinition) {
+        walker.inferContractDefinition(decl, flow)
+    }
     if (decl instanceof TypeAlias) {
         walker.inferTypeAlias(decl, flow)
     }
@@ -3138,6 +3153,12 @@ function findCacheOwner(ownable: SyntaxNodeWithCache, file: TolkFile): NamedNode
     if (ownable.type === "type_alias_declaration") {
         return new TypeAlias(ownable, file)
     }
+    if (ownable.type === "contract_declaration") {
+        return new ContractDefinition(ownable, file)
+    }
+    if (ownable.type === "contract_field") {
+        return new ContractField(ownable, file)
+    }
     const parent = parentOfType(
         ownable,
         "function_declaration",
@@ -3148,6 +3169,8 @@ function findCacheOwner(ownable: SyntaxNodeWithCache, file: TolkFile): NamedNode
         "struct_field_declaration",
         "enum_member_declaration",
         "type_alias_declaration",
+        "contract_declaration",
+        "contract_field",
     )
     if (parent?.type === "function_declaration") {
         return new FunctionBase(parent, file)
@@ -3172,6 +3195,12 @@ function findCacheOwner(ownable: SyntaxNodeWithCache, file: TolkFile): NamedNode
     }
     if (parent?.type === "type_alias_declaration") {
         return new TypeAlias(parent, file)
+    }
+    if (parent?.type === "contract_declaration") {
+        return new ContractDefinition(parent, file)
+    }
+    if (parent?.type === "contract_field") {
+        return new ContractField(parent, file)
     }
     return null
 }

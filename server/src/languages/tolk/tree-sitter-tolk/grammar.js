@@ -33,6 +33,7 @@ const TOLK_GRAMMAR = {
         choice(
             $.tolk_required_version,
             $.import_directive,
+            $.contract_declaration,
             $.global_var_declaration,
             $.constant_declaration,
             $.type_alias_declaration,
@@ -48,6 +49,14 @@ const TOLK_GRAMMAR = {
     version_value: $ => /(\d+)(.\d+)?(.\d+)?/,
 
     import_directive: $ => seq("import", field("path", $.string_literal)),
+
+    contract_declaration: $ =>
+        seq("contract", field("name", $.identifier), field("body", $.contract_body)),
+
+    contract_body: $ => seq("{", repeat(seq($.contract_field, optional(","))), "}"),
+
+    contract_field: $ =>
+        seq(field("name", $.identifier), ":", field("value", choice($._type_hint, $._expression))),
 
     global_var_declaration: $ =>
         prec.right(

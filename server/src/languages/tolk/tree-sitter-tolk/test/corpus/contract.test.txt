@@ -1,0 +1,45 @@
+========================================================================
+Contract definition
+========================================================================
+contract Counter {
+    author: "me",
+    version: "1.0.0",
+    storage: Storage
+}
+
+struct Storage {
+    val: int
+}
+
+fun main() {
+    val s = "ok";
+}
+------------------------------------------------------------------------
+
+(source_file
+  (contract_declaration
+    name: (identifier)
+    body: (contract_body
+      (contract_field
+        name: (identifier)
+        value: (string_literal))
+      (contract_field
+        name: (identifier)
+        value: (string_literal))
+      (contract_field
+        name: (identifier)
+        value: (type_identifier))))
+  (struct_declaration
+    name: (identifier)
+    body: (struct_body
+      (struct_field_declaration
+        name: (identifier)
+        type: (type_identifier))))
+  (function_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (block_statement
+      (local_vars_declaration
+        lhs: (var_declaration
+          name: (identifier))
+        assigned_val: (string_literal)))))
