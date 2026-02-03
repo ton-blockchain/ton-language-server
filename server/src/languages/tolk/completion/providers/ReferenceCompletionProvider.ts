@@ -29,6 +29,7 @@ export class ReferenceCompletionProvider implements CompletionProvider<Completio
             !ctx.isMethodName &&
             !ctx.expectFieldModifier &&
             !ctx.insideString &&
+            !ctx.contractTopLevel &&
             !ctx.expectMatchArm
         )
     }

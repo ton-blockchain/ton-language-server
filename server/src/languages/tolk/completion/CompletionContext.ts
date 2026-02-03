@@ -15,6 +15,7 @@ export class CompletionContext {
     public isStatement: boolean = false
     public topLevel: boolean = false
     public structTopLevel: boolean = false
+    public contractTopLevel: boolean = false
     public afterDot: boolean = false
     public beforeParen: boolean = false
     public beforeSemicolon: boolean = false
@@ -140,12 +141,14 @@ export class CompletionContext {
             const grand = parent.parent
             if (grand.type === "struct_body") {
                 this.structTopLevel = true
+            } else if (grand.type === "contract_body") {
+                this.contractTopLevel = true
             } else {
                 this.topLevel = true
             }
         }
 
-        if (!this.topLevel && !this.structTopLevel) {
+        if (!this.topLevel && !this.structTopLevel && !this.contractTopLevel) {
             if (parent.type === "expression_statement") {
                 this.isStatement = true
             } else {
@@ -196,6 +199,7 @@ export class CompletionContext {
             !this.inNameOfFieldInit &&
             !this.insideImport &&
             !this.structTopLevel &&
+            !this.contractTopLevel &&
             !this.expectMatchArm &&
             !this.catchVariable &&
             !this.isFunctionName &&

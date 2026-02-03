@@ -4,6 +4,7 @@ Top level completion
 <caret>
 ------------------------------------------------------------------------
 13 const FOO: <type> = <value>
+13 contract Name {}
 13 enum Name {}
 13 fun name() {}
 13 get fun name() {}
@@ -30,6 +31,7 @@ fun foo() {}
 <caret>
 ------------------------------------------------------------------------
 13 const FOO: <type> = <value>
+13 contract Name {}
 13 enum Name {}
 13 fun name() {}
 13 get fun name() {}
@@ -58,6 +60,7 @@ import "./file.tolk";
 fun foo() {}
 ------------------------------------------------------------------------
 13 const FOO: <type> = <value>
+13 contract Name {}
 13 enum Name {}
 13 fun name() {}
 13 get fun name() {}

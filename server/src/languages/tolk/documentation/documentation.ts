@@ -15,6 +15,8 @@ import {
     Struct,
     TypeAlias,
     TypeParameter,
+    ContractDefinition,
+    ContractField,
 } from "@server/languages/tolk/psi/Decls"
 import {parentOfType} from "@server/psi/utils"
 import {bitTypeName} from "@server/languages/tolk/lang/types-util"
@@ -43,6 +45,21 @@ export function generateTolkDocFor(node: NamedNode, place: SyntaxNode): string |
         const owner = symbol.owner()
         if (!owner) return null // not possible in correct code
         return "enum " + owner.name() + "\n"
+    }
+
+    const CONTRACT_FIELD_DOCS: Record<string, string> = {
+        contractName: "Name of the contract.",
+        author: "Author of the contract.",
+        version: "Version of the contract.",
+        description: "Description of the contract.",
+        symbolsNamespace: "Namespace for contract symbols.",
+        incomingMessages:
+            "Defines the type of allowed incoming internal messages. Usually a union type of all supported message structs.",
+        incomingExternal: "Defines the type of allowed incoming external messages.",
+        storage:
+            "Defines the persistent storage structure for the contract. This field usually points to a struct type.",
+        storageAtDeployment: "Defines the storage structure at the moment of deployment.",
+        forceAbiExport: "List of types to additionally export to ABI.",
     }
 
     switch (astNode.type) {
@@ -235,6 +252,38 @@ export function generateTolkDocFor(node: NamedNode, place: SyntaxNode): string |
             return defaultResult(
                 `${ownerPresentation}${node.name()}${member.defaultValuePresentation()}`,
                 doc,
+            )
+        }
+        case "contract_declaration": {
+            const doc = node.documentation()
+            const contract = new ContractDefinition(node.node, node.file)
+
+            const fields = contract.fields().map(field => {
+                const name = field.nameNode()
+                if (!name) return null
+
+                const value = field.value()?.node.text ?? "unknown"
+
+                return `    ${field.name()}: ${value}`
+            })
+
+            const bodyPresentation = fields.length === 0 ? "{}" : "{\n" + fields.join("\n") + "\n}"
+
+            return defaultResult(`contract ${node.name()} ${bodyPresentation}`, doc)
+        }
+        case "contract_field": {
+            const doc = node.documentation()
+            const field = new ContractField(node.node, node.file)
+            const fieldName = field.name()
+            const description = CONTRACT_FIELD_DOCS[fieldName] ?? ""
+
+            const owner = parentOfType(node.node, "contract_declaration")
+            const ownerName = owner?.childForFieldName("name")?.text ?? "unknown"
+            const ownerPresentation = `contract ${ownerName}\n`
+
+            return defaultResult(
+                `${ownerPresentation}${fieldName}`,
+                (description ? description + "\n\n" : "") + doc,
             )
         }
         case "var_declaration": {

@@ -9,7 +9,7 @@ fun foo() {
 }
 ------------------------------------------------------------------------
 5  some   int
-5  someOther   slice
+5  someOther   string
 
 ========================================================================
 Variables completion from tuple declaration
@@ -21,7 +21,7 @@ fun foo() {
 }
 ------------------------------------------------------------------------
 5  some   int
-5  someOther   slice
+5  someOther   string
 
 ========================================================================
 Variable completion from catch clause
@@ -106,7 +106,7 @@ fun foo() {
 }
 ------------------------------------------------------------------------
 5  some   int
-5  someOther   slice
+5  someOther   string
 
 ========================================================================
 No type parameters completion as value

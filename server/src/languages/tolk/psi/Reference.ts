@@ -208,19 +208,22 @@ export class Reference {
 
         // prettier-ignore
         return (
-            parent.type === "global_var_declaration" ||
-            parent.type === "type_alias_declaration" ||
-            parent.type === "struct_field_declaration" ||
-            parent.type === "enum_member_declaration" ||
-            parent.type === "parameter_declaration" ||
-            parent.type === "var_declaration" ||
-            parent.type === "struct_declaration" ||
-            parent.type === "enum_declaration" ||
-            parent.type === "function_declaration" ||
-            parent.type === "method_declaration" ||
-            parent.type === "get_method_declaration" ||
-            parent.type === "constant_declaration"
-        ) && name.equals(identifier)
+            (parent.type === "global_var_declaration" ||
+                parent.type === "type_alias_declaration" ||
+                parent.type === "struct_field_declaration" ||
+                parent.type === "enum_member_declaration" ||
+                parent.type === "parameter_declaration" ||
+                parent.type === "var_declaration" ||
+                parent.type === "struct_declaration" ||
+                parent.type === "enum_declaration" ||
+                parent.type === "function_declaration" ||
+                parent.type === "method_declaration" ||
+                parent.type === "get_method_declaration" ||
+                parent.type === "contract_declaration" ||
+                parent.type === "contract_field" ||
+                parent.type === "constant_declaration") &&
+            name.equals(identifier)
+        )
     }
 
     private static declarationAstToNode(node: SyntaxNode, file: TolkFile): NamedNode {

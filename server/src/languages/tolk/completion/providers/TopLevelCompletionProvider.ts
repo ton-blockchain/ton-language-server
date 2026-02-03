@@ -24,6 +24,18 @@ export class TopLevelCompletionProvider implements CompletionProvider<Completion
         })
 
         result.add({
+            label: `contract`,
+            labelDetails: {
+                detail: " Name {}",
+            },
+            kind: CompletionItemKind.Keyword,
+            insertText:
+                'contract ${1:Name} {\n    author: "${2:}"\n    version: "${3:1.0.0}"\n    description: "${4:My TON contract}"\n    incomingMessages: ${5:AllowedMessages}\n    storage: ${6:Storage}\n}$0',
+            insertTextFormat: InsertTextFormat.Snippet,
+            weight: CompletionWeight.KEYWORD,
+        })
+
+        result.add({
             label: `struct`,
             labelDetails: {
                 detail: " Name {}",

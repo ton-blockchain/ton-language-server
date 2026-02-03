@@ -1,0 +1,33 @@
+========================================================================
+Contract fields completion
+========================================================================
+contract MyContract {
+    <caret>
+}
+------------------------------------------------------------------------
+4  author: Author of the contract
+4  description: Description of the contract
+4  forceAbiExport: List of symbols to additionally export to ABI
+4  incomingExternal: Allowed incoming external messages type
+4  incomingMessages: Allowed incoming messages type
+4  storage: Persistent storage structure
+4  storageAtDeployment: Storage structure at deployment
+4  symbolsNamespace: Namespace for contract symbols
+4  version: Version of the contract
+
+========================================================================
+Contract fields completion — existing fields excluded
+========================================================================
+contract MyContract {
+    author: "me",
+    <caret>
+}
+------------------------------------------------------------------------
+4  description: Description of the contract
+4  forceAbiExport: List of symbols to additionally export to ABI
+4  incomingExternal: Allowed incoming external messages type
+4  incomingMessages: Allowed incoming messages type
+4  storage: Persistent storage structure
+4  storageAtDeployment: Storage structure at deployment
+4  symbolsNamespace: Namespace for contract symbols
+4  version: Version of the contract

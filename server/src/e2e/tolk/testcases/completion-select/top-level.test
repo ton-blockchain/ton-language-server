@@ -111,3 +111,16 @@ Method name completion with all signature
 fun int.pa<caret>() {}
 ------------------------------------------------------------------------
 fun int.packToBuilder<caret>() {}
+
+========================================================================
+Contract completion
+========================================================================
+contract<caret>
+------------------------------------------------------------------------
+contract Name<caret> {
+    author: ""
+    version: "1.0.0"
+    description: "My TON contract"
+    incomingMessages: AllowedMessages
+    storage: Storage
+}
