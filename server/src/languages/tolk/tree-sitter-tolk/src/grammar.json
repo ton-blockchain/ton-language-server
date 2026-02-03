@@ -2714,6 +2714,31 @@
             "type": "CHOICE",
             "members": [
                 {
+                    "type": "PREC_RIGHT",
+                    "value": 10,
+                    "content": {
+                        "type": "SEQ",
+                        "members": [
+                            {
+                                "type": "SYMBOL",
+                                "name": "_expression"
+                            },
+                            {
+                                "type": "FIELD",
+                                "name": "operator_name",
+                                "content": {
+                                    "type": "STRING",
+                                    "value": "??"
+                                }
+                            },
+                            {
+                                "type": "SYMBOL",
+                                "name": "_expression"
+                            }
+                        ]
+                    }
+                },
+                {
                     "type": "PREC_LEFT",
                     "value": 13,
                     "content": {
