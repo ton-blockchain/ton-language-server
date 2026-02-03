@@ -18,14 +18,11 @@ export class ActonWalletNameCompletionProvider extends ActonStringArgumentComple
         return functionName === "wallet" && qualifierName === "net" && argumentIndex === 0
     }
 
-    protected async addStringCompletions(
-        ctx: CompletionContext,
-        result: CompletionResult,
-    ): Promise<void> {
-        const actonToml = await ActonToml.find(ctx.element.file.uri)
+    protected addStringCompletions(ctx: CompletionContext, result: CompletionResult): void {
+        const actonToml = ActonToml.discover(ctx.element.file.uri)
         if (!actonToml) return
 
-        const wallets = await actonToml.getWallets()
+        const wallets = actonToml.getWallets()
         for (const wallet of wallets) {
             result.add({
                 label: wallet.name,

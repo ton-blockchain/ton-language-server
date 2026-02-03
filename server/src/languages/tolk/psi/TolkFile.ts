@@ -22,6 +22,7 @@ import {NamedNode} from "@server/languages/tolk/psi/TolkNode"
 
 import {ImportResolver} from "@server/languages/tolk/psi/ImportResolver"
 import {trimSuffix} from "@server/utils/strings"
+import {ActonToml} from "@server/acton/ActonToml"
 
 import {TOLK_CACHE} from "@server/languages/tolk/cache"
 import {TOLK_PARSED_FILES_CACHE} from "@server/files"
@@ -137,6 +138,22 @@ export class TolkFile extends File {
             }
 
             return filePath
+        }
+
+        const actonToml = ActonToml.discover(inFile.uri)
+        if (actonToml) {
+            const mappings = actonToml.getMappings()
+            for (const [key, value] of mappings.entries()) {
+                const mappingDir = path.resolve(actonToml.workingDir, value)
+                if (filePath.startsWith(mappingDir)) {
+                    const subPath = filePath
+                        .slice(mappingDir.length)
+                        .replace(/^[/\\]/, "")
+                        .replace(/\\/g, "/")
+                    const withoutExt = trimSuffix(subPath, ".tolk")
+                    return `@${key}/${withoutExt}`
+                }
+            }
         }
 
         const relativeTo = path.dirname(inFile.path)

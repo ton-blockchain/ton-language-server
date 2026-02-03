@@ -7,6 +7,7 @@ import type {Node as SyntaxNode} from "web-tree-sitter"
 import {trimPrefix, trimSuffix} from "@server/utils/strings"
 import {projectTolkStdlibPath} from "@server/languages/tolk/toolchain/toolchain"
 import {filePathToUri, TOLK_PARSED_FILES_CACHE} from "@server/files"
+import {ActonToml} from "@server/acton/ActonToml"
 
 import type {TolkFile} from "./TolkFile"
 
@@ -14,6 +15,10 @@ export class ImportResolver {
     public static resolveImport(fromFile: TolkFile, importPath: string): string | null {
         if (importPath.startsWith("@stdlib/")) {
             return this.resolveStdlibPath(importPath)
+        }
+
+        if (importPath.startsWith("@")) {
+            return this.resolveMappingPath(fromFile, importPath)
         }
 
         if (importPath.startsWith("./") || importPath.startsWith("../")) {
@@ -26,7 +31,7 @@ export class ImportResolver {
 
     private static resolveLocalPath(file: TolkFile, localPath: string): string | null {
         const withoutExt = trimSuffix(localPath, ".tolk")
-        const dir = path.dirname(file.path)
+        const dir = path.dirname(file.fsPath)
         return path.join(dir, withoutExt) + ".tolk"
     }
 
@@ -37,6 +42,22 @@ export class ImportResolver {
         const withoutExt = trimSuffix(prefixedPath, ".tolk")
         const importPath = trimPrefix(withoutExt, "@stdlib/")
         return path.join(stdlibPath, importPath) + ".tolk"
+    }
+
+    private static resolveMappingPath(fromFile: TolkFile, prefixedPath: string): string | null {
+        const actonToml = ActonToml.discover(fromFile.uri)
+        if (!actonToml) return null
+
+        const mappings = actonToml.getMappings()
+        const firstSlash = prefixedPath.indexOf("/")
+        const mappingKey =
+            firstSlash === -1 ? prefixedPath.slice(1) : prefixedPath.slice(1, firstSlash)
+        const mappingValue = mappings.get(mappingKey)
+        if (!mappingValue) return null
+
+        const subPath = firstSlash === -1 ? "" : prefixedPath.slice(firstSlash + 1)
+        const withoutExt = trimSuffix(subPath, ".tolk")
+        return path.join(actonToml.workingDir, mappingValue, withoutExt) + ".tolk"
     }
 
     public static toFile(targetPath: string): TolkFile | null {
