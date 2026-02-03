@@ -44,7 +44,7 @@ ok
 Auto return type: two returns with different type
 ========================================================================
 fun test(cond: bool) {
-//! ^ (bool) -> slice | int
+//! ^ (bool) -> string | int
     if (cond) {
         return "hello";
     }
@@ -53,9 +53,9 @@ fun test(cond: bool) {
 
 fun main() {
     val res =
-//!     ^ slice | int
+//!     ^ string | int
         test(true);
-//!     ^ (bool) -> slice | int
+//!     ^ (bool) -> string | int
 }
 ------------------------------------------------------------------------
 ok

@@ -711,6 +711,23 @@ export class BytesNTy extends NonNamedTy {
     }
 }
 
+export class StringTy extends NonNamedTy {
+    public name(): string {
+        return "string"
+    }
+
+    public override equals(other: Ty): boolean {
+        return other instanceof StringTy
+    }
+
+    public override canRhsBeAssigned(other: Ty): boolean {
+        if (other instanceof StringTy) return true
+        return super.canRhsBeAssigned(other)
+    }
+
+    public static STRING: StringTy = new StringTy()
+}
+
 export class NullTy extends NonNamedTy {
     public name(): string {
         return "null"

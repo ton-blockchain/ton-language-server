@@ -17,7 +17,7 @@ Tuple literal expression
 ========================================================================
 fun main() {
     val a = [1, true, ""];
-//!     ^ [int, bool, slice]
+//!     ^ [int, bool, string]
 }
 ------------------------------------------------------------------------
 ok
@@ -27,7 +27,7 @@ Tensor literal type inference
 ========================================================================
 fun main() {
     val data = (1, true, "hello");
-    //! ^ (int, bool, slice)
+    //! ^ (int, bool, string)
 }
 ------------------------------------------------------------------------
 ok
@@ -37,7 +37,7 @@ Complex tensor and tuple literal type inference
 ========================================================================
 fun main() {
     val data = (1, [1, [1, true, "hello"], (1, [1, [1, true, "hello"], "hello"], "hello")], "hello");
-    //! ^ (int, [int, [int, bool, slice], (int, [int, [int, bool, slice], slice], slice)], slice)
+    //! ^ (int, [int, [int, bool, string], (int, [int, [int, bool, string], string], string)], string)
 }
 ------------------------------------------------------------------------
 ok
