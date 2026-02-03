@@ -603,7 +603,14 @@ const TOLK_GRAMMAR = {
     parenthesized_expression: $ => seq("(", field("inner", $._expression), optional(","), ")"),
     tensor_expression: $ =>
         choice(seq("(", ")"), seq("(", commaSep2($._expression), optional(","), ")")),
-    typed_tuple: $ => seq("[", commaSep($._expression), optional(","), "]"),
+    typed_tuple: $ =>
+        seq(
+            optional(field("type", $._type_hint)),
+            "[",
+            field("elements", commaSep($._expression)),
+            optional(","),
+            "]",
+        ),
 
     lambda_expression: $ =>
         prec.right(
