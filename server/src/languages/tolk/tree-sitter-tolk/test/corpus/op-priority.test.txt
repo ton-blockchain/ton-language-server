@@ -15,3 +15,41 @@ const a = 1 + 2 * !3 << 4;
           (unary_operator
             argument: (number_literal))))
       (number_literal))))
+
+========================================================================
+Null coalescing operator ??
+========================================================================
+fun test() {
+    val x = a ?? b;
+    val y = a ?? b ?? c;
+    val z = a ?? b + c;
+}
+------------------------------------------------------------------------
+
+(source_file
+  (function_declaration
+    name: (identifier)
+    parameters: (parameter_list)
+    body: (block_statement
+      (local_vars_declaration
+        lhs: (var_declaration
+          name: (identifier))
+        assigned_val: (binary_operator
+          (identifier)
+          (identifier)))
+      (local_vars_declaration
+        lhs: (var_declaration
+          name: (identifier))
+        assigned_val: (binary_operator
+          (identifier)
+          (binary_operator
+            (identifier)
+            (identifier))))
+      (local_vars_declaration
+        lhs: (var_declaration
+          name: (identifier))
+        assigned_val: (binary_operator
+          (identifier)
+          (binary_operator
+            (identifier)
+            (identifier)))))))

@@ -1820,6 +1820,37 @@ class InferenceWalker {
                 this.ctx.setType(node, IntTy.INT)
                 break
             }
+            case "??": {
+                const flowAfterLeft = this.inferExpression(left, flow, false)
+                const leftType = this.ctx.getType(left) ?? UnknownTy.UNKNOWN
+                if (!right) {
+                    this.ctx.setType(node, leftType)
+                    return ExprFlow.create(flowAfterLeft.outFlow, usedAsCondition)
+                }
+
+                const rhsFlow = flowAfterLeft.outFlow.clone()
+                const sinkExpr = this.extractSinkExpression(left)
+                if (sinkExpr) {
+                    rhsFlow.setSink(sinkExpr, NullTy.NULL)
+                }
+
+                const flowAfterRight = this.inferExpression(right, rhsFlow, false)
+
+                const withoutNullType = subtractTypes(leftType, NullTy.NULL)
+                if (leftType instanceof NullTy) {
+                    this.ctx.setType(node, this.ctx.getType(right))
+                } else if (withoutNullType instanceof NeverTy) {
+                    rhsFlow.unreachable = UnreachableKind.CantHappen
+                    this.ctx.setType(node, leftType)
+                } else {
+                    const rightType = this.ctx.getType(right) ?? UnknownTy.UNKNOWN
+                    const resultType = joinTypes(withoutNullType, rightType)
+                    this.ctx.setType(node, resultType)
+                }
+
+                const outFlow = flowAfterLeft.outFlow.join(flowAfterRight.outFlow)
+                return ExprFlow.create(outFlow, usedAsCondition)
+            }
             default: {
                 flow = this.inferExpression(left, flow, false).outFlow
                 if (!right) {

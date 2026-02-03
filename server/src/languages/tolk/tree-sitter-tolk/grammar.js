@@ -443,6 +443,7 @@ const TOLK_GRAMMAR = {
 
     binary_operator: $ =>
         choice(
+            prec.right(10, seq($._expression, field("operator_name", "??"), $._expression)),
             prec.left(
                 13,
                 seq($._expression, field("operator_name", choice("&&", "||")), $._expression),
