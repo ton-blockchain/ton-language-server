@@ -22,11 +22,7 @@ export class ActonGetMethodCompletionProvider extends ActonStringArgumentComplet
         return functionName === "runGetMethod" && qualifierName === "net" && argumentIndex === 1
     }
 
-    protected async addStringCompletions(
-        _ctx: CompletionContext,
-        result: CompletionResult,
-    ): Promise<void> {
-        await Promise.resolve()
+    protected addStringCompletions(_ctx: CompletionContext, result: CompletionResult): void {
         const getMethods: GetMethod[] = []
         index.processElementsByKey(
             IndexKey.GetMethods,

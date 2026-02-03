@@ -286,6 +286,23 @@ export function generateTolkDocFor(node: NamedNode, place: SyntaxNode): string |
                 (description ? description + "\n\n" : "") + doc,
             )
         }
+        case "string_literal": {
+            const parent = astNode.parent
+            if (parent?.type === "import_directive") {
+                const text = astNode.text.slice(1, -1)
+                if (text.startsWith("@")) {
+                    const firstSlash = text.indexOf("/")
+                    if (firstSlash !== -1) {
+                        const mapping = text.slice(1, firstSlash)
+                        if (mapping === "stdlib") {
+                            return defaultResult(`import "@stdlib"`, "Standard library mapping")
+                        }
+                        return defaultResult(`import "@${mapping}"`, `Path mapping: ${mapping}`)
+                    }
+                }
+            }
+            break
+        }
         case "var_declaration": {
             const name = astNode.childForFieldName("name")?.text ?? "unknown"
 

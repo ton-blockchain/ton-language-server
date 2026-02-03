@@ -921,6 +921,8 @@ class InferenceWalker {
                 !callableTy.params[index].hasGenerics()
             ) {
                 paramTypes.push(callableTy.params[index])
+            } else {
+                paramTypes.push(UnknownTy.UNKNOWN)
             }
         }
 

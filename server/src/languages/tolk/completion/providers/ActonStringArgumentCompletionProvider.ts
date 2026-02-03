@@ -1,18 +1,18 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2026 TON Core
 
-import {AsyncCompletionProvider} from "@server/completion/CompletionProvider"
+import {CompletionProvider} from "@server/completion/CompletionProvider"
 import {CompletionContext} from "@server/languages/tolk/completion/CompletionContext"
 import {CompletionResult} from "@server/completion/WeightedCompletionItem"
 
 export abstract class ActonStringArgumentCompletionProvider
-    implements AsyncCompletionProvider<CompletionContext>
+    implements CompletionProvider<CompletionContext>
 {
     public isAvailable(ctx: CompletionContext): boolean {
         return ctx.insideString
     }
 
-    public async addCompletion(ctx: CompletionContext, result: CompletionResult): Promise<void> {
+    public addCompletion(ctx: CompletionContext, result: CompletionResult): void {
         const node = ctx.element.node
         let parent = node.parent
         if (parent && parent.type === "call_argument") {
@@ -50,7 +50,7 @@ export abstract class ActonStringArgumentCompletionProvider
         const argIndex = args.findIndex(arg => arg?.id === parent.id)
 
         if (this.shouldAddCompletions(functionName, qualifierName, argIndex)) {
-            await this.addStringCompletions(ctx, result, functionName, qualifierName, argIndex)
+            this.addStringCompletions(ctx, result, functionName, qualifierName, argIndex)
         }
     }
 
@@ -66,5 +66,5 @@ export abstract class ActonStringArgumentCompletionProvider
         functionName: string,
         qualifierName: string | undefined,
         argumentIndex: number,
-    ): Promise<void>
+    ): void
 }

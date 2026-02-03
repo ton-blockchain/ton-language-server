@@ -18,7 +18,14 @@ export class File {
     }
 
     public get path(): string {
-        return fileURLToPath(this.uri)
+        if (this.uri.startsWith("file:")) {
+            return fileURLToPath(this.uri)
+        }
+        return this.uri
+    }
+
+    public get fsPath(): string {
+        return this.path
     }
 
     public get name(): string {

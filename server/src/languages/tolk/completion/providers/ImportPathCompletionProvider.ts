@@ -1,39 +1,52 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
 import * as path from "node:path"
+import * as fs from "node:fs"
 
 import {CompletionItemKind} from "vscode-languageserver-types"
 
-import {AsyncCompletionProvider} from "@server/completion/CompletionProvider"
+import {CompletionProvider} from "@server/completion/CompletionProvider"
 import type {CompletionContext} from "@server/languages/tolk/completion/CompletionContext"
 import {CompletionResult, CompletionWeight} from "@server/completion/WeightedCompletionItem"
 
-import {globalVFS} from "@server/vfs/global"
-import {listDirs, listFiles} from "@server/vfs/vfs"
-import {filePathToUri} from "@server/files"
 import {TolkFile} from "@server/languages/tolk/psi/TolkFile"
 import {trimSuffix} from "@server/utils/strings"
 import {projectTolkStdlibPath} from "@server/languages/tolk/toolchain/toolchain"
+import {ActonToml} from "@server/acton/ActonToml"
 
-export class ImportPathCompletionProvider implements AsyncCompletionProvider<CompletionContext> {
+export class ImportPathCompletionProvider implements CompletionProvider<CompletionContext> {
     public isAvailable(ctx: CompletionContext): boolean {
         return ctx.insideImport
     }
 
-    public async addCompletion(ctx: CompletionContext, result: CompletionResult): Promise<void> {
+    public addCompletion(ctx: CompletionContext, result: CompletionResult): void {
         const file = ctx.element.file
-        const currentDir = path.dirname(file.path)
+        const currentDir = path.dirname(file.fsPath)
 
         const importPath = trimSuffix(ctx.element.node.text.slice(1, -1), "DummyIdentifier")
 
         if (importPath.startsWith("@stdlib/") && projectTolkStdlibPath) {
-            await this.addEntries(projectTolkStdlibPath + "/", file, "", result)
+            this.addEntries(projectTolkStdlibPath + "/", file, "", result)
             return
+        }
+
+        const actonToml = ActonToml.discover(file.uri)
+        if (importPath.startsWith("@") && actonToml) {
+            const mappings = actonToml.getMappings()
+            for (const [key, value] of mappings.entries()) {
+                if (importPath.startsWith(`@${key}/`)) {
+                    const mappingDir = path.resolve(actonToml.workingDir, value)
+                    const subPath = importPath.slice(key.length + 2)
+                    const normalizedSubPath = subPath.length === 0 ? "/" : subPath
+                    this.addEntries(path.join(mappingDir, normalizedSubPath), file, "", result)
+                    return
+                }
+            }
         }
 
         if (importPath.startsWith("./") || importPath.startsWith("../")) {
             const targetDir = path.join(currentDir, importPath)
-            await this.addEntries(targetDir, file, "", result)
+            this.addEntries(targetDir, file, "", result)
             return
         }
 
@@ -41,28 +54,39 @@ export class ImportPathCompletionProvider implements AsyncCompletionProvider<Com
         // import "<caret>"
         // or on path without ./
         // import "foo/<caret>"
-        await this.addEntries(path.join(currentDir, importPath) + "/", file, "", result)
+        this.addEntries(path.join(currentDir, importPath) + "/", file, "", result)
 
-        if (importPath === "") {
+        if (importPath === "" || importPath === "@") {
             result.add({
                 label: "@stdlib/",
                 kind: CompletionItemKind.Folder,
                 weight: CompletionWeight.CONTEXT_ELEMENT,
             })
+
+            if (actonToml) {
+                const mappings = actonToml.getMappings()
+                for (const key of mappings.keys()) {
+                    result.add({
+                        label: `@${key}/`,
+                        kind: CompletionItemKind.Folder,
+                        weight: CompletionWeight.CONTEXT_ELEMENT,
+                    })
+                }
+            }
         }
     }
 
-    private async addEntries(
+    private addEntries(
         dir: string,
         file: TolkFile,
         prefix: string,
         result: CompletionResult,
-    ): Promise<void> {
+    ): void {
         const [actualDir, namePrefix] = this.splitPath(dir)
 
-        const files = await this.files(actualDir, file)
+        const files = this.files(actualDir, file)
         for (const name of files) {
-            if (!name.startsWith(namePrefix)) {
+            if (namePrefix && !name.startsWith(namePrefix)) {
                 // for "./bar/some"
                 // filter all files that do not start with `some`
                 continue
@@ -72,9 +96,9 @@ export class ImportPathCompletionProvider implements AsyncCompletionProvider<Com
             this.addFile(actualInsertName, result)
         }
 
-        const dirs = await this.dirs(actualDir)
+        const dirs = this.dirs(actualDir)
         for (const name of dirs) {
-            if (!name.startsWith(namePrefix)) {
+            if (namePrefix && !name.startsWith(namePrefix)) {
                 // for "./bar/some"
                 // filter all dirs that do not start with `some`
                 continue
@@ -124,21 +148,24 @@ export class ImportPathCompletionProvider implements AsyncCompletionProvider<Com
         })
     }
 
-    private async files(dir: string, currentFile: TolkFile): Promise<string[]> {
+    private files(dir: string, currentFile: TolkFile): string[] {
         try {
-            const allFiles = await listFiles(globalVFS, filePathToUri(dir))
-            return allFiles
-                .filter(file => file.endsWith(".tolk"))
-                .map(file => path.basename(file, ".tolk"))
+            return fs
+                .readdirSync(dir, {withFileTypes: true})
+                .filter(dirent => dirent.isFile() && dirent.name.endsWith(".tolk"))
+                .map(dirent => path.basename(dirent.name, ".tolk"))
                 .filter(name => name !== currentFile.name)
         } catch {
             return []
         }
     }
 
-    private async dirs(dir: string): Promise<string[]> {
+    private dirs(dir: string): string[] {
         try {
-            return await listDirs(globalVFS, filePathToUri(dir))
+            return fs
+                .readdirSync(dir, {withFileTypes: true})
+                .filter(dirent => dirent.isDirectory())
+                .map(dirent => dirent.name)
         } catch {
             return []
         }

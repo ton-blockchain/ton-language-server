@@ -126,6 +126,10 @@ export async function provideTolkCompletion(
         new StructFieldModifiersCompletionProvider(),
         new EnumCompletionProvider(),
         new ContractFieldCompletionProvider(),
+        new ActonWalletNameCompletionProvider(),
+        new ActonContractIdCompletionProvider(),
+        new ImportPathCompletionProvider(),
+        new ActonGetMethodCompletionProvider(),
     ]
 
     for (const provider of providers) {
@@ -133,12 +137,7 @@ export async function provideTolkCompletion(
         provider.addCompletion(ctx, result)
     }
 
-    const asyncProviders: AsyncCompletionProvider<CompletionContext>[] = [
-        new ImportPathCompletionProvider(),
-        new ActonWalletNameCompletionProvider(),
-        new ActonContractIdCompletionProvider(),
-        new ActonGetMethodCompletionProvider(),
-    ]
+    const asyncProviders: AsyncCompletionProvider<CompletionContext>[] = []
 
     for (const provider of asyncProviders) {
         if (!provider.isAvailable(ctx)) continue

@@ -18,14 +18,11 @@ export class ActonContractIdCompletionProvider extends ActonStringArgumentComple
         return functionName === "build" && qualifierName === undefined && argumentIndex === 0
     }
 
-    protected async addStringCompletions(
-        ctx: CompletionContext,
-        result: CompletionResult,
-    ): Promise<void> {
-        const actonToml = await ActonToml.find(ctx.element.file.uri)
+    protected addStringCompletions(ctx: CompletionContext, result: CompletionResult): void {
+        const actonToml = ActonToml.discover(ctx.element.file.uri)
         if (!actonToml) return
 
-        const contractIds = await actonToml.getContractIds()
+        const contractIds = actonToml.getContractIds()
         for (const id of contractIds) {
             result.add({
                 label: id,
