@@ -665,7 +665,7 @@ const TOLK_GRAMMAR = {
         token(
             choice(
                 seq('"""', repeat(choice(/[^"]/, /"[^"]/, /""[^"]/)), '"""'),
-                /"(?:[^"\\\n]|\\.)*"/, // sing quote
+                seq('"', repeat(choice(/[^"\\\n]/, /\\./)), '"'),
             ),
         ),
     boolean_literal: $ => choice("true", "false"),

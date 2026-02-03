@@ -16,6 +16,7 @@ import {
     joinTypes,
     NeverTy,
     NullTy,
+    StringTy,
     StructTy,
     subtractTypes,
     TensorTy,
@@ -2547,9 +2548,7 @@ class InferenceWalker {
         }
 
         if (node.type === "string_literal") {
-            const node = index.elementByName(IndexKey.TypeAlias, "slice")
-            if (!node) return null
-            return new BuiltinTy("slice", node)
+            return StringTy.STRING
         }
 
         if (node.type === "boolean_literal") {
@@ -3019,6 +3018,9 @@ class InferenceWalker {
             }
             case "null": {
                 return NullTy.NULL
+            }
+            case "string": {
+                return StringTy.STRING
             }
             case "never": {
                 return NeverTy.NEVER

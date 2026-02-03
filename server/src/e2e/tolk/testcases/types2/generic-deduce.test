@@ -92,7 +92,7 @@ fun generic<T, U, V>(a: T, b: U, c: V): [T | U, V] {}
 
 fun main() {
     val foo = generic(1, true, "");
-//!     ^ [int | bool, slice]
+//!     ^ [int | bool, string]
 }
 ------------------------------------------------------------------------
 ok
@@ -214,7 +214,7 @@ fun main() {
     val foo1 = 10.generic();
 //!     ^ int
     val foo2 = "hello".generic();
-//!     ^ slice
+//!     ^ string
 }
 ------------------------------------------------------------------------
 ok
@@ -228,7 +228,7 @@ fun main() {
     val foo1 = 10.generic();
 //!     ^ int
     val foo2 = "hello".generic();
-//!     ^ slice
+//!     ^ string
 }
 ------------------------------------------------------------------------
 ok
@@ -240,7 +240,7 @@ fun T.generic<U>(a: U): T | U {}
 
 fun main() {
     val foo = int.generic("hello");
-//!     ^ int | slice
+//!     ^ int | string
 }
 ------------------------------------------------------------------------
 ok
@@ -252,7 +252,7 @@ fun T.generic<U>(self, a: U): T | U {}
 
 fun main() {
     val foo = 10.generic("hello");
-//!     ^ int | slice
+//!     ^ int | string
 }
 ------------------------------------------------------------------------
 ok

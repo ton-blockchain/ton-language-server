@@ -323,17 +323,17 @@ ok
 Assign smartcast
 ========================================================================
 fun main(): void {
-    val name: int | slice = 10;
-//!     ^ int | slice
+    val name: int | string = 10;
+//!     ^ int | string
 
     name;
 //! ^ int
 
     name = "";
-//! ^ int | slice
+//! ^ int | string
 
     name;
-//! ^ slice
+//! ^ string
 }
 ------------------------------------------------------------------------
 ok
@@ -342,17 +342,17 @@ ok
 Assign smartcast with tuple
 ========================================================================
 fun main(): void {
-    val [name: int | slice] = [10];
-//!      ^ int | slice
+    val [name: int | string] = [10];
+//!      ^ int | string
 
     name;
 //! ^ int
 
     name = "";
-//! ^ int | slice
+//! ^ int | string
 
     name;
-//! ^ slice
+//! ^ string
 }
 ------------------------------------------------------------------------
 ok
@@ -362,10 +362,10 @@ Assign smartcast with tensor
 ========================================================================
 fun main(): void {
     val (
-        name: int | slice,
-//!     ^ int | slice
-        other: slice?
-//!     ^ slice?
+        name: int | string,
+//!     ^ int | string
+        other: string?
+//!     ^ string?
     ) = (10, null);
 
     name;
@@ -374,14 +374,14 @@ fun main(): void {
 //! ^ null
 
     name = "";
-//! ^ int | slice
+//! ^ int | string
     other = "";
-//! ^ slice?
+//! ^ string?
 
     name;
-//! ^ slice
+//! ^ string
     other;
-//! ^ slice
+//! ^ string
 }
 ------------------------------------------------------------------------
 ok

@@ -55,7 +55,7 @@ Ternary expression type inference with different types
 ========================================================================
 fun main(cond: bool) {
     val b = cond ? 10 : "hello";
-    //! ^ int | slice
+    //! ^ int | string
 }
 ------------------------------------------------------------------------
 ok
@@ -227,7 +227,7 @@ String literal type inference
 ========================================================================
 fun main() {
     val data = "hello";
-    //! ^ slice
+    //! ^ string
 }
 ------------------------------------------------------------------------
 ok
@@ -270,7 +270,7 @@ Tuple literal type inference
 ========================================================================
 fun main() {
     val data = [1, true, "hello"];
-    //! ^ [int, bool, slice]
+    //! ^ [int, bool, string]
 }
 ------------------------------------------------------------------------
 ok
@@ -280,7 +280,7 @@ Tensor literal type inference
 ========================================================================
 fun main() {
     val data = (1, true, "hello");
-    //! ^ (int, bool, slice)
+    //! ^ (int, bool, string)
 }
 ------------------------------------------------------------------------
 ok
@@ -290,7 +290,7 @@ Complex tensor literal type inference
 ========================================================================
 fun main() {
     val data = (1, [1, [1, true, "hello"], (1, [1, [1, true, "hello"], "hello"], "hello")], "hello");
-    //! ^ (int, [int, [int, bool, slice], (int, [int, [int, bool, slice], slice], slice)], slice)
+    //! ^ (int, [int, [int, bool, string], (int, [int, [int, bool, string], string], string)], string)
 }
 ------------------------------------------------------------------------
 ok

@@ -16,9 +16,26 @@
             "end": "\\*/"
         },
         {
-            "name": "string.quoted.double",
+            "name": "string.quoted.triple.tolk",
+            "begin": "\"\"\"",
+            "end": "\"\"\"",
+            "patterns": [
+                {
+                    "name": "constant.character.escape.tolk",
+                    "match": "\\\\."
+                }
+            ]
+        },
+        {
+            "name": "string.quoted.double.tolk",
             "begin": "\"",
-            "end": "\""
+            "end": "\"",
+            "patterns": [
+                {
+                    "name": "constant.character.escape.tolk",
+                    "match": "\\\\([nrt0\\\\'\"u]|u[0-9a-fA-F]{4})"
+                }
+            ]
         },
         {
             "name": "constant.numeric",
@@ -30,11 +47,11 @@
         },
         {
             "name": "keyword.operator",
-            "match": "\\+|-|\\*|/|%|\\?|:|,|;|\\(|\\)|\\[|\\]|{|}|=|<|>|!|&|\\||\\^|==|!=|<=|>=|<<|>>|&&|\\|\\||~/|\\^/|\\+=|-=|\\*=|/=|%=|&=|\\|=|\\^=|->|<=>|~>>|\\^>>|<<=|>>=|=>"
+            "match": "\\+|-|\\*|/|%|\\?|:|,|;|\\(|\\)|\\[|\\]|{|}|=|<|>|!|&|\\||\\^|==|!=|<=|>=|<<|>>|&&|\\|\\||~/|\\^/|\\+=|-=|\\*=|/=|%=|&=|\\|=|\\^=|->|<=>|~>>|\\^>>|<<=|>>=|=>|\\?\\?"
         },
         {
             "name": "keyword.other",
-            "match": "\\b(import|export|true|false|null|redef|mutate|tolk|as|is|!is|private|readonly)\\b"
+            "match": "\\b(import|export|true|false|null|redef|mutate|tolk|as|is|!is|private|readonly|string)\\b"
         },
         {
             "name": "keyword.other",
@@ -45,7 +62,7 @@
             "match": "\\b[TU]\\b"
         },
         {
-            "match": "\\b(val|var)\\s+(?:type|enum|int|map|cell|Cell|void|dict|bool|any_address|slice|tuple|builder|continuation|never|coins|address|int\\d+|uint\\d+|bits\\d+|bytes\\d+)\\b",
+            "match": "\\b(val|var)\\s+(?:type|enum|int|map|cell|Cell|void|dict|bool|any_address|slice|string|tuple|builder|continuation|never|coins|address|int\\d+|uint\\d+|bits\\d+|bytes\\d+)\\b",
             "captures": {
                 "1": {"name": "storage.modifier"}
             }
@@ -56,7 +73,7 @@
         },
         {
             "name": "storage.type",
-            "match": "\\b(type|enum|int|map|cell|Cell|void|dict|bool|any_address|slice|tuple|builder|continuation|never|coins|int\\d+|uint\\d+|bits\\d+|bytes\\d+)\\b"
+            "match": "\\b(type|enum|int|map|cell|Cell|void|dict|bool|any_address|slice|string|tuple|builder|continuation|never|coins|int\\d+|uint\\d+|bits\\d+|bytes\\d+)\\b"
         },
         {
             "name": "storage.type",
