@@ -835,6 +835,16 @@
                         "type": "string",
                         "default": "acton",
                         "description": "Path to the Acton executable"
+                    },
+                    "ton.acton.linter.enabled": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Enable Acton linter (runs `acton check` on file changes)"
+                    },
+                    "ton.acton.linter.debounce": {
+                        "type": "number",
+                        "default": 100,
+                        "description": "Debounce time in milliseconds for the Acton linter"
                     }
                 }
             }
