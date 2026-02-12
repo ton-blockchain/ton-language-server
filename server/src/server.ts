@@ -142,6 +142,8 @@ import {collectFuncCodeLenses} from "@server/languages/func/lens"
 import {collectFiftCodeLenses} from "@server/languages/fift/lens"
 import {contractAbi} from "@server/languages/tolk/lang/abi/compute"
 
+import {showErrorMessage} from "@server/utils/notify"
+
 import {initParser} from "./parser"
 import {DocumentStore} from "./document-store"
 import {connection} from "./connection"
@@ -235,13 +237,6 @@ async function handleFileOpen(
     if (isTlbFile(uri, event)) {
         await findTlbFile(uri)
     }
-}
-
-const showErrorMessage = (msg: string): void => {
-    void connection.sendNotification(lsp.ShowMessageNotification.type, {
-        type: lsp.MessageType.Error,
-        message: msg,
-    })
 }
 
 async function findTolkStdlib(settings: ServerSettings, rootDir: string): Promise<string | null> {
