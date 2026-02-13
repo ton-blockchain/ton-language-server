@@ -9,6 +9,7 @@ interface TestRunOptions {
     suite?: string
     test?: string
     file?: string
+    lang?: string
     updateSnapshots?: boolean
     verbose?: boolean
 }
@@ -21,6 +22,11 @@ function parseArgs(): TestRunOptions {
         const arg = args[i]
 
         switch (arg) {
+            case "--lang":
+            case "-s": {
+                options.lang = args[++i]
+                break
+            }
             case "--suite":
             case "-s": {
                 options.suite = args[++i]
@@ -104,14 +110,19 @@ async function main(): Promise<void> {
         if (options.file) {
             process.env["TON_TEST_FILE"] = options.file
         }
+        // If not set to known languages, fall back to tolk
+        if (!options.lang || !(options.lang == "tolk" || options.lang == "FunC")) {
+            options.lang = "tolk"
+        }
 
         if (options.verbose) {
             console.log("Starting e2e tests with options:", options)
         }
 
         const extensionDevelopmentPath = path.resolve(__dirname, "../../../")
-        const extensionTestsPath = path.resolve(__dirname, "./out/tolk/index.js")
+        const extensionTestsPath = path.resolve(__dirname, `./out/${options.lang}/index.js`)
         const testWorkspace = path.resolve(__dirname, "../../../test-workspace")
+        process.env["TON_LANGUAGE"] = options.lang
 
         await runTests({
             extensionDevelopmentPath,

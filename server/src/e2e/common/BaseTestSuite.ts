@@ -24,6 +24,7 @@ export abstract class BaseTestSuite {
     protected document!: vscode.TextDocument
     protected editor!: vscode.TextEditor
     protected testFilePath!: string
+    protected language!: string
     protected testDir: string = ""
     protected updates: TestUpdate[] = []
     protected additionalFiles: TextDocument[] = []
@@ -41,13 +42,15 @@ export abstract class BaseTestSuite {
     }
 
     public async setup(): Promise<void> {
-        this.testFilePath = path.join(this.workingDir(), "test.tolk")
+        const lang = process.env["TON_LANGUAGE"] ?? "tolk"
+        this.testFilePath = path.join(this.workingDir(), `test.${lang.toLowerCase()}`)
         this.testDir = path.dirname(this.testFilePath)
+        this.language = lang
         await fs.promises.mkdir(this.testDir, {recursive: true})
         await fs.promises.writeFile(this.testFilePath, "")
 
         this.document = await vscode.workspace.openTextDocument(this.testFilePath)
-        await vscode.languages.setTextDocumentLanguage(this.document, "tolk")
+        await vscode.languages.setTextDocumentLanguage(this.document, this.language.toLowerCase())
 
         await this.openMainFile()
     }
@@ -74,7 +77,7 @@ export abstract class BaseTestSuite {
         await fs.promises.writeFile(filePath, content)
 
         const additionalFile = await vscode.workspace.openTextDocument(filePath)
-        await vscode.languages.setTextDocumentLanguage(additionalFile, "tolk")
+        await vscode.languages.setTextDocumentLanguage(additionalFile, this.language)
 
         await vscode.window.showTextDocument(additionalFile, {
             preview: true,
@@ -227,11 +230,12 @@ export abstract class BaseTestSuite {
     }
 
     public runTestsFromDirectory(directory: string): void {
+        const lang = process.env["TON_LANGUAGE"] ?? "tolk"
         const testCasesPath = path.join(
             __dirname,
             "..",
             "..",
-            "tolk",
+            lang,
             "testcases",
             directory,
             "*.test",
@@ -310,8 +314,9 @@ async function activate(): Promise<void> {
     console.log("Waiting for language server initialization...")
     await new Promise(resolve => setTimeout(resolve, 1000))
 
+    const targetLang = process.env["TON_LANGUAGE"] ?? "tolk"
     const languages = await vscode.languages.getLanguages()
-    if (!languages.includes("tolk")) {
+    if (!languages.includes(targetLang.toLowerCase())) {
         throw new Error("Tolk language not registered. Check package.json configuration.")
     }
 

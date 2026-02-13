@@ -8,6 +8,8 @@ import {UnusedVariableInspection} from "@server/languages/func/inspections/Unuse
 import {UnusedImportInspection} from "@server/languages/func/inspections/UnusedImportInspection"
 import {UnusedTypeParameterInspection} from "@server/languages/func/inspections/UnusedTypeParameterInspection"
 
+import {UnusedImpureInspection} from "./UnusedImpure"
+
 export async function runFuncInspections(
     uri: string,
     file: FuncFile,
@@ -18,6 +20,7 @@ export async function runFuncInspections(
         new UnusedTypeParameterInspection(),
         new UnusedVariableInspection(),
         new UnusedImportInspection(),
+        new UnusedImpureInspection(),
     ]
 
     const settings = await getDocumentSettings(uri)

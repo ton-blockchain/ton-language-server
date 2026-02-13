@@ -329,6 +329,22 @@ export class Reference {
                         }
                     }
                 }
+                if (firstChild?.type === "tensor_expression") {
+                    // (int foo, cell bar) = (42, someCall())
+                    for (const childDeclaration of firstChild.descendantsOfType(
+                        "local_vars_declaration",
+                    )) {
+                        if (!childDeclaration) {
+                            continue
+                        }
+                        const lhs = childDeclaration.childForFieldName("lhs")
+                        if (lhs) {
+                            if (!this.processVariableDeclaration(lhs, proc, file, state)) {
+                                return false
+                            }
+                        }
+                    }
+                }
 
                 if (firstChild?.type === "typed_tuple") {
                     // [_, int a, int b] = [1, 2];
@@ -355,7 +371,11 @@ export class Reference {
             if (!proc.execute(new VarDeclaration(lhs, file), state)) return false
         }
 
-        if (lhs.type === "tuple_vars_declaration" || lhs.type === "tensor_vars_declaration") {
+        if (
+            lhs.type === "tuple_vars_declaration" ||
+            lhs.type === "tensor_vars_declaration" ||
+            lhs.type === "nested_tensor_declaration"
+        ) {
             const vars = lhs.childrenForFieldName("vars")
             for (const variable of vars) {
                 if (!variable) continue

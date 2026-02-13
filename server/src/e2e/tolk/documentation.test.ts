@@ -10,7 +10,7 @@ import type * as lsp from "vscode-languageserver"
 
 import type {TestCase} from "../common/TestParser"
 
-import {BaseTestSuite} from "./BaseTestSuite"
+import {BaseTestSuite} from "../common/BaseTestSuite"
 
 import type {GetTypeAtPositionParams} from "./types.test"
 
