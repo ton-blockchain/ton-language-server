@@ -15,6 +15,7 @@
         "strictNullChecks": true,
         "noPropertyAccessFromIndexSignature": false,
         // "noUnusedParameters": true,
+        "types": ["vitest/globals"],
         "skipLibCheck": true,
         "resolveJsonModule": true,
         "baseUrl": ".",

@@ -6615,11 +6615,39 @@
                 "required": false,
                 "types": [
                     {
+                        "type": "fun_callable_type",
+                        "named": true
+                    },
+                    {
+                        "type": "null_literal",
+                        "named": true
+                    },
+                    {
+                        "type": "nullable_type",
+                        "named": true
+                    },
+                    {
+                        "type": "parenthesized_type",
+                        "named": true
+                    },
+                    {
+                        "type": "tensor_type",
+                        "named": true
+                    },
+                    {
+                        "type": "tuple_type",
+                        "named": true
+                    },
+                    {
                         "type": "type_identifier",
                         "named": true
                     },
                     {
                         "type": "type_instantiatedTs",
+                        "named": true
+                    },
+                    {
+                        "type": "union_type",
                         "named": true
                     }
                 ]
