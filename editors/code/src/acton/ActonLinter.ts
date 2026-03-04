@@ -51,6 +51,7 @@ interface ActonCheckOutput {
 export class ActonLinter implements vscode.CodeActionProvider {
     private readonly diagnosticCollection: vscode.DiagnosticCollection
     private debounceTimer: NodeJS.Timeout | undefined
+    private checkRequestId: number = 0
     private readonly disposables: vscode.Disposable[] = []
     private latestDiagnostics: readonly ActonDiagnostic[] = []
 
@@ -104,23 +105,32 @@ export class ActonLinter implements vscode.CodeActionProvider {
         const config = vscode.workspace.getConfiguration("ton.acton.linter")
         const enabled = config.get<boolean>("enabled", true)
 
+        if (this.debounceTimer) {
+            clearTimeout(this.debounceTimer)
+            this.debounceTimer = undefined
+        }
+
         if (!enabled) {
+            this.checkRequestId += 1
+            this.latestDiagnostics = []
             this.diagnosticCollection.clear()
             return
         }
 
-        const debounceMs = config.get<number>("debounce", 500)
-
-        if (this.debounceTimer) {
-            clearTimeout(this.debounceTimer)
-        }
+        const debounceMs = Math.max(0, config.get<number>("debounce", 300))
+        const requestId = ++this.checkRequestId
 
         this.debounceTimer = setTimeout(() => {
-            void this.runCheck()
+            this.debounceTimer = undefined
+            void this.runCheck(requestId)
         }, debounceMs)
     }
 
-    private async runCheck(): Promise<void> {
+    private async runCheck(requestId: number): Promise<void> {
+        if (requestId !== this.checkRequestId) {
+            return
+        }
+
         const acton = Acton.getInstance()
 
         // We want to run check even if no editor is active,
@@ -143,8 +153,12 @@ export class ActonLinter implements vscode.CodeActionProvider {
 
         try {
             const {stdout, stderr, exitCode} = await acton.spawn(command, workingDirectory)
+            if (requestId !== this.checkRequestId) {
+                return
+            }
 
             if (stdout.trim() === "") {
+                this.latestDiagnostics = []
                 this.diagnosticCollection.clear()
                 return
             }
@@ -157,10 +171,16 @@ export class ActonLinter implements vscode.CodeActionProvider {
                 return
             }
 
+            if (requestId !== this.checkRequestId) {
+                return
+            }
+
             this.latestDiagnostics = output.diagnostics
             this.processDiagnostics(output)
         } catch (error) {
-            consoleError("Failed to run acton check", error)
+            if (requestId === this.checkRequestId) {
+                consoleError("Failed to run acton check", error)
+            }
         }
     }
 
