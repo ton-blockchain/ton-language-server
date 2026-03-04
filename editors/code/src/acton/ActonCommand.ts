@@ -49,7 +49,7 @@ export class TestCommand extends ActonCommand {
     }
 
     public override getArguments(): string[] {
-        const args: string[] = ["--reporter", "console"]
+        const args: string[] = ["--reporter", "console,teamcity", "--color", "always"]
         if (this.clearCache) args.push("--clear-cache")
         if (this.coverage) {
             args.push("--coverage", "--coverage-format", this.coverageFormat)
