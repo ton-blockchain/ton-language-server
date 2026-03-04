@@ -48,8 +48,6 @@ import {HistoryWebviewProvider} from "./providers/sandbox/HistoryWebviewProvider
 import {WalletWebviewProvider} from "./providers/wallet/WalletWebviewProvider"
 import {TransactionDetailsProvider} from "./providers/sandbox/TransactionDetailsProvider"
 import {SandboxCodeLensProvider} from "./providers/sandbox/SandboxCodeLensProvider"
-import {TestTreeProvider} from "./providers/sandbox/TestTreeProvider"
-import {WebSocketServer} from "./providers/sandbox/WebSocketServer"
 
 import {ActonTomlCodeLensProvider} from "./acton/toml/ActonTomlCodeLensProvider"
 import {ActonTomlHoverProvider} from "./acton/toml/ActonTomlHoverProvider"
@@ -114,12 +112,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
 
     const transactionDetailsProvider = new TransactionDetailsProvider(context.extensionUri)
 
-    const testTreeProvider = new TestTreeProvider()
     context.subscriptions.push(
-        vscode.window.createTreeView("tonTestResultsTree", {
-            treeDataProvider: testTreeProvider,
-            showCollapseAll: false,
-        }),
         vscode.commands.registerCommand(
             "ton.test.showTransactionDetails",
             async (txRun: TransactionRun) => {
@@ -213,18 +206,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     sandboxTreeProvider.setActionsProvider(sandboxActionsProvider)
     sandboxTreeProvider.setCodeLensProvider(sandboxCodeLensProvider)
 
-    const websocketPort = vscode.workspace
-        .getConfiguration("ton.sandbox")
-        .get("websocketPort", 7743)
-    const wsServer = new WebSocketServer(testTreeProvider, websocketPort)
-    wsServer.start()
-
     context.subscriptions.push(
-        {
-            dispose: () => {
-                wsServer.dispose()
-            },
-        },
         vscode.window.onDidChangeActiveTextEditor(editor => {
             if (editor) {
                 const document = {

@@ -437,13 +437,6 @@
                     "name": "History",
                     "when": "true"
                 }
-            ],
-            "tonTestContainer": [
-                {
-                    "id": "tonTestResultsTree",
-                    "name": "Tests Tree",
-                    "when": "true"
-                }
             ]
         },
         "viewsContainers": {
@@ -452,11 +445,6 @@
                     "id": "tonSandboxContainer",
                     "title": "TON Sandbox",
                     "icon": "$(rocket)"
-                },
-                {
-                    "id": "tonTestContainer",
-                    "title": "TON Tests",
-                    "icon": "./dist/icons/test-icon.svg"
                 },
                 {
                     "id": "tonWalletsContainer",
@@ -571,11 +559,6 @@
                 {
                     "command": "ton.sandbox.copyContractAddressFromTree",
                     "when": "view == tonSandbox && viewItem == deployed-contract",
-                    "group": "inline"
-                },
-                {
-                    "command": "ton.test.openTestSource",
-                    "when": "view == tonTestResultsTree && viewItem == testRun",
                     "group": "inline"
                 }
             ]
@@ -877,12 +860,6 @@
             {
                 "type": "blueprint-build-and-test-all",
                 "properties": {}
-            }
-        ],
-        "viewsWelcome": [
-            {
-                "view": "tonTestResultsTree",
-                "contents": "No test results yet. Run tests to see results here."
             }
         ]
     },
