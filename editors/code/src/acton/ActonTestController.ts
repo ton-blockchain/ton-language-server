@@ -11,11 +11,108 @@ import {FileCoverageDetail} from "vscode"
 import {Acton} from "./Acton"
 import {TestCommand, TestMode} from "./ActonCommand"
 
-interface ParsedTestResult {
-    readonly status: "passed" | "failed"
-    readonly message?: string
-    readonly location?: vscode.Location
+interface TeamCityTestingStartedMessage {
+    readonly name: "testingStarted"
+    readonly attributes: Readonly<Record<string, never>>
 }
+
+interface TeamCityTestingFinishedMessage {
+    readonly name: "testingFinished"
+    readonly attributes: Readonly<Record<string, never>>
+}
+
+interface TeamCityTestSuiteStartedAttributes {
+    readonly name?: string
+    readonly nodeId?: string
+    readonly parentNodeId?: string
+    readonly nodeType?: string
+    readonly locationHint?: string
+}
+
+interface TeamCityTestSuiteStartedMessage {
+    readonly name: "testSuiteStarted"
+    readonly attributes: Readonly<TeamCityTestSuiteStartedAttributes>
+}
+
+interface TeamCityTestSuiteFinishedAttributes {
+    readonly name?: string
+    readonly nodeId?: string
+    readonly parentNodeId?: string
+}
+
+interface TeamCityTestSuiteFinishedMessage {
+    readonly name: "testSuiteFinished"
+    readonly attributes: Readonly<TeamCityTestSuiteFinishedAttributes>
+}
+
+interface TeamCityTestStartedAttributes {
+    readonly name?: string
+    readonly nodeId?: string
+    readonly parentNodeId?: string
+    readonly locationHint?: string
+}
+
+interface TeamCityTestStartedMessage {
+    readonly name: "testStarted"
+    readonly attributes: Readonly<TeamCityTestStartedAttributes>
+}
+
+interface TeamCityTestFinishedAttributes {
+    readonly name?: string
+    readonly nodeId?: string
+    readonly parentNodeId?: string
+    readonly duration?: string
+}
+
+interface TeamCityTestFinishedMessage {
+    readonly name: "testFinished"
+    readonly attributes: Readonly<TeamCityTestFinishedAttributes>
+}
+
+interface TeamCityTestFailedAttributes {
+    readonly name?: string
+    readonly nodeId?: string
+    readonly parentNodeId?: string
+    readonly duration?: string
+    readonly message?: string
+    readonly details?: string
+    readonly expected?: string
+    readonly actual?: string
+}
+
+interface TeamCityTestFailedMessage {
+    readonly name: "testFailed"
+    readonly attributes: Readonly<TeamCityTestFailedAttributes>
+}
+
+interface TeamCityTestIgnoredAttributes {
+    readonly name?: string
+    readonly nodeId?: string
+    readonly parentNodeId?: string
+    readonly message?: string
+    readonly details?: string
+}
+
+interface TeamCityTestIgnoredMessage {
+    readonly name: "testIgnored"
+    readonly attributes: Readonly<TeamCityTestIgnoredAttributes>
+}
+
+type TeamCityServiceMessage =
+    | TeamCityTestingStartedMessage
+    | TeamCityTestingFinishedMessage
+    | TeamCityTestSuiteStartedMessage
+    | TeamCityTestSuiteFinishedMessage
+    | TeamCityTestStartedMessage
+    | TeamCityTestFinishedMessage
+    | TeamCityTestFailedMessage
+    | TeamCityTestIgnoredMessage
+
+type TeamCityTestStatusMessage =
+    | TeamCityTestStartedMessage
+    | TeamCityTestFinishedMessage
+    | TeamCityTestFailedMessage
+    | TeamCityTestIgnoredMessage
 
 export class ActonTestController implements Disposable {
     private readonly controller: vscode.TestController
@@ -183,14 +280,40 @@ export class ActonTestController implements Disposable {
             for (const test of request.include) {
                 enqueue(test)
             }
-            for (const test of queue) {
+            const queueByWorkingDir = await this.groupTestsByWorkingDir(queue, run, token)
+            for (const [workingDir, tests] of queueByWorkingDir) {
                 if (token.isCancellationRequested) {
                     break
                 }
 
-                await this.runTestItem(test, run, token, isCoverage)
-            }
+                if (tests.length === 1) {
+                    const single = tests[0]
+                    if (single.uri && single.id === single.uri.toString()) {
+                        const commandTarget = path.relative(workingDir, single.uri.fsPath)
+                        await this.runAllTestsInDirectory(
+                            workingDir,
+                            [single],
+                            run,
+                            token,
+                            isCoverage,
+                            commandTarget,
+                        )
+                    } else {
+                        await this.runTestItem(single, run, token, isCoverage)
+                    }
+                    continue
+                }
 
+                const commandTarget = this.getSelectionRunTarget(tests, workingDir)
+                await this.runAllTestsInDirectory(
+                    workingDir,
+                    tests,
+                    run,
+                    token,
+                    isCoverage,
+                    commandTarget,
+                )
+            }
             run.end()
             return
         }
@@ -198,8 +321,25 @@ export class ActonTestController implements Disposable {
         this.controller.items.forEach(test => {
             enqueue(test)
         })
+        const queueByWorkingDir = await this.groupTestsByWorkingDir(queue, run, token)
 
-        const queueByWorkingDir: Map<string, vscode.TestItem[]> = new Map()
+        for (const [workingDir, tests] of queueByWorkingDir) {
+            if (token.isCancellationRequested) {
+                break
+            }
+
+            await this.runAllTestsInDirectory(workingDir, tests, run, token, isCoverage)
+        }
+
+        run.end()
+    }
+
+    private async groupTestsByWorkingDir(
+        queue: readonly vscode.TestItem[],
+        run: vscode.TestRun,
+        token: vscode.CancellationToken,
+    ): Promise<Map<string, vscode.TestItem[]>> {
+        const grouped: Map<string, vscode.TestItem[]> = new Map()
 
         for (const test of queue) {
             if (token.isCancellationRequested) {
@@ -214,20 +354,12 @@ export class ActonTestController implements Disposable {
 
             const tomlUri = await Acton.getInstance().findActonToml(uri)
             const workingDir = tomlUri ? path.dirname(tomlUri.fsPath) : path.dirname(uri.fsPath)
-            const tests = queueByWorkingDir.get(workingDir) ?? []
+            const tests = grouped.get(workingDir) ?? []
             tests.push(test)
-            queueByWorkingDir.set(workingDir, tests)
+            grouped.set(workingDir, tests)
         }
 
-        for (const [workingDir, tests] of queueByWorkingDir) {
-            if (token.isCancellationRequested) {
-                break
-            }
-
-            await this.runAllTestsInDirectory(workingDir, tests, run, token, isCoverage)
-        }
-
-        run.end()
+        return grouped
     }
 
     private async runTestItem(
@@ -274,16 +406,29 @@ export class ActonTestController implements Disposable {
                       coverageFile,
                   )
 
+        let teamCityFailureMessage: string | undefined
+        let teamCityFailureLocation: vscode.Location | undefined
+        const outputProcessor = this.createOutputProcessor(run, item, message => {
+            if (message.name !== "testFailed" || teamCityFailureMessage) {
+                return
+            }
+
+            const details = message.attributes.details ?? ""
+            teamCityFailureMessage =
+                message.attributes.message ?? this.extractErrorMessage(details || "Test failed")
+            teamCityFailureLocation = this.extractErrorLocation(details, workingDir)
+        })
+
         try {
             const {exitCode, stdout, stderr} = await Acton.getInstance().spawn(
                 command,
                 workingDir,
-                this.outputChannel,
+                undefined,
                 data => {
-                    // Test runner output expects CRLF for newlines to be treated as a terminal
-                    run.appendOutput(data.replace(/\r?\n/g, "\r\n"), undefined, item)
+                    outputProcessor.handleChunk(data)
                 },
             )
+            outputProcessor.flush()
 
             if (exitCode === 0) {
                 run.passed(item)
@@ -291,14 +436,20 @@ export class ActonTestController implements Disposable {
                     await this.processCoverage(coverageFile, run, workingDir)
                 }
             } else {
-                const rawMessage = stderr || stdout || "Test failed"
-                const cleanMessage = this.stripAnsi(rawMessage)
-                const displayMessage = this.extractErrorMessage(cleanMessage)
+                const cleanMessage = this.stripTeamCityMessages(
+                    this.stripAnsi(`${stdout}\n${stderr}`),
+                ).trim()
+                const displayMessage =
+                    teamCityFailureMessage ??
+                    this.extractErrorMessage(
+                        cleanMessage || "Test failed (no TeamCity details received)",
+                    )
                 const message = new vscode.TestMessage(displayMessage)
-                message.location = this.extractErrorLocation(cleanMessage, workingDir)
+                message.location = teamCityFailureLocation
                 run.failed(item, message)
             }
         } catch (error) {
+            outputProcessor.flush()
             run.failed(item, new vscode.TestMessage(String(error)))
         }
     }
@@ -309,12 +460,117 @@ export class ActonTestController implements Disposable {
         run: vscode.TestRun,
         token: vscode.CancellationToken,
         isCoverage: boolean = false,
+        commandTarget: string = "",
     ): Promise<void> {
         if (token.isCancellationRequested || roots.length === 0) {
             return
         }
 
         const tests = this.collectLeafTests(roots)
+        const resolvedTestIds: Set<string> = new Set()
+        const failedTestIds: Set<string> = new Set()
+        const testsById: Map<string, vscode.TestItem> = new Map(
+            tests.map(test => [test.id, test] as const),
+        )
+        const testsByKey: Map<string, vscode.TestItem[]> = new Map()
+        const testsByName: Map<string, vscode.TestItem[]> = new Map()
+        const nodeToTestId: Map<string, string> = new Map()
+        const suiteNodeToFileHint: Map<string, string> = new Map()
+
+        const registerToMap = (
+            map: Map<string, vscode.TestItem[]>,
+            key: string,
+            test: vscode.TestItem,
+        ): void => {
+            const entry = map.get(key) ?? []
+            entry.push(test)
+            map.set(key, entry)
+        }
+
+        for (const test of tests) {
+            for (const key of this.getLookupKeys(test, workingDir)) {
+                registerToMap(testsByKey, key, test)
+            }
+            registerToMap(testsByName, this.normalizeTestName(test.label), test)
+        }
+
+        const getUnresolvedByKey = (key: string): vscode.TestItem | undefined => {
+            return testsByKey.get(key)?.find(test => !resolvedTestIds.has(test.id))
+        }
+
+        const resolveTestByHint = (
+            testName: string | undefined,
+            fileHint: string | undefined,
+        ): vscode.TestItem | undefined => {
+            if (!testName) {
+                return undefined
+            }
+
+            const normalizedName = this.normalizeTestName(testName)
+            for (const fileKey of this.normalizeFileHint(fileHint, workingDir)) {
+                const candidate = getUnresolvedByKey(`${fileKey}::${normalizedName}`)
+                if (candidate) {
+                    return candidate
+                }
+            }
+
+            const byName = (testsByName.get(normalizedName) ?? []).filter(
+                test => !resolvedTestIds.has(test.id),
+            )
+            return byName.length === 1 ? byName[0] : undefined
+        }
+
+        const markPassed = (test: vscode.TestItem): void => {
+            if (resolvedTestIds.has(test.id)) {
+                return
+            }
+            run.passed(test)
+            resolvedTestIds.add(test.id)
+        }
+
+        const markFailed = (
+            test: vscode.TestItem,
+            messageText: string,
+            location?: vscode.Location,
+        ): void => {
+            if (resolvedTestIds.has(test.id)) {
+                return
+            }
+            const message = new vscode.TestMessage(messageText)
+            message.location = location
+            run.failed(test, message)
+            failedTestIds.add(test.id)
+            resolvedTestIds.add(test.id)
+        }
+
+        const markSkipped = (test: vscode.TestItem): void => {
+            if (resolvedTestIds.has(test.id)) {
+                return
+            }
+            run.skipped(test)
+            resolvedTestIds.add(test.id)
+        }
+
+        const resolveTestFromServiceMessage = (
+            message: TeamCityTestStatusMessage,
+        ): vscode.TestItem | undefined => {
+            const nodeId = message.attributes.nodeId
+            if (nodeId) {
+                const mapped = nodeToTestId.get(nodeId)
+                if (mapped) {
+                    return testsById.get(mapped)
+                }
+            }
+
+            const parentNodeId = message.attributes.parentNodeId
+            const fileHint = parentNodeId ? suiteNodeToFileHint.get(parentNodeId) : undefined
+            const test = resolveTestByHint(message.attributes.name, fileHint)
+            if (test && nodeId) {
+                nodeToTestId.set(nodeId, test.id)
+            }
+            return test
+        }
+
         for (const test of tests) {
             run.started(test)
         }
@@ -322,7 +578,7 @@ export class ActonTestController implements Disposable {
         const coverageFile = isCoverage ? path.join(workingDir, "lcov.info") : ""
         const command = new TestCommand(
             TestMode.DIRECTORY,
-            "",
+            commandTarget,
             "",
             false,
             isCoverage,
@@ -330,44 +586,107 @@ export class ActonTestController implements Disposable {
             coverageFile,
         )
 
+        const outputProcessor = this.createOutputProcessor(run, undefined, message => {
+            switch (message.name) {
+                case "testingStarted":
+                case "testingFinished":
+                case "testSuiteFinished": {
+                    break
+                }
+                case "testSuiteStarted": {
+                    const nodeId = message.attributes.nodeId
+                    if (nodeId) {
+                        const locationHint = message.attributes.locationHint
+                        const suiteName = message.attributes.name
+                        const fileHint = this.extractTeamCityFileHint(locationHint, suiteName)
+                        if (fileHint) {
+                            suiteNodeToFileHint.set(nodeId, fileHint)
+                        }
+                    }
+                    break
+                }
+                case "testStarted": {
+                    const nodeId = message.attributes.nodeId
+                    if (!nodeId) {
+                        break
+                    }
+                    const parentNodeId = message.attributes.parentNodeId
+                    const fileHint = parentNodeId
+                        ? suiteNodeToFileHint.get(parentNodeId)
+                        : undefined
+                    const test = resolveTestByHint(message.attributes.name, fileHint)
+                    if (test) {
+                        nodeToTestId.set(nodeId, test.id)
+                    }
+                    break
+                }
+                case "testFailed": {
+                    const test = resolveTestFromServiceMessage(message)
+                    if (!test) {
+                        break
+                    }
+                    const details = message.attributes.details ?? ""
+                    const messageText =
+                        message.attributes.message ??
+                        this.extractErrorMessage(details || "Test failed")
+                    const location = this.extractErrorLocation(details, workingDir)
+                    markFailed(test, messageText, location)
+                    break
+                }
+                case "testIgnored": {
+                    const test = resolveTestFromServiceMessage(message)
+                    if (test) {
+                        markSkipped(test)
+                    }
+                    break
+                }
+                case "testFinished": {
+                    const test = resolveTestFromServiceMessage(message)
+                    if (test && !failedTestIds.has(test.id)) {
+                        markPassed(test)
+                    }
+                    break
+                }
+            }
+        })
+
         try {
             const {exitCode, stdout, stderr} = await Acton.getInstance().spawn(
                 command,
                 workingDir,
-                this.outputChannel,
+                undefined,
                 data => {
-                    // Test runner output expects CRLF for newlines to be treated as a terminal
-                    run.appendOutput(data.replace(/\r?\n/g, "\r\n"))
+                    outputProcessor.handleChunk(data)
                 },
             )
+            outputProcessor.flush()
 
-            const cleanOutput = this.stripAnsi(`${stdout}\n${stderr}`)
-            const parsedResults = this.parseConsoleTestResults(cleanOutput, workingDir)
-            const fallbackMessage = new vscode.TestMessage(
-                this.extractErrorMessage(cleanOutput || "Test failed"),
+            const cleanOutput = this.stripTeamCityMessages(
+                this.stripAnsi(`${stdout}\n${stderr}`),
+            ).trim()
+            const fallbackMessageText = this.extractErrorMessage(
+                cleanOutput || "Test failed (no TeamCity details received)",
             )
-            fallbackMessage.location = this.extractErrorLocation(cleanOutput, workingDir)
+            const hasTeamCityResults = resolvedTestIds.size > 0
 
             for (const test of tests) {
-                const key = this.getTestResultKey(test, workingDir)
-                const parsed = parsedResults.get(key)
-
-                if (parsed?.status === "passed") {
-                    run.passed(test)
-                    continue
-                }
-
-                if (parsed?.status === "failed") {
-                    const message = new vscode.TestMessage(parsed.message ?? "Test failed")
-                    message.location = parsed.location
-                    run.failed(test, message)
+                if (resolvedTestIds.has(test.id)) {
                     continue
                 }
 
                 if (exitCode === 0) {
-                    run.passed(test)
+                    if (hasTeamCityResults) {
+                        markFailed(test, "TeamCity did not report final status for this test")
+                    } else {
+                        markFailed(test, "No TeamCity test events were received")
+                    }
                 } else {
-                    run.failed(test, fallbackMessage)
+                    markFailed(
+                        test,
+                        hasTeamCityResults
+                            ? `TeamCity did not report final status for this test\n${fallbackMessageText}`
+                            : fallbackMessageText,
+                    )
                 }
             }
 
@@ -375,8 +694,12 @@ export class ActonTestController implements Disposable {
                 await this.processCoverage(coverageFile, run, workingDir)
             }
         } catch (error) {
+            outputProcessor.flush()
             for (const test of tests) {
-                run.failed(test, new vscode.TestMessage(String(error)))
+                if (!resolvedTestIds.has(test.id)) {
+                    run.failed(test, new vscode.TestMessage(String(error)))
+                    resolvedTestIds.add(test.id)
+                }
             }
         }
     }
@@ -406,13 +729,319 @@ export class ActonTestController implements Disposable {
         return result
     }
 
-    private getTestResultKey(item: vscode.TestItem, workingDir: string): string {
+    private getSelectionRunTarget(items: readonly vscode.TestItem[], workingDir: string): string {
+        const directories = items
+            .map(item => item.uri?.fsPath)
+            .filter((value): value is string => typeof value === "string")
+            .map(filePath => path.dirname(filePath))
+
+        if (directories.length === 0) {
+            return ""
+        }
+
+        let commonDirectory = directories[0]
+        for (const dir of directories.slice(1)) {
+            commonDirectory = this.getCommonDirectory(commonDirectory, dir)
+        }
+
+        if (!commonDirectory) {
+            return ""
+        }
+
+        const relative = path.relative(workingDir, commonDirectory).replace(/\\/g, "/")
+        if (relative === "" || relative === ".") {
+            return ""
+        }
+        return relative
+    }
+
+    private getCommonDirectory(left: string, right: string): string {
+        const leftNormalized = path.resolve(left)
+        const rightNormalized = path.resolve(right)
+        let current = leftNormalized
+
+        for (;;) {
+            const relative = path.relative(current, rightNormalized)
+            const isInside =
+                relative === "" || (!relative.startsWith("..") && !path.isAbsolute(relative))
+            if (isInside) {
+                return current
+            }
+
+            const parent = path.dirname(current)
+            if (parent === current) {
+                return ""
+            }
+            current = parent
+        }
+    }
+
+    private getLookupKeys(item: vscode.TestItem, workingDir: string): string[] {
         const uri = item.uri
-        const relativeFile = uri
-            ? path.relative(workingDir, uri.fsPath).replace(/\\/g, "/").toLowerCase()
-            : ""
-        const testName = this.normalizeTestName(item.label)
-        return `${relativeFile}::${testName}`
+        if (!uri) {
+            return []
+        }
+
+        const normalizedName = this.normalizeTestName(item.label)
+        const absoluteFile = path.normalize(uri.fsPath).replace(/\\/g, "/").toLowerCase()
+        const relativeFile = path.relative(workingDir, uri.fsPath).replace(/\\/g, "/").toLowerCase()
+        const baseName = path.basename(uri.fsPath).toLowerCase()
+
+        return [
+            `${relativeFile}::${normalizedName}`,
+            `${absoluteFile}::${normalizedName}`,
+            `${baseName}::${normalizedName}`,
+        ]
+    }
+
+    private normalizeFileHint(fileHint: string | undefined, workingDir: string): string[] {
+        if (!fileHint || fileHint.trim() === "") {
+            return []
+        }
+
+        const normalized = path.normalize(fileHint.trim())
+        const absolutePath = path.isAbsolute(normalized)
+            ? normalized
+            : path.join(workingDir, normalized)
+
+        const absoluteFile = absolutePath.replace(/\\/g, "/").toLowerCase()
+        const relativeFile = path
+            .relative(workingDir, absolutePath)
+            .replace(/\\/g, "/")
+            .toLowerCase()
+        const baseName = path.basename(normalized).toLowerCase()
+
+        return [absoluteFile, relativeFile, baseName]
+    }
+
+    private createOutputProcessor(
+        run: vscode.TestRun,
+        outputItem?: vscode.TestItem,
+        onTeamCityMessage?: (message: TeamCityServiceMessage) => void,
+    ): {handleChunk: (data: string) => void; flush: () => void} {
+        let buffer = ""
+
+        const emitVisibleOutput = (text: string): void => {
+            if (text === "") {
+                return
+            }
+            this.outputChannel.append(text)
+            // Test runner output expects CRLF for newlines to be treated as a terminal
+            run.appendOutput(text.replace(/\r?\n/g, "\r\n"), undefined, outputItem)
+        }
+
+        const processLine = (line: string, hasTrailingNewline: boolean): void => {
+            const normalizedLine = line.endsWith("\r") ? line.slice(0, -1) : line
+            const trimmed = normalizedLine.trimStart()
+            if (trimmed.startsWith("##teamcity[")) {
+                const teamCityMessage = this.parseTeamCityMessage(trimmed)
+                if (teamCityMessage) {
+                    onTeamCityMessage?.(teamCityMessage)
+                }
+                return
+            }
+
+            emitVisibleOutput(normalizedLine + (hasTrailingNewline ? "\n" : ""))
+        }
+
+        return {
+            handleChunk: (data: string): void => {
+                buffer += data
+
+                for (;;) {
+                    const newlineIndex = buffer.indexOf("\n")
+                    if (newlineIndex === -1) {
+                        break
+                    }
+
+                    const line = buffer.slice(0, newlineIndex)
+                    buffer = buffer.slice(newlineIndex + 1)
+                    processLine(line, true)
+                }
+            },
+            flush: (): void => {
+                if (buffer !== "") {
+                    processLine(buffer, false)
+                    buffer = ""
+                }
+            },
+        }
+    }
+
+    private parseTeamCityMessage(line: string): TeamCityServiceMessage | undefined {
+        if (!line.startsWith("##teamcity[") || !line.endsWith("]")) {
+            return undefined
+        }
+
+        const content = line.slice("##teamcity[".length, -1)
+        const nameMatch = /^(\w+)/.exec(content)
+        if (!nameMatch) {
+            return undefined
+        }
+
+        const name = nameMatch[1]
+        const attributesRaw = content.slice(name.length).trim()
+        const attributes = attributesRaw === "" ? {} : this.parseTeamCityAttributes(attributesRaw)
+
+        return this.toTypedTeamCityMessage(name, attributes)
+    }
+
+    private toTypedTeamCityMessage(
+        name: string,
+        attributes: Record<string, string>,
+    ): TeamCityServiceMessage | undefined {
+        switch (name) {
+            case "testingStarted": {
+                return {name, attributes: {}}
+            }
+            case "testingFinished": {
+                return {name, attributes: {}}
+            }
+            case "testSuiteStarted": {
+                return {name, attributes}
+            }
+            case "testSuiteFinished": {
+                return {name, attributes}
+            }
+            case "testStarted": {
+                return {name, attributes}
+            }
+            case "testFinished": {
+                return {name, attributes}
+            }
+            case "testFailed": {
+                return {name, attributes}
+            }
+            case "testIgnored": {
+                return {name, attributes}
+            }
+            default: {
+                return undefined
+            }
+        }
+    }
+
+    private parseTeamCityAttributes(raw: string): Record<string, string> {
+        const attributes: Record<string, string> = {}
+        let i = 0
+
+        while (i < raw.length) {
+            while (i < raw.length && raw[i] === " ") {
+                i++
+            }
+            if (i >= raw.length) {
+                break
+            }
+
+            const keyStart = i
+            while (i < raw.length && /\w/.test(raw[i])) {
+                i++
+            }
+            const key = raw.slice(keyStart, i)
+
+            if (!key || raw[i] !== "=" || raw[i + 1] !== "'") {
+                break
+            }
+
+            i += 2
+            let value = ""
+
+            while (i < raw.length) {
+                const ch = raw[i]
+                if (ch === "|") {
+                    if (i + 1 < raw.length) {
+                        value += raw.slice(i, i + 2)
+                        i += 2
+                        continue
+                    }
+                    value += ch
+                    i++
+                    continue
+                }
+                if (ch === "'") {
+                    i++
+                    break
+                }
+
+                value += ch
+                i++
+            }
+
+            attributes[key] = this.decodeTeamCityValue(value)
+        }
+
+        return attributes
+    }
+
+    private decodeTeamCityValue(value: string): string {
+        let decoded = ""
+
+        for (let i = 0; i < value.length; i++) {
+            const ch = value[i]
+            if (ch !== "|") {
+                decoded += ch
+                continue
+            }
+
+            if (i + 1 >= value.length) {
+                decoded += ch
+                continue
+            }
+
+            const escaped = value[i + 1]
+            i++
+
+            switch (escaped) {
+                case "n": {
+                    decoded += "\n"
+                    break
+                }
+                case "r": {
+                    decoded += "\r"
+                    break
+                }
+                case "'": {
+                    decoded += "'"
+                    break
+                }
+                case "[": {
+                    decoded += "["
+                    break
+                }
+                case "]": {
+                    decoded += "]"
+                    break
+                }
+                case "|": {
+                    decoded += "|"
+                    break
+                }
+                default: {
+                    decoded += escaped
+                    break
+                }
+            }
+        }
+
+        return decoded
+    }
+
+    private extractTeamCityFileHint(
+        locationHint: string | undefined,
+        suiteName: string | undefined,
+    ): string | undefined {
+        if (locationHint) {
+            try {
+                const uri = vscode.Uri.parse(locationHint)
+                if (uri.scheme === "file") {
+                    return uri.fsPath
+                }
+            } catch {
+                // ignore parse errors and fallback to suite name
+            }
+        }
+
+        return suiteName
     }
 
     private normalizeTestName(name: string): string {
@@ -423,72 +1052,15 @@ export class ActonTestController implements Disposable {
             .toLowerCase()
     }
 
-    private parseConsoleTestResults(
-        output: string,
-        workingDir: string,
-    ): Map<string, ParsedTestResult> {
-        const results: Map<string, ParsedTestResult> = new Map()
-        const lines = output.split(/\r?\n/)
-
-        let currentFile = ""
-
-        for (let i = 0; i < lines.length; i++) {
-            const line = lines[i]
-            const fileMatch = /^\s*>\s+(.+?)\s+\(\d+\s+tests?\)\s*$/.exec(line)
-            if (fileMatch) {
-                currentFile = path.normalize(fileMatch[1]).replace(/\\/g, "/").toLowerCase()
-                continue
-            }
-
-            const passedMatch = /^\s*[✓✔]\s+(.+?)\s+\d+(?:\.\d+)?(?:ns|µs|ms|s)\s*$/.exec(line)
-            if (passedMatch && currentFile !== "") {
-                const testName = this.normalizeTestName(passedMatch[1])
-                results.set(`${currentFile}::${testName}`, {status: "passed"})
-                continue
-            }
-
-            const failedMatch = /^\s*[Xx✗]\s+(.+?)\s+\d+(?:\.\d+)?(?:ns|µs|ms|s)\s*$/.exec(line)
-            if (failedMatch && currentFile !== "") {
-                const testName = this.normalizeTestName(failedMatch[1])
-                const details: string[] = []
-                let next = i + 1
-
-                while (next < lines.length) {
-                    const nextLine = lines[next]
-                    if (
-                        /^\s*>\s+/.test(nextLine) ||
-                        /^\s*[Xx✓✔✗]\s+/.test(nextLine) ||
-                        /^\s*✓\s+\d+\s+passed/.test(nextLine) ||
-                        /^\s*Some tests failed/.test(nextLine)
-                    ) {
-                        break
-                    }
-
-                    if (nextLine.trim() !== "") {
-                        details.push(nextLine.replace(/^\s*└─\s*/, "").trim())
-                    }
-                    next++
-                }
-
-                i = next - 1
-
-                const detailsText = details.join("\n").trim()
-                const location = this.extractErrorLocation(detailsText, workingDir)
-                const message = this.extractErrorMessage(detailsText || "Test failed")
-
-                results.set(`${currentFile}::${testName}`, {
-                    status: "failed",
-                    message,
-                    location,
-                })
-            }
-        }
-
-        return results
-    }
-
     private stripAnsi(text: string): string {
         return text.replace(/\u001B\[[0-?]*[ -/]*[@-~]/g, "")
+    }
+
+    private stripTeamCityMessages(text: string): string {
+        return text
+            .split(/\r?\n/)
+            .filter(line => !line.trimStart().startsWith("##teamcity["))
+            .join("\n")
     }
 
     private async processCoverage(
@@ -558,7 +1130,7 @@ export class ActonTestController implements Disposable {
         cleanMessage: string,
         workingDir?: string,
     ): vscode.Location | undefined {
-        const locationMatch = /at\s+(.+):(\d+):(\d+)/.exec(cleanMessage)
+        const locationMatch = /(?:at\s+)?(.+):(\d+):(\d+)\s*$/m.exec(cleanMessage)
         if (!locationMatch) return undefined
 
         const filePath = locationMatch[1].trim()
