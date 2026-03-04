@@ -3,6 +3,8 @@
 
 import * as vscode from "vscode"
 
+import {consoleError} from "../client-log"
+
 import {Acton} from "./Acton"
 import {CheckCommand} from "./ActonCommand"
 
@@ -49,6 +51,7 @@ interface ActonCheckOutput {
 export class ActonLinter implements vscode.CodeActionProvider {
     private readonly diagnosticCollection: vscode.DiagnosticCollection
     private debounceTimer: NodeJS.Timeout | undefined
+    private checkRequestId: number = 0
     private readonly disposables: vscode.Disposable[] = []
     private latestDiagnostics: readonly ActonDiagnostic[] = []
 
@@ -60,9 +63,14 @@ export class ActonLinter implements vscode.CodeActionProvider {
                 providedCodeActionKinds: [vscode.CodeActionKind.QuickFix],
             }),
             vscode.workspace.onDidChangeTextDocument(e => {
-                if (e.document.languageId === "tolk") {
-                    this.triggerCheck()
+                if (e.document.uri.scheme !== "file") {
+                    return
                 }
+                if (e.contentChanges.length === 0) {
+                    return
+                }
+                this.clearDiagnostics(e.document.uri)
+                this.triggerCheck()
             }),
             vscode.workspace.onDidOpenTextDocument(doc => {
                 if (doc.languageId === "tolk") {
@@ -88,7 +96,7 @@ export class ActonLinter implements vscode.CodeActionProvider {
     }
 
     public dispose(): void {
-        this.diagnosticCollection.clear()
+        this.clearDiagnostics()
         this.diagnosticCollection.dispose()
         this.disposables.forEach(d => {
             d.dispose()
@@ -102,53 +110,59 @@ export class ActonLinter implements vscode.CodeActionProvider {
         const config = vscode.workspace.getConfiguration("ton.acton.linter")
         const enabled = config.get<boolean>("enabled", true)
 
+        if (this.debounceTimer) {
+            clearTimeout(this.debounceTimer)
+            this.debounceTimer = undefined
+        }
+
         if (!enabled) {
-            this.diagnosticCollection.clear()
+            this.checkRequestId += 1
+            this.clearDiagnostics()
             return
         }
 
-        const debounceMs = config.get<number>("debounce", 500)
-
-        if (this.debounceTimer) {
-            clearTimeout(this.debounceTimer)
-        }
+        const debounceMs = Math.max(0, config.get<number>("debounce", 500))
+        const requestId = ++this.checkRequestId
 
         this.debounceTimer = setTimeout(() => {
-            void this.runCheck()
+            this.debounceTimer = undefined
+            void this.runCheck(requestId)
         }, debounceMs)
     }
 
-    private async runCheck(): Promise<void> {
-        const acton = Acton.getInstance()
-
-        // We want to run check even if no editor is active,
-        // but we need a starting point to find Acton.toml
-        const activeUri =
-            vscode.window.activeTextEditor?.document.uri ??
-            vscode.workspace.workspaceFolders?.[0]?.uri
-
-        if (!activeUri) {
+    private async runCheck(requestId: number): Promise<void> {
+        if (requestId !== this.checkRequestId) {
             return
         }
 
+        const acton = Acton.getInstance()
+
+        const activeDocument = vscode.window.activeTextEditor?.document
+        if (
+            !activeDocument ||
+            activeDocument.languageId !== "tolk" ||
+            activeDocument.uri.scheme !== "file"
+        ) {
+            return
+        }
+
+        const activeUri = activeDocument.uri
         const tomlUri = await acton.findActonToml(activeUri)
         if (!tomlUri) {
             return
         }
 
         const workingDirectory = vscode.Uri.joinPath(tomlUri, "..").fsPath
-        const command = new CheckCommand(true)
+        const command = new CheckCommand(true, activeUri.fsPath)
 
         try {
             const {stdout, stderr, exitCode} = await acton.spawn(command, workingDirectory)
-
-            if (exitCode !== 0 && stdout.trim() === "") {
-                console.error("Acton check failed", stderr)
+            if (requestId !== this.checkRequestId) {
                 return
             }
 
             if (stdout.trim() === "") {
-                this.diagnosticCollection.clear()
+                this.clearDiagnostics()
                 return
             }
 
@@ -156,15 +170,48 @@ export class ActonLinter implements vscode.CodeActionProvider {
             try {
                 output = JSON.parse(stdout) as ActonCheckOutput
             } catch (error) {
-                console.error("Failed to parse acton check output", error, stdout, stderr)
+                consoleError("Failed to parse acton check output", error, stdout, stderr)
+                return
+            }
+
+            if (requestId !== this.checkRequestId) {
                 return
             }
 
             this.latestDiagnostics = output.diagnostics
             this.processDiagnostics(output)
         } catch (error) {
-            console.error("Failed to run acton check", error)
+            if (requestId === this.checkRequestId) {
+                consoleError("Failed to run acton check", error)
+            }
         }
+    }
+
+    private clearDiagnostics(exceptUri?: vscode.Uri): void {
+        if (!exceptUri) {
+            this.latestDiagnostics = []
+            this.diagnosticCollection.clear()
+            return
+        }
+
+        const exceptUriString = exceptUri.toString()
+        this.latestDiagnostics = this.latestDiagnostics.filter(diag => {
+            try {
+                return vscode.Uri.file(diag.file).toString() === exceptUriString
+            } catch {
+                return false
+            }
+        })
+
+        const urisToDelete: vscode.Uri[] = []
+        this.diagnosticCollection.forEach((uri, _diagnostics) => {
+            if (uri.toString() !== exceptUriString) {
+                urisToDelete.push(uri)
+            }
+        })
+        urisToDelete.forEach(uri => {
+            this.diagnosticCollection.delete(uri)
+        })
     }
 
     public provideCodeActions(

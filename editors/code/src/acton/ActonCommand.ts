@@ -145,7 +145,10 @@ export class RunCommand extends ActonCommand {
 }
 
 export class CheckCommand extends ActonCommand {
-    public constructor(public json: boolean = true) {
+    public constructor(
+        public json: boolean = true,
+        public target: string = "",
+    ) {
         super("check")
     }
 
@@ -153,6 +156,9 @@ export class CheckCommand extends ActonCommand {
         const args: string[] = []
         if (this.json) {
             args.push("--json")
+        }
+        if (this.target.trim() !== "") {
+            args.push(this.target)
         }
         return args
     }
