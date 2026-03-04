@@ -11508,16 +11508,16 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tolkfmt-test-dev@npm:0.0.25":
-  version: 0.0.25
-  resolution: "tolkfmt-test-dev@npm:0.0.25"
+"tolkfmt-test-dev@npm:0.0.27":
+  version: 0.0.27
+  resolution: "tolkfmt-test-dev@npm:0.0.27"
   dependencies:
     cac: "npm:^6.7.14"
     glob: "npm:11.1.0"
-    web-tree-sitter: "npm:^0.25.6"
+    web-tree-sitter: "npm:^0.26.3"
   bin:
     tolkfmt: bin/tolkfmt
-  checksum: 10c0/8c264c0660d7ffa6c8501d1ca4475e8bd293c28ce1f0f1a206d923369837dc64a366c4b0e00b31dea094d15d6aa7f3052d5a7e69220ad0591142324477e36152
+  checksum: 10c0/c482e6bad97ccee90b953ee1a5f197be8bdbb7df5c4a42481796e5f1b26fba3714f7e282fe4799bb423a485dc38a6a47197be02e4e455dfb465bbc64e350c412
   languageName: node
   linkType: hard
 
@@ -12353,7 +12353,7 @@ __metadata:
     style-loader: "npm:^4.0.0"
     stylelint: "npm:^16.24.0"
     stylelint-config-standard: "npm:^39.0.0"
-    tolkfmt-test-dev: "npm:0.0.25"
+    tolkfmt-test-dev: "npm:0.0.27"
     ton-assembly: "npm:0.4.0"
     ton-source-map: "npm:^0.2.2"
     tree-sitter-cli: "npm:^0.26.3"
@@ -12417,7 +12417,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"web-tree-sitter@npm:^0.25.10, web-tree-sitter@npm:^0.25.6":
+"web-tree-sitter@npm:^0.25.10":
   version: 0.25.10
   resolution: "web-tree-sitter@npm:0.25.10"
   peerDependencies:
@@ -12426,6 +12426,13 @@ __metadata:
     "@types/emscripten":
       optional: true
   checksum: 10c0/8056263c75f59c8f992584386f85675fdce94f67eec506970f49d203a7d25effa96a4736eee5b06f06dc4d8f01339f68d9d4e97d713a6517d19db1f1c0954e06
+  languageName: node
+  linkType: hard
+
+"web-tree-sitter@npm:^0.26.3":
+  version: 0.26.6
+  resolution: "web-tree-sitter@npm:0.26.6"
+  checksum: 10c0/877359f2988809d8799de3ce06f526355decd7634464bf2519ba92be6b68f4ec15bd57e4691d47a57b129cf09c2f80347322702113ba8fdb80c1b1c78ede641a
   languageName: node
   linkType: hard
 
