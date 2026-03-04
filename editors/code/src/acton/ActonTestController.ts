@@ -11,6 +11,12 @@ import {FileCoverageDetail} from "vscode"
 import {Acton} from "./Acton"
 import {TestCommand, TestMode} from "./ActonCommand"
 
+interface ParsedTestResult {
+    readonly status: "passed" | "failed"
+    readonly message?: string
+    readonly location?: vscode.Location
+}
+
 export class ActonTestController implements Disposable {
     private readonly controller: vscode.TestController
     private readonly outputChannel: vscode.OutputChannel
@@ -162,23 +168,63 @@ export class ActonTestController implements Disposable {
         }
         const run = this.controller.createTestRun(request)
         const queue: vscode.TestItem[] = []
+        const seen: Set<string> = new Set()
+        const excluded: Set<string> = new Set((request.exclude ?? []).map(test => test.id))
+
+        const enqueue = (test: vscode.TestItem): void => {
+            if (seen.has(test.id) || excluded.has(test.id)) {
+                return
+            }
+            seen.add(test.id)
+            queue.push(test)
+        }
 
         if (request.include) {
             for (const test of request.include) {
-                queue.push(test)
+                enqueue(test)
             }
-        } else {
-            this.controller.items.forEach(test => {
-                queue.push(test)
-            })
+            for (const test of queue) {
+                if (token.isCancellationRequested) {
+                    break
+                }
+
+                await this.runTestItem(test, run, token, isCoverage)
+            }
+
+            run.end()
+            return
         }
+
+        this.controller.items.forEach(test => {
+            enqueue(test)
+        })
+
+        const queueByWorkingDir: Map<string, vscode.TestItem[]> = new Map()
 
         for (const test of queue) {
             if (token.isCancellationRequested) {
                 break
             }
 
-            await this.runTestItem(test, run, token, isCoverage)
+            const uri = test.uri
+            if (!uri) {
+                run.skipped(test)
+                continue
+            }
+
+            const tomlUri = await Acton.getInstance().findActonToml(uri)
+            const workingDir = tomlUri ? path.dirname(tomlUri.fsPath) : path.dirname(uri.fsPath)
+            const tests = queueByWorkingDir.get(workingDir) ?? []
+            tests.push(test)
+            queueByWorkingDir.set(workingDir, tests)
+        }
+
+        for (const [workingDir, tests] of queueByWorkingDir) {
+            if (token.isCancellationRequested) {
+                break
+            }
+
+            await this.runAllTestsInDirectory(workingDir, tests, run, token, isCoverage)
         }
 
         run.end()
@@ -246,23 +292,203 @@ export class ActonTestController implements Disposable {
                 }
             } else {
                 const rawMessage = stderr || stdout || "Test failed"
-
-                // strip ANSI escape sequences from the output
-                const cleanMessage = rawMessage.replace(
-                    /[\u001B\u009B][#();?[]*(?:\d{1,4}(?:;\d{0,4})*)?[\d<=>A-ORZcf-nqry]/g,
-                    "",
-                )
-
+                const cleanMessage = this.stripAnsi(rawMessage)
                 const displayMessage = this.extractErrorMessage(cleanMessage)
                 const message = new vscode.TestMessage(displayMessage)
-
-                message.location = this.extractErrorLocation(cleanMessage)
-
+                message.location = this.extractErrorLocation(cleanMessage, workingDir)
                 run.failed(item, message)
             }
         } catch (error) {
             run.failed(item, new vscode.TestMessage(String(error)))
         }
+    }
+
+    private async runAllTestsInDirectory(
+        workingDir: string,
+        roots: vscode.TestItem[],
+        run: vscode.TestRun,
+        token: vscode.CancellationToken,
+        isCoverage: boolean = false,
+    ): Promise<void> {
+        if (token.isCancellationRequested || roots.length === 0) {
+            return
+        }
+
+        const tests = this.collectLeafTests(roots)
+        for (const test of tests) {
+            run.started(test)
+        }
+
+        const coverageFile = isCoverage ? path.join(workingDir, "lcov.info") : ""
+        const command = new TestCommand(
+            TestMode.DIRECTORY,
+            "",
+            "",
+            false,
+            isCoverage,
+            "lcov",
+            coverageFile,
+        )
+
+        try {
+            const {exitCode, stdout, stderr} = await Acton.getInstance().spawn(
+                command,
+                workingDir,
+                this.outputChannel,
+                data => {
+                    // Test runner output expects CRLF for newlines to be treated as a terminal
+                    run.appendOutput(data.replace(/\r?\n/g, "\r\n"))
+                },
+            )
+
+            const cleanOutput = this.stripAnsi(`${stdout}\n${stderr}`)
+            const parsedResults = this.parseConsoleTestResults(cleanOutput, workingDir)
+            const fallbackMessage = new vscode.TestMessage(
+                this.extractErrorMessage(cleanOutput || "Test failed"),
+            )
+            fallbackMessage.location = this.extractErrorLocation(cleanOutput, workingDir)
+
+            for (const test of tests) {
+                const key = this.getTestResultKey(test, workingDir)
+                const parsed = parsedResults.get(key)
+
+                if (parsed?.status === "passed") {
+                    run.passed(test)
+                    continue
+                }
+
+                if (parsed?.status === "failed") {
+                    const message = new vscode.TestMessage(parsed.message ?? "Test failed")
+                    message.location = parsed.location
+                    run.failed(test, message)
+                    continue
+                }
+
+                if (exitCode === 0) {
+                    run.passed(test)
+                } else {
+                    run.failed(test, fallbackMessage)
+                }
+            }
+
+            if (isCoverage && coverageFile) {
+                await this.processCoverage(coverageFile, run, workingDir)
+            }
+        } catch (error) {
+            for (const test of tests) {
+                run.failed(test, new vscode.TestMessage(String(error)))
+            }
+        }
+    }
+
+    private collectLeafTests(items: vscode.TestItem[]): vscode.TestItem[] {
+        const queue = [...items]
+        const result: vscode.TestItem[] = []
+        const seen: Set<string> = new Set()
+
+        while (queue.length > 0) {
+            const item = queue.shift()
+            if (!item || seen.has(item.id)) {
+                continue
+            }
+            seen.add(item.id)
+
+            if (item.children.size === 0) {
+                result.push(item)
+                continue
+            }
+
+            item.children.forEach(child => {
+                queue.push(child)
+            })
+        }
+
+        return result
+    }
+
+    private getTestResultKey(item: vscode.TestItem, workingDir: string): string {
+        const uri = item.uri
+        const relativeFile = uri
+            ? path.relative(workingDir, uri.fsPath).replace(/\\/g, "/").toLowerCase()
+            : ""
+        const testName = this.normalizeTestName(item.label)
+        return `${relativeFile}::${testName}`
+    }
+
+    private normalizeTestName(name: string): string {
+        return name
+            .replace(/`/g, "")
+            .replace(/^\s*test[\s_-]+/i, "")
+            .trim()
+            .toLowerCase()
+    }
+
+    private parseConsoleTestResults(
+        output: string,
+        workingDir: string,
+    ): Map<string, ParsedTestResult> {
+        const results: Map<string, ParsedTestResult> = new Map()
+        const lines = output.split(/\r?\n/)
+
+        let currentFile = ""
+
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i]
+            const fileMatch = /^\s*>\s+(.+?)\s+\(\d+\s+tests?\)\s*$/.exec(line)
+            if (fileMatch) {
+                currentFile = path.normalize(fileMatch[1]).replace(/\\/g, "/").toLowerCase()
+                continue
+            }
+
+            const passedMatch = /^\s*[✓✔]\s+(.+?)\s+\d+(?:\.\d+)?(?:ns|µs|ms|s)\s*$/.exec(line)
+            if (passedMatch && currentFile !== "") {
+                const testName = this.normalizeTestName(passedMatch[1])
+                results.set(`${currentFile}::${testName}`, {status: "passed"})
+                continue
+            }
+
+            const failedMatch = /^\s*[Xx✗]\s+(.+?)\s+\d+(?:\.\d+)?(?:ns|µs|ms|s)\s*$/.exec(line)
+            if (failedMatch && currentFile !== "") {
+                const testName = this.normalizeTestName(failedMatch[1])
+                const details: string[] = []
+                let next = i + 1
+
+                while (next < lines.length) {
+                    const nextLine = lines[next]
+                    if (
+                        /^\s*>\s+/.test(nextLine) ||
+                        /^\s*[Xx✓✔✗]\s+/.test(nextLine) ||
+                        /^\s*✓\s+\d+\s+passed/.test(nextLine) ||
+                        /^\s*Some tests failed/.test(nextLine)
+                    ) {
+                        break
+                    }
+
+                    if (nextLine.trim() !== "") {
+                        details.push(nextLine.replace(/^\s*└─\s*/, "").trim())
+                    }
+                    next++
+                }
+
+                i = next - 1
+
+                const detailsText = details.join("\n").trim()
+                const location = this.extractErrorLocation(detailsText, workingDir)
+                const message = this.extractErrorMessage(detailsText || "Test failed")
+
+                results.set(`${currentFile}::${testName}`, {
+                    status: "failed",
+                    message,
+                    location,
+                })
+            }
+        }
+
+        return results
+    }
+
+    private stripAnsi(text: string): string {
+        return text.replace(/\u001B\[[0-?]*[ -/]*[@-~]/g, "")
     }
 
     private async processCoverage(
@@ -328,7 +554,10 @@ export class ActonTestController implements Disposable {
         return files
     }
 
-    private extractErrorLocation(cleanMessage: string): vscode.Location | undefined {
+    private extractErrorLocation(
+        cleanMessage: string,
+        workingDir?: string,
+    ): vscode.Location | undefined {
         const locationMatch = /at\s+(.+):(\d+):(\d+)/.exec(cleanMessage)
         if (!locationMatch) return undefined
 
@@ -337,8 +566,18 @@ export class ActonTestController implements Disposable {
         const column = Number.parseInt(locationMatch[3], 10)
 
         if (!Number.isNaN(line) && !Number.isNaN(column)) {
+            const absolutePath = path.isAbsolute(filePath)
+                ? filePath
+                : workingDir
+                  ? path.join(workingDir, filePath)
+                  : undefined
+
+            if (!absolutePath) {
+                return undefined
+            }
+
             return new vscode.Location(
-                vscode.Uri.file(filePath),
+                vscode.Uri.file(absolutePath),
                 new vscode.Range(
                     new vscode.Position(line - 1, Math.max(0, column - 1)),
                     new vscode.Position(line - 1, column),
