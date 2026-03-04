@@ -843,7 +843,7 @@
                     },
                     "ton.acton.linter.debounce": {
                         "type": "number",
-                        "default": 300,
+                        "default": 100,
                         "description": "Debounce time in milliseconds for the Acton linter"
                     }
                 }

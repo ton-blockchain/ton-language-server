@@ -63,9 +63,14 @@ export class ActonLinter implements vscode.CodeActionProvider {
                 providedCodeActionKinds: [vscode.CodeActionKind.QuickFix],
             }),
             vscode.workspace.onDidChangeTextDocument(e => {
-                if (e.document.languageId === "tolk") {
-                    this.triggerCheck()
+                if (e.document.uri.scheme !== "file") {
+                    return
                 }
+                if (e.contentChanges.length === 0) {
+                    return
+                }
+                this.clearDiagnostics(e.document.uri)
+                this.triggerCheck()
             }),
             vscode.workspace.onDidOpenTextDocument(doc => {
                 if (doc.languageId === "tolk") {
@@ -91,7 +96,7 @@ export class ActonLinter implements vscode.CodeActionProvider {
     }
 
     public dispose(): void {
-        this.diagnosticCollection.clear()
+        this.clearDiagnostics()
         this.diagnosticCollection.dispose()
         this.disposables.forEach(d => {
             d.dispose()
@@ -112,12 +117,11 @@ export class ActonLinter implements vscode.CodeActionProvider {
 
         if (!enabled) {
             this.checkRequestId += 1
-            this.latestDiagnostics = []
-            this.diagnosticCollection.clear()
+            this.clearDiagnostics()
             return
         }
 
-        const debounceMs = Math.max(0, config.get<number>("debounce", 300))
+        const debounceMs = Math.max(0, config.get<number>("debounce", 500))
         const requestId = ++this.checkRequestId
 
         this.debounceTimer = setTimeout(() => {
@@ -133,23 +137,23 @@ export class ActonLinter implements vscode.CodeActionProvider {
 
         const acton = Acton.getInstance()
 
-        // We want to run check even if no editor is active,
-        // but we need a starting point to find Acton.toml
-        const activeUri =
-            vscode.window.activeTextEditor?.document.uri ??
-            vscode.workspace.workspaceFolders?.[0]?.uri
-
-        if (!activeUri) {
+        const activeDocument = vscode.window.activeTextEditor?.document
+        if (
+            !activeDocument ||
+            activeDocument.languageId !== "tolk" ||
+            activeDocument.uri.scheme !== "file"
+        ) {
             return
         }
 
+        const activeUri = activeDocument.uri
         const tomlUri = await acton.findActonToml(activeUri)
         if (!tomlUri) {
             return
         }
 
         const workingDirectory = vscode.Uri.joinPath(tomlUri, "..").fsPath
-        const command = new CheckCommand(true)
+        const command = new CheckCommand(true, activeUri.fsPath)
 
         try {
             const {stdout, stderr, exitCode} = await acton.spawn(command, workingDirectory)
@@ -158,8 +162,7 @@ export class ActonLinter implements vscode.CodeActionProvider {
             }
 
             if (stdout.trim() === "") {
-                this.latestDiagnostics = []
-                this.diagnosticCollection.clear()
+                this.clearDiagnostics()
                 return
             }
 
@@ -182,6 +185,33 @@ export class ActonLinter implements vscode.CodeActionProvider {
                 consoleError("Failed to run acton check", error)
             }
         }
+    }
+
+    private clearDiagnostics(exceptUri?: vscode.Uri): void {
+        if (!exceptUri) {
+            this.latestDiagnostics = []
+            this.diagnosticCollection.clear()
+            return
+        }
+
+        const exceptUriString = exceptUri.toString()
+        this.latestDiagnostics = this.latestDiagnostics.filter(diag => {
+            try {
+                return vscode.Uri.file(diag.file).toString() === exceptUriString
+            } catch {
+                return false
+            }
+        })
+
+        const urisToDelete: vscode.Uri[] = []
+        this.diagnosticCollection.forEach((uri, _diagnostics) => {
+            if (uri.toString() !== exceptUriString) {
+                urisToDelete.push(uri)
+            }
+        })
+        urisToDelete.forEach(uri => {
+            this.diagnosticCollection.delete(uri)
+        })
     }
 
     public provideCodeActions(
