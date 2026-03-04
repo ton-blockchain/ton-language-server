@@ -6,8 +6,6 @@ import * as path from "node:path"
 
 import * as vscode from "vscode"
 
-import {FileCoverageDetail} from "vscode"
-
 import {Acton} from "./Acton"
 import {TestCommand, TestMode} from "./ActonCommand"
 import {
@@ -30,14 +28,16 @@ interface DirectoryRunState {
     readonly suiteNodeToFileHint: Map<string, string>
 }
 
-export class ActonTestController implements Disposable {
+export class ActonTestController implements vscode.Disposable {
     private readonly controller: vscode.TestController
     private readonly outputChannel: vscode.OutputChannel
     private readonly coverageDetails: Map<string, vscode.StatementCoverage[]> = new Map()
+    private readonly disposables: vscode.Disposable[] = []
 
     public constructor() {
         this.controller = vscode.tests.createTestController("actonTests", "Acton Tests")
         this.outputChannel = vscode.window.createOutputChannel("Acton Tests")
+        this.disposables.push(this.controller, this.outputChannel)
 
         this.controller.createRunProfile(
             "Run",
@@ -60,7 +60,7 @@ export class ActonTestController implements Disposable {
         coverageProfile.loadDetailedCoverage = (
             _testRun,
             fileCoverage,
-        ): Thenable<FileCoverageDetail[]> => {
+        ): Thenable<vscode.FileCoverageDetail[]> => {
             return Promise.resolve(this.coverageDetails.get(fileCoverage.uri.toString()) ?? [])
         }
 
@@ -68,19 +68,24 @@ export class ActonTestController implements Disposable {
             await (item ? this.discoverTestsInItem(item) : this.discoverAllTests())
         }
 
-        vscode.workspace.onDidOpenTextDocument(e => {
-            this.discoverTestsInDocument(e)
-        })
-        vscode.workspace.onDidChangeTextDocument(e => {
-            this.discoverTestsInDocument(e.document)
-        })
+        this.disposables.push(
+            vscode.workspace.onDidOpenTextDocument(e => {
+                this.discoverTestsInDocument(e)
+            }),
+            vscode.workspace.onDidChangeTextDocument(e => {
+                this.discoverTestsInDocument(e.document)
+            }),
+        )
 
         const watcher = vscode.workspace.createFileSystemWatcher("**/*.test.tolk")
-        watcher.onDidCreate(async uri => this.discoverTestsInFile(uri))
-        watcher.onDidChange(async uri => this.discoverTestsInFile(uri))
-        watcher.onDidDelete(uri => {
-            this.controller.items.delete(uri.toString())
-        })
+        this.disposables.push(
+            watcher,
+            watcher.onDidCreate(async uri => this.discoverTestsInFile(uri)),
+            watcher.onDidChange(async uri => this.discoverTestsInFile(uri)),
+            watcher.onDidDelete(uri => {
+                this.controller.items.delete(uri.toString())
+            }),
+        )
     }
 
     private async discoverAllTests(): Promise<void> {
@@ -1003,8 +1008,9 @@ export class ActonTestController implements Disposable {
     }
 
     public dispose(): void {
-        this.controller.dispose()
-        this.outputChannel.dispose()
+        for (const disposable of this.disposables.splice(0).reverse()) {
+            disposable.dispose()
+        }
     }
 
     public [Symbol.dispose](): void {
