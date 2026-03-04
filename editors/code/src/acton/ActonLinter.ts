@@ -3,6 +3,8 @@
 
 import * as vscode from "vscode"
 
+import {consoleError} from "../client-log"
+
 import {Acton} from "./Acton"
 import {CheckCommand} from "./ActonCommand"
 
@@ -142,11 +144,6 @@ export class ActonLinter implements vscode.CodeActionProvider {
         try {
             const {stdout, stderr, exitCode} = await acton.spawn(command, workingDirectory)
 
-            if (exitCode !== 0 && stdout.trim() === "") {
-                console.error("Acton check failed", stderr)
-                return
-            }
-
             if (stdout.trim() === "") {
                 this.diagnosticCollection.clear()
                 return
@@ -156,14 +153,14 @@ export class ActonLinter implements vscode.CodeActionProvider {
             try {
                 output = JSON.parse(stdout) as ActonCheckOutput
             } catch (error) {
-                console.error("Failed to parse acton check output", error, stdout, stderr)
+                consoleError("Failed to parse acton check output", error, stdout, stderr)
                 return
             }
 
             this.latestDiagnostics = output.diagnostics
             this.processDiagnostics(output)
         } catch (error) {
-            console.error("Failed to run acton check", error)
+            consoleError("Failed to run acton check", error)
         }
     }
 
