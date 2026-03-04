@@ -180,65 +180,98 @@ export class ActonTestController implements Disposable {
             this.coverageDetails.clear()
         }
         const run = this.controller.createTestRun(request)
+        if (request.include) {
+            const queue = this.buildRunQueue(request.include, request.exclude ?? [])
+            const queueByWorkingDir = await this.groupTestsByWorkingDir(queue, run, token)
+            await this.runIncludedGroups(queueByWorkingDir, run, token, isCoverage)
+            run.end()
+            return
+        }
+
+        const queue = this.buildRunQueue(this.getRootTestItems(), request.exclude ?? [])
+        const queueByWorkingDir = await this.groupTestsByWorkingDir(queue, run, token)
+        await this.runAllGroups(queueByWorkingDir, run, token, isCoverage)
+        run.end()
+    }
+
+    private buildRunQueue(
+        items: readonly vscode.TestItem[],
+        excludedItems: readonly vscode.TestItem[],
+    ): vscode.TestItem[] {
         const queue: vscode.TestItem[] = []
         const seen: Set<string> = new Set()
-        const excluded: Set<string> = new Set((request.exclude ?? []).map(test => test.id))
+        const excluded: Set<string> = new Set(excludedItems.map(test => test.id))
 
-        const enqueue = (test: vscode.TestItem): void => {
+        for (const test of items) {
             if (seen.has(test.id) || excluded.has(test.id)) {
-                return
+                continue
             }
+
             seen.add(test.id)
             queue.push(test)
         }
 
-        if (request.include) {
-            for (const test of request.include) {
-                enqueue(test)
+        return queue
+    }
+
+    private getRootTestItems(): vscode.TestItem[] {
+        const roots: vscode.TestItem[] = []
+        this.controller.items.forEach(test => {
+            roots.push(test)
+        })
+        return roots
+    }
+
+    private async runIncludedGroups(
+        queueByWorkingDir: ReadonlyMap<string, vscode.TestItem[]>,
+        run: vscode.TestRun,
+        token: vscode.CancellationToken,
+        isCoverage: boolean,
+    ): Promise<void> {
+        for (const [workingDir, tests] of queueByWorkingDir) {
+            if (token.isCancellationRequested) {
+                break
             }
-            const queueByWorkingDir = await this.groupTestsByWorkingDir(queue, run, token)
-            for (const [workingDir, tests] of queueByWorkingDir) {
-                if (token.isCancellationRequested) {
-                    break
-                }
 
-                if (tests.length === 1) {
-                    const single = tests[0]
-                    if (single.uri && single.id === single.uri.toString()) {
-                        const commandTarget = path.relative(workingDir, single.uri.fsPath)
-                        await this.runAllTestsInDirectory(
-                            workingDir,
-                            [single],
-                            run,
-                            token,
-                            isCoverage,
-                            commandTarget,
-                        )
-                    } else {
-                        await this.runTestItem(single, run, token, isCoverage)
-                    }
-                    continue
-                }
+            await this.runIncludedGroup(workingDir, tests, run, token, isCoverage)
+        }
+    }
 
-                const commandTarget = this.getSelectionRunTarget(tests, workingDir)
+    private async runIncludedGroup(
+        workingDir: string,
+        tests: vscode.TestItem[],
+        run: vscode.TestRun,
+        token: vscode.CancellationToken,
+        isCoverage: boolean,
+    ): Promise<void> {
+        if (tests.length === 1) {
+            const single = tests[0]
+            if (single.uri && single.id === single.uri.toString()) {
+                const commandTarget = path.relative(workingDir, single.uri.fsPath)
                 await this.runAllTestsInDirectory(
                     workingDir,
-                    tests,
+                    [single],
                     run,
                     token,
                     isCoverage,
                     commandTarget,
                 )
+            } else {
+                await this.runTestItem(single, run, token, isCoverage)
             }
-            run.end()
             return
         }
 
-        this.controller.items.forEach(test => {
-            enqueue(test)
-        })
-        const queueByWorkingDir = await this.groupTestsByWorkingDir(queue, run, token)
+        const commandTarget = this.getSelectionRunTarget(tests, workingDir)
+        await this.runAllTestsInDirectory(workingDir, tests, run, token, isCoverage, commandTarget)
+    }
 
+    private async runAllGroups(
+        queueByWorkingDir: ReadonlyMap<string, vscode.TestItem[]>,
+        run: vscode.TestRun,
+        token: vscode.CancellationToken,
+        isCoverage: boolean,
+    ): Promise<void> {
         for (const [workingDir, tests] of queueByWorkingDir) {
             if (token.isCancellationRequested) {
                 break
@@ -246,8 +279,6 @@ export class ActonTestController implements Disposable {
 
             await this.runAllTestsInDirectory(workingDir, tests, run, token, isCoverage)
         }
-
-        run.end()
     }
 
     private async groupTestsByWorkingDir(
