@@ -19,6 +19,17 @@ import {
     type TeamCityTestStatusMessage,
 } from "./TeamCity"
 
+interface DirectoryRunState {
+    readonly tests: vscode.TestItem[]
+    readonly resolvedTestIds: Set<string>
+    readonly failedTestIds: Set<string>
+    readonly testsById: Map<string, vscode.TestItem>
+    readonly testsByKey: Map<string, vscode.TestItem[]>
+    readonly testsByName: Map<string, vscode.TestItem[]>
+    readonly nodeToTestId: Map<string, string>
+    readonly suiteNodeToFileHint: Map<string, string>
+}
+
 export class ActonTestController implements Disposable {
     private readonly controller: vscode.TestController
     private readonly outputChannel: vscode.OutputChannel
@@ -371,112 +382,8 @@ export class ActonTestController implements Disposable {
             return
         }
 
-        const tests = this.collectLeafTests(roots)
-        const resolvedTestIds: Set<string> = new Set()
-        const failedTestIds: Set<string> = new Set()
-        const testsById: Map<string, vscode.TestItem> = new Map(
-            tests.map(test => [test.id, test] as const),
-        )
-        const testsByKey: Map<string, vscode.TestItem[]> = new Map()
-        const testsByName: Map<string, vscode.TestItem[]> = new Map()
-        const nodeToTestId: Map<string, string> = new Map()
-        const suiteNodeToFileHint: Map<string, string> = new Map()
-
-        const registerToMap = (
-            map: Map<string, vscode.TestItem[]>,
-            key: string,
-            test: vscode.TestItem,
-        ): void => {
-            const entry = map.get(key) ?? []
-            entry.push(test)
-            map.set(key, entry)
-        }
-
-        for (const test of tests) {
-            for (const key of this.getLookupKeys(test, workingDir)) {
-                registerToMap(testsByKey, key, test)
-            }
-            registerToMap(testsByName, this.normalizeTestName(test.label), test)
-        }
-
-        const getUnresolvedByKey = (key: string): vscode.TestItem | undefined => {
-            return testsByKey.get(key)?.find(test => !resolvedTestIds.has(test.id))
-        }
-
-        const resolveTestByHint = (
-            testName: string | undefined,
-            fileHint: string | undefined,
-        ): vscode.TestItem | undefined => {
-            if (!testName) {
-                return undefined
-            }
-
-            const normalizedName = this.normalizeTestName(testName)
-            for (const fileKey of this.normalizeFileHint(fileHint, workingDir)) {
-                const candidate = getUnresolvedByKey(`${fileKey}::${normalizedName}`)
-                if (candidate) {
-                    return candidate
-                }
-            }
-
-            const byName = (testsByName.get(normalizedName) ?? []).filter(
-                test => !resolvedTestIds.has(test.id),
-            )
-            return byName.length === 1 ? byName[0] : undefined
-        }
-
-        const markPassed = (test: vscode.TestItem): void => {
-            if (resolvedTestIds.has(test.id)) {
-                return
-            }
-            run.passed(test)
-            resolvedTestIds.add(test.id)
-        }
-
-        const markFailed = (
-            test: vscode.TestItem,
-            messageText: string,
-            location?: vscode.Location,
-        ): void => {
-            if (resolvedTestIds.has(test.id)) {
-                return
-            }
-            const message = new vscode.TestMessage(messageText)
-            message.location = location
-            run.failed(test, message)
-            failedTestIds.add(test.id)
-            resolvedTestIds.add(test.id)
-        }
-
-        const markSkipped = (test: vscode.TestItem): void => {
-            if (resolvedTestIds.has(test.id)) {
-                return
-            }
-            run.skipped(test)
-            resolvedTestIds.add(test.id)
-        }
-
-        const resolveTestFromServiceMessage = (
-            message: TeamCityTestStatusMessage,
-        ): vscode.TestItem | undefined => {
-            const nodeId = message.attributes.nodeId
-            if (nodeId) {
-                const mapped = nodeToTestId.get(nodeId)
-                if (mapped) {
-                    return testsById.get(mapped)
-                }
-            }
-
-            const parentNodeId = message.attributes.parentNodeId
-            const fileHint = parentNodeId ? suiteNodeToFileHint.get(parentNodeId) : undefined
-            const test = resolveTestByHint(message.attributes.name, fileHint)
-            if (test && nodeId) {
-                nodeToTestId.set(nodeId, test.id)
-            }
-            return test
-        }
-
-        for (const test of tests) {
+        const state = this.createDirectoryRunState(roots, workingDir)
+        for (const test of state.tests) {
             run.started(test)
         }
 
@@ -492,67 +399,7 @@ export class ActonTestController implements Disposable {
         )
 
         const outputProcessor = this.createOutputProcessor(run, undefined, message => {
-            switch (message.name) {
-                case "testingStarted":
-                case "testingFinished":
-                case "testSuiteFinished": {
-                    break
-                }
-                case "testSuiteStarted": {
-                    const nodeId = message.attributes.nodeId
-                    if (nodeId) {
-                        const locationHint = message.attributes.locationHint
-                        const suiteName = message.attributes.name
-                        const fileHint = extractTeamCityFileHint(locationHint, suiteName)
-                        if (fileHint) {
-                            suiteNodeToFileHint.set(nodeId, fileHint)
-                        }
-                    }
-                    break
-                }
-                case "testStarted": {
-                    const nodeId = message.attributes.nodeId
-                    if (!nodeId) {
-                        break
-                    }
-                    const parentNodeId = message.attributes.parentNodeId
-                    const fileHint = parentNodeId
-                        ? suiteNodeToFileHint.get(parentNodeId)
-                        : undefined
-                    const test = resolveTestByHint(message.attributes.name, fileHint)
-                    if (test) {
-                        nodeToTestId.set(nodeId, test.id)
-                    }
-                    break
-                }
-                case "testFailed": {
-                    const test = resolveTestFromServiceMessage(message)
-                    if (!test) {
-                        break
-                    }
-                    const details = message.attributes.details ?? ""
-                    const messageText =
-                        message.attributes.message ??
-                        this.extractErrorMessage(details || "Test failed")
-                    const location = this.extractErrorLocation(details, workingDir)
-                    markFailed(test, messageText, location)
-                    break
-                }
-                case "testIgnored": {
-                    const test = resolveTestFromServiceMessage(message)
-                    if (test) {
-                        markSkipped(test)
-                    }
-                    break
-                }
-                case "testFinished": {
-                    const test = resolveTestFromServiceMessage(message)
-                    if (test && !failedTestIds.has(test.id)) {
-                        markPassed(test)
-                    }
-                    break
-                }
-            }
+            this.handleDirectoryTeamCityMessage(state, run, workingDir, message)
         })
 
         try {
@@ -565,44 +412,280 @@ export class ActonTestController implements Disposable {
                 },
             )
             outputProcessor.flush()
-
-            const cleanOutput = stripTeamCityMessages(this.stripAnsi(`${stdout}\n${stderr}`)).trim()
-            const fallbackMessageText = this.extractErrorMessage(
-                cleanOutput || "Test failed (no TeamCity details received)",
-            )
-            const hasTeamCityResults = resolvedTestIds.size > 0
-
-            for (const test of tests) {
-                if (resolvedTestIds.has(test.id)) {
-                    continue
-                }
-
-                if (exitCode === 0) {
-                    if (hasTeamCityResults) {
-                        markFailed(test, "TeamCity did not report final status for this test")
-                    } else {
-                        markFailed(test, "No TeamCity test events were received")
-                    }
-                } else {
-                    markFailed(
-                        test,
-                        hasTeamCityResults
-                            ? `TeamCity did not report final status for this test\n${fallbackMessageText}`
-                            : fallbackMessageText,
-                    )
-                }
-            }
+            this.finalizeDirectoryRun(state, run, exitCode, stdout, stderr)
 
             if (isCoverage && coverageFile) {
                 await this.processCoverage(coverageFile, run, workingDir)
             }
         } catch (error) {
             outputProcessor.flush()
-            for (const test of tests) {
-                if (!resolvedTestIds.has(test.id)) {
-                    run.failed(test, new vscode.TestMessage(String(error)))
-                    resolvedTestIds.add(test.id)
+            const errorText = String(error)
+            for (const test of state.tests) {
+                if (!state.resolvedTestIds.has(test.id)) {
+                    this.markDirectoryTestFailed(state, run, test, errorText)
                 }
+            }
+        }
+    }
+
+    private createDirectoryRunState(
+        roots: vscode.TestItem[],
+        workingDir: string,
+    ): DirectoryRunState {
+        const tests = this.collectLeafTests(roots)
+        const testsByKey: Map<string, vscode.TestItem[]> = new Map()
+        const testsByName: Map<string, vscode.TestItem[]> = new Map()
+
+        for (const test of tests) {
+            for (const key of this.getLookupKeys(test, workingDir)) {
+                this.registerTestLookup(testsByKey, key, test)
+            }
+            this.registerTestLookup(testsByName, this.normalizeTestName(test.label), test)
+        }
+
+        return {
+            tests,
+            resolvedTestIds: new Set(),
+            failedTestIds: new Set(),
+            testsById: new Map(tests.map(test => [test.id, test] as const)),
+            testsByKey,
+            testsByName,
+            nodeToTestId: new Map(),
+            suiteNodeToFileHint: new Map(),
+        }
+    }
+
+    private registerTestLookup(
+        map: Map<string, vscode.TestItem[]>,
+        key: string,
+        test: vscode.TestItem,
+    ): void {
+        const entry = map.get(key) ?? []
+        entry.push(test)
+        map.set(key, entry)
+    }
+
+    private getUnresolvedDirectoryTestByKey(
+        state: DirectoryRunState,
+        key: string,
+    ): vscode.TestItem | undefined {
+        return state.testsByKey.get(key)?.find(test => !state.resolvedTestIds.has(test.id))
+    }
+
+    private resolveDirectoryTestByHint(
+        state: DirectoryRunState,
+        testName: string | undefined,
+        fileHint: string | undefined,
+        workingDir: string,
+    ): vscode.TestItem | undefined {
+        if (!testName) {
+            return undefined
+        }
+
+        const normalizedName = this.normalizeTestName(testName)
+        for (const fileKey of this.normalizeFileHint(fileHint, workingDir)) {
+            const candidate = this.getUnresolvedDirectoryTestByKey(
+                state,
+                `${fileKey}::${normalizedName}`,
+            )
+            if (candidate) {
+                return candidate
+            }
+        }
+
+        const byName = (state.testsByName.get(normalizedName) ?? []).filter(
+            test => !state.resolvedTestIds.has(test.id),
+        )
+        return byName.length === 1 ? byName[0] : undefined
+    }
+
+    private resolveDirectoryTestFromMessage(
+        state: DirectoryRunState,
+        message: TeamCityTestStatusMessage,
+        workingDir: string,
+    ): vscode.TestItem | undefined {
+        const nodeId = message.attributes.nodeId
+        if (nodeId) {
+            const mapped = state.nodeToTestId.get(nodeId)
+            if (mapped) {
+                return state.testsById.get(mapped)
+            }
+        }
+
+        const parentNodeId = message.attributes.parentNodeId
+        const fileHint = parentNodeId ? state.suiteNodeToFileHint.get(parentNodeId) : undefined
+        const test = this.resolveDirectoryTestByHint(
+            state,
+            message.attributes.name,
+            fileHint,
+            workingDir,
+        )
+        if (test && nodeId) {
+            state.nodeToTestId.set(nodeId, test.id)
+        }
+        return test
+    }
+
+    private handleDirectoryTeamCityMessage(
+        state: DirectoryRunState,
+        run: vscode.TestRun,
+        workingDir: string,
+        message: TeamCityServiceMessage,
+    ): void {
+        switch (message.name) {
+            case "testingStarted":
+            case "testingFinished":
+            case "testSuiteFinished": {
+                break
+            }
+            case "testSuiteStarted": {
+                const nodeId = message.attributes.nodeId
+                if (nodeId) {
+                    const locationHint = message.attributes.locationHint
+                    const suiteName = message.attributes.name
+                    const fileHint = extractTeamCityFileHint(locationHint, suiteName)
+                    if (fileHint) {
+                        state.suiteNodeToFileHint.set(nodeId, fileHint)
+                    }
+                }
+                break
+            }
+            case "testStarted": {
+                const nodeId = message.attributes.nodeId
+                if (!nodeId) {
+                    break
+                }
+
+                const parentNodeId = message.attributes.parentNodeId
+                const fileHint = parentNodeId
+                    ? state.suiteNodeToFileHint.get(parentNodeId)
+                    : undefined
+                const test = this.resolveDirectoryTestByHint(
+                    state,
+                    message.attributes.name,
+                    fileHint,
+                    workingDir,
+                )
+                if (test) {
+                    state.nodeToTestId.set(nodeId, test.id)
+                }
+                break
+            }
+            case "testFailed": {
+                const test = this.resolveDirectoryTestFromMessage(state, message, workingDir)
+                if (!test) {
+                    break
+                }
+
+                const details = message.attributes.details ?? ""
+                const messageText =
+                    message.attributes.message ?? this.extractErrorMessage(details || "Test failed")
+                const location = this.extractErrorLocation(details, workingDir)
+                this.markDirectoryTestFailed(state, run, test, messageText, location)
+                break
+            }
+            case "testIgnored": {
+                const test = this.resolveDirectoryTestFromMessage(state, message, workingDir)
+                if (test) {
+                    this.markDirectoryTestSkipped(state, run, test)
+                }
+                break
+            }
+            case "testFinished": {
+                const test = this.resolveDirectoryTestFromMessage(state, message, workingDir)
+                if (test && !state.failedTestIds.has(test.id)) {
+                    this.markDirectoryTestPassed(state, run, test)
+                }
+                break
+            }
+        }
+    }
+
+    private markDirectoryTestPassed(
+        state: DirectoryRunState,
+        run: vscode.TestRun,
+        test: vscode.TestItem,
+    ): void {
+        if (state.resolvedTestIds.has(test.id)) {
+            return
+        }
+        run.passed(test)
+        state.resolvedTestIds.add(test.id)
+    }
+
+    private markDirectoryTestFailed(
+        state: DirectoryRunState,
+        run: vscode.TestRun,
+        test: vscode.TestItem,
+        messageText: string,
+        location?: vscode.Location,
+    ): void {
+        if (state.resolvedTestIds.has(test.id)) {
+            return
+        }
+
+        const message = new vscode.TestMessage(messageText)
+        message.location = location
+        run.failed(test, message)
+        state.failedTestIds.add(test.id)
+        state.resolvedTestIds.add(test.id)
+    }
+
+    private markDirectoryTestSkipped(
+        state: DirectoryRunState,
+        run: vscode.TestRun,
+        test: vscode.TestItem,
+    ): void {
+        if (state.resolvedTestIds.has(test.id)) {
+            return
+        }
+        run.skipped(test)
+        state.resolvedTestIds.add(test.id)
+    }
+
+    private finalizeDirectoryRun(
+        state: DirectoryRunState,
+        run: vscode.TestRun,
+        exitCode: number | null,
+        stdout: string,
+        stderr: string,
+    ): void {
+        const cleanOutput = stripTeamCityMessages(this.stripAnsi(`${stdout}\n${stderr}`)).trim()
+        const fallbackMessageText = this.extractErrorMessage(
+            cleanOutput || "Test failed (no TeamCity details received)",
+        )
+        const hasTeamCityResults = state.resolvedTestIds.size > 0
+
+        for (const test of state.tests) {
+            if (state.resolvedTestIds.has(test.id)) {
+                continue
+            }
+
+            if (exitCode === 0) {
+                if (hasTeamCityResults) {
+                    this.markDirectoryTestFailed(
+                        state,
+                        run,
+                        test,
+                        "TeamCity did not report final status for this test",
+                    )
+                } else {
+                    this.markDirectoryTestFailed(
+                        state,
+                        run,
+                        test,
+                        "No TeamCity test events were received",
+                    )
+                }
+            } else {
+                this.markDirectoryTestFailed(
+                    state,
+                    run,
+                    test,
+                    hasTeamCityResults
+                        ? `TeamCity did not report final status for this test\n${fallbackMessageText}`
+                        : fallbackMessageText,
+                )
             }
         }
     }
