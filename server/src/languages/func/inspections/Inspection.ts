@@ -9,6 +9,7 @@ export const InspectionIds = {
     UNUSED_TYPE_PARAMETER: "unused-type-parameter",
     UNUSED_VARIABLE: "unused-variable",
     UNUSED_IMPORT: "unused-import",
+    UNUSED_IMPURE: "unused-impure",
 } as const
 
 export type InspectionId = (typeof InspectionIds)[keyof typeof InspectionIds]

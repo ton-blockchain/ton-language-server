@@ -244,6 +244,29 @@ const showErrorMessage = (msg: string): void => {
     })
 }
 
+async function findFuncStdlib(): Promise<{path: string; uri: string} | null> {
+    // FunC settings currently doesn't even have stdlib path
+    // So, we get straight to business
+    const funcStdlibEnv = process.env["FUNC_STDLIB"]
+    const testStdlibPath = process.env["TEST_FUNC_STDLIB_PATH"]
+
+    const searchDirs = [testStdlibPath, funcStdlibEnv]
+
+    for (const searchDir of searchDirs) {
+        if (searchDir) {
+            const stdlibUri = filePathToUri(searchDir)
+            if (await existsVFS(globalVFS, stdlibUri)) {
+                return {
+                    path: searchDir,
+                    uri: stdlibUri,
+                }
+            }
+        }
+    }
+    // Since FunC is typically included directly, we can skip error reporting
+    return null
+}
+
 async function findTolkStdlib(settings: ServerSettings, rootDir: string): Promise<string | null> {
     if (settings.tolk.stdlib.path !== null && settings.tolk.stdlib.path.length > 0) {
         return settings.tolk.stdlib.path
@@ -346,11 +369,18 @@ async function initialize(): Promise<void> {
 
     const stdlibPath = await findTolkStdlib(settings, rootDir)
     if (stdlibPath !== null) {
-        reporter.report(50, "Indexing: (1/3) Standard Library")
+        reporter.report(50, "Indexing: (1/3) TOLK Standard Library")
         const stdlibUri = filePathToUri(stdlibPath)
         tolkIndex.withStdlibRoot(new TolkIndexRoot("stdlib", stdlibUri))
 
         const stdlibRoot = new TolkIndexingRoot(stdlibUri, IndexingRootKind.Stdlib)
+        await stdlibRoot.index()
+    }
+    const funcStdLib = await findFuncStdlib()
+    if (funcStdLib) {
+        reporter.report(50, "Indexing: (1/3) FUNC Standard Library")
+        funcIndex.withStdlibRoot(new FuncIndexRoot("stdlib", funcStdLib.uri))
+        const stdlibRoot = new FuncIndexingRoot(funcStdLib.uri, IndexingRootKind.Stdlib)
         await stdlibRoot.index()
     }
 
