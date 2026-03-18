@@ -155,12 +155,22 @@ export class CheckCommand extends ActonCommand {
     public override getArguments(): string[] {
         const args: string[] = []
         if (this.json) {
-            args.push("--json")
+            args.push("--output-format=json")
         }
         if (this.target.trim() !== "") {
             args.push(this.target)
         }
         return args
+    }
+}
+
+export class FormatCommand extends ActonCommand {
+    public constructor(public targets: readonly string[] = []) {
+        super("fmt")
+    }
+
+    public override getArguments(): string[] {
+        return this.targets.filter(target => target.trim() !== "")
     }
 }
 
