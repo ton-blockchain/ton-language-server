@@ -61,11 +61,15 @@ export class FunctionNameCompletionProvider implements CompletionProvider<Comple
         }
 
         if (ctx.isMethodName) {
+            const receiverType =
+                fun.childForFieldName("receiver")?.childForFieldName("receiver_type")?.text ?? ""
+            const unpackReturnType = receiverType ? `: ${receiverType}` : ""
+
             if (hasBodyAndParams) {
                 result.add({
                     label: "unpackFromSlice",
                     labelDetails: {
-                        detail: "(mutate s: slice)",
+                        detail: `(mutate s: slice)${unpackReturnType}`,
                     },
                     kind: CompletionItemKind.Function,
                     insertTextFormat: InsertTextFormat.Snippet,
@@ -76,11 +80,11 @@ export class FunctionNameCompletionProvider implements CompletionProvider<Comple
                 result.add({
                     label: "unpackFromSlice",
                     labelDetails: {
-                        detail: "(mutate s: slice) {}",
+                        detail: `(mutate s: slice)${unpackReturnType} {}`,
                     },
                     kind: CompletionItemKind.Function,
                     insertTextFormat: InsertTextFormat.Snippet,
-                    insertText: "unpackFromSlice(mutate s: slice) {$0}",
+                    insertText: `unpackFromSlice(mutate s: slice)${unpackReturnType} {$0}`,
                     weight: CompletionWeight.FUNCTION,
                 })
             }
