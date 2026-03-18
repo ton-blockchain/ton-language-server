@@ -315,11 +315,11 @@ Method name completion with only fun 2
 ========================================================================
 fun int.unpa<caret>
 ------------------------------------------------------------------------
-2  unpackFromSlice(mutate s: slice) {}
+2  unpackFromSlice(mutate s: slice): int {}
 
 ========================================================================
 Method name completion with all signature 2
 ========================================================================
 fun int.unpa<caret>() {}
 ------------------------------------------------------------------------
-2  unpackFromSlice(mutate s: slice)
+2  unpackFromSlice(mutate s: slice): int
