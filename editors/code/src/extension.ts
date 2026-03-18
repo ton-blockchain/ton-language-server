@@ -54,6 +54,7 @@ import {ActonTomlHoverProvider} from "./acton/toml/ActonTomlHoverProvider"
 import {ActonTolkCodeLensProvider} from "./acton/tolk/ActonTolkCodeLensProvider"
 import {ActonLinter} from "./acton/ActonLinter"
 import {ActonTestController} from "./acton/ActonTestController"
+import {formatTolkDocumentWithActon} from "./acton/ActonFormatter"
 import {configureDebugging} from "./debugging"
 import {ContractData, TransactionRun} from "./providers/sandbox/test-types"
 import {TransactionDetailsInfo} from "./common/types/transaction"
@@ -295,6 +296,28 @@ async function startServer(context: vscode.ExtensionContext): Promise<vscode.Dis
         synchronize: {
             configurationSection: "ton",
             fileEvents: vscode.workspace.createFileSystemWatcher("**/*.{tolk,fc,func,tlb}"),
+        },
+        middleware: {
+            provideDocumentFormattingEdits: async (document, options, token, next) => {
+                if (document.languageId !== "tolk") {
+                    return next(document, options, token)
+                }
+
+                const actonEdits = await formatTolkDocumentWithActon(document)
+                if (actonEdits !== null) {
+                    return actonEdits
+                }
+
+                return next(document, options, token)
+            },
+            provideDocumentRangeFormattingEdits: async (document, range, options, token, next) => {
+                if (document.languageId !== "tolk") {
+                    return next(document, range, options, token)
+                }
+
+                // acton fmt formats whole files only
+                return []
+            },
         },
         initializationOptions: {
             clientConfig: getClientConfiguration(),

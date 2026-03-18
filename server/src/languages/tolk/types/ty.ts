@@ -929,7 +929,8 @@ export function joinTypes(left: Ty, right: Ty): Ty {
 // example: `int?` - `null` = `int`
 // example: `int | slice | builder | bool` - `bool | slice` = `int | builder`
 // what for: `if (x != null)` / `if (x is T)`, to smart cast x inside if
-export function subtractTypes(left: Ty | null, right: Ty): Ty {
+export function subtractTypes(left_: Ty | null, right: Ty): Ty {
+    const left = left_?.unwrapAlias()
     if (!left) return NeverTy.NEVER
     if (!(left instanceof UnionTy)) return left
 
