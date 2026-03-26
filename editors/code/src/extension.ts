@@ -55,6 +55,7 @@ import {ActonTolkCodeLensProvider} from "./acton/tolk/ActonTolkCodeLensProvider"
 import {ActonLinter} from "./acton/ActonLinter"
 import {ActonTestController} from "./acton/ActonTestController"
 import {formatTolkDocumentWithActon} from "./acton/ActonFormatter"
+import {registerActonSetupNotifications} from "./acton/ActonSetup"
 import {configureDebugging} from "./debugging"
 import {ContractData, TransactionRun} from "./providers/sandbox/test-types"
 import {TransactionDetailsInfo} from "./common/types/transaction"
@@ -70,6 +71,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     await registerBuildTasks(context)
     registerOpenBocCommand(context)
     registerSaveBocDecompiledCommand(context)
+    registerActonSetupNotifications(context)
 
     const sandboxTreeProvider = new SandboxTreeProvider()
     context.subscriptions.push(
