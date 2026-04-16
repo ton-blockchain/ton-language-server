@@ -45,16 +45,16 @@ export class ActonToml {
         if (!content) return new Map()
 
         const mappings: Map<string, string> = new Map()
-        // Simple manual parsing for [mappings] table
+        // Simple manual parsing for [import-mappings] table
         const lines = content.split("\n")
         let inMappings = false
         for (const line of lines) {
             const trimmed = line.trim()
-            if (trimmed === "[mappings]") {
+            if (trimmed === "[import-mappings]") {
                 inMappings = true
                 continue
             }
-            if (trimmed.startsWith("[") && trimmed !== "[mappings]") {
+            if (trimmed.startsWith("[") && trimmed !== "[import-mappings]") {
                 inMappings = false
                 continue
             }
