@@ -9,12 +9,15 @@ import {RecursiveVisitor} from "@server/visitor/visitor"
 import {
     Enum,
     FunctionBase,
+    Parameter,
     Struct,
     TypeAlias,
     TypeParameter,
 } from "@server/languages/tolk/psi/Decls"
 import {CallLike, NamedNode} from "@server/languages/tolk/psi/TolkNode"
 import {Reference} from "@server/languages/tolk/psi/Reference"
+import {NeverTy, TypeParameterTy, VoidTy} from "@server/languages/tolk/types/ty"
+import {typeOf} from "@server/languages/tolk/type-inference"
 
 import {Inspection, InspectionIds} from "./Inspection"
 
@@ -49,10 +52,11 @@ export class CallArgumentsCountMismatchInspection implements Inspection {
         const deltaSelf = this.isInstanceMethodCall(call) ? 1 : 0
         const args = call.arguments()
         const argsCount = args.length + deltaSelf
-        const maxParams = called.parameters().length
+        const parameters = called.parameters()
+        const maxParams = parameters.length
 
         let minParams = maxParams
-        while (minParams > 0 && called.parameters()[minParams - 1].defaultValue() !== null) {
+        while (minParams > 0 && this.canBeOmitted(parameters[minParams - 1])) {
             minParams--
         }
 
@@ -105,5 +109,21 @@ export class CallArgumentsCountMismatchInspection implements Inspection {
 
         // instance method call like foo.bar()
         return true
+    }
+
+    private canBeOmitted(parameter: Parameter): boolean {
+        if (parameter.defaultValue() !== null) {
+            return true
+        }
+
+        const type = typeOf(parameter.node, parameter.file)?.baseType()
+        if (
+            type instanceof TypeParameterTy &&
+            (type.defaultType instanceof NeverTy || type.defaultType instanceof VoidTy)
+        ) {
+            return true
+        }
+
+        return type instanceof NeverTy || type instanceof VoidTy
     }
 }
