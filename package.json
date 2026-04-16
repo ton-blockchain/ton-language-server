@@ -210,6 +210,10 @@
                 "label": "TVM Debug"
             },
             {
+                "type": "acton",
+                "label": "Acton Debug"
+            },
+            {
                 "type": "assembly",
                 "label": "Assembly Debug"
             },
