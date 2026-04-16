@@ -493,3 +493,43 @@ fun main(c: Color) {
 ------------------------------------------------------------------------
 3 2:4 to 2:20 Enum member 'Blue' is never used (tolk)
 0 10:4 to 10:14 Too many arguments in call to 'isRed', expected 0, have 1 (tolk)
+
+========================================================================
+Trailing generic void parameters can be omitted
+========================================================================
+fun println<T1, T2 = void, T3 = void>(
+    value1: T1,
+    value2: T2,
+    value3: T3,
+): void {
+    value1;
+    value2;
+    value3;
+}
+
+fun main() {
+    println(1);
+    println(1, 2);
+    println(1, 2, 3);
+}
+------------------------------------------------------------------------
+no issues
+
+========================================================================
+Generic void parameters can be omitted only at the end
+========================================================================
+fun log<T1, T2 = void>(
+    value1: T1,
+    value2: T2,
+    value3: T1,
+): void {
+    value1;
+    value2;
+    value3;
+}
+
+fun main() {
+    log(1);
+}
+------------------------------------------------------------------------
+0 11:7 to 11:8 Too few arguments in call to 'log', expected 3, have 1 (tolk)
