@@ -91,6 +91,20 @@ export class Acton {
         })
     }
 
+    public spawnProcess(
+        command: ActonCommand,
+        workingDirectory?: string,
+        env?: NodeJS.ProcessEnv,
+    ): child_process.ChildProcessWithoutNullStreams {
+        const actonPath = this.getActonPath()
+        const args = [command.name, ...command.getArguments()]
+
+        return child_process.spawn(actonPath, args, {
+            cwd: workingDirectory,
+            env,
+        })
+    }
+
     private getActonPath(): string {
         const config = vscode.workspace.getConfiguration("ton")
         const path = config.get<string>("acton.path")

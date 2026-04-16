@@ -44,6 +44,8 @@ export class TestCommand extends ActonCommand {
         public coverage: boolean = false,
         public coverageFormat: string = "lcov",
         public coverageFile: string = "",
+        public debug: boolean = false,
+        public debugPort: string = "",
     ) {
         super("test")
     }
@@ -55,6 +57,12 @@ export class TestCommand extends ActonCommand {
             args.push("--coverage", "--coverage-format", this.coverageFormat)
             if (this.coverageFile.trim() !== "") {
                 args.push("--coverage-file", this.coverageFile)
+            }
+        }
+        if (this.debug) {
+            args.push("--debug")
+            if (this.debugPort.trim() !== "") {
+                args.push("--debug-port", this.debugPort)
             }
         }
 
@@ -87,7 +95,6 @@ export class ScriptCommand extends ActonCommand {
         public forkNet: string = "",
         public forkBlockNumber: string = "",
         public apiKey: string = "",
-        public broadcast: boolean = false,
         public broadcastNet: string = "",
         public explorer: string = "",
         public debug: boolean = false,
@@ -108,11 +115,8 @@ export class ScriptCommand extends ActonCommand {
         if (this.apiKey.trim() !== "") {
             args.push("--api-key", this.apiKey)
         }
-        if (this.broadcast) {
-            args.push("--broadcast")
-            if (this.broadcastNet.trim() !== "") {
-                args.push("--net", this.broadcastNet)
-            }
+        if (this.broadcastNet.trim() !== "") {
+            args.push("--net", this.broadcastNet)
             if (this.explorer.trim() !== "") {
                 args.push("--explorer", this.explorer)
             }
