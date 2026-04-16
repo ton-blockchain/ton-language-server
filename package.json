@@ -210,6 +210,10 @@
                 "label": "TVM Debug"
             },
             {
+                "type": "acton",
+                "label": "Acton Debug"
+            },
+            {
                 "type": "assembly",
                 "label": "Assembly Debug"
             },
@@ -708,8 +712,7 @@
                                 "struct-initialization",
                                 "cannot-reassign",
                                 "need-not-null-unwrapping",
-                                "missed-semicolon",
-                                "call-arguments-count-mismatch"
+                                "missed-semicolon"
                             ]
                         },
                         "default": [

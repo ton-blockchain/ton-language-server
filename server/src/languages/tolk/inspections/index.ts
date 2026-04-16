@@ -13,7 +13,6 @@ import {UnusedTopLevelDeclarationInspection} from "@server/languages/tolk/inspec
 import {UnusedTypeParameterInspection} from "@server/languages/tolk/inspections/UnusedTypeParameterInspection"
 import {NeedNotNullUnwrappingInspection} from "@server/languages/tolk/inspections/NeedNotNullUnwrappingInspection"
 import {MissedSemicolonInspection} from "@server/languages/tolk/inspections/MissedSemicolonInspection"
-import {CallArgumentsCountMismatchInspection} from "@server/languages/tolk/inspections/CallArgumentsCountMismatchInspection"
 
 export async function runTolkInspections(
     uri: string,
@@ -32,7 +31,7 @@ export async function runTolkInspections(
         new CannotReassignInspection(),
         new NeedNotNullUnwrappingInspection(),
         new MissedSemicolonInspection(),
-        new CallArgumentsCountMismatchInspection(),
+        // new CallArgumentsCountMismatchInspection(),
     ]
 
     const settings = await getDocumentSettings(uri)
