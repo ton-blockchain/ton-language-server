@@ -18,6 +18,8 @@
     },
     "icon": "editors/code/src/assets/logo.png",
     "activationEvents": [
+        "workspaceContains:Acton.toml",
+        "onCommand:ton.acton.debugRetraceTransaction",
         "onLanguage:tolk",
         "onLanguage:func",
         "onLanguage:tasm",
@@ -316,6 +318,12 @@
             {
                 "command": "ton.debug",
                 "title": "TON: Debug contract"
+            },
+            {
+                "command": "ton.acton.debugRetraceTransaction",
+                "title": "Debug Retrace Transaction",
+                "category": "Acton",
+                "icon": "$(debug-start)"
             },
             {
                 "command": "ton.sandbox.refresh",

@@ -104,7 +104,7 @@ export class ScriptCommand extends ActonCommand {
     }
 
     public override getArguments(): string[] {
-        const args: string[] = []
+        const args: string[] = ["--color", "always"]
         if (this.clearCache) args.push("--clear-cache")
         if (this.forkNet.trim() !== "") {
             args.push("--fork-net", this.forkNet)
@@ -143,6 +143,50 @@ export class RunCommand extends ActonCommand {
         const args: string[] = []
         if (this.scriptName.trim() !== "") {
             args.push(this.scriptName)
+        }
+        return args
+    }
+}
+
+export class RetraceCommand extends ActonCommand {
+    public constructor(
+        public hash: string,
+        public net: string = "",
+        public apiKey: string = "",
+        public verbose: boolean = false,
+        public logsDir: string = "",
+        public contractId: string = "",
+        public debug: boolean = false,
+        public debugPort: string = "",
+    ) {
+        super("retrace")
+    }
+
+    public override getArguments(): string[] {
+        const args: string[] = ["--color", "always"]
+        if (this.net.trim() !== "") {
+            args.push("--net", this.net)
+        }
+        if (this.apiKey.trim() !== "") {
+            args.push("--api-key", this.apiKey)
+        }
+        if (this.verbose) {
+            args.push("--verbose")
+        }
+        if (this.logsDir.trim() !== "") {
+            args.push("--logs-dir", this.logsDir)
+        }
+        if (this.contractId.trim() !== "") {
+            args.push("--contract", this.contractId)
+        }
+        if (this.debug) {
+            args.push("--debug")
+            if (this.debugPort.trim() !== "") {
+                args.push("--debug-port", this.debugPort)
+            }
+        }
+        if (this.hash.trim() !== "") {
+            args.push(this.hash)
         }
         return args
     }

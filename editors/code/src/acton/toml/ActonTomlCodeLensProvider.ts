@@ -57,6 +57,11 @@ export class ActonTomlCodeLensProvider implements vscode.CodeLensProvider {
                             command: "ton.acton.buildContract",
                             arguments: [document.uri.fsPath, contractId],
                         }),
+                        new vscode.CodeLens(range, {
+                            title: "Retrace tx",
+                            command: "ton.acton.debugRetraceTransaction",
+                            arguments: [{tomlPath: document.uri.fsPath, contractId}],
+                        }),
                     )
                 }
             }
