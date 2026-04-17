@@ -55,7 +55,7 @@ export const WalletCard: React.FC<WalletCardProps> = ({
         <button
           className={styles.linkButton}
           onClick={onOpenExplorer}
-          title={`Open ${info.address} in Tonviewer`}
+          title={`Open ${info.address} in Tonscan`}
         >
           {truncatedAddr}
         </button>
