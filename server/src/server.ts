@@ -105,6 +105,7 @@ import {
     setProjectTolkStdlibPath,
     tolkStdlibSearchPaths,
 } from "@server/languages/tolk/toolchain/toolchain"
+import {resolveDisplayedTolkVersion} from "@server/acton/ActonTolkVersion"
 import {
     provideTolkDocumentSymbols,
     provideTolkWorkspaceSymbols,
@@ -297,6 +298,17 @@ function findStubs(): string | null {
     return path.join(__dirname, "stubs")
 }
 
+async function sendToolchainVersionNotification(
+    rootDir: string,
+    settings: ServerSettings,
+): Promise<void> {
+    await connection.sendNotification(SetToolchainVersionNotification, {
+        version: resolveDisplayedTolkVersion(rootDir, toolchain.version, settings.acton.path),
+        toolchain: toolchain.getToolchainInfo(),
+        environment: toolchain.getEnvironmentInfo(),
+    } satisfies SetToolchainVersionParams)
+}
+
 async function initialize(): Promise<void> {
     if (!workspaceFolders || workspaceFolders.length === 0 || initialized) {
         // use fallback later, see `initializeFallback`
@@ -329,11 +341,7 @@ async function initialize(): Promise<void> {
                 `using toolchain ${toolchain.toString()} (${toolchainManager.getActiveToolchainId()})`,
             )
 
-            await connection.sendNotification(SetToolchainVersionNotification, {
-                version: toolchain.version,
-                toolchain: toolchain.getToolchainInfo(),
-                environment: toolchain.getEnvironmentInfo(),
-            } satisfies SetToolchainVersionParams)
+            await sendToolchainVersionNotification(rootDir, settings)
         } else {
             console.warn(`No active toolchain found for ${settings.tolk.toolchain.activeToolchain}`)
         }
@@ -632,36 +640,28 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
 
         if (workspaceFolders && workspaceFolders.length > 0) {
             const rootUri = workspaceFolders[0].uri
+            const rootDir = fileURLToPath(rootUri)
             const newSettings = await getDocumentSettings(rootUri)
 
-            if (
-                newSettings.tolk.toolchain.activeToolchain !==
-                toolchainManager.getActiveToolchainId()
-            ) {
-                try {
-                    await toolchainManager.setToolchains(
-                        newSettings.tolk.toolchain.toolchains,
-                        newSettings.tolk.toolchain.activeToolchain,
+            try {
+                await toolchainManager.setToolchains(
+                    newSettings.tolk.toolchain.toolchains,
+                    newSettings.tolk.toolchain.activeToolchain,
+                )
+
+                const activeToolchain = toolchainManager.getActiveToolchain()
+                if (activeToolchain) {
+                    setToolchain(activeToolchain)
+                    console.info(
+                        `switched to toolchain ${toolchain.toString()} (${toolchainManager.getActiveToolchainId()})`,
                     )
 
-                    const activeToolchain = toolchainManager.getActiveToolchain()
-                    if (activeToolchain) {
-                        setToolchain(activeToolchain)
-                        console.info(
-                            `switched to toolchain ${toolchain.toString()} (${toolchainManager.getActiveToolchainId()})`,
-                        )
-
-                        await connection.sendNotification(SetToolchainVersionNotification, {
-                            version: toolchain.version,
-                            toolchain: toolchain.getToolchainInfo(),
-                            environment: toolchain.getEnvironmentInfo(),
-                        } satisfies SetToolchainVersionParams)
-                    }
-                } catch (error) {
-                    if (error instanceof InvalidToolchainError) {
-                        console.error(`Failed to switch toolchain: ${error.message}`)
-                        showErrorMessage(`Failed to switch toolchain: ${error.message}`)
-                    }
+                    await sendToolchainVersionNotification(rootDir, newSettings)
+                }
+            } catch (error) {
+                if (error instanceof InvalidToolchainError) {
+                    console.error(`Failed to switch toolchain: ${error.message}`)
+                    showErrorMessage(`Failed to switch toolchain: ${error.message}`)
                 }
             }
         }
