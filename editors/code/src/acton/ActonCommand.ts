@@ -46,12 +46,18 @@ export class TestCommand extends ActonCommand {
         public coverageFile: string = "",
         public debug: boolean = false,
         public debugPort: string = "",
+        public ui: boolean = false,
+        public uiPort: string = "",
+        public reporter: string = "console,teamcity",
     ) {
         super("test")
     }
 
     public override getArguments(): string[] {
-        const args: string[] = ["--reporter", "console,teamcity", "--color", "always"]
+        const args: string[] = ["--color", "always"]
+        if (this.reporter.trim() !== "") {
+            args.push("--reporter", this.reporter)
+        }
         if (this.clearCache) args.push("--clear-cache")
         if (this.coverage) {
             args.push("--coverage", "--coverage-format", this.coverageFormat)
@@ -63,6 +69,12 @@ export class TestCommand extends ActonCommand {
             args.push("--debug")
             if (this.debugPort.trim() !== "") {
                 args.push("--debug-port", this.debugPort)
+            }
+        }
+        if (this.ui) {
+            args.push("--ui")
+            if (this.uiPort.trim() !== "") {
+                args.push("--ui-port", this.uiPort)
             }
         }
 
