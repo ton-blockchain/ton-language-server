@@ -65,7 +65,12 @@ export class ImportPathCompletionProvider implements CompletionProvider<Completi
 
             if (actonToml) {
                 const mappings = actonToml.getMappings()
-                for (const key of mappings.keys()) {
+                for (const [key, value] of mappings.entries()) {
+                    const mappingDir = path.resolve(actonToml.workingDir, value)
+                    if (file.shouldHideActonImportCompletion(mappingDir)) {
+                        continue
+                    }
+
                     result.add({
                         label: `@${key}/`,
                         kind: CompletionItemKind.Folder,
@@ -83,9 +88,16 @@ export class ImportPathCompletionProvider implements CompletionProvider<Completi
         result: CompletionResult,
     ): void {
         const [actualDir, namePrefix] = this.splitPath(dir)
+        if (file.shouldHideActonImportCompletion(actualDir)) {
+            return
+        }
 
         const files = this.files(actualDir, file)
         for (const name of files) {
+            if (file.shouldHideActonImportCompletion(path.join(actualDir, name))) {
+                continue
+            }
+
             if (namePrefix && !name.startsWith(namePrefix)) {
                 // for "./bar/some"
                 // filter all files that do not start with `some`
@@ -98,6 +110,10 @@ export class ImportPathCompletionProvider implements CompletionProvider<Completi
 
         const dirs = this.dirs(actualDir)
         for (const name of dirs) {
+            if (file.shouldHideActonImportCompletion(path.join(actualDir, name))) {
+                continue
+            }
+
             if (namePrefix && !name.startsWith(namePrefix)) {
                 // for "./bar/some"
                 // filter all dirs that do not start with `some`
