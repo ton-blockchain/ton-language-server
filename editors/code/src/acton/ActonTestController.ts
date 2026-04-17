@@ -66,6 +66,15 @@ export class ActonTestController implements vscode.Disposable {
             true,
         )
 
+        this.controller.createRunProfile(
+            "Debug",
+            vscode.TestRunProfileKind.Debug,
+            async (request, token) => {
+                await this.debugHandler(request, token)
+            },
+            true,
+        )
+
         coverageProfile.loadDetailedCoverage = (
             _testRun,
             fileCoverage,
@@ -208,6 +217,24 @@ export class ActonTestController implements vscode.Disposable {
         run.end()
     }
 
+    private async debugHandler(
+        request: vscode.TestRunRequest,
+        token: vscode.CancellationToken,
+    ): Promise<void> {
+        const queue = request.include
+            ? this.buildRunQueue(request.include, request.exclude ?? [])
+            : this.buildRunQueue(this.getRootTestItems(), request.exclude ?? [])
+        const queueByWorkingDir = await this.groupTestsByWorkingDir(queue, undefined, token)
+
+        for (const [workingDir, tests] of queueByWorkingDir) {
+            if (token.isCancellationRequested) {
+                break
+            }
+
+            await this.debugGroup(workingDir, tests, token)
+        }
+    }
+
     private buildRunQueue(
         items: readonly vscode.TestItem[],
         excludedItems: readonly vscode.TestItem[],
@@ -321,6 +348,113 @@ export class ActonTestController implements vscode.Disposable {
         }
 
         return grouped
+    }
+
+    private async debugGroup(
+        workingDir: string,
+        tests: vscode.TestItem[],
+        token: vscode.CancellationToken,
+    ): Promise<void> {
+        if (tests.length === 0 || token.isCancellationRequested) {
+            return
+        }
+
+        if (tests.length === 1) {
+            const single = tests[0]
+            if (single.uri && single.id === single.uri.toString()) {
+                await this.startDebuggingCommand(
+                    workingDir,
+                    this.createDirectoryDebugCommand(path.relative(workingDir, single.uri.fsPath)),
+                    `Debug ${path.basename(single.uri.fsPath)}`,
+                    vscode.workspace.getWorkspaceFolder(single.uri),
+                )
+                return
+            }
+
+            await this.debugTestItem(single, workingDir)
+            return
+        }
+
+        const commandTarget = this.getSelectionRunTarget(tests, workingDir)
+        const workspaceFolder = tests[0].uri
+            ? vscode.workspace.getWorkspaceFolder(tests[0].uri)
+            : undefined
+        await this.startDebuggingCommand(
+            workingDir,
+            this.createDirectoryDebugCommand(commandTarget),
+            this.createDirectoryDebugSessionName(workingDir, commandTarget),
+            workspaceFolder,
+        )
+    }
+
+    private async debugTestItem(item: vscode.TestItem, workingDir: string): Promise<void> {
+        const uri = item.uri
+        if (!uri) {
+            return
+        }
+
+        const relativePath = path.relative(workingDir, uri.fsPath)
+        const command =
+            item.children.size > 0
+                ? new TestCommand(TestMode.FILE, relativePath, "", false, false, "lcov", "", true)
+                : new TestCommand(
+                      TestMode.FUNCTION,
+                      relativePath,
+                      item.label,
+                      false,
+                      false,
+                      "lcov",
+                      "",
+                      true,
+                  )
+
+        await this.startDebuggingCommand(
+            workingDir,
+            command,
+            `Debug ${item.label}`,
+            vscode.workspace.getWorkspaceFolder(uri),
+        )
+    }
+
+    private createDirectoryDebugCommand(commandTarget: string): TestCommand {
+        return new TestCommand(
+            TestMode.DIRECTORY,
+            commandTarget,
+            "",
+            false,
+            false,
+            "lcov",
+            "",
+            true,
+        )
+    }
+
+    private createDirectoryDebugSessionName(workingDir: string, commandTarget: string): string {
+        if (commandTarget.trim() !== "") {
+            return `Debug ${commandTarget}`
+        }
+
+        return `Debug ${path.basename(workingDir)} tests`
+    }
+
+    private async startDebuggingCommand(
+        workingDir: string,
+        command: TestCommand,
+        sessionName: string,
+        workspaceFolder: vscode.WorkspaceFolder | undefined,
+    ): Promise<void> {
+        await startActonDebugging({
+            createCommand: port => {
+                command.debug = true
+                command.debugPort = String(port)
+                return command
+            },
+            outputChannelName: "Acton Test Debug",
+            sessionName,
+            waitForTermination: true,
+            workingDir,
+            workspaceFolder,
+        })
     }
 
     private async runTestItem(
