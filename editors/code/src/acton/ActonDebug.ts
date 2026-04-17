@@ -2,12 +2,12 @@
 //  Copyright © 2026 TON Core
 
 import * as child_process from "node:child_process"
-import * as net from "node:net"
 
 import * as vscode from "vscode"
 
 import {Acton} from "./Acton"
 import {ActonCommand} from "./ActonCommand"
+import {getFreeActonPort} from "./ActonPort"
 
 const DEBUG_HOST = "127.0.0.1"
 const DEBUG_READY_TIMEOUT_MS = 120_000
@@ -25,7 +25,7 @@ interface StartActonDebuggingOptions {
 }
 
 export async function startActonDebugging(options: StartActonDebuggingOptions): Promise<void> {
-    const port = await getFreePort()
+    const port = await getFreeActonPort(DEBUG_HOST)
     const command = options.createCommand(port)
     const debugType = options.debugType ?? "acton"
     const connectionMode = options.connectionMode ?? "hostPort"
@@ -141,31 +141,6 @@ function renderArguments(command: ActonCommand): string {
     }
 
     return `${command.name} ${args.join(" ")}`
-}
-
-async function getFreePort(): Promise<number> {
-    return new Promise((resolve, reject) => {
-        const server = net.createServer()
-
-        server.once("error", reject)
-        server.listen(0, DEBUG_HOST, () => {
-            const address = server.address()
-            if (!address || typeof address === "string") {
-                server.close()
-                reject(new Error("Failed to allocate a local debug port."))
-                return
-            }
-
-            server.close(closeError => {
-                if (closeError) {
-                    reject(closeError)
-                    return
-                }
-
-                resolve(address.port)
-            })
-        })
-    })
 }
 
 async function waitForDebugServer(
