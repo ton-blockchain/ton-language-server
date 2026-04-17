@@ -82,7 +82,7 @@ export class WalletWebviewProvider implements vscode.WebviewViewProvider {
                     break
                 }
                 case "openInExplorer": {
-                    const url = `https://testnet.tonviewer.com/${command.address}`
+                    const url = `https://testnet.tonscan.org/address/${encodeURIComponent(command.address)}`
                     void vscode.env.openExternal(vscode.Uri.parse(url))
                     break
                 }
