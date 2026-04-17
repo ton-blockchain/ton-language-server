@@ -71,6 +71,9 @@ export interface FuncSettings {
 
 export interface ServerSettings {
     readonly tolk: TolkSettings
+    readonly acton: {
+        readonly path: string
+    }
     readonly func: FuncSettings
     readonly fift: FiftSettings
     readonly tlb: TlbSettings
@@ -116,6 +119,9 @@ const tolkDefaultSettings: TolkSettings = {
 
 const defaultSettings: ServerSettings = {
     tolk: tolkDefaultSettings,
+    acton: {
+        path: "acton",
+    },
     func: {
         hints: {
             disable: false,
@@ -196,6 +202,9 @@ function mergeSettings(vsSettings: Partial<ServerSettings>): ServerSettings {
                     vsSettings.tolk?.formatter.sortImports ??
                     defaultSettings.tolk.formatter.sortImports,
             },
+        },
+        acton: {
+            path: vsSettings.acton?.path ?? defaultSettings.acton.path,
         },
         func: {
             hints: {
