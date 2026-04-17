@@ -1,6 +1,8 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2026 TON Core
 
+import type {ChildProcessWithoutNullStreams} from "node:child_process"
+
 import * as vscode from "vscode"
 
 import {consoleError} from "../client-log"
@@ -54,6 +56,8 @@ export class ActonLinter implements vscode.CodeActionProvider {
     private checkRequestId: number = 0
     private readonly disposables: vscode.Disposable[] = []
     private latestDiagnostics: readonly ActonDiagnostic[] = []
+    private currentCheckProcess: ChildProcessWithoutNullStreams | undefined
+    private currentCheckUri: vscode.Uri | undefined
 
     public constructor() {
         this.diagnosticCollection = vscode.languages.createDiagnosticCollection("acton")
@@ -63,27 +67,35 @@ export class ActonLinter implements vscode.CodeActionProvider {
                 providedCodeActionKinds: [vscode.CodeActionKind.QuickFix],
             }),
             vscode.workspace.onDidChangeTextDocument(e => {
+                if (e.document.languageId !== "tolk") {
+                    return
+                }
                 if (e.document.uri.scheme !== "file") {
                     return
                 }
                 if (e.contentChanges.length === 0) {
                     return
                 }
-                this.clearDiagnostics(e.document.uri)
-                this.triggerCheck()
+
+                this.checkRequestId += 1
+                this.cancelRunningCheck()
             }),
-            vscode.workspace.onDidOpenTextDocument(doc => {
-                if (doc.languageId === "tolk") {
-                    this.triggerCheck()
+            vscode.window.onDidChangeActiveTextEditor(editor => {
+                if (editor?.document.languageId === "tolk") {
+                    this.triggerCheck(editor.document)
                 }
             }),
             vscode.workspace.onDidSaveTextDocument(doc => {
                 if (doc.languageId === "tolk") {
-                    this.triggerCheck()
+                    this.triggerCheck(doc)
                 }
             }),
             vscode.workspace.onDidCloseTextDocument(doc => {
-                this.diagnosticCollection.delete(doc.uri)
+                if (this.currentCheckUri?.toString() === doc.uri.toString()) {
+                    this.checkRequestId += 1
+                    this.cancelRunningCheck()
+                }
+                this.clearDiagnosticsForUri(doc.uri)
             }),
             vscode.workspace.onDidChangeConfiguration(e => {
                 if (e.affectsConfiguration("ton.acton.linter")) {
@@ -96,7 +108,9 @@ export class ActonLinter implements vscode.CodeActionProvider {
     }
 
     public dispose(): void {
-        this.clearDiagnostics()
+        this.checkRequestId += 1
+        this.cancelRunningCheck()
+        this.clearAllDiagnostics()
         this.diagnosticCollection.dispose()
         this.disposables.forEach(d => {
             d.dispose()
@@ -106,7 +120,7 @@ export class ActonLinter implements vscode.CodeActionProvider {
         }
     }
 
-    private triggerCheck(): void {
+    private triggerCheck(document?: vscode.TextDocument): void {
         const config = vscode.workspace.getConfiguration("ton.acton.linter")
         const enabled = config.get<boolean>("enabled", true)
 
@@ -117,52 +131,70 @@ export class ActonLinter implements vscode.CodeActionProvider {
 
         if (!enabled) {
             this.checkRequestId += 1
-            this.clearDiagnostics()
+            this.cancelRunningCheck()
+            this.clearAllDiagnostics()
+            return
+        }
+
+        const targetDocument = document ?? vscode.window.activeTextEditor?.document
+        if (
+            !targetDocument ||
+            targetDocument.languageId !== "tolk" ||
+            targetDocument.uri.scheme !== "file"
+        ) {
+            return
+        }
+
+        if (targetDocument.isDirty) {
+            this.checkRequestId += 1
+            this.cancelRunningCheck()
             return
         }
 
         const debounceMs = Math.max(0, config.get<number>("debounce", 500))
         const requestId = ++this.checkRequestId
+        const targetUri = targetDocument.uri
+        this.cancelRunningCheck()
 
         this.debounceTimer = setTimeout(() => {
             this.debounceTimer = undefined
-            void this.runCheck(requestId)
+            void this.runCheck(requestId, targetUri)
         }, debounceMs)
     }
 
-    private async runCheck(requestId: number): Promise<void> {
+    private async runCheck(requestId: number, targetUri: vscode.Uri): Promise<void> {
         if (requestId !== this.checkRequestId) {
             return
         }
 
         const acton = Acton.getInstance()
-
-        const activeDocument = vscode.window.activeTextEditor?.document
-        if (
-            !activeDocument ||
-            activeDocument.languageId !== "tolk" ||
-            activeDocument.uri.scheme !== "file"
-        ) {
+        const tomlUri = await acton.findActonToml(targetUri)
+        if (requestId !== this.checkRequestId) {
             return
         }
-
-        const activeUri = activeDocument.uri
-        const tomlUri = await acton.findActonToml(activeUri)
         if (!tomlUri) {
+            this.clearDiagnosticsForUri(targetUri)
             return
         }
 
         const workingDirectory = vscode.Uri.joinPath(tomlUri, "..").fsPath
-        const command = new CheckCommand(true, activeUri.fsPath)
+        const command = new CheckCommand(true, targetUri.fsPath)
+        const child = acton.spawnProcess(command, workingDirectory)
+        this.currentCheckProcess = child
+        this.currentCheckUri = targetUri
 
         try {
-            const {stdout, stderr, exitCode} = await acton.spawn(command, workingDirectory)
+            const {stdout, stderr} = await this.collectProcessOutput(child)
+            if (this.currentCheckProcess === child) {
+                this.currentCheckProcess = undefined
+                this.currentCheckUri = undefined
+            }
             if (requestId !== this.checkRequestId) {
                 return
             }
 
             if (stdout.trim() === "") {
-                this.clearDiagnostics()
+                this.clearDiagnosticsForUri(targetUri)
                 return
             }
 
@@ -171,6 +203,7 @@ export class ActonLinter implements vscode.CodeActionProvider {
                 output = JSON.parse(stdout) as ActonCheckOutput
             } catch (error) {
                 consoleError("Failed to parse acton check output", error, stdout, stderr)
+                this.clearDiagnosticsForUri(targetUri)
                 return
             }
 
@@ -181,37 +214,77 @@ export class ActonLinter implements vscode.CodeActionProvider {
             this.latestDiagnostics = output.diagnostics
             this.processDiagnostics(output)
         } catch (error) {
+            if (this.currentCheckProcess === child) {
+                this.currentCheckProcess = undefined
+                this.currentCheckUri = undefined
+            }
             if (requestId === this.checkRequestId) {
+                this.clearDiagnosticsForUri(targetUri)
                 consoleError("Failed to run acton check", error)
             }
         }
     }
 
-    private clearDiagnostics(exceptUri?: vscode.Uri): void {
-        if (!exceptUri) {
-            this.latestDiagnostics = []
-            this.diagnosticCollection.clear()
+    private async collectProcessOutput(
+        child: ChildProcessWithoutNullStreams,
+    ): Promise<{stdout: string; stderr: string}> {
+        return new Promise((resolve, reject) => {
+            let stdout = ""
+            let stderr = ""
+            let settled = false
+
+            child.stdout.on("data", (data: Buffer) => {
+                stdout += data.toString()
+            })
+
+            child.stderr.on("data", (data: Buffer) => {
+                stderr += data.toString()
+            })
+
+            child.on("close", () => {
+                if (settled) return
+                settled = true
+                resolve({stdout, stderr})
+            })
+
+            child.on("error", (err: Error) => {
+                if (settled) return
+                settled = true
+                reject(err)
+            })
+        })
+    }
+
+    private cancelRunningCheck(): void {
+        if (!this.currentCheckProcess) {
             return
         }
 
-        const exceptUriString = exceptUri.toString()
+        try {
+            this.currentCheckProcess.kill()
+        } catch {
+            // ignore cancellation errors
+        }
+
+        this.currentCheckProcess = undefined
+        this.currentCheckUri = undefined
+    }
+
+    private clearDiagnosticsForUri(uri: vscode.Uri): void {
+        const uriString = uri.toString()
         this.latestDiagnostics = this.latestDiagnostics.filter(diag => {
             try {
-                return vscode.Uri.file(diag.file).toString() === exceptUriString
+                return vscode.Uri.file(diag.file).toString() !== uriString
             } catch {
-                return false
+                return true
             }
         })
+        this.diagnosticCollection.delete(uri)
+    }
 
-        const urisToDelete: vscode.Uri[] = []
-        this.diagnosticCollection.forEach((uri, _diagnostics) => {
-            if (uri.toString() !== exceptUriString) {
-                urisToDelete.push(uri)
-            }
-        })
-        urisToDelete.forEach(uri => {
-            this.diagnosticCollection.delete(uri)
-        })
+    private clearAllDiagnostics(): void {
+        this.latestDiagnostics = []
+        this.diagnosticCollection.clear()
     }
 
     public provideCodeActions(
@@ -227,18 +300,9 @@ export class ActonLinter implements vscode.CodeActionProvider {
             }
 
             // Find the original acton diagnostic
-            const actonDiag = this.latestDiagnostics.find(d => {
-                const message = d.code ? `[${d.code}] ${d.message}` : d.message
-                if (d.code !== (diagnostic.code as string) || message !== diagnostic.message) {
-                    return false
-                }
-                // Check if file matches
-                try {
-                    return vscode.Uri.file(d.file).toString() === document.uri.toString()
-                } catch {
-                    return false
-                }
-            })
+            const actonDiag = this.latestDiagnostics.find(d =>
+                this.matchesDiagnostic(document.uri, diagnostic, d),
+            )
 
             if (actonDiag?.fixes) {
                 for (const fix of actonDiag.fixes) {
@@ -297,8 +361,16 @@ export class ActonLinter implements vscode.CodeActionProvider {
             const tags: vscode.DiagnosticTag[] = []
             diag.annotations.forEach(a => {
                 a.tags?.forEach(tag => {
-                    if (tag === "Unnecessary") tags.push(vscode.DiagnosticTag.Unnecessary)
-                    if (tag === "Deprecated") tags.push(vscode.DiagnosticTag.Deprecated)
+                    switch (tag.toLowerCase()) {
+                        case "unnecessary": {
+                            tags.push(vscode.DiagnosticTag.Unnecessary)
+                            break
+                        }
+                        case "deprecated": {
+                            tags.push(vscode.DiagnosticTag.Deprecated)
+                            break
+                        }
+                    }
                 })
             })
             if (tags.length > 0) {
@@ -355,5 +427,46 @@ export class ActonLinter implements vscode.CodeActionProvider {
                 return vscode.DiagnosticSeverity.Information
             }
         }
+    }
+
+    private matchesDiagnostic(
+        documentUri: vscode.Uri,
+        diagnostic: vscode.Diagnostic,
+        actonDiagnostic: ActonDiagnostic,
+    ): boolean {
+        const message = actonDiagnostic.code
+            ? `[${actonDiagnostic.code}] ${actonDiagnostic.message}`
+            : actonDiagnostic.message
+        if (
+            actonDiagnostic.code !== (diagnostic.code as string) ||
+            message !== diagnostic.message
+        ) {
+            return false
+        }
+
+        try {
+            if (vscode.Uri.file(actonDiagnostic.file).toString() !== documentUri.toString()) {
+                return false
+            }
+        } catch {
+            return false
+        }
+
+        const primaryAnnotation =
+            actonDiagnostic.annotations.find(a => a.is_primary) ?? actonDiagnostic.annotations.at(0)
+        if (!primaryAnnotation) {
+            return false
+        }
+
+        return this.rangesEqual(primaryAnnotation.range, diagnostic.range)
+    }
+
+    private rangesEqual(range: ActonRange, diagnosticRange: vscode.Range): boolean {
+        return (
+            range.start.line === diagnosticRange.start.line &&
+            range.start.character === diagnosticRange.start.character &&
+            range.end.line === diagnosticRange.end.line &&
+            range.end.character === diagnosticRange.end.character
+        )
     }
 }
