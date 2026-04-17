@@ -13,10 +13,10 @@ const DEBUG_HOST = "127.0.0.1"
 const DEBUG_READY_TIMEOUT_MS = 120_000
 const LEGACY_DAP_ENV = "ACTON_DEBUG_DAP_USE_LEGACY_VALUE"
 
-const outputChannels: Map<string, vscode.OutputChannel> = new Map()
-
 interface StartActonDebuggingOptions {
+    readonly connectionMode?: "hostPort" | "debugServer"
     readonly createCommand: (port: number) => ActonCommand
+    readonly debugType?: string
     readonly outputChannelName: string
     readonly sessionName: string
     readonly waitForTermination?: boolean
@@ -27,34 +27,77 @@ interface StartActonDebuggingOptions {
 export async function startActonDebugging(options: StartActonDebuggingOptions): Promise<void> {
     const port = await getFreePort()
     const command = options.createCommand(port)
-    const channel = getOutputChannel(options.outputChannelName)
+    const debugType = options.debugType ?? "acton"
+    const connectionMode = options.connectionMode ?? "hostPort"
+    let activeDebugSession: vscode.DebugSession | undefined
+    let hasDebugSessionTerminated = false
+    const terminal = createDebugTerminal(options.outputChannelName, () => {
+        stopProcess(actonProcess)
+        if (activeDebugSession && !hasDebugSessionTerminated) {
+            void vscode.debug.stopDebugging(activeDebugSession)
+        }
+    })
     const actonProcess = Acton.getInstance().spawnProcess(command, options.workingDir, {
         ...process.env,
         [LEGACY_DAP_ENV]: "1",
     })
+    const handleProcessOutput = (chunk: Buffer): void => {
+        terminal.append(chunk.toString())
+    }
 
-    channel.appendLine(`> ${LEGACY_DAP_ENV}=1 acton ${renderArguments(command)}`)
+    actonProcess.stdout.on("data", handleProcessOutput)
+    actonProcess.stderr.on("data", handleProcessOutput)
+    actonProcess.once("close", code => {
+        terminal.markProcessExited(code ?? undefined)
+    })
+    actonProcess.once("error", error => {
+        terminal.appendLine(String(error))
+    })
+
+    terminal.show(true)
+    terminal.appendLine(`> ${LEGACY_DAP_ENV}=1 acton ${renderArguments(command)}`)
 
     try {
-        await waitForDebugServer(actonProcess, port, channel)
+        await waitForDebugServer(actonProcess, port, terminal)
     } catch (error) {
         stopProcess(actonProcess)
-        channel.show(true)
+        terminal.show(true)
         throw error
     }
+
+    const debugConfiguration: vscode.DebugConfiguration =
+        connectionMode === "debugServer"
+            ? {
+                  type: debugType,
+                  name: options.sessionName,
+                  request: "launch",
+                  debugServer: port,
+              }
+            : {
+                  type: debugType,
+                  name: options.sessionName,
+                  request: "launch",
+                  host: DEBUG_HOST,
+                  port,
+              }
 
     let resolveTermination: (() => void) | undefined
     const terminationPromise: Promise<void> = new Promise(resolve => {
         resolveTermination = resolve
     })
 
+    const startSubscription = vscode.debug.onDidStartDebugSession(session => {
+        if (isOwnedDebugSession(session, debugConfiguration, port)) {
+            activeDebugSession = session
+        }
+    })
+
     const terminateSubscription = vscode.debug.onDidTerminateDebugSession(session => {
-        if (
-            session.type === "acton" &&
-            session.configuration.port === port &&
-            session.name === options.sessionName
-        ) {
+        if (isOwnedDebugSession(session, debugConfiguration, port)) {
+            startSubscription.dispose()
             terminateSubscription.dispose()
+            activeDebugSession = undefined
+            hasDebugSessionTerminated = true
             stopProcess(actonProcess)
             resolveTermination?.()
         }
@@ -62,26 +105,29 @@ export async function startActonDebugging(options: StartActonDebuggingOptions): 
 
     let success = false
     try {
-        success = await vscode.debug.startDebugging(options.workspaceFolder, {
-            type: "acton",
-            name: options.sessionName,
-            request: "launch",
-            host: DEBUG_HOST,
-            port,
-        })
+        terminal.appendLine(
+            `Starting VS Code debug session (${debugType}, ${
+                connectionMode === "debugServer" ? "debugServer" : "host/port"
+            }) on ${DEBUG_HOST}:${port}`,
+        )
+        success = await vscode.debug.startDebugging(options.workspaceFolder, debugConfiguration)
     } catch (error) {
+        startSubscription.dispose()
         terminateSubscription.dispose()
         stopProcess(actonProcess)
-        channel.show(true)
+        terminal.show(true)
         throw error
     }
 
     if (!success) {
+        startSubscription.dispose()
         terminateSubscription.dispose()
         stopProcess(actonProcess)
-        channel.show(true)
+        terminal.show(true)
         throw new Error("Failed to start the Acton debug session.")
     }
+
+    terminal.appendLine(`VS Code debug session started (${options.sessionName})`)
 
     if (options.waitForTermination) {
         await terminationPromise
@@ -95,17 +141,6 @@ function renderArguments(command: ActonCommand): string {
     }
 
     return `${command.name} ${args.join(" ")}`
-}
-
-function getOutputChannel(name: string): vscode.OutputChannel {
-    const existing = outputChannels.get(name)
-    if (existing) {
-        return existing
-    }
-
-    const created = vscode.window.createOutputChannel(name)
-    outputChannels.set(name, created)
-    return created
 }
 
 async function getFreePort(): Promise<number> {
@@ -136,21 +171,25 @@ async function getFreePort(): Promise<number> {
 async function waitForDebugServer(
     actonProcess: child_process.ChildProcessWithoutNullStreams,
     port: number,
-    channel: vscode.OutputChannel,
+    terminal: DebugTerminal,
 ): Promise<void> {
     const readinessMarkers = [
         `Debugger server listening on ${DEBUG_HOST}:${port}`,
         `Retrace DAP listening on ${DEBUG_HOST}:${port}`,
+        `Debugger listening on ${DEBUG_HOST}:${port}`,
     ]
 
     return new Promise((resolve, reject) => {
         let isSettled = false
         let transcript = ""
+        const onData = (text: string): void => {
+            append(text)
+        }
+        const dataSubscription = terminal.onDidWriteData(onData)
 
         const cleanup = (): void => {
             clearTimeout(timeout)
-            actonProcess.stdout.off("data", onStdout)
-            actonProcess.stderr.off("data", onStderr)
+            dataSubscription.dispose()
             actonProcess.off("close", onClose)
             actonProcess.off("error", onError)
         }
@@ -165,22 +204,12 @@ async function waitForDebugServer(
             callback()
         }
 
-        const append = (chunk: Buffer): void => {
-            const text = chunk.toString()
+        const append = (text: string): void => {
             transcript += text
-            channel.append(text)
 
             if (readinessMarkers.some(marker => transcript.includes(marker))) {
                 finish(resolve)
             }
-        }
-
-        const onStdout = (chunk: Buffer): void => {
-            append(chunk)
-        }
-
-        const onStderr = (chunk: Buffer): void => {
-            append(chunk)
         }
 
         const onClose = (code: number | null): void => {
@@ -201,8 +230,6 @@ async function waitForDebugServer(
             })
         }, DEBUG_READY_TIMEOUT_MS)
 
-        actonProcess.stdout.on("data", onStdout)
-        actonProcess.stderr.on("data", onStderr)
         actonProcess.once("close", onClose)
         actonProcess.once("error", onError)
     })
@@ -235,4 +262,136 @@ function stopProcess(actonProcess: child_process.ChildProcessWithoutNullStreams)
     }
 
     actonProcess.kill()
+}
+
+function isOwnedDebugSession(
+    session: vscode.DebugSession,
+    debugConfiguration: vscode.DebugConfiguration,
+    port: number,
+): boolean {
+    if (session.type !== debugConfiguration.type || session.name !== debugConfiguration.name) {
+        return false
+    }
+
+    if (Number(session.configuration.debugServer) === port) {
+        return true
+    }
+
+    return Number(session.configuration.port) === port
+}
+
+function createDebugTerminal(name: string, onClose?: () => void): DebugTerminal {
+    return new DebugTerminal(name, onClose)
+}
+
+class DebugTerminal {
+    private readonly dataEmitter: vscode.EventEmitter<string> = new vscode.EventEmitter<string>()
+    private readonly writeEmitter: vscode.EventEmitter<string> = new vscode.EventEmitter<string>()
+    private readonly terminal: vscode.Terminal
+    private readonly pendingOutput: string[] = []
+    private hasReportedProcessExit: boolean = false
+    private isClosed: boolean = false
+    private isOpen: boolean = false
+    private lastWriteEndedWithCarriageReturn: boolean = false
+
+    public constructor(
+        name: string,
+        private readonly onClose?: () => void,
+    ) {
+        this.terminal = vscode.window.createTerminal({
+            name,
+            pty: {
+                close: () => {
+                    if (this.isClosed) {
+                        return
+                    }
+
+                    this.isClosed = true
+                    this.onClose?.()
+                    this.disposeEmitters()
+                },
+                onDidWrite: this.writeEmitter.event,
+                open: () => {
+                    this.isOpen = true
+                    this.flushPendingOutput()
+                },
+            },
+        })
+    }
+
+    public append(text: string): void {
+        if (this.isClosed || text === "") {
+            return
+        }
+
+        this.dataEmitter.fire(text)
+
+        const normalized = this.normalizeForTerminal(text)
+        if (normalized === "") {
+            return
+        }
+
+        if (!this.isOpen) {
+            this.pendingOutput.push(normalized)
+            return
+        }
+
+        this.writeEmitter.fire(normalized)
+    }
+
+    public appendLine(text: string): void {
+        this.append(`${text}\n`)
+    }
+
+    public markProcessExited(exitStatus?: number): void {
+        if (this.isClosed || this.hasReportedProcessExit) {
+            return
+        }
+
+        this.hasReportedProcessExit = true
+        const detail =
+            exitStatus === undefined
+                ? "Acton debug process finished."
+                : `Acton debug process exited with code ${exitStatus}.`
+        this.appendLine(`\u001B[2m${detail}\u001B[0m`)
+    }
+
+    public onDidWriteData(listener: (text: string) => void): vscode.Disposable {
+        return this.dataEmitter.event(listener)
+    }
+
+    public show(preserveFocus?: boolean): void {
+        this.terminal.show(preserveFocus)
+    }
+
+    private disposeEmitters(): void {
+        this.dataEmitter.dispose()
+        this.writeEmitter.dispose()
+    }
+
+    private flushPendingOutput(): void {
+        if (this.pendingOutput.length === 0) {
+            return
+        }
+
+        this.writeEmitter.fire(this.pendingOutput.join(""))
+        this.pendingOutput.length = 0
+    }
+
+    private normalizeForTerminal(text: string): string {
+        let normalized = ""
+
+        for (const char of text) {
+            if (char === "\n") {
+                normalized += this.lastWriteEndedWithCarriageReturn ? "\n" : "\r\n"
+                this.lastWriteEndedWithCarriageReturn = false
+                continue
+            }
+
+            normalized += char
+            this.lastWriteEndedWithCarriageReturn = char === "\r"
+        }
+
+        return normalized
+    }
 }
