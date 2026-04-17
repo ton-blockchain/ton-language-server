@@ -44,6 +44,14 @@ export class TolkFile extends File {
         return this.uri.endsWith(".test.tolk")
     }
 
+    public get isInContractsDir(): boolean {
+        const actonToml = ActonToml.discover(this.uri)
+        if (!actonToml) return false
+
+        const relative = path.relative(actonToml.workingDir, this.path).replace(/\\/g, "/")
+        return relative === "contracts" || relative.startsWith("contracts/")
+    }
+
     public symbolAt(offset: number): string {
         return this.content[offset] ?? ""
     }
