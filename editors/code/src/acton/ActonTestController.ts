@@ -7,6 +7,7 @@ import * as path from "node:path"
 import * as vscode from "vscode"
 
 import {Acton} from "./Acton"
+import {startActonDebugging} from "./ActonDebug"
 import {TestCommand, TestMode} from "./ActonCommand"
 import {
     extractTeamCityFileHint,
@@ -14,6 +15,7 @@ import {
     parseTeamCityMessage,
     stripTeamCityMessages,
     type TeamCityServiceMessage,
+    type TeamCityTestFailedMessage,
     type TeamCityTestStatusMessage,
 } from "./TeamCity"
 
@@ -26,6 +28,13 @@ interface DirectoryRunState {
     readonly testsByName: Map<string, vscode.TestItem[]>
     readonly nodeToTestId: Map<string, string>
     readonly suiteNodeToFileHint: Map<string, string>
+}
+
+interface TestFailureInfo {
+    readonly messageText: string
+    readonly location?: vscode.Location
+    readonly expectedOutput?: string
+    readonly actualOutput?: string
 }
 
 export class ActonTestController implements vscode.Disposable {
@@ -288,7 +297,7 @@ export class ActonTestController implements vscode.Disposable {
 
     private async groupTestsByWorkingDir(
         queue: readonly vscode.TestItem[],
-        run: vscode.TestRun,
+        run: vscode.TestRun | undefined,
         token: vscode.CancellationToken,
     ): Promise<Map<string, vscode.TestItem[]>> {
         const grouped: Map<string, vscode.TestItem[]> = new Map()
@@ -300,7 +309,7 @@ export class ActonTestController implements vscode.Disposable {
 
             const uri = test.uri
             if (!uri) {
-                run.skipped(test)
+                run?.skipped(test)
                 continue
             }
 
@@ -358,17 +367,13 @@ export class ActonTestController implements vscode.Disposable {
                       coverageFile,
                   )
 
-        let teamCityFailureMessage: string | undefined
-        let teamCityFailureLocation: vscode.Location | undefined
+        let teamCityFailure: TestFailureInfo | undefined
         const outputProcessor = this.createOutputProcessor(run, item, message => {
-            if (message.name !== "testFailed" || teamCityFailureMessage) {
+            if (message.name !== "testFailed" || teamCityFailure) {
                 return
             }
 
-            const details = message.attributes.details ?? ""
-            teamCityFailureMessage =
-                message.attributes.message ?? this.extractErrorMessage(details || "Test failed")
-            teamCityFailureLocation = this.extractErrorLocation(details, workingDir)
+            teamCityFailure = this.createFailureInfoFromTeamCity(message, workingDir)
         })
 
         try {
@@ -391,14 +396,12 @@ export class ActonTestController implements vscode.Disposable {
                 const cleanMessage = stripTeamCityMessages(
                     this.stripAnsi(`${stdout}\n${stderr}`),
                 ).trim()
-                const displayMessage =
-                    teamCityFailureMessage ??
-                    this.extractErrorMessage(
+                const failure = teamCityFailure ?? {
+                    messageText: this.extractErrorMessage(
                         cleanMessage || "Test failed (no TeamCity details received)",
-                    )
-                const message = new vscode.TestMessage(displayMessage)
-                message.location = teamCityFailureLocation
-                run.failed(item, message)
+                    ),
+                }
+                run.failed(item, this.createTestMessage(failure))
             }
         } catch (error) {
             outputProcessor.flush()
@@ -458,7 +461,9 @@ export class ActonTestController implements vscode.Disposable {
             const errorText = String(error)
             for (const test of state.tests) {
                 if (!state.resolvedTestIds.has(test.id)) {
-                    this.markDirectoryTestFailed(state, run, test, errorText)
+                    this.markDirectoryTestFailed(state, run, test, {
+                        messageText: errorText,
+                    })
                 }
             }
         }
@@ -613,11 +618,12 @@ export class ActonTestController implements vscode.Disposable {
                     break
                 }
 
-                const details = message.attributes.details ?? ""
-                const messageText =
-                    message.attributes.message ?? this.extractErrorMessage(details || "Test failed")
-                const location = this.extractErrorLocation(details, workingDir)
-                this.markDirectoryTestFailed(state, run, test, messageText, location)
+                this.markDirectoryTestFailed(
+                    state,
+                    run,
+                    test,
+                    this.createFailureInfoFromTeamCity(message, workingDir),
+                )
                 break
             }
             case "testIgnored": {
@@ -653,16 +659,13 @@ export class ActonTestController implements vscode.Disposable {
         state: DirectoryRunState,
         run: vscode.TestRun,
         test: vscode.TestItem,
-        messageText: string,
-        location?: vscode.Location,
+        failure: TestFailureInfo,
     ): void {
         if (state.resolvedTestIds.has(test.id)) {
             return
         }
 
-        const message = new vscode.TestMessage(messageText)
-        message.location = location
-        run.failed(test, message)
+        run.failed(test, this.createTestMessage(failure))
         state.failedTestIds.add(test.id)
         state.resolvedTestIds.add(test.id)
     }
@@ -699,29 +702,20 @@ export class ActonTestController implements vscode.Disposable {
 
             if (exitCode === 0) {
                 if (hasTeamCityResults) {
-                    this.markDirectoryTestFailed(
-                        state,
-                        run,
-                        test,
-                        "TeamCity did not report final status for this test",
-                    )
+                    this.markDirectoryTestFailed(state, run, test, {
+                        messageText: "TeamCity did not report final status for this test",
+                    })
                 } else {
-                    this.markDirectoryTestFailed(
-                        state,
-                        run,
-                        test,
-                        "No TeamCity test events were received",
-                    )
+                    this.markDirectoryTestFailed(state, run, test, {
+                        messageText: "No TeamCity test events were received",
+                    })
                 }
             } else {
-                this.markDirectoryTestFailed(
-                    state,
-                    run,
-                    test,
-                    hasTeamCityResults
+                this.markDirectoryTestFailed(state, run, test, {
+                    messageText: hasTeamCityResults
                         ? `TeamCity did not report final status for this test\n${fallbackMessageText}`
                         : fallbackMessageText,
-                )
+                })
             }
         }
     }
@@ -1005,6 +999,35 @@ export class ActonTestController implements vscode.Disposable {
             return errorMatch[1].trim()
         }
         return cleanMessage
+    }
+
+    private createFailureInfoFromTeamCity(
+        message: TeamCityTestFailedMessage,
+        workingDir: string,
+    ): TestFailureInfo {
+        const details = message.attributes.details ?? ""
+        const hasComparisonOutputs =
+            message.attributes.expected !== undefined && message.attributes.actual !== undefined
+
+        return {
+            messageText:
+                message.attributes.message ?? this.extractErrorMessage(details || "Test failed"),
+            location: this.extractErrorLocation(details, workingDir),
+            expectedOutput: hasComparisonOutputs ? message.attributes.expected : undefined,
+            actualOutput: hasComparisonOutputs ? message.attributes.actual : undefined,
+        }
+    }
+
+    private createTestMessage(failure: TestFailureInfo): vscode.TestMessage {
+        const message = new vscode.TestMessage(failure.messageText)
+        message.location = failure.location
+
+        if (failure.expectedOutput !== undefined && failure.actualOutput !== undefined) {
+            message.expectedOutput = failure.expectedOutput
+            message.actualOutput = failure.actualOutput
+        }
+
+        return message
     }
 
     public dispose(): void {
