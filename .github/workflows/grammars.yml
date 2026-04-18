@@ -12,6 +12,8 @@ on:
     paths:
       - "server/src/languages/**/tree-sitter-**/**"
 
+permissions: {}
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -23,6 +25,10 @@ jobs:
   tree-sitter-grammars:
     name: Building tree-sitter (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
+
+    permissions:
+      contents: read
+
     strategy:
       fail-fast: false
       matrix:

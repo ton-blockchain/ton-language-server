@@ -3,12 +3,15 @@ name: Build and Attach Release Assets
 on:
   workflow_dispatch:
 
+permissions: {}
+
 env:
   HUSKY: 0
 
 jobs:
   build-and-attach:
     runs-on: ubuntu-latest
+
     permissions:
       contents: write
 

@@ -14,6 +14,8 @@ on:
         default: false
         type: boolean
 
+permissions: {}
+
 concurrency:
   group: grammar-sync
   cancel-in-progress: true
@@ -26,6 +28,7 @@ jobs:
   sync-grammar:
     runs-on: ubuntu-latest
     if: github.repository == 'ton-blockchain/ton-language-server'
+
     permissions:
       contents: read
 
