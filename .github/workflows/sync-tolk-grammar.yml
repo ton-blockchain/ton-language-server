@@ -17,7 +17,7 @@ on:
 permissions: {}
 
 concurrency:
-  group: grammar-sync
+  group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
