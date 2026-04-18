@@ -12,6 +12,7 @@ permissions: {}
 
 jobs:
   security:
+    name: Security checks
     runs-on: ubuntu-latest
 
     permissions:

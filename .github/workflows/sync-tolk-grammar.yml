@@ -26,6 +26,7 @@ env:
 
 jobs:
   sync-grammar:
+    name: Sync Tolk Grammar
     runs-on: ubuntu-latest
     if: github.repository == 'ton-blockchain/ton-language-server'
 

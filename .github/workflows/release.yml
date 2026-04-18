@@ -10,6 +10,7 @@ env:
 
 jobs:
   build-and-attach:
+    name: Build and Attach Release Assets
     runs-on: ubuntu-latest
 
     permissions:

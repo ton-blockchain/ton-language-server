@@ -15,6 +15,7 @@ env:
 
 jobs:
   linter:
+    name: Linter checks
     runs-on: ubuntu-latest
 
     permissions:
