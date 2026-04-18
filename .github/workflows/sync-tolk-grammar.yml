@@ -56,6 +56,8 @@ jobs:
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
 
       - name: Sync grammar files
+        env:
+          SOURCE_GRAMMAR_PATH: ${{ env.GRAMMAR_PATH }}
         run: |
           rsync -a --delete \
             --exclude='.git' \
@@ -64,7 +66,7 @@ jobs:
             --exclude='build' \
             --exclude='target' \
             --exclude='.DS_Store' \
-            "source/${{ env.GRAMMAR_PATH }}/" "target/"
+            "source/${SOURCE_GRAMMAR_PATH}/" "target/"
 
       - name: Check for changes
         id: changes
@@ -83,6 +85,8 @@ jobs:
       - name: Create commit and push
         if: steps.changes.outputs.has_changes == 'true' || github.event.inputs.force_sync == 'true'
         working-directory: target
+        env:
+          FORCE_SYNC: ${{ github.event.inputs.force_sync || 'false' }}
         run: |
           # Get the latest commit info from source
           cd ../source
@@ -93,7 +97,7 @@ jobs:
           cd ../target
 
           # Create commit message
-          if [ "${{ github.event.inputs.force_sync }}" = "true" ]; then
+          if [ "$FORCE_SYNC" = "true" ]; then
             SYNC_MSG="chore: force sync from ton-language-server@${COMMIT_SHA:0:7}"
           else
             SYNC_MSG="sync: ${COMMIT_MSG}"
@@ -110,14 +114,19 @@ jobs:
           git push origin main
 
       - name: Create summary
+        env:
+          FORCE_SYNC: ${{ github.event.inputs.force_sync || 'false' }}
+          HAS_CHANGES: ${{ steps.changes.outputs.has_changes }}
+          TARGET_GRAMMAR_REPO: ${{ env.GRAMMAR_REPO }}
+          TRIGGER_EVENT: ${{ github.event_name }}
         run: |
-          echo "## Grammar Sync Summary" >> $GITHUB_STEP_SUMMARY
-          echo "" >> $GITHUB_STEP_SUMMARY
-          if [ "${{ steps.changes.outputs.has_changes }}" = "true" ] || [ "${{ github.event.inputs.force_sync }}" = "true" ]; then
-            echo "✅ Grammar successfully synced to [${{ env.GRAMMAR_REPO }}](https://github.com/${{ env.GRAMMAR_REPO }})" >> $GITHUB_STEP_SUMMARY
-            echo "" >> $GITHUB_STEP_SUMMARY
-            echo "**Source commit:** $(cd source && git rev-parse HEAD)" >> $GITHUB_STEP_SUMMARY
-            echo "**Trigger:** ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "## Grammar Sync Summary" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          if [ "$HAS_CHANGES" = "true" ] || [ "$FORCE_SYNC" = "true" ]; then
+            echo "✅ Grammar successfully synced to [${TARGET_GRAMMAR_REPO}](https://github.com/${TARGET_GRAMMAR_REPO})" >> "$GITHUB_STEP_SUMMARY"
+            echo "" >> "$GITHUB_STEP_SUMMARY"
+            echo "**Source commit:** $(cd source && git rev-parse HEAD)" >> "$GITHUB_STEP_SUMMARY"
+            echo "**Trigger:** $TRIGGER_EVENT" >> "$GITHUB_STEP_SUMMARY"
           else
-            echo "ℹ️ No changes to sync" >> $GITHUB_STEP_SUMMARY
+            echo "ℹ️ No changes to sync" >> "$GITHUB_STEP_SUMMARY"
           fi
