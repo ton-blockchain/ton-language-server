@@ -18,7 +18,7 @@ jobs:
     runs-on: ubuntu-latest
 
     permissions:
-      contents: write
+      contents: write # upload release assets
 
     steps:
       - name: Fetch Sources
