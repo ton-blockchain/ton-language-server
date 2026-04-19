@@ -12,6 +12,8 @@ on:
     paths:
       - "server/src/languages/**/tree-sitter-**/**"
 
+permissions: {}
+
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -23,6 +25,10 @@ jobs:
   tree-sitter-grammars:
     name: Building tree-sitter (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
+
+    permissions:
+      contents: read
+
     strategy:
       fail-fast: false
       matrix:
@@ -32,7 +38,9 @@ jobs:
           - macos-latest
     steps:
       - name: Fetch Sources
-        uses: actions/checkout@v6
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
 
       - name: Enable Corepack
         if: matrix.os == 'windows-latest'
@@ -43,13 +51,13 @@ jobs:
         run: corepack enable
 
       - name: Setup Node.js 22.x
-        uses: actions/setup-node@v6
+        uses: actions/setup-node@53b83947a5a98c8d113130e565377fae1a50d02f # v6.3.0
         with:
           node-version: 22.x
           cache: "yarn"
 
       - name: Setup EMSDK
-        uses: pyodide/setup-emsdk@ca2dd8aef8c2a0e11743c5c36f0b430ddb694b5c # v15
+        uses: emscripten-core/setup-emsdk@4528d102f7230f0e7b276855c01ea1159be0e984 # v16
         env:
           EMSDK_VERSION: 4.0.15
         with:
