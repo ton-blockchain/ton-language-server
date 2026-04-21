@@ -41,8 +41,7 @@ export function reparseTolkFile(uri: string, content: string): TolkFile {
         throw new Error(`FATAL ERROR: cannot parse ${uri} file`)
     }
 
-    // TODO: why we have %40 here?
-    const file = new TolkFile(uri.replace("%40", "@"), tree, content)
+    const file = new TolkFile(normalizeUriFilePath(uri), tree, content)
     TOLK_PARSED_FILES_CACHE.set(uri, file)
     return file
 }
@@ -69,8 +68,7 @@ export function reparseFuncFile(uri: string, content: string): FuncFile {
         throw new Error(`FATAL ERROR: cannot parse ${uri} file`)
     }
 
-    // TODO: why we have %40 here?
-    const file = new FuncFile(uri.replace("%40", "@"), tree, content)
+    const file = new FuncFile(normalizeUriFilePath(uri), tree, content)
     FUNC_PARSED_FILES_CACHE.set(uri, file)
     return file
 }
@@ -131,6 +129,10 @@ export function reparseTlbFile(uri: string, content: string): TlbFile {
 
 async function readOrUndefined(uri: string): Promise<string | undefined> {
     return readFileVFS(globalVFS, uri)
+}
+
+function normalizeUriFilePath(uri: string): string {
+    return uri.replace(/%40/g, "@")
 }
 
 export function uriToFilePath(uri: string): string {
