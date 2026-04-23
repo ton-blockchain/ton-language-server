@@ -72,6 +72,10 @@ Also, you can view extension logs directly in VS Code:
 
 These logs are helpful when reporting issues on GitHub.
 
+### Can't access the Tolk standard library folder
+
+TODO
+
 ## Reporting Issues
 
 If you encounter an issue not covered here:
