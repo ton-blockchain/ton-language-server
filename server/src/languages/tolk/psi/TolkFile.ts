@@ -49,7 +49,10 @@ export class TolkFile extends File {
         if (!actonToml) return false
 
         const relative = path.relative(actonToml.workingDir, this.path).replace(/\\/g, "/")
-        return relative === "contracts" || relative.startsWith("contracts/")
+        return (
+            (relative === "contracts" || relative.startsWith("contracts/")) &&
+            !relative.includes("/scripts")
+        )
     }
 
     public shouldHideActonImportCompletion(candidatePath: string): boolean {

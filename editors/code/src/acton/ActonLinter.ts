@@ -10,6 +10,8 @@ import {consoleError} from "../client-log"
 import {Acton} from "./Acton"
 import {CheckCommand} from "./ActonCommand"
 
+const APPLY_FIX_AND_SAVE_COMMAND = "ton.acton.applyFixAndSave"
+
 interface ActonRange {
     readonly start: {readonly line: number; readonly character: number}
     readonly end: {readonly line: number; readonly character: number}
@@ -63,6 +65,12 @@ export class ActonLinter implements vscode.CodeActionProvider {
         this.diagnosticCollection = vscode.languages.createDiagnosticCollection("acton")
 
         this.disposables.push(
+            vscode.commands.registerCommand(
+                APPLY_FIX_AND_SAVE_COMMAND,
+                async (filePaths: readonly string[] | undefined) => {
+                    await this.saveEditedFiles(filePaths)
+                },
+            ),
             vscode.languages.registerCodeActionsProvider("tolk", this, {
                 providedCodeActionKinds: [vscode.CodeActionKind.QuickFix],
             }),
@@ -327,12 +335,58 @@ export class ActonLinter implements vscode.CodeActionProvider {
                         action.isPreferred = true
                     }
 
+                    const editedFiles = [...new Set(fix.edits.map(edit => edit.file))]
+                    action.command = {
+                        title: "Save Acton quick fix files",
+                        command: APPLY_FIX_AND_SAVE_COMMAND,
+                        arguments: [editedFiles],
+                    }
+
                     actions.push(action)
                 }
             }
         }
 
         return actions
+    }
+
+    private async saveEditedFiles(filePaths: readonly string[] | undefined): Promise<void> {
+        if (!filePaths || filePaths.length === 0) {
+            return
+        }
+
+        const editedUris = new Set(filePaths.map(filePath => vscode.Uri.file(filePath).toString()))
+
+        for (const filePath of filePaths) {
+            const uri = vscode.Uri.file(filePath)
+
+            try {
+                const document =
+                    vscode.workspace.textDocuments.find(
+                        doc => doc.uri.toString() === uri.toString(),
+                    ) ?? (await vscode.workspace.openTextDocument(uri))
+
+                if (!document.isDirty) {
+                    continue
+                }
+
+                const saved = await document.save()
+                if (!saved) {
+                    consoleError("Failed to save Acton quick fix file", filePath)
+                }
+            } catch (error) {
+                consoleError("Failed to save Acton quick fix file", filePath, error)
+            }
+        }
+
+        const activeDocument = vscode.window.activeTextEditor?.document
+        if (
+            activeDocument &&
+            editedUris.has(activeDocument.uri.toString()) &&
+            !activeDocument.isDirty
+        ) {
+            this.triggerCheck(activeDocument)
+        }
     }
 
     private processDiagnostics(output: ActonCheckOutput): void {
