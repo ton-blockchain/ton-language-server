@@ -36,7 +36,13 @@ function processParameters(
     if (params.length === 0) return
 
     const funcName = func.name()
-    if (funcName === "ton") {
+    if (
+        funcName === "ton" ||
+        funcName === "println" ||
+        funcName === "address" ||
+        funcName === "send" ||
+        funcName === "expect"
+    ) {
         // too verbose and too obvious
         return
     }

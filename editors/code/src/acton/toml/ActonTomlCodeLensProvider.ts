@@ -6,7 +6,8 @@ import * as path from "node:path"
 import * as vscode from "vscode"
 
 import {Acton} from "../Acton"
-import {BuildCommand, RunCommand, TestCommand} from "../ActonCommand"
+import {BuildCommand, CheckCommand, FormatCommand, RunCommand, TestCommand} from "../ActonCommand"
+import {getFreeActonPort} from "../ActonPort"
 
 export class ActonTomlCodeLensProvider implements vscode.CodeLensProvider {
     private readonly _onDidChangeCodeLenses: vscode.EventEmitter<void> =
@@ -44,6 +45,33 @@ export class ActonTomlCodeLensProvider implements vscode.CodeLensProvider {
                             command: "ton.acton.testAll",
                             arguments: [document.uri.fsPath],
                         }),
+                        new vscode.CodeLens(range, {
+                            title: "with UI",
+                            command: "ton.acton.testAllUi",
+                            arguments: [document.uri.fsPath],
+                        }),
+                    )
+                }
+
+                if (currentSection === "lint") {
+                    const range = new vscode.Range(i, 0, i, line.length)
+                    codeLenses.push(
+                        new vscode.CodeLens(range, {
+                            title: "Check project",
+                            command: "ton.acton.checkProject",
+                            arguments: [document.uri.fsPath],
+                        }),
+                    )
+                }
+
+                if (currentSection === "fmt") {
+                    const range = new vscode.Range(i, 0, i, line.length)
+                    codeLenses.push(
+                        new vscode.CodeLens(range, {
+                            title: "Format project",
+                            command: "ton.acton.formatProject",
+                            arguments: [document.uri.fsPath],
+                        }),
                     )
                 }
 
@@ -57,6 +85,11 @@ export class ActonTomlCodeLensProvider implements vscode.CodeLensProvider {
                             command: "ton.acton.buildContract",
                             arguments: [document.uri.fsPath, contractId],
                         }),
+                        new vscode.CodeLens(range, {
+                            title: "Retrace tx",
+                            command: "ton.acton.debugRetraceTransaction",
+                            arguments: [{tomlPath: document.uri.fsPath, contractId}],
+                        }),
                     )
                 }
             }
@@ -69,7 +102,22 @@ export class ActonTomlCodeLensProvider implements vscode.CodeLensProvider {
         context.subscriptions.push(
             vscode.commands.registerCommand("ton.acton.testAll", async (tomlPath: string) => {
                 const workingDir = path.dirname(tomlPath)
-                await Acton.getInstance().execute(new TestCommand(), workingDir)
+                await Acton.getInstance().execute(createProjectTestCommand(), workingDir)
+            }),
+            vscode.commands.registerCommand("ton.acton.testAllUi", async (tomlPath: string) => {
+                const workingDir = path.dirname(tomlPath)
+                const command = createProjectTestCommand()
+                command.ui = true
+                command.uiPort = String(await getFreeActonPort())
+                await Acton.getInstance().execute(command, workingDir)
+            }),
+            vscode.commands.registerCommand("ton.acton.checkProject", async (tomlPath: string) => {
+                const workingDir = path.dirname(tomlPath)
+                await Acton.getInstance().execute(new CheckCommand(false), workingDir)
+            }),
+            vscode.commands.registerCommand("ton.acton.formatProject", async (tomlPath: string) => {
+                const workingDir = path.dirname(tomlPath)
+                await Acton.getInstance().execute(new FormatCommand(), workingDir)
             }),
             vscode.commands.registerCommand(
                 "ton.acton.buildContract",
@@ -87,4 +135,10 @@ export class ActonTomlCodeLensProvider implements vscode.CodeLensProvider {
             ),
         )
     }
+}
+
+function createProjectTestCommand(): TestCommand {
+    const command = new TestCommand()
+    command.reporter = "console"
+    return command
 }

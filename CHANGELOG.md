@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.0] - 26.03.2026
+
+### Tolk
+
+- feat(tolk): add explicit return type for `unpackFromSlice` completion in https://github.com/ton-blockchain/ton-language-server/pull/279
+- feat(tolk): better TextMate grammar in https://github.com/ton-blockchain/ton-language-server/pull/234
+- feat(tolk): highlight self parameter as keyword in https://github.com/ton-blockchain/ton-language-server/pull/243
+- feat(tolk): support `??` operator from Tolk 1.3 in https://github.com/ton-blockchain/ton-language-server/pull/256
+- feat(tolk): support arrays from Tolk 1.3 in https://github.com/ton-blockchain/ton-language-server/pull/263
+- feat(tolk): support contract declaration from Tolk 1.3 in https://github.com/ton-blockchain/ton-language-server/pull/261
+- feat(tolk): support mappings from Tolk 1.3 in https://github.com/ton-blockchain/ton-language-server/pull/265
+- feat(tolk): support string type from Tolk 1.3 in https://github.com/ton-blockchain/ton-language-server/pull/258
+- feat(tolk): update tolkfmt version in https://github.com/ton-blockchain/ton-language-server/pull/271
+- fix(tolk): better handling for recursive types in type inference in https://github.com/ton-blockchain/ton-language-server/pull/233
+- fix(tolk): better resolving for generic method call in https://github.com/ton-blockchain/ton-language-server/pull/242
+- fix(tolk): don't require field with `T=void` in https://github.com/ton-blockchain/ton-language-server/pull/225
+- fix(tolk): don't show private fields in completion in https://github.com/ton-blockchain/ton-language-server/pull/231
+- fix(tolk/signature-help): fix signature help for generic method call with explicit type arguments in https://github.com/ton-blockchain/ton-language-server/pull/245
+- fix(tolkfmt): fix assembly function rearrange formatting in https://github.com/ton-blockchain/ton-language-server/pull/209
+
 ## [0.5.1] - 09.11.2025
 
 ### Added

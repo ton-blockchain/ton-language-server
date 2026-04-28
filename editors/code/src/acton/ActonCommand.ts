@@ -29,6 +29,24 @@ export class BuildCommand extends ActonCommand {
     }
 }
 
+export class WrapperCommand extends ActonCommand {
+    public constructor(
+        public contractId: string,
+        public typescript: boolean = false,
+    ) {
+        super("wrapper")
+    }
+
+    public override getArguments(): string[] {
+        const args: string[] = []
+        if (this.typescript) args.push("--ts")
+        if (this.contractId.trim() !== "") {
+            args.push(this.contractId)
+        }
+        return args
+    }
+}
+
 export enum TestMode {
     FUNCTION = "FUNCTION",
     FILE = "FILE",
@@ -44,17 +62,37 @@ export class TestCommand extends ActonCommand {
         public coverage: boolean = false,
         public coverageFormat: string = "lcov",
         public coverageFile: string = "",
+        public debug: boolean = false,
+        public debugPort: string = "",
+        public ui: boolean = false,
+        public uiPort: string = "",
+        public reporter: string = "console,teamcity",
     ) {
         super("test")
     }
 
     public override getArguments(): string[] {
-        const args: string[] = ["--reporter", "console,teamcity", "--color", "always"]
+        const args: string[] = ["--color", "always"]
+        if (this.reporter.trim() !== "") {
+            args.push("--reporter", this.reporter)
+        }
         if (this.clearCache) args.push("--clear-cache")
         if (this.coverage) {
             args.push("--coverage", "--coverage-format", this.coverageFormat)
             if (this.coverageFile.trim() !== "") {
                 args.push("--coverage-file", this.coverageFile)
+            }
+        }
+        if (this.debug) {
+            args.push("--debug")
+            if (this.debugPort.trim() !== "") {
+                args.push("--debug-port", this.debugPort)
+            }
+        }
+        if (this.ui) {
+            args.push("--ui")
+            if (this.uiPort.trim() !== "") {
+                args.push("--ui-port", this.uiPort)
             }
         }
 
@@ -87,7 +125,6 @@ export class ScriptCommand extends ActonCommand {
         public forkNet: string = "",
         public forkBlockNumber: string = "",
         public apiKey: string = "",
-        public broadcast: boolean = false,
         public broadcastNet: string = "",
         public explorer: string = "",
         public debug: boolean = false,
@@ -97,7 +134,7 @@ export class ScriptCommand extends ActonCommand {
     }
 
     public override getArguments(): string[] {
-        const args: string[] = []
+        const args: string[] = ["--color", "always"]
         if (this.clearCache) args.push("--clear-cache")
         if (this.forkNet.trim() !== "") {
             args.push("--fork-net", this.forkNet)
@@ -108,11 +145,8 @@ export class ScriptCommand extends ActonCommand {
         if (this.apiKey.trim() !== "") {
             args.push("--api-key", this.apiKey)
         }
-        if (this.broadcast) {
-            args.push("--broadcast")
-            if (this.broadcastNet.trim() !== "") {
-                args.push("--net", this.broadcastNet)
-            }
+        if (this.broadcastNet.trim() !== "") {
+            args.push("--net", this.broadcastNet)
             if (this.explorer.trim() !== "") {
                 args.push("--explorer", this.explorer)
             }
@@ -139,6 +173,50 @@ export class RunCommand extends ActonCommand {
         const args: string[] = []
         if (this.scriptName.trim() !== "") {
             args.push(this.scriptName)
+        }
+        return args
+    }
+}
+
+export class RetraceCommand extends ActonCommand {
+    public constructor(
+        public hash: string,
+        public net: string = "",
+        public apiKey: string = "",
+        public verbose: boolean = false,
+        public logsDir: string = "",
+        public contractId: string = "",
+        public debug: boolean = false,
+        public debugPort: string = "",
+    ) {
+        super("retrace")
+    }
+
+    public override getArguments(): string[] {
+        const args: string[] = ["--color", "always"]
+        if (this.net.trim() !== "") {
+            args.push("--net", this.net)
+        }
+        if (this.apiKey.trim() !== "") {
+            args.push("--api-key", this.apiKey)
+        }
+        if (this.verbose) {
+            args.push("--verbose")
+        }
+        if (this.logsDir.trim() !== "") {
+            args.push("--logs-dir", this.logsDir)
+        }
+        if (this.contractId.trim() !== "") {
+            args.push("--contract", this.contractId)
+        }
+        if (this.debug) {
+            args.push("--debug")
+            if (this.debugPort.trim() !== "") {
+                args.push("--debug-port", this.debugPort)
+            }
+        }
+        if (this.hash.trim() !== "") {
+            args.push(this.hash)
         }
         return args
     }

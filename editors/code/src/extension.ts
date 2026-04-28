@@ -55,6 +55,7 @@ import {ActonTolkCodeLensProvider} from "./acton/tolk/ActonTolkCodeLensProvider"
 import {ActonLinter} from "./acton/ActonLinter"
 import {ActonTestController} from "./acton/ActonTestController"
 import {formatTolkDocumentWithActon} from "./acton/ActonFormatter"
+import {registerActonRetraceDebugCommand} from "./acton/retrace/ActonRetraceDebug"
 import {registerActonSetupNotifications} from "./acton/ActonSetup"
 import {configureDebugging} from "./debugging"
 import {ContractData, TransactionRun} from "./providers/sandbox/test-types"
@@ -63,6 +64,10 @@ import {DeployedContract} from "./common/types/contract"
 
 let client: LanguageClient | undefined = undefined
 let cachedToolchainInfo: SetToolchainVersionParams | undefined = undefined
+
+function getVersionSourceLabel(params: SetToolchainVersionParams): string {
+    return params.version.source === "acton" ? "Acton project" : "Configured toolchain"
+}
 
 export async function activate(context: vscode.ExtensionContext): Promise<void> {
     await checkConflictingExtensions()
@@ -205,6 +210,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     )
     ActonTomlCodeLensProvider.registerCommands(context)
     ActonTolkCodeLensProvider.registerCommands(context)
+    registerActonRetraceDebugCommand(context)
 
     sandboxTreeProvider.setActionsProvider(sandboxActionsProvider)
     sandboxTreeProvider.setCodeLensProvider(sandboxCodeLensProvider)
@@ -373,6 +379,7 @@ async function startServer(context: vscode.ExtensionContext): Promise<vscode.Dis
         cachedToolchainInfo = params
 
         const settings = vscode.workspace.getConfiguration("ton")
+        const versionSource = getVersionSourceLabel(params)
         const hash =
             settings.get<boolean>("tolk.toolchain.showShortCommitInStatusBar") &&
             params.version.commit.length > 8
@@ -389,12 +396,12 @@ async function startServer(context: vscode.ExtensionContext): Promise<vscode.Dis
         langStatusBar.text = `Tolk ${params.version.number}${hash}`
 
         const tooltipLines = [
-            `**Tolk Toolchain Information**`,
+            `**Tolk Environment Information**`,
             ``,
             `**Version:** ${params.version.number}`,
+            `**Version Source:** ${versionSource}`,
             ``,
-            `**Commit:** ${params.version.commit || "Unknown"}`,
-            ``,
+            ...(params.version.commit ? [`**Commit:** ${params.version.commit}`, ``] : []),
             `**Active Toolchain:** ${activeToolchainName} (${activeToolchainId})`,
             ``,
             `**Toolchain:**`,
@@ -467,7 +474,9 @@ function registerCommands(disposables: vscode.Disposable[]): void {
     disposables.push(
         vscode.commands.registerCommand("tolk.showToolchainInfo", async () => {
             if (!cachedToolchainInfo) {
-                vscode.window.showInformationMessage("Toolchain information not available")
+                vscode.window.showInformationMessage(
+                    "Tolk environment information is not available",
+                )
                 return
             }
 
@@ -483,10 +492,8 @@ function registerCommands(disposables: vscode.Disposable[]): void {
             const items = [
                 {
                     label: "$(info) Version Information",
-                    detail: `Tolk ${info.version.number}`,
-                    description: info.version.commit
-                        ? `Commit: ${info.version.commit}`
-                        : "No commit info",
+                    detail: `Tolk ${info.version.number} (${getVersionSourceLabel(info)})`,
+                    description: info.version.commit ? `Commit: ${info.version.commit}` : undefined,
                 },
                 {
                     label: "$(tools) Active Toolchain",
@@ -521,7 +528,7 @@ function registerCommands(disposables: vscode.Disposable[]): void {
             ]
 
             const selected = await vscode.window.showQuickPick(items, {
-                placeHolder: "Tolk Toolchain Information",
+                placeHolder: "Tolk Environment Information",
                 canPickMany: false,
             })
 
@@ -536,20 +543,23 @@ function registerCommands(disposables: vscode.Disposable[]): void {
                         break
                     }
                     case "copy": {
-                        const clipboardText = `Tolk Toolchain Information:
-Version: ${info.version.number}
-Commit: ${info.version.commit || "Unknown"}
-Active Toolchain: ${activeToolchainName} (${activeToolchainId})
-Path: ${info.toolchain.path}
-Auto-detected: ${info.toolchain.isAutoDetected}
-Detection method: ${info.toolchain.detectionMethod ?? "Unknown"}
-Platform: ${info.environment.platform}
-Architecture: ${info.environment.arch}
-Node.js: ${info.environment.nodeVersion ?? "Unknown"}`
+                        const clipboardLines = [
+                            "Tolk Environment Information:",
+                            `Version: ${info.version.number}`,
+                            `Version Source: ${getVersionSourceLabel(info)}`,
+                            ...(info.version.commit ? [`Commit: ${info.version.commit}`] : []),
+                            `Active Toolchain: ${activeToolchainName} (${activeToolchainId})`,
+                            `Path: ${info.toolchain.path}`,
+                            `Auto-detected: ${info.toolchain.isAutoDetected}`,
+                            `Detection method: ${info.toolchain.detectionMethod ?? "Unknown"}`,
+                            `Platform: ${info.environment.platform}`,
+                            `Architecture: ${info.environment.arch}`,
+                            `Node.js: ${info.environment.nodeVersion ?? "Unknown"}`,
+                        ]
 
-                        await vscode.env.clipboard.writeText(clipboardText)
+                        await vscode.env.clipboard.writeText(clipboardLines.join("\n"))
                         vscode.window.showInformationMessage(
-                            "Toolchain information copied to clipboard",
+                            "Tolk environment information copied to clipboard",
                         )
                         break
                     }

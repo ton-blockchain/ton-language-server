@@ -165,6 +165,8 @@ export class Reference {
     }
 
     public processResolveVariants(proc: ScopeProcessor, state: ResolveState): boolean {
+        proc = this.visibleCompletionProcessor(proc, state)
+
         if (this.elementIsDeclarationName()) {
             // foo: Int
             // ^^^ our element
@@ -183,6 +185,22 @@ export class Reference {
             : //  bar()
               // ^ no qualifier
               this.processUnqualifiedResolve(proc, state)
+    }
+
+    private visibleCompletionProcessor(proc: ScopeProcessor, state: ResolveState): ScopeProcessor {
+        if (!state.get("completion") || !this.element.file.isInContractsDir) {
+            return proc
+        }
+
+        return new (class implements ScopeProcessor {
+            public execute(node: TolkNode, nodeState: ResolveState): boolean {
+                if (node.file.fromActon && !node.file.fromStdlib) {
+                    return true
+                }
+
+                return proc.execute(node, nodeState)
+            }
+        })()
     }
 
     private elementIsDeclarationName(): boolean {

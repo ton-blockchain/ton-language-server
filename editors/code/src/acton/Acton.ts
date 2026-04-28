@@ -96,6 +96,20 @@ export class Acton {
         })
     }
 
+    public spawnProcess(
+        command: ActonCommand,
+        workingDirectory?: string,
+        env?: NodeJS.ProcessEnv,
+    ): child_process.ChildProcessWithoutNullStreams {
+        const actonPath = this.getActonPath()
+        const args = [command.name, ...command.getArguments()]
+
+        return child_process.spawn(actonPath, args, {
+            cwd: workingDirectory,
+            env,
+        })
+    }
+
     public async isAvailable(workingDirectory?: string): Promise<boolean> {
         return (await this.resolveActonPath(workingDirectory)) !== undefined
     }

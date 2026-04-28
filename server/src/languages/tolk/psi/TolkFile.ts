@@ -44,6 +44,27 @@ export class TolkFile extends File {
         return this.uri.endsWith(".test.tolk")
     }
 
+    public get isInContractsDir(): boolean {
+        const actonToml = ActonToml.discover(this.uri)
+        if (!actonToml) return false
+
+        const relative = path.relative(actonToml.workingDir, this.path).replace(/\\/g, "/")
+        return (
+            (relative === "contracts" || relative.startsWith("contracts/")) &&
+            !relative.includes("/scripts")
+        )
+    }
+
+    public shouldHideActonImportCompletion(candidatePath: string): boolean {
+        if (!this.isInContractsDir) return false
+
+        const actonToml = ActonToml.discover(this.uri)
+        if (!actonToml) return false
+
+        const relative = path.relative(actonToml.workingDir, candidatePath).replace(/\\/g, "/")
+        return relative === ".acton" || relative.startsWith(".acton/")
+    }
+
     public symbolAt(offset: number): string {
         return this.content[offset] ?? ""
     }

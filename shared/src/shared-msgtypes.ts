@@ -52,11 +52,16 @@ export interface ToolchainInfo {
     readonly detectionMethod?: string
 }
 
+export type TolkVersionSource = "toolchain" | "acton"
+
+export interface TolkVersionInfo {
+    readonly number: string
+    readonly commit: string
+    readonly source: TolkVersionSource
+}
+
 export interface SetToolchainVersionParams {
-    readonly version: {
-        readonly number: string
-        readonly commit: string
-    }
+    readonly version: TolkVersionInfo
     readonly toolchain: ToolchainInfo
     readonly environment: EnvironmentInfo
 }

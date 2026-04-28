@@ -15,7 +15,7 @@ export class ActonWalletNameCompletionProvider extends ActonStringArgumentComple
         qualifierName: string | undefined,
         argumentIndex: number,
     ): boolean {
-        return functionName === "wallet" && qualifierName === "net" && argumentIndex === 0
+        return functionName === "wallet" && qualifierName === "scripts" && argumentIndex === 0
     }
 
     protected addStringCompletions(ctx: CompletionContext, result: CompletionResult): void {
