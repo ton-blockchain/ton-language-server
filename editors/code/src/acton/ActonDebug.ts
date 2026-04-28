@@ -31,15 +31,15 @@ export async function startActonDebugging(options: StartActonDebuggingOptions): 
     const connectionMode = options.connectionMode ?? "hostPort"
     let activeDebugSession: vscode.DebugSession | undefined
     let hasDebugSessionTerminated = false
+    const actonProcess = await Acton.getInstance().spawnProcess(command, options.workingDir, {
+        ...process.env,
+        [LEGACY_DAP_ENV]: "1",
+    })
     const terminal = createDebugTerminal(options.outputChannelName, () => {
         stopProcess(actonProcess)
         if (activeDebugSession && !hasDebugSessionTerminated) {
             void vscode.debug.stopDebugging(activeDebugSession)
         }
-    })
-    const actonProcess = Acton.getInstance().spawnProcess(command, options.workingDir, {
-        ...process.env,
-        [LEGACY_DAP_ENV]: "1",
     })
     const handleProcessOutput = (chunk: Buffer): void => {
         terminal.append(chunk.toString())

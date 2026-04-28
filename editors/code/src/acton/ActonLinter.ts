@@ -187,7 +187,11 @@ export class ActonLinter implements vscode.CodeActionProvider {
 
         const workingDirectory = vscode.Uri.joinPath(tomlUri, "..").fsPath
         const command = new CheckCommand(true, targetUri.fsPath)
-        const child = acton.spawnProcess(command, workingDirectory)
+        const child = await acton.spawnProcess(command, workingDirectory)
+        if (requestId !== this.checkRequestId) {
+            child.kill()
+            return
+        }
         this.currentCheckProcess = child
         this.currentCheckUri = targetUri
 
