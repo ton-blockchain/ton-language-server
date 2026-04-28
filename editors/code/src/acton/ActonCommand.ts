@@ -29,6 +29,24 @@ export class BuildCommand extends ActonCommand {
     }
 }
 
+export class WrapperCommand extends ActonCommand {
+    public constructor(
+        public contractId: string,
+        public typescript: boolean = false,
+    ) {
+        super("wrapper")
+    }
+
+    public override getArguments(): string[] {
+        const args: string[] = []
+        if (this.typescript) args.push("--ts")
+        if (this.contractId.trim() !== "") {
+            args.push(this.contractId)
+        }
+        return args
+    }
+}
+
 export enum TestMode {
     FUNCTION = "FUNCTION",
     FILE = "FILE",

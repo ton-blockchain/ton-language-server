@@ -6,7 +6,7 @@ import * as path from "node:path"
 import * as vscode from "vscode"
 
 import {Acton} from "../Acton"
-import {ScriptCommand} from "../ActonCommand"
+import {BuildCommand, ScriptCommand, WrapperCommand} from "../ActonCommand"
 
 import {startActonScriptDebugging} from "./ActonScriptDebug"
 
@@ -28,6 +28,8 @@ const SCRIPT_BROADCAST_NETWORKS = [
     },
 ] as const
 
+const CONTRACT_DECLARATION_PATTERN = /^\s*contract\s+([$A-Z_a-z][\w$]*)\b/
+
 export class ActonTolkCodeLensProvider implements vscode.CodeLensProvider {
     public provideCodeLenses(
         document: vscode.TextDocument,
@@ -42,8 +44,32 @@ export class ActonTolkCodeLensProvider implements vscode.CodeLensProvider {
         for (let i = 0; i < document.lineCount; i++) {
             const line = document.lineAt(i)
             const text = line.text
+            const code = text.split("//", 1)[0]
 
-            if (/fun\s+main\s*\(/i.test(text)) {
+            const contractMatch = CONTRACT_DECLARATION_PATTERN.exec(code)
+            if (contractMatch) {
+                const contractId = contractMatch[1]
+                const range = new vscode.Range(i, 0, i, text.length)
+                lenses.push(
+                    new vscode.CodeLens(range, {
+                        title: "Build contract",
+                        command: "ton.acton.buildContractFromTolk",
+                        arguments: [document.uri, contractId],
+                    }),
+                    new vscode.CodeLens(range, {
+                        title: "Generate Tolk wrapper",
+                        command: "ton.acton.generateTolkWrapper",
+                        arguments: [document.uri, contractId],
+                    }),
+                    new vscode.CodeLens(range, {
+                        title: "Generate TypeScript wrapper",
+                        command: "ton.acton.generateTypescriptWrapper",
+                        arguments: [document.uri, contractId],
+                    }),
+                )
+            }
+
+            if (/fun\s+main\s*\(/i.test(code)) {
                 const range = new vscode.Range(i, 0, i, text.length)
                 lenses.push(
                     new vscode.CodeLens(range, {
@@ -73,6 +99,33 @@ export class ActonTolkCodeLensProvider implements vscode.CodeLensProvider {
             vscode.commands.registerCommand("ton.acton.run", async (fileUri: vscode.Uri) => {
                 await ActonTolkCodeLensProvider.runScript(fileUri, "")
             }),
+            vscode.commands.registerCommand(
+                "ton.acton.buildContractFromTolk",
+                async (fileUri: vscode.Uri, contractId: string) => {
+                    await ActonTolkCodeLensProvider.runContractCommand(
+                        fileUri,
+                        new BuildCommand(contractId),
+                    )
+                },
+            ),
+            vscode.commands.registerCommand(
+                "ton.acton.generateTolkWrapper",
+                async (fileUri: vscode.Uri, contractId: string) => {
+                    await ActonTolkCodeLensProvider.runContractCommand(
+                        fileUri,
+                        new WrapperCommand(contractId),
+                    )
+                },
+            ),
+            vscode.commands.registerCommand(
+                "ton.acton.generateTypescriptWrapper",
+                async (fileUri: vscode.Uri, contractId: string) => {
+                    await ActonTolkCodeLensProvider.runContractCommand(
+                        fileUri,
+                        new WrapperCommand(contractId, true),
+                    )
+                },
+            ),
             vscode.commands.registerCommand(
                 "ton.acton.debugScript",
                 async (fileUri: vscode.Uri) => {
@@ -111,6 +164,16 @@ export class ActonTolkCodeLensProvider implements vscode.CodeLensProvider {
 
         const command = new ScriptCommand(scriptPath)
         command.broadcastNet = broadcastNet
+
+        await Acton.getInstance().execute(command, workingDir)
+    }
+
+    private static async runContractCommand(
+        fileUri: vscode.Uri,
+        command: BuildCommand | WrapperCommand,
+    ): Promise<void> {
+        const tomlUri = await Acton.getInstance().findActonToml(fileUri)
+        const workingDir = tomlUri ? path.dirname(tomlUri.fsPath) : path.dirname(fileUri.fsPath)
 
         await Acton.getInstance().execute(command, workingDir)
     }
