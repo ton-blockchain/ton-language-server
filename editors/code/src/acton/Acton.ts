@@ -100,36 +100,18 @@ export class Acton {
         return (await this.resolveActonPath(workingDirectory)) !== undefined
     }
 
-    public async syncConfiguredPath(): Promise<void> {
-        if (!(await this.isExecutableFile(DEFAULT_INSTALL_PATH))) {
-            return
-        }
-
-        const config = vscode.workspace.getConfiguration("ton")
-        const configuredPath = this.getConfiguredPath(config)
-        if (configuredPath === DEFAULT_INSTALL_PATH) {
-            return
-        }
-        if (configuredPath && (await this.isResolvableExecutable(configuredPath))) {
-            return
-        }
-
+    public async setConfiguredPath(
+        actonPath: string,
+        scope?: vscode.ConfigurationScope,
+    ): Promise<void> {
+        const config = vscode.workspace.getConfiguration("ton", scope)
         const inspected = config.inspect<string>("acton.path")
-        const target =
-            inspected?.workspaceValue === undefined
-                ? vscode.ConfigurationTarget.Global
-                : vscode.ConfigurationTarget.Workspace
-
-        await config.update("acton.path", DEFAULT_INSTALL_PATH, target)
-    }
-
-    public async setConfiguredPath(actonPath: string): Promise<void> {
-        const config = vscode.workspace.getConfiguration("ton")
-        const inspected = config.inspect<string>("acton.path")
-        const target =
-            inspected?.workspaceValue === undefined
-                ? vscode.ConfigurationTarget.Global
-                : vscode.ConfigurationTarget.Workspace
+        let target = vscode.ConfigurationTarget.Global
+        if (inspected?.workspaceFolderValue !== undefined) {
+            target = vscode.ConfigurationTarget.WorkspaceFolder
+        } else if (inspected?.workspaceValue !== undefined) {
+            target = vscode.ConfigurationTarget.Workspace
+        }
 
         await config.update("acton.path", actonPath, target)
     }
@@ -138,17 +120,50 @@ export class Acton {
         return DEFAULT_INSTALL_PATH
     }
 
+    public async isDefaultInstallAvailable(): Promise<boolean> {
+        return this.isExecutableFile(DEFAULT_INSTALL_PATH)
+    }
+
     public async hasWorkspaceProject(): Promise<boolean> {
+        return (await this.findWorkspaceProject()) !== undefined
+    }
+
+    public async findWorkspaceProject(): Promise<vscode.Uri | undefined> {
         const actonTomlFiles = await vscode.workspace.findFiles(
             "**/Acton.toml",
             "**/{.git,node_modules,dist}/**",
             1,
         )
-        return actonTomlFiles.length > 0
+        return actonTomlFiles[0]
     }
 
-    private getConfiguredPath(config: vscode.WorkspaceConfiguration): string | undefined {
+    private getEffectiveConfiguredPath(config: vscode.WorkspaceConfiguration): string | undefined {
         const actonPath = config.get<string>("acton.path")
+        return this.normalizeConfiguredPath(actonPath)
+    }
+
+    private getUserConfiguredPath(config: vscode.WorkspaceConfiguration): string | undefined {
+        const inspected = config.inspect<string>("acton.path")
+        const userValues = [
+            inspected?.workspaceFolderLanguageValue,
+            inspected?.workspaceLanguageValue,
+            inspected?.globalLanguageValue,
+            inspected?.workspaceFolderValue,
+            inspected?.workspaceValue,
+            inspected?.globalValue,
+        ]
+
+        for (const value of userValues) {
+            const configuredPath = this.normalizeConfiguredPath(value)
+            if (configuredPath) {
+                return configuredPath
+            }
+        }
+
+        return undefined
+    }
+
+    private normalizeConfiguredPath(actonPath: string | undefined): string | undefined {
         if (actonPath && actonPath.trim() !== "") {
             return actonPath.trim()
         }
@@ -161,17 +176,20 @@ export class Acton {
             return resolvedPath
         }
 
-        return this.getConfiguredPath(vscode.workspace.getConfiguration("ton")) ?? "acton"
+        const config = this.getConfiguration(workingDirectory)
+        return (
+            this.getUserConfiguredPath(config) ?? this.getEffectiveConfiguredPath(config) ?? "acton"
+        )
     }
 
     private async resolveActonPath(workingDirectory?: string): Promise<string | undefined> {
-        const config = vscode.workspace.getConfiguration("ton")
-        const configuredPath = this.getConfiguredPath(config)
-        const candidates = configuredPath
-            ? [configuredPath, DEFAULT_INSTALL_PATH, "acton"]
-            : [DEFAULT_INSTALL_PATH, "acton"]
+        const config = this.getConfiguration(workingDirectory)
+        const userConfiguredPath = this.getUserConfiguredPath(config)
+        const candidates = userConfiguredPath
+            ? [userConfiguredPath]
+            : [DEFAULT_INSTALL_PATH, this.getEffectiveConfiguredPath(config) ?? "acton"]
 
-        for (const candidate of candidates) {
+        for (const candidate of new Set(candidates)) {
             if (await this.isResolvableExecutable(candidate, workingDirectory)) {
                 return this.looksLikePath(candidate)
                     ? this.resolvePathCandidate(candidate, workingDirectory)
@@ -180,6 +198,13 @@ export class Acton {
         }
 
         return undefined
+    }
+
+    private getConfiguration(workingDirectory?: string): vscode.WorkspaceConfiguration {
+        return vscode.workspace.getConfiguration(
+            "ton",
+            workingDirectory ? vscode.Uri.file(workingDirectory) : undefined,
+        )
     }
 
     private async isResolvableExecutable(
@@ -252,6 +277,12 @@ export class Acton {
     }
 
     private resolvePathCandidate(pathOrCommand: string, workingDirectory?: string): string {
+        if (pathOrCommand === "~") {
+            return os.homedir()
+        }
+        if (pathOrCommand.startsWith("~/") || pathOrCommand.startsWith("~\\")) {
+            return path.join(os.homedir(), pathOrCommand.slice(2))
+        }
         if (path.isAbsolute(pathOrCommand)) {
             return pathOrCommand
         }
