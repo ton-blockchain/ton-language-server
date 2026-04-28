@@ -96,12 +96,12 @@ export class Acton {
         })
     }
 
-    public spawnProcess(
+    public async spawnProcess(
         command: ActonCommand,
         workingDirectory?: string,
         env?: NodeJS.ProcessEnv,
-    ): child_process.ChildProcessWithoutNullStreams {
-        const actonPath = this.getActonPath()
+    ): Promise<child_process.ChildProcessWithoutNullStreams> {
+        const actonPath = await this.getActonPath(workingDirectory)
         const args = [command.name, ...command.getArguments()]
 
         return child_process.spawn(actonPath, args, {
