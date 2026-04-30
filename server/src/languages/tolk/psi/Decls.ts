@@ -3,6 +3,7 @@
 import type {Node as SyntaxNode} from "web-tree-sitter"
 
 import {crc16} from "@server/utils/crc16"
+import {crc32} from "@server/utils/crc32"
 import {parentOfType} from "@server/psi/utils"
 import {RecursiveVisitor} from "@server/visitor/visitor"
 import {Reference} from "@server/languages/tolk/psi/Reference"
@@ -471,6 +472,10 @@ export class Struct extends FieldsOwner {
         // struct (0x100) Foo {}
         //         ^^^^^ this
         return this.node.childForFieldName("pack_prefix")
+    }
+
+    public computeOpcode(): number {
+        return crc32(this.name())
     }
 }
 

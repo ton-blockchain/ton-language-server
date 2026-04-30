@@ -50,6 +50,7 @@ suite("Intentions Test Suite", () => {
                 const actions = await this.getCodeActions(this.document.getText())
 
                 if (actions.length === 0) {
+                    const expected = testCase.expected.trim()
                     if (BaseTestSuite.UPDATE_SNAPSHOTS) {
                         this.updates.push({
                             filePath: testFile,
@@ -57,7 +58,7 @@ suite("Intentions Test Suite", () => {
                             actual: "No intentions",
                         })
                     } else {
-                        assert.strictEqual(actions.length, 0, "No intentions")
+                        assert.strictEqual(expected, "No intentions", "No intentions")
                     }
                     return
                 }
@@ -68,11 +69,14 @@ suite("Intentions Test Suite", () => {
                 if (intentionName) {
                     const found = actions.find(action => action.title === intentionName)
                     if (!found) {
-                        throw new Error(
+                        assert.strictEqual(
+                            testCase.expected.trim(),
+                            "No intentions",
                             `Intention "${intentionName}" not found. Available intentions: ${actions
                                 .map(a => a.title)
                                 .join(", ")}`,
                         )
+                        return
                     }
                     selectedAction = found
                 }
