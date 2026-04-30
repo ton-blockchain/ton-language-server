@@ -12,6 +12,7 @@ import type {
     IntentionContext,
 } from "@server/languages/tolk/intentions/Intention"
 import {AddImport} from "@server/languages/tolk/intentions/AddImport"
+import {GenerateStructOpcode} from "@server/languages/tolk/intentions/GenerateStructOpcode"
 import {connection} from "@server/connection"
 import {TolkFile} from "@server/languages/tolk/psi/TolkFile"
 import {
@@ -27,6 +28,7 @@ import {LocalSearchScope} from "@server/references/referent"
 
 export const TOLK_INTENTIONS: Intention[] = [
     new AddImport(),
+    new GenerateStructOpcode(),
     new FillFieldsStructInit(),
     new FillRequiredStructInit(),
 ]
