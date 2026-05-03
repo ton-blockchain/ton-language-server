@@ -6,7 +6,14 @@ import * as path from "node:path"
 import * as vscode from "vscode"
 
 import {Acton} from "../Acton"
-import {BuildCommand, CheckCommand, FormatCommand, RunCommand, TestCommand} from "../ActonCommand"
+import {
+    BuildCommand,
+    CheckCommand,
+    FormatCommand,
+    RunCommand,
+    TestCommand,
+    WrapperCommand,
+} from "../ActonCommand"
 import {getFreeActonPort} from "../ActonPort"
 
 export class ActonTomlCodeLensProvider implements vscode.CodeLensProvider {
@@ -75,6 +82,28 @@ export class ActonTomlCodeLensProvider implements vscode.CodeLensProvider {
                     )
                 }
 
+                if (currentSection === "wrappers.tolk") {
+                    const range = new vscode.Range(i, 0, i, line.length)
+                    codeLenses.push(
+                        new vscode.CodeLens(range, {
+                            title: "Generate all Tolk wrappers",
+                            command: "ton.acton.generateAllTolkWrappers",
+                            arguments: [document.uri.fsPath],
+                        }),
+                    )
+                }
+
+                if (currentSection === "wrappers.typescript") {
+                    const range = new vscode.Range(i, 0, i, line.length)
+                    codeLenses.push(
+                        new vscode.CodeLens(range, {
+                            title: "Generate all TypeScript wrappers",
+                            command: "ton.acton.generateAllTypescriptWrappers",
+                            arguments: [document.uri.fsPath],
+                        }),
+                    )
+                }
+
                 const contractMatch = /^contracts\.(.+)$/.exec(currentSection)
                 if (contractMatch) {
                     const contractId = contractMatch[1].trim()
@@ -131,6 +160,26 @@ export class ActonTomlCodeLensProvider implements vscode.CodeLensProvider {
                 async (tomlPath: string, scriptName: string) => {
                     const workingDir = path.dirname(tomlPath)
                     await Acton.getInstance().execute(new RunCommand(scriptName), workingDir)
+                },
+            ),
+            vscode.commands.registerCommand(
+                "ton.acton.generateAllTolkWrappers",
+                async (tomlPath: string) => {
+                    const workingDir = path.dirname(tomlPath)
+                    await Acton.getInstance().execute(
+                        new WrapperCommand("", false, true),
+                        workingDir,
+                    )
+                },
+            ),
+            vscode.commands.registerCommand(
+                "ton.acton.generateAllTypescriptWrappers",
+                async (tomlPath: string) => {
+                    const workingDir = path.dirname(tomlPath)
+                    await Acton.getInstance().execute(
+                        new WrapperCommand("", true, true),
+                        workingDir,
+                    )
                 },
             ),
         )
