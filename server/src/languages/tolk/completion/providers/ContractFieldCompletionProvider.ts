@@ -31,7 +31,6 @@ export class ContractFieldCompletionProvider implements CompletionProvider<Compl
             author: "Author of the contract",
             version: "Version of the contract",
             description: "Description of the contract",
-            symbolsNamespace: "Namespace for contract symbols",
             incomingMessages: "Allowed incoming messages type",
             incomingExternal: "Allowed incoming external messages type",
             storage: "Persistent storage structure",
