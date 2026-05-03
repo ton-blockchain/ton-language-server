@@ -142,6 +142,7 @@ import {formatTolkFile} from "@server/languages/tolk/format/format"
 import {collectFuncCodeLenses} from "@server/languages/func/lens"
 import {collectFiftCodeLenses} from "@server/languages/fift/lens"
 import {contractAbi} from "@server/languages/tolk/lang/abi/compute"
+import {RecentFileEventTracker} from "@server/file-events"
 
 import {initParser} from "./parser"
 import {DocumentStore} from "./document-store"
@@ -166,28 +167,26 @@ let clientInfo: {name?: string; version?: string} = {name: "", version: ""}
 let workspaceFolders: lsp.WorkspaceFolder[] | null = null
 
 /**
- * Tracks recently processed files from onDidChangeContent to avoid duplication with onDidChangeWatchedFiles
- * Contains URIs of files that should be skipped in onDidChangeWatchedFiles
+ * Tracks recently processed files from onDidChangeContent to avoid immediate duplicates from
+ * onDidChangeWatchedFiles. The marker is intentionally short-lived: a stale marker must not hide
+ * a real external file change that happens later.
  */
-const recentlyProcessedFiles: Set<string> = new Set()
+const RECENTLY_PROCESSED_FILE_EVENT_WINDOW_MS = 1000
+const recentlyProcessedFiles = new RecentFileEventTracker(RECENTLY_PROCESSED_FILE_EVENT_WINDOW_MS)
 
 /**
  * Marks a file as recently processed to avoid duplication
  */
 function markFileAsRecentlyProcessed(uri: string): void {
-    recentlyProcessedFiles.add(uri)
+    recentlyProcessedFiles.mark(uri)
 }
 
 /**
- * Checks if a file was recently processed and should be skipped
- * Removes the file from tracking after checking (one-time use)
+ * Checks if a file was recently processed and should be skipped.
+ * Removes the file from tracking after checking (one-time use).
  */
 function checkIfRecentlyProcessedAndRemove(uri: string): boolean {
-    const wasProcessed = recentlyProcessedFiles.has(uri)
-    if (wasProcessed) {
-        recentlyProcessedFiles.delete(uri)
-    }
-    return wasProcessed
+    return recentlyProcessedFiles.shouldSkipAndRemove(uri)
 }
 
 async function processPendingEvents(): Promise<void> {
@@ -551,6 +550,9 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
         }
     })
 
+    const shouldRunWatchedFileInspections = (uri: string): boolean =>
+        initializationFinished && documents.get(uri) !== undefined
+
     // eslint-disable-next-line @typescript-eslint/no-misused-promises
     connection.onDidChangeWatchedFiles(async (params: DidChangeWatchedFilesParams) => {
         for (const change of params.changes) {
@@ -566,6 +568,9 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
                     console.info(`Find external create of ${uri}`)
                     const file = await findTolkFile(uri)
                     tolkIndex.addFile(uri, file)
+                    if (shouldRunWatchedFileInspections(uri)) {
+                        await runTolkInspections(uri, file, true)
+                    }
                     continue
                 }
 
@@ -579,11 +584,15 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
                     tolkIndex.fileChanged(uri)
                     const file = await findTolkFile(uri, true)
                     tolkIndex.addFile(uri, file, false)
+                    if (shouldRunWatchedFileInspections(uri)) {
+                        await runTolkInspections(uri, file, true)
+                    }
                 }
 
                 if (change.type === FileChangeType.Deleted) {
                     console.info(`Find external delete of ${uri}`)
                     tolkIndex.removeFile(uri)
+                    await connection.sendDiagnostics({uri, diagnostics: []})
                 }
             }
 
@@ -592,6 +601,9 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
                     console.info(`Find external create of ${uri}`)
                     const file = await findFuncFile(uri)
                     funcIndex.addFile(uri, file)
+                    if (shouldRunWatchedFileInspections(uri)) {
+                        await runFuncInspections(uri, file, true)
+                    }
                     continue
                 }
 
@@ -605,11 +617,15 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
                     funcIndex.fileChanged(uri)
                     const file = await findFuncFile(uri, true)
                     funcIndex.addFile(uri, file, false)
+                    if (shouldRunWatchedFileInspections(uri)) {
+                        await runFuncInspections(uri, file, true)
+                    }
                 }
 
                 if (change.type === FileChangeType.Deleted) {
                     console.info(`Find external delete of ${uri}`)
                     funcIndex.removeFile(uri)
+                    await connection.sendDiagnostics({uri, diagnostics: []})
                 }
             }
         }
