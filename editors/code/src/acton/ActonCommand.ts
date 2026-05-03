@@ -31,8 +31,9 @@ export class BuildCommand extends ActonCommand {
 
 export class WrapperCommand extends ActonCommand {
     public constructor(
-        public contractId: string,
+        public contractId: string = "",
         public typescript: boolean = false,
+        public all: boolean = false,
     ) {
         super("wrapper")
     }
@@ -40,6 +41,7 @@ export class WrapperCommand extends ActonCommand {
     public override getArguments(): string[] {
         const args: string[] = []
         if (this.typescript) args.push("--ts")
+        if (this.all) args.push("--all")
         if (this.contractId.trim() !== "") {
             args.push(this.contractId)
         }
