@@ -224,6 +224,26 @@ export class RetraceCommand extends ActonCommand {
     }
 }
 
+export class DisasmCommand extends ActonCommand {
+    public constructor(
+        public bocFile: string = "",
+        public bocString: string = "",
+    ) {
+        super("disasm")
+    }
+
+    public override getArguments(): string[] {
+        const args: string[] = ["--color", "never"]
+        if (this.bocString.trim() !== "") {
+            args.push("--string", this.bocString)
+        }
+        if (this.bocFile.trim() !== "") {
+            args.push(this.bocFile)
+        }
+        return args
+    }
+}
+
 export class CheckCommand extends ActonCommand {
     public constructor(
         public json: boolean = true,

@@ -1,7 +1,11 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Studio
+import * as path from "node:path"
+
 import * as vscode from "vscode"
-import * as tasm from "ton-assembly"
+
+import {Acton} from "../../acton/Acton"
+import {DisasmCommand} from "../../acton/ActonCommand"
 
 export class BocDecompilerProvider implements vscode.TextDocumentContentProvider {
     private readonly _onDidChange: vscode.EventEmitter<vscode.Uri> = new vscode.EventEmitter()
@@ -15,7 +19,7 @@ export class BocDecompilerProvider implements vscode.TextDocumentContentProvider
         const bocUri = this.getBocPath(uri)
 
         try {
-            return await this.decompileBoc(bocUri)
+            return await this.disassembleBoc(bocUri)
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error)
             return this.formatError(errorMessage)
@@ -29,25 +33,25 @@ export class BocDecompilerProvider implements vscode.TextDocumentContentProvider
         return vscode.Uri.file(bocPath)
     }
 
-    private async decompileBoc(bocUri: vscode.Uri): Promise<string> {
+    private async disassembleBoc(bocUri: vscode.Uri): Promise<string> {
         try {
-            const rawContent = await vscode.workspace.fs.readFile(bocUri)
-            const content = Buffer.from(rawContent).toString("base64")
-            const cell = tasm.Cell.fromBase64(content)
-            const instructions = tasm.runtime.decompileCell(cell)
+            const command = new DisasmCommand(bocUri.fsPath)
+            const result = await Acton.getInstance().spawn(command, path.dirname(bocUri.fsPath))
+            if (result.exitCode !== 0) {
+                const details = result.stderr.trim() || result.stdout.trim() || "unknown error"
+                throw new Error(details)
+            }
 
-            const output = tasm.text.print(instructions)
-
-            return this.formatDecompiledOutput(output, bocUri)
+            return this.formatDisassembledOutput(result.stdout, bocUri)
         } catch (error: unknown) {
-            // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-            throw new Error(`Decompilation failed: ${error}`)
+            const details = error instanceof Error ? error.message : String(error)
+            throw new Error(`Disassembly failed: ${details}`)
         }
     }
 
-    private formatDecompiledOutput(output: string, bocUri: vscode.Uri): string {
+    private formatDisassembledOutput(output: string, bocUri: vscode.Uri): string {
         const header = [
-            "// Decompiled BoC file",
+            "// Disassembled BoC file",
             "// Note: This is auto-generated code",
             `// Time: ${new Date().toISOString()}`,
             `// Source: ${bocUri.fsPath}`,
@@ -60,7 +64,7 @@ export class BocDecompilerProvider implements vscode.TextDocumentContentProvider
 
     private formatError(error: string): string {
         return [
-            "// Failed to decompile BoC file",
+            "// Failed to disassemble BoC file",
             "// Error: " + error,
             "// Time: " + new Date().toISOString(),
         ].join("\n")
