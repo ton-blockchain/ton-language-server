@@ -323,8 +323,12 @@ async function startServer(context: vscode.ExtensionContext): Promise<vscode.Dis
                     return next(document, range, options, token)
                 }
 
-                // acton fmt formats whole files only
-                return []
+                const actonEdits = await formatTolkDocumentWithActon(document, range)
+                if (actonEdits !== null) {
+                    return actonEdits
+                }
+
+                return next(document, range, options, token)
             },
         },
         initializationOptions: {

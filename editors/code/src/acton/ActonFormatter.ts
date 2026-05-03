@@ -22,6 +22,18 @@ function fullDocumentRange(document: vscode.TextDocument): vscode.Range {
     return new vscode.Range(new vscode.Position(0, 0), end)
 }
 
+function byteColumn(document: vscode.TextDocument, position: vscode.Position): number {
+    const linePrefix = document.lineAt(position.line).text.slice(0, position.character)
+    return Buffer.byteLength(linePrefix, "utf8")
+}
+
+function formatActonRange(document: vscode.TextDocument, range: vscode.Range): string {
+    const validRange = document.validateRange(range)
+    const startColumn = byteColumn(document, validRange.start)
+    const endColumn = byteColumn(document, validRange.end)
+    return `${validRange.start.line}:${startColumn}-${validRange.end.line}:${endColumn}`
+}
+
 async function resolveWorkingDirectory(document: vscode.TextDocument): Promise<string | undefined> {
     if (document.uri.scheme === "file") {
         const actonToml = await Acton.getInstance().findActonToml(document.uri)
@@ -40,6 +52,7 @@ async function resolveWorkingDirectory(document: vscode.TextDocument): Promise<s
 
 export async function formatTolkDocumentWithActon(
     document: vscode.TextDocument,
+    range?: vscode.Range,
 ): Promise<vscode.TextEdit[] | null> {
     const formatterEnabled = vscode.workspace
         .getConfiguration("ton", document.uri)
@@ -58,7 +71,10 @@ export async function formatTolkDocumentWithActon(
         const tempFilePath = path.join(tempDirectory, originalFileName)
         await fs.writeFile(tempFilePath, source, "utf8")
 
-        const command = new FormatCommand([tempFilePath])
+        const command = new FormatCommand(
+            [tempFilePath],
+            range ? formatActonRange(document, range) : "",
+        )
         const {exitCode, stderr, stdout} = await Acton.getInstance().spawn(
             command,
             workingDirectory,

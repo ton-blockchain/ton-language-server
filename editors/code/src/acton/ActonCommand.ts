@@ -245,12 +245,20 @@ export class CheckCommand extends ActonCommand {
 }
 
 export class FormatCommand extends ActonCommand {
-    public constructor(public targets: readonly string[] = []) {
+    public constructor(
+        public targets: readonly string[] = [],
+        public range: string = "",
+    ) {
         super("fmt")
     }
 
     public override getArguments(): string[] {
-        return this.targets.filter(target => target.trim() !== "")
+        const args: string[] = []
+        if (this.range.trim() !== "") {
+            args.push("--range", this.range)
+        }
+        args.push(...this.targets.filter(target => target.trim() !== ""))
+        return args
     }
 }
 
