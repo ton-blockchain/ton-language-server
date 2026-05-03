@@ -91,6 +91,7 @@ export async function provideTolkCompletion(
         cursorNode === null ||
         (cursorNode.type !== "identifier" &&
             cursorNode.type !== "type_identifier" &&
+            cursorNode.type !== "annotation_name" &&
             cursorNode.type !== "string_literal")
     ) {
         return []
