@@ -12,7 +12,6 @@ contract MyContract {
 4  incomingMessages: Allowed incoming messages type
 4  storage: Persistent storage structure
 4  storageAtDeployment: Storage structure at deployment
-4  symbolsNamespace: Namespace for contract symbols
 4  version: Version of the contract
 
 ========================================================================
@@ -29,5 +28,4 @@ contract MyContract {
 4  incomingMessages: Allowed incoming messages type
 4  storage: Persistent storage structure
 4  storageAtDeployment: Storage structure at deployment
-4  symbolsNamespace: Namespace for contract symbols
 4  version: Version of the contract

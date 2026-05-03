@@ -52,7 +52,6 @@ export function generateTolkDocFor(node: NamedNode, place: SyntaxNode): string |
         author: "Author of the contract.",
         version: "Version of the contract.",
         description: "Description of the contract.",
-        symbolsNamespace: "Namespace for contract symbols.",
         incomingMessages:
             "Defines the type of allowed incoming internal messages. Usually a union type of all supported message structs.",
         incomingExternal: "Defines the type of allowed incoming external messages.",
