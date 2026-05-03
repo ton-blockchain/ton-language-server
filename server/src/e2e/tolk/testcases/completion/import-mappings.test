@@ -1,0 +1,33 @@
+========================================================================
+Import path mappings root completion
+========================================================================
+import "@<caret>"
+---FILE:Acton.toml
+[package]
+name = "test"
+version = "0.1.0"
+description = "test"
+
+[import-mappings]
+my_lib = "./libs/my_lib"
+------------------------------------------------------------------------
+18 @my_lib/
+18 @stdlib/
+
+========================================================================
+Import path mappings directory completion
+========================================================================
+import "@my_lib/<caret>"
+---FILE:Acton.toml
+[package]
+name = "test"
+version = "0.1.0"
+description = "test"
+
+[import-mappings]
+my_lib = "./libs/my_lib"
+
+---FILE:libs/my_lib/utils.tolk
+fun helper() {}
+------------------------------------------------------------------------
+16 utils.tolk

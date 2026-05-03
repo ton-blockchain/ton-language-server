@@ -55,37 +55,46 @@ suite("Completion Test Suite", () => {
             test(`Completion: ${testCase.name}`, async () => {
                 await this.setupAdditionalFiles(testCase)
 
-                const matchStrategy = testCase.properties.get("strategy") ?? "startsWith"
-                const completions = await this.getCompletions(testCase.input, matchStrategy, ".")
+                try {
+                    const matchStrategy = testCase.properties.get("strategy") ?? "startsWith"
+                    const completions = await this.getCompletions(
+                        testCase.input,
+                        matchStrategy,
+                        ".",
+                    )
 
-                const items = completions
-                    .filter(item => Number(item.kind) !== 0)
-                    .map(item => {
-                        const label = typeof item.label === "object" ? item.label.label : item.label
-                        const details =
-                            (typeof item.label === "object" ? item.label.detail : item.detail) ?? ""
-                        const description =
-                            typeof item.label === "object" && item.label.description
-                                ? `  ${item.label.description}`
-                                : ""
+                    const items = completions
+                        .filter(item => Number(item.kind) !== 0)
+                        .map(item => {
+                            const label =
+                                typeof item.label === "object" ? item.label.label : item.label
+                            const details =
+                                (typeof item.label === "object"
+                                    ? item.label.detail
+                                    : item.detail) ?? ""
+                            const description =
+                                typeof item.label === "object" && item.label.description
+                                    ? `  ${item.label.description}`
+                                    : ""
 
-                        return `${item.kind?.toString().padEnd(2)} ${label}${details}${description}`.trimEnd()
-                    })
+                            return `${item.kind?.toString().padEnd(2)} ${label}${details}${description}`.trimEnd()
+                        })
 
-                const expected = testCase.expected.trimEnd()
-                const actual = items.length > 0 ? items.join("\n") : "No completion items"
+                    const expected = testCase.expected.trimEnd()
+                    const actual = items.length > 0 ? items.join("\n") : "No completion items"
 
-                if (BaseTestSuite.UPDATE_SNAPSHOTS) {
-                    this.updates.push({
-                        filePath: testFile,
-                        testName: testCase.name,
-                        actual: actual,
-                    })
-                } else {
-                    assert.deepStrictEqual(actual, expected)
+                    if (BaseTestSuite.UPDATE_SNAPSHOTS) {
+                        this.updates.push({
+                            filePath: testFile,
+                            testName: testCase.name,
+                            actual: actual,
+                        })
+                    } else {
+                        assert.deepStrictEqual(actual, expected)
+                    }
+                } finally {
+                    await this.cleanupAdditionalFiles(testCase)
                 }
-
-                await this.cleanupAdditionalFiles(testCase)
             })
         }
     })()
