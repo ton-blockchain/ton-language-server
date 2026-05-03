@@ -21,11 +21,6 @@ const SCRIPT_BROADCAST_NETWORKS = [
         description: "Broadcast to TON mainnet",
         network: "mainnet",
     },
-    {
-        label: "Localnet",
-        description: "Broadcast to localnet",
-        network: "localnet",
-    },
 ] as const
 
 const CONTRACT_DECLARATION_PATTERN = /^\s*contract\s+([$A-Z_a-z][\w$]*)\b/
