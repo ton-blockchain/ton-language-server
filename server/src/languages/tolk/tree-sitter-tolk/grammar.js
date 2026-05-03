@@ -357,22 +357,23 @@ const TOLK_GRAMMAR = {
         ),
 
     assert_statement: $ =>
-        seq(
-            "assert",
-            choice(
-                seq(
-                    "(",
-                    field("condition", $._expression),
-                    ")",
-                    "throw",
-                    field("excNo", $._expression),
-                ),
-                seq(
-                    "(",
-                    field("condition", $._expression),
-                    ",",
-                    field("excNo", $._expression),
-                    ")",
+        prec.right(
+            seq(
+                "assert",
+                choice(
+                    seq(
+                        "(",
+                        field("condition", $._expression),
+                        ")",
+                        optional(seq("throw", field("excNo", $._expression))),
+                    ),
+                    seq(
+                        "(",
+                        field("condition", $._expression),
+                        ",",
+                        field("excNo", $._expression),
+                        ")",
+                    ),
                 ),
             ),
         ),

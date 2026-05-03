@@ -399,7 +399,7 @@
             },
             "excNo": {
                 "multiple": false,
-                "required": true,
+                "required": false,
                 "types": [
                     {
                         "type": "assignment",
