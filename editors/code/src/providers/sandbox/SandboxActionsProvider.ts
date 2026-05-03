@@ -2,15 +2,14 @@
 //  Copyright © 2025 TON Core
 import * as vscode from "vscode"
 
-import {Cell, TupleReader} from "@ton/core"
-
-import {decompileCell} from "ton-assembly/dist/runtime"
-
-import {print} from "ton-assembly/dist/text"
+import {TupleReader} from "@ton/core"
 
 import {SourceMap} from "ton-source-map"
 
 import {ContractAbi} from "@shared/abi"
+
+import {Acton} from "../../acton/Acton"
+import {DisasmCommand} from "../../acton/ActonCommand"
 
 import {
     VSCodeCommand,
@@ -748,9 +747,10 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
             const debugDirUri = vscode.Uri.joinPath(workspaceFolder.uri, ".debug")
             await vscode.workspace.fs.createDirectory(debugDirUri)
 
-            const cell = Cell.fromHex(transaction.code)
-            const instructions = decompileCell(cell)
-            const assemblyCode = print(instructions)
+            const assemblyCode = await this.disassembleTransactionCode(
+                transaction.code,
+                workspaceFolder.uri.fsPath,
+            )
 
             const contractName = transaction.contractName ?? `TX_${sessionNumber}`
             const fileName = `${contractName}.tasm`
@@ -848,6 +848,20 @@ export class SandboxActionsProvider implements vscode.WebviewViewProvider {
             )
             void this.processNextDebugSession()
         }
+    }
+
+    private async disassembleTransactionCode(
+        code: HexString,
+        workingDirectory: string,
+    ): Promise<string> {
+        const command = new DisasmCommand("", code)
+        const result = await Acton.getInstance().spawn(command, workingDirectory)
+        if (result.exitCode === 0) {
+            return result.stdout
+        }
+
+        const details = result.stderr.trim() || result.stdout.trim() || "unknown error"
+        throw new Error(`acton disasm failed: ${details}`)
     }
 
     private restoreState(state: SandboxPersistedState): void {

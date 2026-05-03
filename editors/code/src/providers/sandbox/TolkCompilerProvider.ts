@@ -6,7 +6,7 @@ import {execFile} from "node:child_process"
 
 import vscode, {Uri} from "vscode"
 
-import {Cell} from "ton-assembly"
+import {Cell} from "@ton/core"
 
 import {SourceMap} from "ton-source-map"
 

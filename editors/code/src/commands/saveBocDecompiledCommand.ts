@@ -14,8 +14,8 @@ export function registerSaveBocDecompiledCommand(
                 await saveBoc(fileUri)
             } catch (error: unknown) {
                 console.error("Error in saveBocDecompiledCommand:", error)
-                // eslint-disable-next-line @typescript-eslint/restrict-template-expressions
-                vscode.window.showErrorMessage(`Failed to save decompiled BoC: ${error}`)
+                const message = error instanceof Error ? error.message : String(error)
+                vscode.window.showErrorMessage(`Failed to save disassembled BoC: ${message}`)
             }
         },
     )
@@ -54,7 +54,7 @@ async function saveBoc(fileUri: vscode.Uri | undefined): Promise<void> {
     vscode.workspace.fs.writeFile(vscode.Uri.file(outputPath), bytes)
 
     const relativePath = vscode.workspace.asRelativePath(outputPath)
-    vscode.window.showInformationMessage(`Decompiled BOC saved to: ${relativePath}`)
+    vscode.window.showInformationMessage(`Disassembled BOC saved to: ${relativePath}`)
 
     const savedFileUri = vscode.Uri.file(outputPath)
     const doc = await vscode.workspace.openTextDocument(savedFileUri)

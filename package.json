@@ -272,12 +272,12 @@
             },
             {
                 "command": "ton.openBocFile",
-                "title": "Open Decompiled BoC file",
+                "title": "Open Disassembled BoC file",
                 "category": "TON"
             },
             {
                 "command": "ton.saveBocDecompiled",
-                "title": "Decompile BoC to TON Assembly File",
+                "title": "Disassemble BoC to TON Assembly File",
                 "category": "TON"
             },
             {
@@ -783,7 +783,7 @@
                     "ton.boc.openDecompiledOnOpen": {
                         "type": "boolean",
                         "default": true,
-                        "description": "Automatically open decompiled Fift assembly when opening BoC files"
+                        "description": "Automatically open disassembled Fift assembly when opening BoC files"
                     }
                 }
             },
@@ -885,7 +885,6 @@
         "react-icons": "^5.5.0",
         "react-markdown": "^10.1.0",
         "tolkfmt-test-dev": "0.0.27",
-        "ton-assembly": "0.4.0",
         "ton-source-map": "^0.2.2",
         "vscode-languageclient": "^8.0.2",
         "vscode-languageserver": "^8.0.2",
