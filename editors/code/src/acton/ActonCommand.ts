@@ -150,6 +150,7 @@ export class ScriptCommand extends ActonCommand {
         public explorer: string = "",
         public debug: boolean = false,
         public debugPort: string = "",
+        public backtraceFull: boolean = false,
     ) {
         super("script")
     }
@@ -157,6 +158,9 @@ export class ScriptCommand extends ActonCommand {
     public override getArguments(): string[] {
         const args: string[] = ["--color", "always"]
         if (this.clearCache) args.push("--clear-cache")
+        if (this.backtraceFull) {
+            args.push("--backtrace", "full")
+        }
         if (this.forkNet.trim() !== "") {
             args.push("--fork-net", this.forkNet)
         }
