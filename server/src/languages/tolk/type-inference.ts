@@ -55,6 +55,11 @@ import {TOLK_CACHE} from "@server/languages/tolk/cache"
 import {filePathToUri} from "@server/files"
 import {trimBackticks} from "@server/languages/tolk/lang/names-util"
 
+function substituteTypeIfNeeded(ty: Ty, mapping: Map<string, Ty>): Ty {
+    if (mapping.size === 0 || !ty.hasGenerics()) return ty
+    return ty.substitute(mapping)
+}
+
 export class GenericSubstitutions {
     public constructor(public mapping: Map<string, Ty> = new Map()) {}
 
@@ -1024,7 +1029,7 @@ class InferenceWalker {
                 mapping.set(typeParameters[i].name(), types[i])
             }
 
-            const substituted = exprType?.substitute(mapping) ?? null
+            const substituted = exprType ? substituteTypeIfNeeded(exprType, mapping) : null
             this.ctx.setType(node, substituted)
             this.ctx.setResolved(node, resolved)
         }
@@ -1105,9 +1110,7 @@ class InferenceWalker {
         // infer argument types with parameter types as hint
         for (let i = 0; i < Math.min(paramTypes.length, args.length); i++) {
             let paramType = paramTypes[i]
-            if (paramType.hasGenerics()) {
-                paramType = paramType.substitute(sub.mapping)
-            }
+            paramType = substituteTypeIfNeeded(paramType, sub.mapping)
 
             const arg = args[i]
             const argExpr = arg.childForFieldName("expr")
@@ -1117,12 +1120,12 @@ class InferenceWalker {
             let argType = this.ctx.getType(argExpr) ?? UnknownTy.UNKNOWN
 
             sub = sub.deduce(paramType, argType)
-            argType = argType.substitute(sub.mapping)
+            argType = substituteTypeIfNeeded(argType, sub.mapping)
 
             this.ctx.setType(argExpr, argType)
         }
 
-        const returnType = functionType.returnTy.substitute(sub.mapping)
+        const returnType = substituteTypeIfNeeded(functionType.returnTy, sub.mapping)
 
         this.ctx.setType(callee, functionType)
         this.ctx.setType(node, returnType)
@@ -1194,10 +1197,11 @@ class InferenceWalker {
                     this.ctx.setResolved(node, resolved)
                     this.ctx.setResolved(fieldNode, resolved)
 
-                    const type =
-                        InferenceWalker.convertType(field.typeNode()?.node, field.file)?.substitute(
-                            sub.mapping,
-                        ) ?? null
+                    const fieldType = InferenceWalker.convertType(
+                        field.typeNode()?.node,
+                        field.file,
+                    )
+                    const type = fieldType ? substituteTypeIfNeeded(fieldType, sub.mapping) : null
 
                     this.ctx.setType(node, type)
                     this.ctx.setType(fieldNode, type)
@@ -1352,7 +1356,7 @@ class InferenceWalker {
                 }
 
                 const subst = GenericSubstitutions.deduce(receiverType, qualifierType)
-                const substituted = receiverType.substitute(subst.mapping)
+                const substituted = substituteTypeIfNeeded(receiverType, subst.mapping)
 
                 if (!substituted.hasGenerics()) {
                     result.push(method)
@@ -1569,8 +1573,8 @@ class InferenceWalker {
                 )
 
                 let fieldType = originalFieldType
-                if (fieldType && fieldType.hasGenerics()) {
-                    fieldType = fieldType.substitute(sub.mapping)
+                if (fieldType) {
+                    fieldType = substituteTypeIfNeeded(fieldType, sub.mapping)
                 }
 
                 if (value) {
@@ -1580,11 +1584,11 @@ class InferenceWalker {
                 const valueType = value ? this.ctx.getType(value) : UnknownTy.UNKNOWN
                 if (originalFieldType && valueType) {
                     sub = sub.deduce(originalFieldType, valueType.unwrapAlias())
-                    const subType = valueType.substitute(sub.mapping)
+                    const subType = substituteTypeIfNeeded(valueType, sub.mapping)
                     this.ctx.setType(value, subType)
 
                     if (nameNode) {
-                        const fieldSubType = originalFieldType.substitute(sub.mapping)
+                        const fieldSubType = substituteTypeIfNeeded(originalFieldType, sub.mapping)
                         this.ctx.setType(nameNode, fieldSubType)
                     }
                 } else if (nameNode) {
@@ -1611,8 +1615,8 @@ class InferenceWalker {
                         resolvedField?.file,
                     )
 
-                    if (fieldType && fieldType.hasGenerics()) {
-                        fieldType = fieldType.substitute(sub.mapping)
+                    if (fieldType) {
+                        fieldType = substituteTypeIfNeeded(fieldType, sub.mapping)
                     }
 
                     const sink = new SinkExpression(resolved)
@@ -1620,7 +1624,7 @@ class InferenceWalker {
 
                     if (fieldType && variableType) {
                         sub = sub.deduce(fieldType, variableType.baseType())
-                        const subType = variableType.substitute(sub.mapping)
+                        const subType = substituteTypeIfNeeded(variableType, sub.mapping)
 
                         this.ctx.setType(nameNode, subType)
                     } else {
@@ -1631,7 +1635,7 @@ class InferenceWalker {
         }
 
         if (structType && structType.hasGenerics()) {
-            this.ctx.setType(node, structType.substitute(sub.mapping))
+            this.ctx.setType(node, substituteTypeIfNeeded(structType, sub.mapping))
         } else {
             this.ctx.setType(node, structType)
         }
@@ -2215,9 +2219,12 @@ class InferenceWalker {
                 }
 
                 if (resolved.name() === "array") {
-                    return new ArrayTy(argsTypes.at(0) ?? UnknownTy.UNKNOWN).substitute(mapping)
+                    return substituteTypeIfNeeded(
+                        new ArrayTy(argsTypes.at(0) ?? UnknownTy.UNKNOWN),
+                        mapping,
+                    )
                 }
-                return new InstantiationTy(innerTy, argsTypes).substitute(mapping)
+                return substituteTypeIfNeeded(new InstantiationTy(innerTy, argsTypes), mapping)
             }
 
             return new InstantiationTy(innerTy, argsTypes)
