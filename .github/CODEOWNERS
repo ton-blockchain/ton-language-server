@@ -1,0 +1,10 @@
+* @i582
+
+# CI and automation.
+/.github/ @danil42russia
+
+# VS Code extension and webviews.
+/editors/code/ @i582
+
+# Language server implementation.
+/server/ @i582

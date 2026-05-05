@@ -14,7 +14,7 @@ export class CompletionContext {
     public isStatement: boolean = false
     public topLevel: boolean = false
     public afterDot: boolean = false
-    public afterTilda: boolean = false
+    public afterTilde: boolean = false
     public beforeParen: boolean = false
     public beforeSemicolon: boolean = false
     public insideImport: boolean = false
@@ -34,7 +34,7 @@ export class CompletionContext {
         if (currentLine && currentLine[position.character - 1]) {
             const symbolAfter = currentLine[position.character - 1]
             this.afterDot = symbolAfter === "."
-            this.afterTilda = symbolAfter === "~"
+            this.afterTilde = symbolAfter === "~"
             const symbolAfterDummy = currentLine[position.character + "DummyIdentifier".length]
             this.beforeParen = symbolAfterDummy === "("
         }

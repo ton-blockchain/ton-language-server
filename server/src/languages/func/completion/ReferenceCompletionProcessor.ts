@@ -29,7 +29,7 @@ export class ReferenceCompletionProcessor implements ScopeProcessor {
             return node instanceof TypeParameter
         }
 
-        if (this.ctx.afterDot || this.ctx.afterTilda) {
+        if (this.ctx.afterDot || this.ctx.afterTilde) {
             if (node instanceof Func) {
                 return node.hasParameters()
             }

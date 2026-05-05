@@ -20,7 +20,7 @@
   --color-text-disabled: var(--vscode-disabledForeground);
   --color-text-on-primary: #fff;
   --color-text-inverted: var(--vscode-editor-background);
-  --color-text-inverted-only-on-ligth: #fff;
+  --color-text-inverted-only-on-light: #fff;
   --editor-faded-text-color: var(--vscode-disabledForeground);
 
   --color-background-primary: var(--vscode-editor-background);

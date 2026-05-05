@@ -1,0 +1,16 @@
+* text=auto eol=lf
+
+# Documentation
+docs/** linguist-documentation
+
+# Generated parser artifacts
+server/src/languages/*/tree-sitter-*/src/parser.c linguist-generated text=auto eol=lf
+server/src/languages/*/tree-sitter-*/src/scanner.c linguist-generated text=auto eol=lf
+server/src/languages/*/tree-sitter-*/src/scanner.cc linguist-generated text=auto eol=lf
+server/src/languages/*/tree-sitter-*/src/tree_sitter/** linguist-generated text=auto eol=lf
+server/src/languages/*/tree-sitter-*/bindings/** linguist-generated text=auto eol=lf
+
+# Bundled assets
+*.png binary
+*.vsix binary
+*.wasm binary

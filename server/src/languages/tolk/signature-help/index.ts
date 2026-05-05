@@ -111,7 +111,7 @@ export function findSignatureHelpTarget(
 
         // Search for parent call for the following case
         // ```
-        // foo(Fo<caret>o { value: 10 })
+        // foo(Foo<caret> { value: 10 })
         // ```
         if (isInstanceName || isOpenBrace) {
             return findSignatureHelpNode(callNode)
