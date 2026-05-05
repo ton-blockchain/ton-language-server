@@ -201,14 +201,25 @@ function cancelPendingTolkLiveInspections(uri: string): void {
     pendingTolkLiveInspections.delete(uri)
 }
 
-function scheduleTolkLiveInspections(uri: string, file: TolkFile): void {
+function scheduleTolkLiveInspections(
+    uri: string,
+    file: TolkFile,
+    version: number,
+    documents: DocumentStore,
+): void {
     cancelPendingTolkLiveInspections(uri)
 
     const timer = setTimeout(() => {
         pendingTolkLiveInspections.delete(uri)
-        void runTolkInspections(uri, file, false).catch((error: unknown) => {
-            console.error(`Failed to run debounced Tolk inspections for ${uri}`, error)
-        })
+
+        const isCurrentDocumentVersion = (): boolean => documents.get(uri)?.version === version
+        if (!isCurrentDocumentVersion()) return
+
+        void runTolkInspections(uri, file, false, isCurrentDocumentVersion).catch(
+            (error: unknown) => {
+                console.error(`Failed to run debounced Tolk inspections for ${uri}`, error)
+            },
+        )
     }, TOLK_LIVE_INSPECTIONS_DEBOUNCE_MS)
 
     pendingTolkLiveInspections.set(uri, timer)
@@ -577,12 +588,11 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
         const uri = event.document.uri
         console.info("changed:", uri)
 
-        markFileAsRecentlyProcessed(uri)
-
         if (isActonTomlFile(uri)) {
-            await handleActonTomlChange(uri, documents)
             return
         }
+
+        markFileAsRecentlyProcessed(uri)
 
         if (isFiftFile(uri, event)) {
             FIFT_PARSED_FILES_CACHE.delete(uri)
@@ -601,7 +611,7 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
             tolkIndex.addFile(uri, file, false)
 
             if (initializationFinished) {
-                scheduleTolkLiveInspections(uri, file)
+                scheduleTolkLiveInspections(uri, file, event.document.version, documents)
             }
         }
 
@@ -619,6 +629,7 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
     documents.onDidSave(async event => {
         const uri = event.document.uri
         if (isActonTomlFile(uri)) {
+            markFileAsRecentlyProcessed(uri)
             await handleActonTomlChange(uri, documents)
             return
         }
@@ -647,13 +658,13 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
         for (const change of params.changes) {
             const uri = change.uri
 
-            if (isActonTomlFile(uri)) {
-                await handleActonTomlChange(uri, documents)
+            if (change.type === FileChangeType.Changed && checkIfRecentlyProcessedAndRemove(uri)) {
+                console.info(`Skipping recently processed file: ${uri}`)
                 continue
             }
 
-            if (change.type === FileChangeType.Changed && checkIfRecentlyProcessedAndRemove(uri)) {
-                console.info(`Skipping recently processed file: ${uri}`)
+            if (isActonTomlFile(uri)) {
+                await handleActonTomlChange(uri, documents)
                 continue
             }
 

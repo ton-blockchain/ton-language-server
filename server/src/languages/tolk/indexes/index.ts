@@ -434,11 +434,11 @@ export class GlobalIndex {
 
     public allRoots(): IndexRoot[] {
         const roots: IndexRoot[] = []
-        if (this.stubsRoot) {
-            roots.push(this.stubsRoot)
-        }
         if (this.stdlibRoot) {
             roots.push(this.stdlibRoot)
+        }
+        if (this.stubsRoot) {
+            roots.push(this.stubsRoot)
         }
         roots.push(...this.roots)
         return roots

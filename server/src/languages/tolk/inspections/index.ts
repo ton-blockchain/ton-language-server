@@ -19,6 +19,7 @@ export async function runTolkInspections(
     uri: string,
     file: TolkFile,
     _includeLinters: boolean,
+    shouldPublishDiagnostics: () => boolean = () => true,
 ): Promise<void> {
     const inspections: Inspection[] = [
         new UnusedParameterInspection(),
@@ -39,11 +40,14 @@ export async function runTolkInspections(
     const diagnostics: lsp.Diagnostic[] = []
 
     for (const inspection of inspections) {
+        if (!shouldPublishDiagnostics()) return
+
         if (settings.tolk.inspections.disabled.includes(inspection.id)) {
             continue
         }
         diagnostics.push(...(await inspection.inspect(file)))
     }
 
+    if (!shouldPublishDiagnostics()) return
     await connection.sendDiagnostics({uri, diagnostics})
 }

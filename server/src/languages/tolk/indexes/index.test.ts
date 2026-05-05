@@ -40,6 +40,19 @@ describe("GlobalIndex scoped cache invalidation", () => {
         TOLK_PARSED_FILES_CACHE.clear()
     })
 
+    it("keeps stdlib before stubs in global root order", () => {
+        const index = new GlobalIndex()
+        const stdlib = new IndexRoot("stdlib", "file:///project/.acton/tolk-stdlib")
+        const stubs = new IndexRoot("stubs", "file:///project/stubs")
+        const workspace = new IndexRoot("workspace", "file:///project")
+
+        index.withStdlibRoot(stdlib)
+        index.withStubsRoot(stubs)
+        index.withRoots([workspace])
+
+        expect(index.allRoots()).toEqual([stdlib, stubs, workspace])
+    })
+
     it("keeps library roots warm after workspace changes", () => {
         const index = new GlobalIndex()
         const stdlib = new IndexRoot("stdlib", "file:///project/.acton/tolk-stdlib")
