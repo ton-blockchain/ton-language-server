@@ -208,16 +208,8 @@
         "snippets": [],
         "debuggers": [
             {
-                "type": "tvm",
-                "label": "TVM Debug"
-            },
-            {
                 "type": "acton",
                 "label": "Acton Debug"
-            },
-            {
-                "type": "assembly",
-                "label": "Assembly Debug"
             },
             {
                 "type": "tolk",
@@ -225,9 +217,6 @@
             }
         ],
         "breakpoints": [
-            {
-                "language": "func"
-            },
             {
                 "language": "tasm"
             },
@@ -316,92 +305,10 @@
                 "category": "Tolk"
             },
             {
-                "command": "ton.debug",
-                "title": "TON: Debug contract"
-            },
-            {
                 "command": "ton.acton.debugRetraceTransaction",
                 "title": "Debug Retrace Transaction",
                 "category": "Acton",
                 "icon": "$(debug-start)"
-            },
-            {
-                "command": "ton.sandbox.refresh",
-                "title": "Refresh",
-                "category": "TON",
-                "icon": "$(refresh)"
-            },
-            {
-                "command": "ton.sandbox.history.refresh",
-                "title": "Refresh History",
-                "category": "TON",
-                "icon": "$(refresh)"
-            },
-            {
-                "command": "ton.sandbox.history.importTrace",
-                "title": "Import History",
-                "category": "TON",
-                "icon": "$(arrow-down)"
-            },
-            {
-                "command": "ton.sandbox.history.exportTrace",
-                "title": "Export History",
-                "category": "TON",
-                "icon": "$(arrow-up)"
-            },
-            {
-                "command": "ton.sandbox.history.reset",
-                "title": "Reset History",
-                "category": "TON",
-                "icon": "$(clear-all)"
-            },
-            {
-                "command": "ton.sandbox.deleteMessageTemplate",
-                "title": "Delete Message Template",
-                "category": "TON",
-                "icon": "$(trash)"
-            },
-            {
-                "command": "ton.sandbox.copyContractAbi",
-                "title": "Copy Contract ABI",
-                "category": "TON",
-                "icon": "$(copy)"
-            },
-            {
-                "command": "ton.sandbox.copyContractAddressFromTree",
-                "title": "Copy Address",
-                "category": "TON",
-                "icon": "$(copy)"
-            },
-            {
-                "command": "ton.test.openTestSource",
-                "title": "Open Test Source",
-                "category": "TON",
-                "icon": "$(go-to-file)"
-            },
-            {
-                "command": "ton.sandbox.installServer",
-                "title": "Install TON Sandbox Server",
-                "category": "TON",
-                "icon": "$(arrow-down)"
-            },
-            {
-                "command": "ton.sandbox.startServer",
-                "title": "Start TON Sandbox Server",
-                "category": "TON",
-                "icon": "$(debug-start)"
-            },
-            {
-                "command": "ton.sandbox.stopServer",
-                "title": "Stop TON Sandbox Server",
-                "category": "TON",
-                "icon": "$(debug-stop)"
-            },
-            {
-                "command": "ton.sandbox.openTerminal",
-                "title": "Open Sandbox Terminal",
-                "category": "TON",
-                "icon": "$(terminal)"
             },
             {
                 "command": "ton.wallets.refresh",
@@ -430,34 +337,10 @@
                     "name": "Wallets",
                     "when": "true"
                 }
-            ],
-            "tonSandboxContainer": [
-                {
-                    "id": "tonSandbox",
-                    "name": "Contracts & Actions",
-                    "when": "true"
-                },
-                {
-                    "id": "tonSandboxActions",
-                    "type": "webview",
-                    "name": "Operations",
-                    "when": "true"
-                },
-                {
-                    "id": "tonSandboxHistory",
-                    "type": "webview",
-                    "name": "History",
-                    "when": "true"
-                }
             ]
         },
         "viewsContainers": {
             "activitybar": [
-                {
-                    "id": "tonSandboxContainer",
-                    "title": "TON Sandbox",
-                    "icon": "$(rocket)"
-                },
                 {
                     "id": "tonWalletsContainer",
                     "title": "TON Wallets",
@@ -470,29 +353,9 @@
                 "command": "tolk.build",
                 "key": "f5",
                 "when": "editorTextFocus && editorLangId == 'tolk'"
-            },
-            {
-                "command": "ton.sandbox.copyContractAbi",
-                "key": "ctrl+shift+c",
-                "mac": "cmd+shift+c",
-                "when": "editorTextFocus && editorLangId == 'tolk'"
             }
         ],
         "menus": {
-            "commandPalette": [
-                {
-                    "command": "ton.sandbox.deleteMessageTemplate",
-                    "when": "false"
-                },
-                {
-                    "command": "ton.sandbox.copyContractAddressFromTree",
-                    "when": "false"
-                },
-                {
-                    "command": "ton.test.openTestSource",
-                    "when": "false"
-                }
-            ],
             "explorer/context": [
                 {
                     "when": "resourceExtname == .boc",
@@ -507,46 +370,6 @@
             ],
             "view/title": [
                 {
-                    "command": "ton.sandbox.refresh",
-                    "when": "view == tonSandbox",
-                    "group": "navigation"
-                },
-                {
-                    "command": "ton.sandbox.history.refresh",
-                    "when": "view == tonSandboxHistory",
-                    "group": "navigation"
-                },
-                {
-                    "command": "ton.sandbox.history.exportTrace",
-                    "when": "view == tonSandboxHistory",
-                    "group": "navigation"
-                },
-                {
-                    "command": "ton.sandbox.history.importTrace",
-                    "when": "view == tonSandboxHistory",
-                    "group": "navigation"
-                },
-                {
-                    "command": "ton.sandbox.history.reset",
-                    "when": "view == tonSandboxHistory",
-                    "group": "navigation"
-                },
-                {
-                    "command": "ton.sandbox.startServer",
-                    "when": "view == tonSandbox",
-                    "group": "navigation"
-                },
-                {
-                    "command": "ton.sandbox.stopServer",
-                    "when": "view == tonSandbox",
-                    "group": "navigation"
-                },
-                {
-                    "command": "ton.sandbox.openTerminal",
-                    "when": "view == tonSandbox",
-                    "group": "navigation"
-                },
-                {
                     "command": "ton.wallets.refresh",
                     "when": "view == tonWallets",
                     "group": "navigation"
@@ -560,18 +383,6 @@
                     "command": "ton.wallets.new",
                     "when": "view == tonWallets",
                     "group": "navigation"
-                }
-            ],
-            "view/item/context": [
-                {
-                    "command": "ton.sandbox.deleteMessageTemplate",
-                    "when": "view == tonSandbox && viewItem == message-template",
-                    "group": "inline"
-                },
-                {
-                    "command": "ton.sandbox.copyContractAddressFromTree",
-                    "when": "view == tonSandbox && viewItem == deployed-contract",
-                    "group": "inline"
                 }
             ]
         },
@@ -803,26 +614,6 @@
                 }
             },
             {
-                "title": "Sandbox",
-                "properties": {
-                    "ton.sandbox.port": {
-                        "type": "number",
-                        "default": 3000,
-                        "description": "Port for the TON Sandbox server"
-                    },
-                    "ton.sandbox.binaryPath": {
-                        "type": "string",
-                        "default": "./node_modules/.bin/ton-sandbox-server",
-                        "description": "Path to the TON Sandbox server binary"
-                    },
-                    "ton.sandbox.websocketPort": {
-                        "type": "number",
-                        "default": 7743,
-                        "description": "Port for the WebSocket server used for test communication"
-                    }
-                }
-            },
-            {
                 "title": "Acton",
                 "properties": {
                     "ton.acton.path": {
@@ -880,7 +671,6 @@
         "buffer": "^6.0.3",
         "glob": "^13.0.0",
         "react": "^18.3.1",
-        "react-d3-tree": "^3.6.6",
         "react-dom": "^18.3.1",
         "react-icons": "^5.5.0",
         "react-markdown": "^10.1.0",

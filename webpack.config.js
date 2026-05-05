@@ -62,7 +62,7 @@ const extensionConfig = {
         new webpack.BannerPlugin({
             banner: "#!/usr/bin/env node",
             raw: true,
-            include: ["server.js", "debugging/adapter/server.js"],
+            include: ["server.js"],
         }),
         new CopyPlugin({
             patterns: [
@@ -116,10 +116,6 @@ const webviewConfig = {
     mode: "development",
     target: "web",
     entry: {
-        actions: "./editors/code/src/webview-ui/src/views/actions/actions-main.tsx",
-        "transaction-details":
-            "./editors/code/src/webview-ui/src/views/details/transaction-details-main.tsx",
-        history: "./editors/code/src/webview-ui/src/views/history/history-main.tsx",
         wallet: "./editors/code/src/webview-ui/src/views/wallet/wallet-main.tsx",
     },
     output: {
@@ -132,7 +128,6 @@ const webviewConfig = {
         extensions: [".ts", ".tsx", ".js", ".jsx"],
         alias: {
             "@shared": path.resolve(__dirname, "shared/src"),
-            "react-d3-tree": path.resolve(__dirname, "node_modules/react-d3-tree/lib/esm/index.js"),
         },
         fallback: {
             buffer: require.resolve("buffer"),

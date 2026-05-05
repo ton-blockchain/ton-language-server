@@ -42,7 +42,6 @@ FunC support includes:
 - Inlay hints for method id
 - On-the-fly inspections
 - Build and test projects based on Blueprint
-- Debug Blueprint-based projects
 
 Fift assembly support includes:
 
@@ -63,23 +62,6 @@ BoC support includes:
 
 - Automatic BoC disassembly with syntax highlighting
 - Automatic updates on BoC changes
-
-## Sandbox Integration
-
-The VS Code extension also includes a comprehensive **TON Sandbox** — a graphical interface for local TON blockchain
-testing:
-
-- **One-Click Contract Deployment**: Deploy contracts directly from source code
-- **Interactive Message Testing**: Send internal/external messages
-- **Transaction Tree Visualization**: Deep inspection of all messages and transactions
-- **Flexible History Management**: Rollback to any previous state, export/import scenarios
-- **Contract State Monitoring**: Real-time storage and balance inspection
-- **Code Lenses**: Instant deployment and method execution from editor
-
-Perfect for rapid prototyping, interactive debugging, and educational purposes. Powered by `@ton/sandbox` package.
-
-Check out the [Sandbox Wiki Page](https://github.com/ton-blockchain/ton-language-server/wiki/Sandbox:-1.-Overview) for
-more details.
 
 ## Quick start
 
@@ -293,11 +275,6 @@ Setup steps:
 ## Troubleshooting
 
 See [TROUBLESHOOTING.md](./docs/manual/troubleshooting.md).
-
-## Thanks
-
-- Big thanks to [TonTech](https://ton.tech) for [FunC debugger
-  implementation](https://github.com/krigga/tvm-debugger)!
 
 ## License
 

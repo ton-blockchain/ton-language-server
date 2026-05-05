@@ -23,7 +23,6 @@ import {
     TypeAtPositionParams,
     TypeAtPositionRequest,
     TypeAtPositionResponse,
-    WorkspaceContractInfo,
 } from "@shared/shared-msgtypes"
 
 import type {ClientOptions} from "@shared/config-scheme"
@@ -39,15 +38,8 @@ import {BocEditorProvider} from "./providers/boc/BocEditorProvider"
 import {BocFileSystemProvider} from "./providers/boc/BocFileSystemProvider"
 import {BocDecompilerProvider} from "./providers/boc/BocDecompilerProvider"
 import {registerSaveBocDecompiledCommand} from "./commands/saveBocDecompiledCommand"
-import {registerSandboxCommands, openFileAtPosition} from "./commands/sandboxCommands"
-import {parseCallStack} from "./common/call-stack-parser"
 
-import {SandboxTreeProvider} from "./providers/sandbox/SandboxTreeProvider"
-import {SandboxActionsProvider} from "./providers/sandbox/SandboxActionsProvider"
-import {HistoryWebviewProvider} from "./providers/sandbox/HistoryWebviewProvider"
 import {WalletWebviewProvider} from "./providers/wallet/WalletWebviewProvider"
-import {TransactionDetailsProvider} from "./providers/sandbox/TransactionDetailsProvider"
-import {SandboxCodeLensProvider} from "./providers/sandbox/SandboxCodeLensProvider"
 
 import {ActonTomlCodeLensProvider} from "./acton/toml/ActonTomlCodeLensProvider"
 import {ActonTomlHoverProvider} from "./acton/toml/ActonTomlHoverProvider"
@@ -58,9 +50,6 @@ import {formatTolkDocumentWithActon} from "./acton/ActonFormatter"
 import {registerActonRetraceDebugCommand} from "./acton/retrace/ActonRetraceDebug"
 import {registerActonSetupNotifications} from "./acton/ActonSetup"
 import {configureDebugging} from "./debugging"
-import {ContractData, TransactionRun} from "./providers/sandbox/test-types"
-import {TransactionDetailsInfo} from "./common/types/transaction"
-import {DeployedContract} from "./common/types/contract"
 
 let client: LanguageClient | undefined = undefined
 let cachedToolchainInfo: SetToolchainVersionParams | undefined = undefined
@@ -78,25 +67,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     registerSaveBocDecompiledCommand(context)
     registerActonSetupNotifications(context)
 
-    const sandboxTreeProvider = new SandboxTreeProvider()
-    context.subscriptions.push(
-        vscode.window.createTreeView("tonSandbox", {
-            treeDataProvider: sandboxTreeProvider,
-            showCollapseAll: false,
-        }),
-    )
-
-    const historyWebviewProvider = new HistoryWebviewProvider(
-        context.extensionUri,
-        sandboxTreeProvider,
-    )
-    context.subscriptions.push(
-        vscode.window.registerWebviewViewProvider(
-            HistoryWebviewProvider.viewType,
-            historyWebviewProvider,
-        ),
-    )
-
     const walletWebviewProvider = new WalletWebviewProvider(context.extensionUri)
     walletWebviewProvider.registerCommands(context)
     context.subscriptions.push(
@@ -105,91 +75,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
             walletWebviewProvider,
         ),
     )
-
-    const sandboxActionsProvider = new SandboxActionsProvider(
-        context.extensionUri,
-        sandboxTreeProvider,
-        historyWebviewProvider,
-    )
-    context.subscriptions.push(
-        vscode.window.registerWebviewViewProvider(
-            SandboxActionsProvider.viewType,
-            sandboxActionsProvider,
-        ),
-    )
-
-    const transactionDetailsProvider = new TransactionDetailsProvider(context.extensionUri)
-
-    context.subscriptions.push(
-        vscode.commands.registerCommand(
-            "ton.test.showTransactionDetails",
-            async (txRun: TransactionRun) => {
-                const normalizeName = (name: string): string => {
-                    return name.toLowerCase().replace("-contract", "").replace(/[_-]/g, "")
-                }
-                // a bit hacky :)
-                const sameNameContract = (
-                    workspaceContract: WorkspaceContractInfo,
-                    contract: ContractData | undefined,
-                ): boolean => {
-                    const leftName = workspaceContract.name
-                    const rightName = contract?.meta?.wrapperName ?? ""
-                    return normalizeName(leftName) === normalizeName(rightName)
-                }
-
-                const workspaceContracts =
-                    await vscode.commands.executeCommand<GetWorkspaceContractsAbiResponse>(
-                        "tolk.getWorkspaceContractsAbi",
-                    )
-
-                const transactionDetailsInfo: TransactionDetailsInfo = {
-                    serializedResult: txRun.serializedResult,
-                    deployedContracts: txRun.contracts.map((contract): DeployedContract => {
-                        const workspaceContract = workspaceContracts.contracts.find(
-                            workspaceContract => sameNameContract(workspaceContract, contract),
-                        )
-                        return {
-                            abi: workspaceContract?.abi,
-                            sourceMap: undefined,
-                            address: contract.address,
-                            deployTime: undefined,
-                            name: contract.meta?.wrapperName ?? "unknown",
-                            sourceUri: workspaceContract?.path ?? "",
-                        }
-                    }),
-                }
-
-                transactionDetailsProvider.showTransactionDetails(transactionDetailsInfo)
-            },
-        ),
-        vscode.commands.registerCommand(
-            "ton.test.openTestSource",
-            (treeItem: {command?: vscode.Command}) => {
-                const txRun = treeItem.command?.arguments?.[0] as TransactionRun | undefined
-                if (!txRun) {
-                    console.error("No txRun found in tree item arguments")
-                    return
-                }
-
-                const transactionWithCallStack = txRun.transactions.find(tx => tx.callStack)
-                if (!transactionWithCallStack?.callStack) return
-
-                const parsedCallStack = parseCallStack(transactionWithCallStack.callStack)
-                if (parsedCallStack.length > 0) {
-                    const lastEntry = parsedCallStack.at(-1)
-                    if (
-                        lastEntry?.file &&
-                        lastEntry.line !== undefined &&
-                        lastEntry.column !== undefined
-                    ) {
-                        openFileAtPosition(lastEntry.file, lastEntry.line - 1, lastEntry.column - 1)
-                    }
-                }
-            },
-        ),
-    )
-
-    const sandboxCodeLensProvider = new SandboxCodeLensProvider(sandboxTreeProvider)
 
     // Acton integration
     const actonTolkCodeLensProvider = new ActonTolkCodeLensProvider()
@@ -200,7 +85,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     context.subscriptions.push(
         actonLinter,
         actonTestController,
-        vscode.languages.registerCodeLensProvider({language: "tolk"}, sandboxCodeLensProvider),
         vscode.languages.registerCodeLensProvider({language: "tolk"}, actonTolkCodeLensProvider),
         vscode.languages.registerCodeLensProvider(
             {pattern: "**/Acton.toml"},
@@ -212,33 +96,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     ActonTolkCodeLensProvider.registerCommands(context)
     registerActonRetraceDebugCommand(context)
 
-    sandboxTreeProvider.setActionsProvider(sandboxActionsProvider)
-    sandboxTreeProvider.setCodeLensProvider(sandboxCodeLensProvider)
-
     context.subscriptions.push(
-        vscode.window.onDidChangeActiveTextEditor(editor => {
-            if (editor) {
-                const document = {
-                    uri: editor.document.uri.toString(),
-                    languageId: editor.document.languageId,
-                    content: editor.document.getText(),
-                }
-                sandboxActionsProvider.updateActiveEditor(document)
-            } else {
-                sandboxActionsProvider.updateActiveEditor(null)
-            }
-        }),
-    )
-
-    const sandboxCommands = registerSandboxCommands(
-        sandboxTreeProvider,
-        sandboxActionsProvider,
-        historyWebviewProvider,
-        transactionDetailsProvider,
-    )
-
-    context.subscriptions.push(
-        // Register earlier for sandbox commands
         vscode.commands.registerCommand(
             "tolk.getContractAbi",
             async (params: GetContractAbiParams) => {
@@ -250,7 +108,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
                 "tolk.getWorkspaceContractsAbi",
             )
         }),
-        ...sandboxCommands,
     )
 
     configureDebugging(context)
@@ -974,7 +831,6 @@ async function checkConflictingExtensions(): Promise<void> {
         {id: "raiym.func", name: "FunC"},
         {id: "natiiix.func-language-support", name: "FunC Language Support"},
         {id: "ton-core.tolk-vscode", name: "Tolk"},
-        {id: "krigga.tvm-debugger", name: "TVM Debugger"},
     ]
 
     const installedConflicting = conflictingExtensions.filter(ext => {
