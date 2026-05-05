@@ -66,4 +66,22 @@ describe("Acton test filtering", () => {
             "tests/counter.test.tolk",
         ])
     })
+
+    it("adds full backtrace while preserving the exact filter", () => {
+        const command = new TestCommand(TestMode.DIRECTORY, "tests")
+        command.filterPattern = "^test alpha$"
+        command.backtraceFull = true
+
+        expect(command.getArguments()).toEqual([
+            "--color",
+            "always",
+            "--reporter",
+            "console,teamcity",
+            "--backtrace",
+            "full",
+            "--filter",
+            "^test alpha$",
+            "tests",
+        ])
+    })
 })
