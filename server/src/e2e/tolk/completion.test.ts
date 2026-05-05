@@ -81,7 +81,13 @@ suite("Completion Test Suite", () => {
                         })
 
                     const expected = testCase.expected.trimEnd()
-                    const actual = items.length > 0 ? items.join("\n") : "No completion items"
+                    const forbidden = testCase.properties.get("not-contains")
+                    let actual: string
+                    if (forbidden) {
+                        actual = items.filter(item => item.includes(forbidden)).join("\n") || "ok"
+                    } else {
+                        actual = items.length > 0 ? items.join("\n") : "No completion items"
+                    }
 
                     if (BaseTestSuite.UPDATE_SNAPSHOTS) {
                         this.updates.push({
