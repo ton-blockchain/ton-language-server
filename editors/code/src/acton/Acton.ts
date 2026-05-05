@@ -9,7 +9,7 @@ import * as child_process from "node:child_process"
 
 import vscode from "vscode"
 
-import {ActonCommand} from "./ActonCommand"
+import {ActonCommand, ScriptCommand} from "./ActonCommand"
 
 const DEFAULT_INSTALL_PATH = path.join(os.homedir(), ".acton", "bin", "acton")
 
@@ -22,6 +22,9 @@ export interface ActonSpawnResult {
 
 export class Acton {
     private static instance: Acton | undefined
+    private lastScriptFullBacktraceCommand:
+        | {readonly command: ActonCommand; readonly workingDirectory?: string}
+        | undefined
 
     public static getInstance(): Acton {
         Acton.instance ??= new Acton()
@@ -31,6 +34,7 @@ export class Acton {
     public async execute(command: ActonCommand, workingDirectory?: string): Promise<void> {
         const actonPath = await this.getActonPath(workingDirectory)
         const args = command.getArguments()
+        this.captureFullBacktraceCommand(command, workingDirectory)
 
         const taskDefinition: vscode.TaskDefinition = {
             type: "acton",
@@ -71,6 +75,7 @@ export class Acton {
     ): Promise<ActonSpawnResult> {
         const actonPath = await this.getActonPath(workingDirectory)
         const args = [command.name, ...command.getArguments()]
+        this.captureFullBacktraceCommand(command, workingDirectory)
 
         return new Promise((resolve, reject) => {
             const child = child_process.spawn(actonPath, args, {
@@ -153,6 +158,20 @@ export class Acton {
         })
     }
 
+    public hasScriptFullBacktraceCommand(): boolean {
+        return this.lastScriptFullBacktraceCommand !== undefined
+    }
+
+    public async rerunLastScriptWithFullBacktrace(): Promise<boolean> {
+        const rerun = this.lastScriptFullBacktraceCommand
+        if (!rerun) {
+            return false
+        }
+
+        await this.execute(rerun.command, rerun.workingDirectory)
+        return true
+    }
+
     public async isAvailable(workingDirectory?: string): Promise<boolean> {
         return (await this.resolveActonPath(workingDirectory)) !== undefined
     }
@@ -197,6 +216,31 @@ export class Acton {
     private getEffectiveConfiguredPath(config: vscode.WorkspaceConfiguration): string | undefined {
         const actonPath = config.get<string>("acton.path")
         return this.normalizeConfiguredPath(actonPath)
+    }
+
+    private captureFullBacktraceCommand(
+        command: ActonCommand,
+        workingDirectory: string | undefined,
+    ): void {
+        if (!(command instanceof ScriptCommand) || command.backtraceFull) {
+            return
+        }
+
+        this.lastScriptFullBacktraceCommand = {
+            command: new ScriptCommand(
+                command.scriptPath,
+                command.clearCache,
+                command.forkNet,
+                command.forkBlockNumber,
+                command.apiKey,
+                command.broadcastNet,
+                command.explorer,
+                command.debug,
+                command.debugPort,
+                true,
+            ),
+            workingDirectory,
+        }
     }
 
     private getUserConfiguredPath(config: vscode.WorkspaceConfiguration): string | undefined {

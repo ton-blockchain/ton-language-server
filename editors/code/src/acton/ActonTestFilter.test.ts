@@ -1,4 +1,4 @@
-import {TestCommand, TestMode} from "./ActonCommand"
+import {ScriptCommand, TestCommand, TestMode} from "./ActonCommand"
 import {createActonTestFilterPattern, escapeRustRegexLiteral} from "./ActonTestFilter"
 
 describe("Acton test filtering", () => {
@@ -82,6 +82,19 @@ describe("Acton test filtering", () => {
             "--filter",
             "^test alpha$",
             "tests",
+        ])
+    })
+
+    it("adds full backtrace to script commands before the script path", () => {
+        const command = new ScriptCommand("scripts/deploy.tolk")
+        command.backtraceFull = true
+
+        expect(command.getArguments()).toEqual([
+            "--color",
+            "always",
+            "--backtrace",
+            "full",
+            "scripts/deploy.tolk",
         ])
     })
 })
