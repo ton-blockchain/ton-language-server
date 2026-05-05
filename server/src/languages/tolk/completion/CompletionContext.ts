@@ -1,6 +1,7 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
 import type * as lsp from "vscode-languageserver/node"
+import type {Node as SyntaxNode} from "web-tree-sitter"
 
 import {TolkNode} from "@server/languages/tolk/psi/TolkNode"
 import {parentOfType} from "@server/psi/utils"
@@ -28,6 +29,7 @@ export class CompletionContext {
     public isMethodName: boolean = false
     public expectFieldModifier: boolean = false
     public isEnumMemberName: boolean = false
+    public isDeclarationName: boolean = false
     public insideString: boolean = false
 
     // struct fields
@@ -91,6 +93,11 @@ export class CompletionContext {
 
         if (parent.type === "catch_clause" && element.node.type === "identifier") {
             this.catchVariable = true
+            this.isDeclarationName = true
+        }
+
+        if (this.isNameOfDeclaration(parent)) {
+            this.isDeclarationName = true
         }
 
         if (parent.type === "instance_argument") {
@@ -119,6 +126,7 @@ export class CompletionContext {
             parent.childForFieldName("name")?.equals(element.node)
         ) {
             this.isEnumMemberName = true
+            this.isDeclarationName = true
         }
 
         if (parent.type === "binary_operator" && parent.parent?.type === "match_arm") {
@@ -204,9 +212,33 @@ export class CompletionContext {
             !this.catchVariable &&
             !this.isFunctionName &&
             !this.isMethodName &&
+            !this.isDeclarationName &&
             !this.expectFieldModifier &&
             !this.isAnnotationName &&
             !this.insideString
+        )
+    }
+
+    private isNameOfDeclaration(node: SyntaxNode): boolean {
+        const name = node.childForFieldName("name")
+        if (!name?.equals(this.element.node)) return false
+
+        return (
+            node.type === "contract_declaration" ||
+            node.type === "contract_field" ||
+            node.type === "constant_declaration" ||
+            node.type === "enum_declaration" ||
+            node.type === "enum_member_declaration" ||
+            node.type === "function_declaration" ||
+            node.type === "get_method_declaration" ||
+            node.type === "global_var_declaration" ||
+            node.type === "method_declaration" ||
+            node.type === "parameter_declaration" ||
+            node.type === "struct_declaration" ||
+            node.type === "struct_field_declaration" ||
+            node.type === "type_alias_declaration" ||
+            node.type === "type_parameter" ||
+            node.type === "var_declaration"
         )
     }
 }

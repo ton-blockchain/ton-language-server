@@ -27,6 +27,7 @@ export class ReferenceCompletionProvider implements CompletionProvider<Completio
             !ctx.catchVariable &&
             !ctx.isFunctionName &&
             !ctx.isMethodName &&
+            !ctx.isDeclarationName &&
             !ctx.expectFieldModifier &&
             !ctx.insideString &&
             !ctx.contractTopLevel &&
