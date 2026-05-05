@@ -9,10 +9,11 @@ const webpack = require("webpack")
 const MiniCssExtractPlugin = require("mini-css-extract-plugin")
 
 const distDir = path.resolve(__dirname, "dist")
+const buildMode = process.env.NODE_ENV === "development" ? "development" : "production"
 
 /**@type {import("webpack").Configuration}*/
 const extensionConfig = {
-    mode: "development",
+    mode: buildMode,
 
     target: "node", // vscode extensions run in webworker context for VS Code web 📖 -> https://webpack.js.org/configuration/target/#target
 
@@ -113,7 +114,7 @@ const extensionConfig = {
 
 /**@type {import("webpack").Configuration}*/
 const webviewConfig = {
-    mode: "development",
+    mode: buildMode,
     target: "web",
     entry: {
         wallet: "./editors/code/src/webview-ui/src/views/wallet/wallet-main.tsx",
