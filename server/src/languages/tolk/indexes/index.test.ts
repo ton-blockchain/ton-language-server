@@ -1,7 +1,20 @@
+import * as path from "node:path"
+import {pathToFileURL} from "node:url"
+
 import {TOLK_PARSED_FILES_CACHE} from "@server/files"
 import type {TolkFile} from "@server/languages/tolk/psi/TolkFile"
 
 import {GlobalIndex, IndexRoot} from "./index"
+
+const PROJECT_ROOT = path.resolve("test-project")
+
+function testPath(...parts: string[]): string {
+    return path.join(PROJECT_ROOT, ...parts)
+}
+
+function testUri(...parts: string[]): string {
+    return pathToFileURL(testPath(...parts)).toString()
+}
 
 function warm(root: IndexRoot, uri: string, key: number): void {
     root.cache.forUri(uri).typeCache.setValue(key, null)
@@ -42,9 +55,9 @@ describe("GlobalIndex scoped cache invalidation", () => {
 
     it("keeps stdlib before stubs in global root order", () => {
         const index = new GlobalIndex()
-        const stdlib = new IndexRoot("stdlib", "file:///project/.acton/tolk-stdlib")
-        const stubs = new IndexRoot("stubs", "file:///project/stubs")
-        const workspace = new IndexRoot("workspace", "file:///project")
+        const stdlib = new IndexRoot("stdlib", testUri(".acton", "tolk-stdlib"))
+        const stubs = new IndexRoot("stubs", testUri("stubs"))
+        const workspace = new IndexRoot("workspace", testUri())
 
         index.withStdlibRoot(stdlib)
         index.withStubsRoot(stubs)
@@ -55,12 +68,12 @@ describe("GlobalIndex scoped cache invalidation", () => {
 
     it("keeps library roots warm after workspace changes", () => {
         const index = new GlobalIndex()
-        const stdlib = new IndexRoot("stdlib", "file:///project/.acton/tolk-stdlib")
-        const acton = new IndexRoot("acton", "file:///project/.acton")
-        const workspace = new IndexRoot("workspace", "file:///project")
-        const stdlibUri = "file:///project/.acton/tolk-stdlib/common.tolk"
-        const actonUri = "file:///project/.acton/wrapper.tolk"
-        const workspaceUri = "file:///project/contracts/main.tolk"
+        const stdlib = new IndexRoot("stdlib", testUri(".acton", "tolk-stdlib"))
+        const acton = new IndexRoot("acton", testUri(".acton"))
+        const workspace = new IndexRoot("workspace", testUri())
+        const stdlibUri = testUri(".acton", "tolk-stdlib", "common.tolk")
+        const actonUri = testUri(".acton", "wrapper.tolk")
+        const workspaceUri = testUri("contracts", "main.tolk")
 
         index.withStdlibRoot(stdlib)
         index.withRoots([acton, workspace])
@@ -78,12 +91,12 @@ describe("GlobalIndex scoped cache invalidation", () => {
 
     it("clears workspace importers after Acton root changes", () => {
         const index = new GlobalIndex()
-        const stdlib = new IndexRoot("stdlib", "file:///project/.acton/tolk-stdlib")
-        const acton = new IndexRoot("acton", "file:///project/.acton")
-        const workspace = new IndexRoot("workspace", "file:///project")
-        const stdlibUri = "file:///project/.acton/tolk-stdlib/common.tolk"
-        const actonUri = "file:///project/.acton/wrapper.tolk"
-        const workspaceUri = "file:///project/contracts/main.tolk"
+        const stdlib = new IndexRoot("stdlib", testUri(".acton", "tolk-stdlib"))
+        const acton = new IndexRoot("acton", testUri(".acton"))
+        const workspace = new IndexRoot("workspace", testUri())
+        const stdlibUri = testUri(".acton", "tolk-stdlib", "common.tolk")
+        const actonUri = testUri(".acton", "wrapper.tolk")
+        const workspaceUri = testUri("contracts", "main.tolk")
 
         index.withStdlibRoot(stdlib)
         index.withRoots([acton, workspace])
@@ -91,7 +104,9 @@ describe("GlobalIndex scoped cache invalidation", () => {
         addParsed(
             index,
             workspaceUri,
-            parsed(workspaceUri, "/project/contracts/main.tolk", ["/project/.acton/wrapper.tolk"]),
+            parsed(workspaceUri, testPath("contracts", "main.tolk"), [
+                testPath(".acton", "wrapper.tolk"),
+            ]),
         )
 
         warm(stdlib, stdlibUri, 1)
@@ -107,12 +122,12 @@ describe("GlobalIndex scoped cache invalidation", () => {
 
     it("clears all roots after implicit stdlib common changes", () => {
         const index = new GlobalIndex()
-        const stdlib = new IndexRoot("stdlib", "file:///project/.acton/tolk-stdlib")
-        const acton = new IndexRoot("acton", "file:///project/.acton")
-        const workspace = new IndexRoot("workspace", "file:///project")
-        const stdlibUri = "file:///project/.acton/tolk-stdlib/common.tolk"
-        const actonUri = "file:///project/.acton/wrapper.tolk"
-        const workspaceUri = "file:///project/contracts/main.tolk"
+        const stdlib = new IndexRoot("stdlib", testUri(".acton", "tolk-stdlib"))
+        const acton = new IndexRoot("acton", testUri(".acton"))
+        const workspace = new IndexRoot("workspace", testUri())
+        const stdlibUri = testUri(".acton", "tolk-stdlib", "common.tolk")
+        const actonUri = testUri(".acton", "wrapper.tolk")
+        const workspaceUri = testUri("contracts", "main.tolk")
 
         index.withStdlibRoot(stdlib)
         index.withRoots([acton, workspace])
@@ -130,31 +145,41 @@ describe("GlobalIndex scoped cache invalidation", () => {
 
     it("invalidates importers after non-implicit stdlib changes without clearing unrelated files", () => {
         const index = new GlobalIndex()
-        const stdlib = new IndexRoot("stdlib", "file:///project/.acton/tolk-stdlib")
-        const acton = new IndexRoot("acton", "file:///project/.acton")
-        const workspace = new IndexRoot("workspace", "file:///project")
-        const stdlibUri = "file:///project/.acton/tolk-stdlib/math.tolk"
-        const actonUri = "file:///project/.acton/wrapper.tolk"
-        const workspaceUri = "file:///project/contracts/main.tolk"
-        const unrelatedUri = "file:///project/contracts/unrelated.tolk"
+        const stdlib = new IndexRoot("stdlib", testUri(".acton", "tolk-stdlib"))
+        const acton = new IndexRoot("acton", testUri(".acton"))
+        const workspace = new IndexRoot("workspace", testUri())
+        const stdlibUri = testUri(".acton", "tolk-stdlib", "math.tolk")
+        const actonUri = testUri(".acton", "wrapper.tolk")
+        const workspaceUri = testUri("contracts", "main.tolk")
+        const unrelatedUri = testUri("contracts", "unrelated.tolk")
 
         index.withStdlibRoot(stdlib)
         index.withRoots([acton, workspace])
 
-        addParsed(index, stdlibUri, parsed(stdlibUri, "/project/.acton/tolk-stdlib/math.tolk"))
+        addParsed(
+            index,
+            stdlibUri,
+            parsed(stdlibUri, testPath(".acton", "tolk-stdlib", "math.tolk")),
+        )
         addParsed(
             index,
             actonUri,
-            parsed(actonUri, "/project/.acton/wrapper.tolk", [
-                "/project/.acton/tolk-stdlib/math.tolk",
+            parsed(actonUri, testPath(".acton", "wrapper.tolk"), [
+                testPath(".acton", "tolk-stdlib", "math.tolk"),
             ]),
         )
         addParsed(
             index,
             workspaceUri,
-            parsed(workspaceUri, "/project/contracts/main.tolk", ["/project/.acton/wrapper.tolk"]),
+            parsed(workspaceUri, testPath("contracts", "main.tolk"), [
+                testPath(".acton", "wrapper.tolk"),
+            ]),
         )
-        addParsed(index, unrelatedUri, parsed(unrelatedUri, "/project/contracts/unrelated.tolk"))
+        addParsed(
+            index,
+            unrelatedUri,
+            parsed(unrelatedUri, testPath("contracts", "unrelated.tolk")),
+        )
 
         warm(stdlib, stdlibUri, 1)
         warm(acton, actonUri, 2)
@@ -171,26 +196,26 @@ describe("GlobalIndex scoped cache invalidation", () => {
 
     it("invalidates transitive workspace importers without clearing unrelated files", () => {
         const index = new GlobalIndex()
-        const workspace = new IndexRoot("workspace", "file:///project")
-        const aUri = "file:///project/contracts/a.tolk"
-        const bUri = "file:///project/contracts/b.tolk"
-        const cUri = "file:///project/contracts/c.tolk"
-        const dUri = "file:///project/contracts/d.tolk"
+        const workspace = new IndexRoot("workspace", testUri())
+        const aUri = testUri("contracts", "a.tolk")
+        const bUri = testUri("contracts", "b.tolk")
+        const cUri = testUri("contracts", "c.tolk")
+        const dUri = testUri("contracts", "d.tolk")
 
         index.withRoots([workspace])
 
-        addParsed(index, aUri, parsed(aUri, "/project/contracts/a.tolk"))
+        addParsed(index, aUri, parsed(aUri, testPath("contracts", "a.tolk")))
         addParsed(
             index,
             bUri,
-            parsed(bUri, "/project/contracts/b.tolk", ["/project/contracts/a.tolk"]),
+            parsed(bUri, testPath("contracts", "b.tolk"), [testPath("contracts", "a.tolk")]),
         )
         addParsed(
             index,
             cUri,
-            parsed(cUri, "/project/contracts/c.tolk", ["/project/contracts/b.tolk"]),
+            parsed(cUri, testPath("contracts", "c.tolk"), [testPath("contracts", "b.tolk")]),
         )
-        addParsed(index, dUri, parsed(dUri, "/project/contracts/d.tolk"))
+        addParsed(index, dUri, parsed(dUri, testPath("contracts", "d.tolk")))
 
         warm(workspace, aUri, 1)
         warm(workspace, bUri, 2)
@@ -207,26 +232,30 @@ describe("GlobalIndex scoped cache invalidation", () => {
 
     it("updates import graph without keeping stale importer edges", () => {
         const index = new GlobalIndex()
-        const workspace = new IndexRoot("workspace", "file:///project")
-        const aUri = "file:///project/contracts/a.tolk"
-        const bUri = "file:///project/contracts/b.tolk"
-        const cUri = "file:///project/contracts/c.tolk"
-        const importerUri = "file:///project/contracts/importer.tolk"
+        const workspace = new IndexRoot("workspace", testUri())
+        const aUri = testUri("contracts", "a.tolk")
+        const bUri = testUri("contracts", "b.tolk")
+        const cUri = testUri("contracts", "c.tolk")
+        const importerUri = testUri("contracts", "importer.tolk")
 
         index.withRoots([workspace])
 
-        addParsed(index, aUri, parsed(aUri, "/project/contracts/a.tolk"))
-        addParsed(index, bUri, parsed(bUri, "/project/contracts/b.tolk"))
-        addParsed(index, cUri, parsed(cUri, "/project/contracts/c.tolk"))
+        addParsed(index, aUri, parsed(aUri, testPath("contracts", "a.tolk")))
+        addParsed(index, bUri, parsed(bUri, testPath("contracts", "b.tolk")))
+        addParsed(index, cUri, parsed(cUri, testPath("contracts", "c.tolk")))
         addParsed(
             index,
             importerUri,
-            parsed(importerUri, "/project/contracts/importer.tolk", ["/project/contracts/a.tolk"]),
+            parsed(importerUri, testPath("contracts", "importer.tolk"), [
+                testPath("contracts", "a.tolk"),
+            ]),
         )
         addParsed(
             index,
             importerUri,
-            parsed(importerUri, "/project/contracts/importer.tolk", ["/project/contracts/b.tolk"]),
+            parsed(importerUri, testPath("contracts", "importer.tolk"), [
+                testPath("contracts", "b.tolk"),
+            ]),
         )
 
         warm(workspace, aUri, 1)
@@ -248,17 +277,19 @@ describe("GlobalIndex scoped cache invalidation", () => {
 
     it("removes importer edges when a file leaves the graph", () => {
         const index = new GlobalIndex()
-        const workspace = new IndexRoot("workspace", "file:///project")
-        const aUri = "file:///project/contracts/a.tolk"
-        const importerUri = "file:///project/contracts/importer.tolk"
+        const workspace = new IndexRoot("workspace", testUri())
+        const aUri = testUri("contracts", "a.tolk")
+        const importerUri = testUri("contracts", "importer.tolk")
 
         index.withRoots([workspace])
 
-        addParsed(index, aUri, parsed(aUri, "/project/contracts/a.tolk"))
+        addParsed(index, aUri, parsed(aUri, testPath("contracts", "a.tolk")))
         addParsed(
             index,
             importerUri,
-            parsed(importerUri, "/project/contracts/importer.tolk", ["/project/contracts/a.tolk"]),
+            parsed(importerUri, testPath("contracts", "importer.tolk"), [
+                testPath("contracts", "a.tolk"),
+            ]),
         )
         index.removeFromImportGraph(importerUri)
 
@@ -273,18 +304,18 @@ describe("GlobalIndex scoped cache invalidation", () => {
 
     it("does not rescan parsed imports while computing invalidation", () => {
         const index = new GlobalIndex()
-        const workspace = new IndexRoot("workspace", "file:///project")
-        const aUri = "file:///project/contracts/a.tolk"
-        const importerUri = "file:///project/contracts/importer.tolk"
-        const importedFiles = jest.fn(() => ["/project/contracts/a.tolk"])
+        const workspace = new IndexRoot("workspace", testUri())
+        const aUri = testUri("contracts", "a.tolk")
+        const importerUri = testUri("contracts", "importer.tolk")
+        const importedFiles = jest.fn(() => [testPath("contracts", "a.tolk")])
         const importer = {
             uri: importerUri,
-            path: "/project/contracts/importer.tolk",
+            path: testPath("contracts", "importer.tolk"),
             importedFiles,
         } as unknown as TolkFile
 
         index.withRoots([workspace])
-        addParsed(index, aUri, parsed(aUri, "/project/contracts/a.tolk"))
+        addParsed(index, aUri, parsed(aUri, testPath("contracts", "a.tolk")))
         addParsed(index, importerUri, importer)
         importedFiles.mockClear()
 
@@ -296,11 +327,11 @@ describe("GlobalIndex scoped cache invalidation", () => {
 
     it("reuses root lookup for indexed file lookups", () => {
         const index = new GlobalIndex()
-        const workspace = new IndexRoot("workspace", "file:///project")
-        const uri = "file:///project/contracts/main.tolk"
+        const workspace = new IndexRoot("workspace", testUri())
+        const uri = testUri("contracts", "main.tolk")
         const file = {
             uri,
-            path: "/project/contracts/main.tolk",
+            path: testPath("contracts", "main.tolk"),
             importedFiles: () => [],
             rootNode: {children: []},
         } as unknown as TolkFile
