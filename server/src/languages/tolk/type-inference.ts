@@ -42,16 +42,14 @@ import {
     GlobalVariable,
     InstanceMethod,
     MethodBase,
-    StaticMethod,
     Struct,
     TypeAlias,
     TypeParameter,
 } from "@server/languages/tolk/psi/Decls"
 import {CallLike, Lambda, NamedNode} from "@server/languages/tolk/psi/TolkNode"
 import {TolkFile} from "@server/languages/tolk/psi/TolkFile"
-import {Reference, ScopeProcessor} from "@server/languages/tolk/psi/Reference"
-import {index, IndexFinder, IndexKey} from "@server/languages/tolk/indexes"
-import {ResolveState} from "@server/psi/ResolveState"
+import {Reference} from "@server/languages/tolk/psi/Reference"
+import {FileIndex, index, IndexKey} from "@server/languages/tolk/indexes"
 import {parentOfType} from "@server/psi/utils"
 import {TOLK_CACHE} from "@server/languages/tolk/cache"
 import {filePathToUri} from "@server/files"
@@ -1246,19 +1244,12 @@ class InferenceWalker {
     private processMethodsInIndex(
         searchName: string,
         onMethod: (method: MethodBase) => boolean,
-        fileIndex: IndexFinder,
+        fileIndex: FileIndex,
     ): boolean {
-        return fileIndex.processElementsByKey(
-            IndexKey.Methods,
-            new (class implements ScopeProcessor {
-                public execute(node: InstanceMethod | StaticMethod): boolean {
-                    const name = node.name()
-                    if (name !== searchName) return true // fast path
-                    return onMethod(node)
-                }
-            })(),
-            new ResolveState(),
-        )
+        for (const method of fileIndex.elementsByName(IndexKey.Methods, searchName)) {
+            if (!onMethod(method)) return false
+        }
+        return true
     }
 
     private processMethods(searchName: string, onMethod: (method: MethodBase) => boolean): void {
@@ -2399,7 +2390,7 @@ class InferenceWalker {
 
         if (node instanceof FunctionBase) {
             const result = TOLK_CACHE.forFile(node.file).funcTypeCache.cached(node.node.id, () => {
-                return infer(node)
+                return inferWithTiming(node, "namedNodeType")
             })
 
             return result.ctx.getType(node.node)
@@ -3324,7 +3315,7 @@ export function typeOf(node: SyntaxNode, file: TolkFile): Ty | null {
     const result = TOLK_CACHE.forFile(cacheOwner.file).funcTypeCache.cached(
         cacheOwner.node.id,
         () => {
-            return infer(cacheOwner)
+            return inferWithTiming(cacheOwner, `typeOf(${node.type})`)
         },
     )
 
@@ -3339,13 +3330,13 @@ export function inferenceOf(node: SyntaxNode, file: TolkFile): InferenceResult |
     ownable.cacheOwner = cacheOwner
 
     return TOLK_CACHE.forFile(cacheOwner.file).funcTypeCache.cached(cacheOwner.node.id, () => {
-        return infer(cacheOwner)
+        return inferWithTiming(cacheOwner, `inferenceOf(${node.type})`)
     })
 }
 
 export function functionTypeOf(func: FunctionBase): FuncTy | null {
     const result = TOLK_CACHE.forFile(func.file).funcTypeCache.cached(func.node.id, () => {
-        return infer(func)
+        return inferWithTiming(func, "functionTypeOf")
     })
 
     const type = result.ctx.getType(func.node)
@@ -3353,6 +3344,25 @@ export function functionTypeOf(func: FunctionBase): FuncTy | null {
         return type
     }
     return null
+}
+
+function inferWithTiming(owner: NamedNode, reason: string): InferenceResult {
+    const started = performance.now()
+    const result = infer(owner)
+    const elapsed = performance.now() - started
+
+    if (elapsed > 5) {
+        const ctx = result.ctx
+        console.info(
+            `tolk inference ${owner.file.uri}: ${formatMs(elapsed)}ms owner=${owner.kindName()} ${owner.namePresentation()} node=${owner.node.type} reason=${reason}; types=${ctx.expressionTypes.size}, vars=${ctx.varTypes.size}, refs=${ctx.resolvedRefs.size}, returns=${ctx.returnTypes.length}`,
+        )
+    }
+
+    return result
+}
+
+function formatMs(value: number): string {
+    return value.toFixed(3)
 }
 
 export function methodCandidates(

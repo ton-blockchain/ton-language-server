@@ -73,6 +73,7 @@ export class FileIndex {
         [IndexKey.Constants]: [],
     }
 
+    private readonly elementsByNameCache: Map<IndexKey, Map<string, NamedNode[]>> = new Map()
     private readonly deprecated: Map<string, string> = new Map()
 
     public static create(file: TolkFile): FileIndex {
@@ -190,67 +191,31 @@ export class FileIndex {
     }
 
     public elementsByName<K extends IndexKey>(key: K, name: string): IndexKeyToType[K][] {
-        switch (key) {
-            case IndexKey.TypeAlias: {
-                return this.findElements(
-                    this.elements[IndexKey.TypeAlias],
-                    name,
-                ) as IndexKeyToType[K][]
-            }
-            case IndexKey.GlobalVariables: {
-                return this.findElements(
-                    this.elements[IndexKey.GlobalVariables],
-                    name,
-                ) as IndexKeyToType[K][]
-            }
-            case IndexKey.Funcs: {
-                return this.findElements(this.elements[IndexKey.Funcs], name) as IndexKeyToType[K][]
-            }
-            case IndexKey.Methods: {
-                return this.findElements(
-                    this.elements[IndexKey.Methods],
-                    name,
-                ) as IndexKeyToType[K][]
-            }
-            case IndexKey.GetMethods: {
-                return this.findElements(
-                    this.elements[IndexKey.GetMethods],
-                    name,
-                ) as IndexKeyToType[K][]
-            }
-            case IndexKey.Structs: {
-                return this.findElements(
-                    this.elements[IndexKey.Structs],
-                    name,
-                ) as IndexKeyToType[K][]
-            }
-            case IndexKey.Enums: {
-                return this.findElements(this.elements[IndexKey.Enums], name) as IndexKeyToType[K][]
-            }
-            case IndexKey.Contracts: {
-                return this.findElements(
-                    this.elements[IndexKey.Contracts],
-                    name,
-                ) as IndexKeyToType[K][]
-            }
-            case IndexKey.Constants: {
-                return this.findElements(
-                    this.elements[IndexKey.Constants],
-                    name,
-                ) as IndexKeyToType[K][]
-            }
-            default: {
-                return []
-            }
-        }
+        const byName = this.nameIndex(key)
+        return (byName.get(name) ?? []) as IndexKeyToType[K][]
     }
 
     private findElement<T extends NamedNode>(elements: T[], name: string): T | null {
         return elements.find(value => value.name() === name) ?? null
     }
 
-    private findElements<T extends NamedNode>(elements: T[], name: string): T[] {
-        return elements.filter(value => value.name() === name)
+    private nameIndex(key: IndexKey): Map<string, NamedNode[]> {
+        const cached = this.elementsByNameCache.get(key)
+        if (cached) return cached
+
+        const byName: Map<string, NamedNode[]> = new Map()
+        for (const element of this.elements[key]) {
+            const name = element.name()
+            const existing = byName.get(name)
+            if (existing) {
+                existing.push(element)
+            } else {
+                byName.set(name, [element])
+            }
+        }
+
+        this.elementsByNameCache.set(key, byName)
+        return byName
     }
 
     public isDeprecated(name: string): boolean {

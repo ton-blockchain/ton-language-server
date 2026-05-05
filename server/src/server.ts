@@ -105,6 +105,7 @@ import {
     setProjectTolkStdlibPath,
     tolkStdlibSearchPaths,
 } from "@server/languages/tolk/toolchain/toolchain"
+import {ActonToml} from "@server/acton/ActonToml"
 import {resolveDisplayedTolkVersion} from "@server/acton/ActonTolkVersion"
 import {
     provideTolkDocumentSymbols,
@@ -231,6 +232,7 @@ async function refreshTolkFeatures(): Promise<void> {
 
 async function handleActonTomlChange(uri: string, documents: DocumentStore): Promise<void> {
     console.info(`Acton.toml changed: ${uri}; clearing Tolk caches`)
+    ActonToml.clearCaches(uri)
     TOLK_CACHE.clear()
     tolkIndex.rebuildImportGraphFromParsedFiles()
 
