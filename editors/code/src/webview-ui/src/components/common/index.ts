@@ -1,5 +1,0 @@
-export {Button} from "./Button/Button"
-export {Input} from "./Input/Input"
-export {Select} from "./Select/Select"
-export {Label} from "./Label/Label"
-export {LoadingSpinner} from "./LoadingSpinner/LoadingSpinner"
