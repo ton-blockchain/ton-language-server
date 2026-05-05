@@ -280,4 +280,27 @@ describe("GlobalIndex scoped cache invalidation", () => {
         expect(invalidatedUris).toContain(importerUri)
         expect(importedFiles).not.toHaveBeenCalled()
     })
+
+    it("reuses root lookup for indexed file lookups", () => {
+        const index = new GlobalIndex()
+        const workspace = new IndexRoot("workspace", "file:///project")
+        const uri = "file:///project/contracts/main.tolk"
+        const file = {
+            uri,
+            path: "/project/contracts/main.tolk",
+            importedFiles: () => [],
+            rootNode: {children: []},
+        } as unknown as TolkFile
+
+        index.withRoots([workspace])
+        index.addFile(uri, file, false)
+
+        const containsSpy = jest.spyOn(workspace, "contains")
+
+        expect(index.findFile(uri)).toBeDefined()
+        expect(index.findFile(uri)).toBeDefined()
+        expect(containsSpy).not.toHaveBeenCalled()
+
+        containsSpy.mockRestore()
+    })
 })

@@ -229,10 +229,12 @@ export class IndexRoot {
     public readonly root: string
     public readonly files: Map<string, FileIndex> = new Map()
     public readonly cache: TolkRootAnalysisCache = new TolkRootAnalysisCache()
+    private readonly rootPath: string
 
     public constructor(name: "stdlib" | "stubs" | "acton" | "workspace", root: string) {
         this.name = name
         this.root = root
+        this.rootPath = fileURLToPath(root)
     }
 
     public contains(file: string): boolean {
@@ -241,8 +243,7 @@ export class IndexRoot {
             return this.name === "workspace"
         }
         const filepath = fileURLToPath(file)
-        const rootDir = fileURLToPath(this.root)
-        const relative = path.relative(rootDir, filepath)
+        const relative = path.relative(this.rootPath, filepath)
         return relative === "" || (!relative.startsWith("..") && !path.isAbsolute(relative))
     }
 
@@ -296,15 +297,16 @@ export class IndexRoot {
     private clearDependentCaches(reason: "add" | "change" | "remove", uri: string): void {
         const allRoots = index.allRoots()
         const invalidatedUris = index.cacheInvalidationUris(this, uri)
+        const invalidatedUrisByRoot = index.groupUrisByRoot(invalidatedUris)
         const invalidatedRoots = allRoots
             .map(root => {
-                const count = invalidatedUris.filter(it => root.contains(it)).length
+                const count = invalidatedUrisByRoot.get(root)?.length ?? 0
                 return count === 0 ? null : `${root.name}: ${count}`
             })
             .filter(root => root !== null)
             .join(", ")
         const preservedRootStats = allRoots
-            .filter(root => !invalidatedUris.some(uri => root.contains(uri)))
+            .filter(root => !invalidatedUrisByRoot.has(root))
             .map(root => `${root.name} (${root.cache.stats()})`)
             .join("; ")
         const invalidatedFiles = this.formatInvalidatedUris(invalidatedUris)
@@ -439,17 +441,22 @@ export class GlobalIndex {
     private readonly importersByPath: Map<string, Set<string>> = new Map()
     private readonly pathByUri: Map<string, string> = new Map()
     private readonly aliasesByUri: Map<string, Set<string>> = new Map()
+    private readonly rootByUri: Map<string, IndexRoot> = new Map()
+    private rootsBySpecificity: IndexRoot[] | undefined = undefined
 
     public withStdlibRoot(root: IndexRoot): void {
         this.stdlibRoot = root
+        this.clearRootLookupCaches()
     }
 
     public withStubsRoot(root: IndexRoot): void {
         this.stubsRoot = root
+        this.clearRootLookupCaches()
     }
 
     public withRoots(roots: IndexRoot[]): void {
         this.roots = roots
+        this.clearRootLookupCaches()
     }
 
     public allRoots(): IndexRoot[] {
@@ -472,8 +479,7 @@ export class GlobalIndex {
     }
 
     public clearFileCaches(uris: readonly string[]): void {
-        for (const root of this.allRoots()) {
-            const rootUris = uris.filter(uri => root.contains(uri))
+        for (const [root, rootUris] of this.groupUrisByRoot(uris)) {
             if (rootUris.length === 0) continue
 
             console.info(
@@ -481,6 +487,22 @@ export class GlobalIndex {
             )
             root.clearFileCaches(rootUris)
         }
+    }
+
+    public groupUrisByRoot(uris: readonly string[]): Map<IndexRoot, string[]> {
+        const urisByRoot: Map<IndexRoot, string[]> = new Map()
+        for (const uri of uris) {
+            const root = this.findRootFor(uri)
+            if (!root) continue
+
+            const rootUris = urisByRoot.get(root)
+            if (rootUris) {
+                rootUris.push(uri)
+            } else {
+                urisByRoot.set(root, [uri])
+            }
+        }
+        return urisByRoot
     }
 
     public rootsDependentOn(changedRoot: IndexRoot): IndexRoot[] {
@@ -496,15 +518,21 @@ export class GlobalIndex {
         return []
     }
 
-    public updateImportGraph(uri: string, file: TolkFile): void {
+    public updateImportGraph(uri: string, file: TolkFile, root?: IndexRoot): void {
+        const indexRoot = root ?? this.rootByUri.get(uri) ?? this.findRootFor(uri)
         this.removeFromImportGraph(uri)
 
         const filePath = this.normalizePath(file.path)
         this.pathByUri.set(uri, filePath)
-        if (file.uri !== uri) {
-            this.pathByUri.set(file.uri, filePath)
-            this.aliasesByUri.set(uri, new Set([file.uri]))
+        const aliases = this.fileAliases(uri, file)
+        for (const alias of aliases) {
+            this.pathByUri.set(alias, filePath)
         }
+        if (aliases.length > 0) {
+            const aliasSet: Set<string> = new Set(aliases)
+            this.aliasesByUri.set(uri, aliasSet)
+        }
+        this.rememberRoot(uri, indexRoot, aliases)
 
         const importedPaths = new Set(
             file.importedFiles().map(imported => this.normalizePath(imported)),
@@ -519,6 +547,8 @@ export class GlobalIndex {
     }
 
     public removeFromImportGraph(uri: string): void {
+        this.forgetRoot(uri)
+
         const importedPaths = this.importsByUri.get(uri)
         if (importedPaths) {
             for (const importedPath of importedPaths) {
@@ -623,6 +653,9 @@ export class GlobalIndex {
     }
 
     private isInRoots(uri: string, roots: ReadonlySet<IndexRoot>): boolean {
+        const knownRoot = this.rootByUri.get(uri)
+        if (knownRoot) return roots.has(knownRoot)
+
         for (const root of roots) {
             if (root.contains(uri)) return true
         }
@@ -630,11 +663,12 @@ export class GlobalIndex {
     }
 
     public findRootFor(path: string): IndexRoot | undefined {
-        const roots = [...this.allRoots()].sort(
-            (left, right) => right.root.length - left.root.length,
-        )
-        for (const root of roots) {
+        const knownRoot = this.rootByUri.get(path)
+        if (knownRoot) return knownRoot
+
+        for (const root of this.allRootsBySpecificity()) {
             if (root.contains(path)) {
+                this.rootByUri.set(path, root)
                 return root
             }
         }
@@ -648,7 +682,8 @@ export class GlobalIndex {
         if (!indexRoot) return
 
         indexRoot.addFile(uri, file, clearCache)
-        this.updateImportGraph(uri, file)
+        this.rememberRoot(uri, indexRoot, this.fileAliases(uri, file))
+        this.updateImportGraph(uri, file, indexRoot)
     }
 
     public removeFile(uri: string): void {
@@ -668,7 +703,7 @@ export class GlobalIndex {
     }
 
     public findFile(uri: string): FileIndex | undefined {
-        const indexRoot = this.findRootFor(uri)
+        const indexRoot = this.rootByUri.get(uri) ?? this.findRootFor(uri)
         if (!indexRoot) return undefined
 
         return indexRoot.findFile(uri)
@@ -723,6 +758,56 @@ export class GlobalIndex {
         }
 
         return false
+    }
+
+    private clearRootLookupCaches(): void {
+        this.rootByUri.clear()
+        this.rootsBySpecificity = undefined
+    }
+
+    private allRootsBySpecificity(): IndexRoot[] {
+        this.rootsBySpecificity ??= [...this.allRoots()].sort(
+            (left, right) => right.root.length - left.root.length,
+        )
+        return this.rootsBySpecificity
+    }
+
+    private fileAliases(uri: string, file: TolkFile): string[] {
+        if (file.uri === uri) return []
+        return [file.uri]
+    }
+
+    private rememberRoot(
+        uri: string,
+        root: IndexRoot | undefined,
+        aliases: readonly string[] = [],
+    ): void {
+        if (!root) return
+
+        this.rootByUri.set(uri, root)
+        for (const alias of aliases) {
+            this.rootByUri.set(alias, root)
+        }
+    }
+
+    private forgetRoot(uri: string): void {
+        this.rootByUri.delete(uri)
+
+        const aliases = this.aliasesByUri.get(uri)
+        if (aliases) {
+            for (const alias of aliases) {
+                this.rootByUri.delete(alias)
+            }
+        }
+
+        for (const [sourceUri, sourceAliases] of this.aliasesByUri) {
+            if (!sourceAliases.has(uri)) continue
+
+            this.rootByUri.delete(sourceUri)
+            for (const alias of sourceAliases) {
+                this.rootByUri.delete(alias)
+            }
+        }
     }
 }
 
