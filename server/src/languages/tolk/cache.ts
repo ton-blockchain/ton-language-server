@@ -6,19 +6,49 @@ import {TolkFile} from "@server/languages/tolk/psi/TolkFile"
 import {InferenceResult} from "@server/languages/tolk/type-inference"
 import {Cache} from "@server/cache/cache"
 
-export class TolkCache {
+export class TolkAnalysisCache {
     public readonly typeCache: Cache<number, Ty | null> = new Cache()
     public readonly resolveCache: Cache<number, NamedNode | null> = new Cache()
     public readonly funcTypeCache: Cache<number, InferenceResult> = new Cache()
-    public readonly importedFiles: Cache<string, TolkFile[]> = new Cache()
+
+    public stats(): string {
+        return `types: ${this.typeCache.size}, resolve: ${this.resolveCache.size}, func types: ${this.funcTypeCache.size}`
+    }
 
     public clear(): void {
-        console.info(
-            `Clearing caches (types: ${this.typeCache.size}, resolve: ${this.resolveCache.size}, imported files: ${this.importedFiles.size})`,
-        )
         this.typeCache.clear()
         this.resolveCache.clear()
         this.funcTypeCache.clear()
+    }
+}
+
+export class TolkCache {
+    private readonly fallbackAnalysisCache: TolkAnalysisCache = new TolkAnalysisCache()
+    private readonly fileAnalysisCaches: Map<string, TolkAnalysisCache> = new Map()
+    public readonly importedFiles: Cache<string, TolkFile[]> = new Cache()
+
+    public bindFile(uri: string, cache: TolkAnalysisCache): void {
+        this.fileAnalysisCaches.set(uri, cache)
+    }
+
+    public unbindFile(uri: string): void {
+        this.fileAnalysisCaches.delete(uri)
+    }
+
+    public forFile(file: TolkFile): TolkAnalysisCache {
+        return this.fileAnalysisCaches.get(file.uri) ?? this.fallbackAnalysisCache
+    }
+
+    public clearImportedFiles(): void {
+        this.importedFiles.clear()
+    }
+
+    public clear(): void {
+        console.info(`Clearing all Tolk caches (imported files: ${this.importedFiles.size})`)
+        this.fallbackAnalysisCache.clear()
+        for (const cache of new Set(this.fileAnalysisCaches.values())) {
+            cache.clear()
+        }
         this.importedFiles.clear()
     }
 }

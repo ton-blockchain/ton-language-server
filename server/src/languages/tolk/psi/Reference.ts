@@ -100,7 +100,9 @@ export class Reference {
     }
 
     public resolve(): NamedNode | null {
-        return TOLK_CACHE.resolveCache.cached(this.element.node.id, () => this.resolveImpl())
+        return TOLK_CACHE.forFile(this.element.file).resolveCache.cached(this.element.node.id, () =>
+            this.resolveImpl(),
+        )
     }
 
     private resolveImpl(): NamedNode | null {

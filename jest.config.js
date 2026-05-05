@@ -6,6 +6,10 @@ module.exports = {
     transform: {
         "^.+\\.tsx?$": "ts-jest",
     },
+    moduleNameMapper: {
+        "^@server/(.*)$": "<rootDir>/server/src/$1",
+        "^@shared/(.*)$": "<rootDir>/shared/src/$1",
+    },
     testPathIgnorePatterns: ["e2e/"],
     testRegex: "(/__tests__/.*|(\\.|/)(test|spec))\\.tsx?$",
     moduleFileExtensions: ["ts", "tsx", "js", "jsx", "json", "node"],

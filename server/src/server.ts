@@ -379,8 +379,24 @@ async function initialize(): Promise<void> {
         await funcStubsRoot.index()
     }
 
+    const workspaceIndexRoots: TolkIndexRoot[] = []
+    const actonRootPath = path.join(rootDir, ".acton")
+    const actonRootUri = filePathToUri(actonRootPath)
+    if (await existsVFS(globalVFS, actonRootUri)) {
+        const actonIndexRoot = new TolkIndexRoot("acton", actonRootUri)
+        workspaceIndexRoots.push(actonIndexRoot)
+        tolkIndex.withRoots(workspaceIndexRoots)
+
+        const actonRoot = new TolkIndexingRoot(actonRootUri, IndexingRootKind.Stdlib, [
+            "tolk-stdlib/**",
+            "logs/**",
+        ])
+        await actonRoot.index()
+    }
+
     reporter.report(90, "Indexing: (3/3) Workspace")
-    tolkIndex.withRoots([new TolkIndexRoot("workspace", rootUri)])
+    workspaceIndexRoots.push(new TolkIndexRoot("workspace", rootUri))
+    tolkIndex.withRoots(workspaceIndexRoots)
     const tolkWorkspaceRoot = new TolkIndexingRoot(rootUri, IndexingRootKind.Workspace)
     await tolkWorkspaceRoot.index()
 

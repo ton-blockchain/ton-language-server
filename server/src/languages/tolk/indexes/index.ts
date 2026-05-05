@@ -1,5 +1,6 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
+import * as path from "node:path"
 import {fileURLToPath} from "node:url"
 
 import {NamedNode} from "@server/languages/tolk/psi/TolkNode"
@@ -17,7 +18,7 @@ import {
     TypeAlias,
 } from "@server/languages/tolk/psi/Decls"
 import {ScopeProcessor} from "@server/languages/tolk/psi/Reference"
-import {TOLK_CACHE} from "@server/languages/tolk/cache"
+import {TOLK_CACHE, TolkAnalysisCache} from "@server/languages/tolk/cache"
 import {TOLK_PARSED_FILES_CACHE} from "@server/files"
 import {ResolveState} from "@server/psi/ResolveState"
 
@@ -258,11 +259,12 @@ export class FileIndex {
 }
 
 export class IndexRoot {
-    public readonly name: "stdlib" | "stubs" | "workspace"
+    public readonly name: "stdlib" | "stubs" | "acton" | "workspace"
     public readonly root: string
     public readonly files: Map<string, FileIndex> = new Map()
+    public readonly cache: TolkAnalysisCache = new TolkAnalysisCache()
 
-    public constructor(name: "stdlib" | "stubs" | "workspace", root: string) {
+    public constructor(name: "stdlib" | "stubs" | "acton" | "workspace", root: string) {
         this.name = name
         this.root = root
     }
@@ -274,37 +276,66 @@ export class IndexRoot {
         }
         const filepath = fileURLToPath(file)
         const rootDir = fileURLToPath(this.root)
-        return filepath.startsWith(rootDir)
+        const relative = path.relative(rootDir, filepath)
+        return relative === "" || (!relative.startsWith("..") && !path.isAbsolute(relative))
     }
 
     public addFile(uri: string, file: TolkFile, clearCache: boolean = true): void {
         if (this.files.has(uri)) {
+            TOLK_CACHE.bindFile(uri, this.cache)
             return
         }
 
         if (clearCache) {
-            TOLK_CACHE.clear()
+            this.clearDependentCaches("add")
         }
 
         const index = FileIndex.create(file)
         this.files.set(uri, index)
+        TOLK_CACHE.bindFile(uri, this.cache)
 
         console.info(`added ${uri} to index`)
     }
 
     public removeFile(uri: string): void {
-        TOLK_CACHE.clear()
+        this.clearDependentCaches("remove")
 
         this.files.delete(uri)
         TOLK_PARSED_FILES_CACHE.delete(uri)
+        TOLK_CACHE.unbindFile(uri)
 
         console.info(`removed ${uri} from index`)
     }
 
     public fileChanged(uri: string): void {
-        TOLK_CACHE.clear()
+        this.clearDependentCaches("change")
         this.files.delete(uri)
+        TOLK_CACHE.unbindFile(uri)
         console.info(`found changes in ${uri}`)
+    }
+
+    public clearOwnCache(): void {
+        console.info(`Clearing Tolk ${this.name} cache (${this.cache.stats()})`)
+        this.cache.clear()
+    }
+
+    private clearDependentCaches(reason: "add" | "change" | "remove"): void {
+        const allRoots = index.allRoots()
+        const dependentRoots = index.rootsDependentOn(this)
+        const dependentRootNames = dependentRoots
+            .filter(root => root !== this)
+            .map(root => root.name)
+            .join(", ")
+        const preservedRootStats = allRoots
+            .filter(root => root !== this && !dependentRoots.includes(root))
+            .map(root => `${root.name} (${root.cache.stats()})`)
+            .join("; ")
+        console.info(
+            `Invalidating Tolk caches after ${reason} in ${this.name} root; dependent roots: ${dependentRootNames || "none"}; preserved roots: ${preservedRootStats || "none"}; imported files: ${TOLK_CACHE.importedFiles.size}`,
+        )
+        TOLK_CACHE.clearImportedFiles()
+        this.clearOwnCache()
+        index.clearRootsDependentOn(this, dependentRoots)
     }
 
     public findFile(uri: string): FileIndex | undefined {
@@ -433,18 +464,41 @@ export class GlobalIndex {
 
     public allRoots(): IndexRoot[] {
         const roots: IndexRoot[] = []
-        if (this.stdlibRoot) {
-            roots.push(this.stdlibRoot)
-        }
         if (this.stubsRoot) {
             roots.push(this.stubsRoot)
+        }
+        if (this.stdlibRoot) {
+            roots.push(this.stdlibRoot)
         }
         roots.push(...this.roots)
         return roots
     }
 
+    public clearRootsDependentOn(changedRoot: IndexRoot, dependentRoots?: IndexRoot[]): void {
+        for (const root of dependentRoots ?? this.rootsDependentOn(changedRoot)) {
+            if (root === changedRoot) continue
+            root.clearOwnCache()
+        }
+    }
+
+    public rootsDependentOn(changedRoot: IndexRoot): IndexRoot[] {
+        const roots = this.allRoots()
+        if (changedRoot.name === "stubs" || changedRoot.name === "stdlib") {
+            return roots
+        }
+
+        if (changedRoot.name === "acton") {
+            return roots.filter(root => root.name === "workspace")
+        }
+
+        return []
+    }
+
     public findRootFor(path: string): IndexRoot | undefined {
-        for (const root of this.allRoots()) {
+        const roots = [...this.allRoots()].sort(
+            (left, right) => right.root.length - left.root.length,
+        )
+        for (const root of roots) {
             if (root.contains(path)) {
                 return root
             }

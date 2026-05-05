@@ -16,6 +16,7 @@ export abstract class IndexingRoot {
         public root: string,
         public extensions: string[],
         public kind: IndexingRootKind,
+        private readonly additionalIgnore: string[] = [],
     ) {}
 
     public async index(): Promise<void> {
@@ -29,8 +30,9 @@ export abstract class IndexingRoot {
                       "**/dist/**",
                       "**/target/**",
                       "**/__testdata/**",
-                      ".acton/tolk-stdlib/**", // already indexed in stdlib root
+                      ".acton/**", // already indexed in dedicated Acton roots
                   ]
+        ignore.push(...this.additionalIgnore)
 
         const rootDir = fileURLToPath(this.root)
 

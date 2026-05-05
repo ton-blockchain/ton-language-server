@@ -2136,9 +2136,10 @@ class InferenceWalker {
         file: TolkFile | null | undefined,
     ): Ty | null {
         if (!typeNode || !file) return null
-        return TOLK_CACHE.typeCache.cached(typeNode.id, () => {
+        const cache = TOLK_CACHE.forFile(file)
+        return cache.typeCache.cached(typeNode.id, () => {
             // add unknown type to avoid recursion
-            TOLK_CACHE.typeCache.setValue(typeNode.id, UnknownTy.UNKNOWN)
+            cache.typeCache.setValue(typeNode.id, UnknownTy.UNKNOWN)
             return InferenceWalker.convertTypeImpl(typeNode, file)
         })
     }
@@ -2293,8 +2294,10 @@ class InferenceWalker {
     }
 
     public static namedNodeType(node: NamedNode): Ty | null {
-        return TOLK_CACHE.typeCache.cachedIf(node.node.id, UnknownTy.UNKNOWN, () =>
-            InferenceWalker.namedNodeTypeImpl(node),
+        return TOLK_CACHE.forFile(node.file).typeCache.cachedIf(
+            node.node.id,
+            UnknownTy.UNKNOWN,
+            () => InferenceWalker.namedNodeTypeImpl(node),
         )
     }
 
@@ -2395,7 +2398,7 @@ class InferenceWalker {
         }
 
         if (node instanceof FunctionBase) {
-            const result = TOLK_CACHE.funcTypeCache.cached(node.node.id, () => {
+            const result = TOLK_CACHE.forFile(node.file).funcTypeCache.cached(node.node.id, () => {
                 return infer(node)
             })
 
@@ -3318,9 +3321,12 @@ export function typeOf(node: SyntaxNode, file: TolkFile): Ty | null {
 
     ownable.cacheOwner = cacheOwner
 
-    const result = TOLK_CACHE.funcTypeCache.cached(cacheOwner.node.id, () => {
-        return infer(cacheOwner)
-    })
+    const result = TOLK_CACHE.forFile(cacheOwner.file).funcTypeCache.cached(
+        cacheOwner.node.id,
+        () => {
+            return infer(cacheOwner)
+        },
+    )
 
     return result.ctx.getType(node)
 }
@@ -3332,13 +3338,13 @@ export function inferenceOf(node: SyntaxNode, file: TolkFile): InferenceResult |
 
     ownable.cacheOwner = cacheOwner
 
-    return TOLK_CACHE.funcTypeCache.cached(cacheOwner.node.id, () => {
+    return TOLK_CACHE.forFile(cacheOwner.file).funcTypeCache.cached(cacheOwner.node.id, () => {
         return infer(cacheOwner)
     })
 }
 
 export function functionTypeOf(func: FunctionBase): FuncTy | null {
-    const result = TOLK_CACHE.funcTypeCache.cached(func.node.id, () => {
+    const result = TOLK_CACHE.forFile(func.file).funcTypeCache.cached(func.node.id, () => {
         return infer(func)
     })
 
