@@ -1,0 +1,101 @@
+========================================================================
+Enum member value inlay hints, sequential and explicit values
+========================================================================
+enum Color {
+    Red,
+    Green = 5,
+    Blue,
+    Negative = -1,
+    Next,
+    Hex = 0x10,
+    Truthy = 10 > 0,
+    Falsy = 10 < 0,
+    AfterFalsy,
+}
+------------------------------------------------------------------------
+enum Color {
+    Red/*  = 0 */,
+    Green = 5,
+    Blue/*  = 6 */,
+    Negative = -1,
+    Next/*  = 0 */,
+    Hex = 0x10/*  = 16 */,
+    Truthy = 10 > 0/*  = -1 */,
+    Falsy = 10 < 0/*  = 0 */,
+    AfterFalsy/*  = 1 */,
+}
+
+========================================================================
+Enum member value inlay hints, constant expressions and other enum members
+========================================================================
+const BASE = 10;
+
+enum Other {
+    Item = 3,
+}
+
+enum Color {
+    Red = BASE + 1,
+    Green,
+    Blue = Other.Item + 2,
+    Yellow,
+}
+------------------------------------------------------------------------
+const BASE/* : int */ = 10;
+
+enum Other {
+    Item = 3,
+}
+
+enum Color {
+    Red = BASE + 1/*  = 11 */,
+    Green/*  = 12 */,
+    Blue = Other.Item + 2/*  = 5 */,
+    Yellow/*  = 6 */,
+}
+
+========================================================================
+Enum member value inlay hints, unsupported initializers stop sequence
+========================================================================
+fun notConst(): int {
+    return 10;
+}
+
+enum Broken {
+    A = 1,
+    B = notConst(),
+    C,
+    D = 4,
+    E,
+}
+------------------------------------------------------------------------
+fun notConst(): int {
+    return 10;
+}
+
+enum Broken {
+    A = 1,
+    B = notConst(),
+    C,
+    D = 4,
+    E/*  = 5 */,
+}
+
+========================================================================
+Enum member value inlay hints, same enum references stop sequence
+========================================================================
+enum Codes {
+    Base = 100,
+    Next = Codes.Base + 1,
+    After,
+    Reset = 7,
+    Last,
+}
+------------------------------------------------------------------------
+enum Codes {
+    Base = 100,
+    Next = Codes.Base + 1,
+    After,
+    Reset = 7,
+    Last/*  = 8 */,
+}
