@@ -14,6 +14,6 @@
 !package.json
 !./README-extension.md
 !editors/code/src/languages
-!editors/code/src/assets
+!editors/code/src/assets/logo.png
 !syntaxes/
 !snippets/

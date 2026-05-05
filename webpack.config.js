@@ -9,7 +9,8 @@ const webpack = require("webpack")
 const MiniCssExtractPlugin = require("mini-css-extract-plugin")
 
 const distDir = path.resolve(__dirname, "dist")
-const buildMode = process.env.NODE_ENV === "development" ? "development" : "production"
+const hasModeArg = process.argv.some(arg => arg === "--mode" || arg.startsWith("--mode="))
+const buildMode = hasModeArg ? undefined : "production"
 
 /**@type {import("webpack").Configuration}*/
 const extensionConfig = {
