@@ -48,6 +48,7 @@ export enum IndexKey {
 
 export interface IndexFinder {
     processElementsByKey: (key: IndexKey, processor: ScopeProcessor, state: ResolveState) => boolean
+    elementsByName: <K extends IndexKey>(key: K, name: string) => IndexKeyToType[K][]
 }
 
 export class FileIndex {

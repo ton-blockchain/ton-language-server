@@ -120,6 +120,7 @@ export class TolkCache {
     private readonly fileRootCaches: Map<string, TolkRootAnalysisCache> = new Map()
     private readonly fileAliases: Map<string, Set<string>> = new Map()
     public readonly importedFiles: Cache<string, TolkFile[]> = new Cache()
+    public readonly importedFilePaths: Cache<string, string[]> = new Cache()
 
     public bindFile(
         uri: string,
@@ -155,15 +156,19 @@ export class TolkCache {
 
     public clearImportedFiles(): void {
         this.importedFiles.clear()
+        this.importedFilePaths.clear()
     }
 
     public clear(): void {
-        console.info(`Clearing all Tolk caches (imported files: ${this.importedFiles.size})`)
+        console.info(
+            `Clearing all Tolk caches (imported files: ${this.importedFiles.size}, imported file paths: ${this.importedFilePaths.size})`,
+        )
         this.fallbackAnalysisCache.clear()
         for (const cache of new Set(this.fileRootCaches.values())) {
             cache.clear()
         }
         this.importedFiles.clear()
+        this.importedFilePaths.clear()
     }
 }
 

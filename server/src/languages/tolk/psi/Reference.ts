@@ -311,7 +311,7 @@ export class Reference {
             ? measureTime(`tolk completion qualifier inference ${qualifier.file.uri}`, () =>
                   inferenceOf(qualifier.node, qualifier.file),
               )
-            : inferenceOf(qualifier.node, qualifier.file)
+            : inferenceOf(this.element.node.parent ?? qualifier.node, qualifier.file)
 
         if (!completion) {
             // For resolving we have a stable state, during inference we already resolved all
@@ -547,7 +547,7 @@ export class Reference {
     }
 
     private processUnqualifiedResolve(proc: ScopeProcessor, state: ResolveState): boolean {
-        const name = this.element.node.text
+        const name = this.element.name()
         if (!name || name === "" || name === "_") return true
 
         if (this.onlyBlock) {
@@ -555,9 +555,7 @@ export class Reference {
         }
 
         const bitTypeNameOrUndefined = bitTypeName(name)
-        if (bitTypeNameOrUndefined !== undefined) {
-            state = state.withValue("search-name", bitTypeNameOrUndefined)
-        }
+        state = state.withValue("search-name", bitTypeNameOrUndefined ?? name)
 
         const parent = this.element.node.parent
         // foo.bar
@@ -839,15 +837,33 @@ export class Reference {
             if (!isQualifier) {
                 // address.foo()
                 // ^^^^^^^ can be both type and function, resolve only as type
-                if (!fileIndex.processElementsByKey(IndexKey.Funcs, proc, state)) return false
-                if (!fileIndex.processElementsByKey(IndexKey.GetMethods, proc, state)) return false
+                if (!this.processElementsInIndex(fileIndex, IndexKey.Funcs, proc, state))
+                    return false
+                if (!this.processElementsInIndex(fileIndex, IndexKey.GetMethods, proc, state))
+                    return false
             }
-            if (!fileIndex.processElementsByKey(IndexKey.GlobalVariables, proc, state)) return false
-            if (!fileIndex.processElementsByKey(IndexKey.Constants, proc, state)) return false
+            if (!this.processElementsInIndex(fileIndex, IndexKey.GlobalVariables, proc, state))
+                return false
+            if (!this.processElementsInIndex(fileIndex, IndexKey.Constants, proc, state))
+                return false
         }
 
-        if (!fileIndex.processElementsByKey(IndexKey.Structs, proc, state)) return false
-        if (!fileIndex.processElementsByKey(IndexKey.Enums, proc, state)) return false
-        return fileIndex.processElementsByKey(IndexKey.TypeAlias, proc, state)
+        if (!this.processElementsInIndex(fileIndex, IndexKey.Structs, proc, state)) return false
+        if (!this.processElementsInIndex(fileIndex, IndexKey.Enums, proc, state)) return false
+        return this.processElementsInIndex(fileIndex, IndexKey.TypeAlias, proc, state)
+    }
+
+    private processElementsInIndex(
+        fileIndex: IndexFinder,
+        key: IndexKey,
+        proc: ScopeProcessor,
+        state: ResolveState,
+    ): boolean {
+        if (state.get("completion")) {
+            return fileIndex.processElementsByKey(key, proc, state)
+        }
+
+        const searchName = state.get("search-name") ?? this.element.name()
+        return Reference.processNamedEls(proc, state, fileIndex.elementsByName(key, searchName))
     }
 }

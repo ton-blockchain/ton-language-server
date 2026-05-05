@@ -82,14 +82,14 @@ export class ReferenceCompletionProcessor implements ScopeProcessor {
     public execute(node: TolkNode, state: ResolveState): boolean {
         if (!(node instanceof NamedNode)) return true
 
+        if (!this.allowedInContext(node)) {
+            return true
+        }
+
         const prefix = state.get("prefix") ?? ""
         const rawName = node.name(false)
         const name = node.name()
         if (name.endsWith("DummyIdentifier")) {
-            return true
-        }
-
-        if (!this.allowedInContext(node)) {
             return true
         }
 

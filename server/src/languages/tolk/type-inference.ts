@@ -1307,7 +1307,7 @@ class InferenceWalker {
         this.processMethods(searchName, method => {
             const receiverTypeNode = method.receiverTypeNode()
             if (!receiverTypeNode) return true
-            const receiverType = InferenceWalker.convertType(receiverTypeNode, this.ctx.file)
+            const receiverType = InferenceWalker.convertType(receiverTypeNode, method.file)
 
             if (!receiverType?.hasGenerics() && receiverType?.equals(qualifierType)) {
                 result.push(method)
@@ -1324,7 +1324,7 @@ class InferenceWalker {
         this.processMethods(searchName, method => {
             const receiverTypeNode = method.receiverTypeNode()
             if (!receiverTypeNode) return true
-            const receiverType = InferenceWalker.convertType(receiverTypeNode, this.ctx.file)
+            const receiverType = InferenceWalker.convertType(receiverTypeNode, method.file)
 
             if (!receiverType?.hasGenerics() && receiverType?.canRhsBeAssigned(qualifierType)) {
                 result.push(method)
@@ -1342,7 +1342,7 @@ class InferenceWalker {
         this.processMethods(searchName, method => {
             const receiverTypeNode = method.receiverTypeNode()
             if (!receiverTypeNode) return true
-            const receiverType = InferenceWalker.convertType(receiverTypeNode, this.ctx.file)
+            const receiverType = InferenceWalker.convertType(receiverTypeNode, method.file)
 
             // Foo<T>, but not T
             if (receiverType?.hasGenerics() && !(receiverType instanceof TypeParameterTy)) {
@@ -1374,7 +1374,7 @@ class InferenceWalker {
         this.processMethods(searchName, method => {
             const receiverTypeNode = method.receiverTypeNode()
             if (!receiverTypeNode) return true
-            const receiverType = InferenceWalker.convertType(receiverTypeNode, this.ctx.file)
+            const receiverType = InferenceWalker.convertType(receiverTypeNode, method.file)
 
             if (receiverType instanceof TypeParameterTy) {
                 result.push(method)
