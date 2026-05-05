@@ -3946,13 +3946,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"cac@npm:^6.7.14":
-  version: 6.7.14
-  resolution: "cac@npm:6.7.14"
-  checksum: 10c0/4ee06aaa7bab8981f0d54e5f5f9d4adcd64058e9697563ce336d8a3878ed018ee18ebe5359b2430eceae87e0758e62ea2019c3f52ae6e211b1bd2e133856cd10
-  languageName: node
-  linkType: hard
-
 "cacache@npm:^19.0.1":
   version: 19.0.1
   resolution: "cacache@npm:19.0.1"
@@ -5930,22 +5923,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"glob@npm:11.1.0, glob@npm:^11.0.0":
-  version: 11.1.0
-  resolution: "glob@npm:11.1.0"
-  dependencies:
-    foreground-child: "npm:^3.3.1"
-    jackspeak: "npm:^4.1.1"
-    minimatch: "npm:^10.1.1"
-    minipass: "npm:^7.1.2"
-    package-json-from-dist: "npm:^1.0.0"
-    path-scurry: "npm:^2.0.0"
-  bin:
-    glob: dist/esm/bin.mjs
-  checksum: 10c0/1ceae07f23e316a6fa74581d9a74be6e8c2e590d2f7205034dd5c0435c53f5f7b712c2be00c3b65bf0a49294a1c6f4b98cd84c7637e29453b5aa13b79f1763a2
-  languageName: node
-  linkType: hard
-
 "glob@npm:^10.2.2, glob@npm:^10.3.10, glob@npm:^10.4.1, glob@npm:^10.4.5":
   version: 10.5.0
   resolution: "glob@npm:10.5.0"
@@ -5959,6 +5936,22 @@ __metadata:
   bin:
     glob: dist/esm/bin.mjs
   checksum: 10c0/100705eddbde6323e7b35e1d1ac28bcb58322095bd8e63a7d0bef1a2cdafe0d0f7922a981b2b48369a4f8c1b077be5c171804534c3509dfe950dde15fbe6d828
+  languageName: node
+  linkType: hard
+
+"glob@npm:^11.0.0":
+  version: 11.1.0
+  resolution: "glob@npm:11.1.0"
+  dependencies:
+    foreground-child: "npm:^3.3.1"
+    jackspeak: "npm:^4.1.1"
+    minimatch: "npm:^10.1.1"
+    minipass: "npm:^7.1.2"
+    package-json-from-dist: "npm:^1.0.0"
+    path-scurry: "npm:^2.0.0"
+  bin:
+    glob: dist/esm/bin.mjs
+  checksum: 10c0/1ceae07f23e316a6fa74581d9a74be6e8c2e590d2f7205034dd5c0435c53f5f7b712c2be00c3b65bf0a49294a1c6f4b98cd84c7637e29453b5aa13b79f1763a2
   languageName: node
   linkType: hard
 
@@ -10488,19 +10481,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"tolkfmt-test-dev@npm:0.0.27":
-  version: 0.0.27
-  resolution: "tolkfmt-test-dev@npm:0.0.27"
-  dependencies:
-    cac: "npm:^6.7.14"
-    glob: "npm:11.1.0"
-    web-tree-sitter: "npm:^0.26.3"
-  bin:
-    tolkfmt: bin/tolkfmt
-  checksum: 10c0/c482e6bad97ccee90b953ee1a5f197be8bdbb7df5c4a42481796e5f1b26fba3714f7e282fe4799bb423a485dc38a6a47197be02e4e455dfb465bbc64e350c412
-  languageName: node
-  linkType: hard
-
 "tree-sitter-cli@npm:^0.26.3":
   version: 0.26.3
   resolution: "tree-sitter-cli@npm:0.26.3"
@@ -11208,7 +11188,6 @@ __metadata:
     style-loader: "npm:^4.0.0"
     stylelint: "npm:^16.24.0"
     stylelint-config-standard: "npm:^39.0.0"
-    tolkfmt-test-dev: "npm:0.0.27"
     tree-sitter-cli: "npm:^0.26.3"
     ts-jest: "npm:^29.2.6"
     ts-loader: "npm:^9.5.1"
@@ -11270,13 +11249,6 @@ __metadata:
     "@types/emscripten":
       optional: true
   checksum: 10c0/8056263c75f59c8f992584386f85675fdce94f67eec506970f49d203a7d25effa96a4736eee5b06f06dc4d8f01339f68d9d4e97d713a6517d19db1f1c0954e06
-  languageName: node
-  linkType: hard
-
-"web-tree-sitter@npm:^0.26.3":
-  version: 0.26.6
-  resolution: "web-tree-sitter@npm:0.26.6"
-  checksum: 10c0/877359f2988809d8799de3ce06f526355decd7634464bf2519ba92be6b68f4ec15bd57e4691d47a57b129cf09c2f80347322702113ba8fdb80c1b1c78ede641a
   languageName: node
   linkType: hard
 
