@@ -264,6 +264,12 @@ export abstract class BaseTestSuite {
             totalTests += testCases.length
 
             for (const testCase of testCases) {
+                const skipReason = testCase.properties.get("skip")
+                if (skipReason) {
+                    this.logTestInfo(`Skipping test: ${testCase.name} (${skipReason})`)
+                    continue
+                }
+
                 if (this.shouldRunTest(testCase.name)) {
                     this.logTestInfo(`Running test: ${testCase.name}`)
                     this.runTest(testFile, testCase)

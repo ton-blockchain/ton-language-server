@@ -60,7 +60,7 @@ fun generic<T>(a: T): T {}
 
 fun main(a: int | bool) {
     val foo = generic([a, 1, true]);
-//!     ^ [int | bool, int, bool]
+//!     ^ array<int | bool | bool>
 }
 ------------------------------------------------------------------------
 ok

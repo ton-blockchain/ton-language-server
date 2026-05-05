@@ -177,12 +177,12 @@ fun test() {
     val res = some();
 }
 ------------------------------------------------------------------------
-fun some()/* : [int, bool, int] */ {
+fun some()/* : array<int | bool> */ {
     return [10, true, 1000];
 }
 
 fun test()/* : void */ {
-    val res/* : [int, bool, int] */ = some();
+    val res/* : array<int | bool> */ = some();
 }
 
 ========================================================================

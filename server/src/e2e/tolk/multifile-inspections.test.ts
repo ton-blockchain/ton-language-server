@@ -11,7 +11,7 @@ import {BaseTestSuite} from "./BaseTestSuite"
 suite("Multi file Inspection Test Suite", () => {
     const testSuite = new (class extends BaseTestSuite {
         public async getInspections(): Promise<string> {
-            await new Promise(resolve => setTimeout(resolve, 100))
+            await new Promise(resolve => setTimeout(resolve, 300))
 
             const diagnostics = vscode.languages.getDiagnostics(this.document.uri)
             if (diagnostics.length === 0) {

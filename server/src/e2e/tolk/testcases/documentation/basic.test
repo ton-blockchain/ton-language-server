@@ -320,7 +320,9 @@ Type alias with union type documentation
 type <caret>IntOrStrong = int | string;
 ------------------------------------------------------------------------
 ```tolk
-type IntOrStrong = int | string
+type IntOrStrong =
+    | int
+    | string
 ```
 
 ========================================================================
