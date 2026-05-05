@@ -9,6 +9,7 @@ import * as vscode from "vscode"
 import {Acton} from "./Acton"
 import {startActonDebugging} from "./ActonDebug"
 import {TestCommand, TestMode} from "./ActonCommand"
+import {createActonTestFilterPattern} from "./ActonTestFilter"
 import {
     extractTeamCityFileHint,
     isTeamCityMessageLine,
@@ -285,6 +286,24 @@ export class ActonTestController implements vscode.Disposable {
         token: vscode.CancellationToken,
         isCoverage: boolean,
     ): Promise<void> {
+        const leafSelection = this.getExplicitLeafSelection(tests)
+        if (leafSelection.length > 1 && leafSelection.length === tests.length) {
+            const commandTarget = this.getFilteredSelectionRunTarget(leafSelection, workingDir)
+            const filterPattern = createActonTestFilterPattern(
+                leafSelection.map(test => test.label),
+            )
+            await this.runAllTestsInDirectory(
+                workingDir,
+                leafSelection,
+                run,
+                token,
+                isCoverage,
+                commandTarget,
+                filterPattern,
+            )
+            return
+        }
+
         if (tests.length === 1) {
             const single = tests[0]
             if (single.uri && single.id === single.uri.toString()) {
@@ -375,13 +394,22 @@ export class ActonTestController implements vscode.Disposable {
             return
         }
 
-        const commandTarget = this.getSelectionRunTarget(tests, workingDir)
-        const workspaceFolder = tests[0].uri
-            ? vscode.workspace.getWorkspaceFolder(tests[0].uri)
+        const leafSelection = this.getExplicitLeafSelection(tests)
+        const useFilteredDebugSelection =
+            leafSelection.length > 1 && leafSelection.length === tests.length
+        const debugTests = useFilteredDebugSelection ? leafSelection : tests
+        const commandTarget = useFilteredDebugSelection
+            ? this.getFilteredSelectionRunTarget(leafSelection, workingDir)
+            : this.getSelectionRunTarget(tests, workingDir)
+        const filterPattern = useFilteredDebugSelection
+            ? createActonTestFilterPattern(leafSelection.map(test => test.label))
+            : ""
+        const workspaceFolder = debugTests[0].uri
+            ? vscode.workspace.getWorkspaceFolder(debugTests[0].uri)
             : undefined
         await this.startDebuggingCommand(
             workingDir,
-            this.createDirectoryDebugCommand(commandTarget),
+            this.createDirectoryDebugCommand(commandTarget, filterPattern),
             this.createDirectoryDebugSessionName(workingDir, commandTarget),
             workspaceFolder,
         )
@@ -410,14 +438,17 @@ export class ActonTestController implements vscode.Disposable {
 
         await this.startDebuggingCommand(
             workingDir,
-            command,
+            item.children.size > 0 ? command : this.withExactTestFilter(command, item.label),
             `Debug ${item.label}`,
             vscode.workspace.getWorkspaceFolder(uri),
         )
     }
 
-    private createDirectoryDebugCommand(commandTarget: string): TestCommand {
-        return new TestCommand(
+    private createDirectoryDebugCommand(
+        commandTarget: string,
+        filterPattern: string = "",
+    ): TestCommand {
+        const command = new TestCommand(
             TestMode.DIRECTORY,
             commandTarget,
             "",
@@ -427,6 +458,8 @@ export class ActonTestController implements vscode.Disposable {
             "",
             true,
         )
+        command.filterPattern = filterPattern
+        return command
     }
 
     private createDirectoryDebugSessionName(workingDir: string, commandTarget: string): string {
@@ -491,15 +524,7 @@ export class ActonTestController implements vscode.Disposable {
                       "lcov",
                       coverageFile,
                   )
-                : new TestCommand(
-                      TestMode.FUNCTION,
-                      relativePath,
-                      item.label,
-                      false,
-                      isCoverage,
-                      "lcov",
-                      coverageFile,
-                  )
+                : this.createSingleTestCommand(relativePath, item.label, isCoverage, coverageFile)
 
         let teamCityFailure: TestFailureInfo | undefined
         const outputProcessor = this.createOutputProcessor(run, item, message => {
@@ -543,6 +568,31 @@ export class ActonTestController implements vscode.Disposable {
         }
     }
 
+    private createSingleTestCommand(
+        relativePath: string,
+        testName: string,
+        isCoverage: boolean,
+        coverageFile: string,
+    ): TestCommand {
+        return this.withExactTestFilter(
+            new TestCommand(
+                TestMode.FUNCTION,
+                relativePath,
+                testName,
+                false,
+                isCoverage,
+                "lcov",
+                coverageFile,
+            ),
+            testName,
+        )
+    }
+
+    private withExactTestFilter(command: TestCommand, testName: string): TestCommand {
+        command.filterPattern = createActonTestFilterPattern([testName])
+        return command
+    }
+
     private async runAllTestsInDirectory(
         workingDir: string,
         roots: vscode.TestItem[],
@@ -550,6 +600,7 @@ export class ActonTestController implements vscode.Disposable {
         token: vscode.CancellationToken,
         isCoverage: boolean = false,
         commandTarget: string = "",
+        filterPattern: string = "",
     ): Promise<void> {
         if (token.isCancellationRequested || roots.length === 0) {
             return
@@ -570,6 +621,7 @@ export class ActonTestController implements vscode.Disposable {
             "lcov",
             coverageFile,
         )
+        command.filterPattern = filterPattern
 
         const outputProcessor = this.createOutputProcessor(run, undefined, message => {
             this.handleDirectoryTeamCityMessage(state, run, workingDir, message)
@@ -877,6 +929,41 @@ export class ActonTestController implements vscode.Disposable {
         }
 
         return result
+    }
+
+    private getExplicitLeafSelection(items: readonly vscode.TestItem[]): vscode.TestItem[] {
+        const result: vscode.TestItem[] = []
+        const seen: Set<string> = new Set()
+
+        for (const item of items) {
+            if (item.children.size > 0 || seen.has(item.id)) {
+                continue
+            }
+
+            seen.add(item.id)
+            result.push(item)
+        }
+
+        return result
+    }
+
+    private getFilteredSelectionRunTarget(
+        leafSelection: readonly vscode.TestItem[],
+        workingDir: string,
+    ): string {
+        const files = [
+            ...new Set(
+                leafSelection
+                    .map(test => test.uri?.fsPath)
+                    .filter((value): value is string => typeof value === "string"),
+            ),
+        ]
+
+        if (files.length === 1) {
+            return path.relative(workingDir, files[0]).replace(/\\/g, "/")
+        }
+
+        return this.getSelectionRunTarget(leafSelection, workingDir)
     }
 
     private getSelectionRunTarget(items: readonly vscode.TestItem[], workingDir: string): string {

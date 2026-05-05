@@ -69,6 +69,7 @@ export class TestCommand extends ActonCommand {
         public ui: boolean = false,
         public uiPort: string = "",
         public reporter: string = "console,teamcity",
+        public filterPattern: string = "",
     ) {
         super("test")
     }
@@ -98,11 +99,13 @@ export class TestCommand extends ActonCommand {
             }
         }
 
+        const filter = this.getFilterArgument()
+        if (filter !== "") {
+            args.push("--filter", filter)
+        }
+
         switch (this.mode) {
             case TestMode.FUNCTION: {
-                if (this.functionName.trim() !== "") {
-                    args.push("--filter", this.functionName.replace(/`/g, ""))
-                }
                 if (this.target.trim() !== "") {
                     args.push(this.target)
                 }
@@ -117,6 +120,18 @@ export class TestCommand extends ActonCommand {
             }
         }
         return args
+    }
+
+    private getFilterArgument(): string {
+        if (this.filterPattern.trim() !== "") {
+            return this.filterPattern
+        }
+
+        if (this.mode === TestMode.FUNCTION && this.functionName.trim() !== "") {
+            return this.functionName.replace(/`/g, "")
+        }
+
+        return ""
     }
 }
 

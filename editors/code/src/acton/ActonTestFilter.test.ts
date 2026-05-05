@@ -1,0 +1,69 @@
+import {TestCommand, TestMode} from "./ActonCommand"
+import {createActonTestFilterPattern, escapeRustRegexLiteral} from "./ActonTestFilter"
+
+describe("Acton test filtering", () => {
+    it("escapes Rust regex metacharacters in test names", () => {
+        expect(escapeRustRegexLiteral("test teamcity '|[]")).toBe("test teamcity '\\|\\[\\]")
+        expect(escapeRustRegexLiteral("test .+*?(){}^$\\")).toBe(
+            "test \\.\\+\\*\\?\\(\\)\\{\\}\\^\\$\\\\",
+        )
+    })
+
+    it("builds an exact filter for one test", () => {
+        expect(createActonTestFilterPattern(["test transfer"])).toBe("^test transfer$")
+    })
+
+    it("builds a narrowed alternation filter for multiple tests", () => {
+        expect(createActonTestFilterPattern(["test alpha", "test beta"])).toBe(
+            "^(?:test alpha|test beta)$",
+        )
+    })
+
+    it("deduplicates selected test names", () => {
+        expect(createActonTestFilterPattern(["test alpha", "test alpha"])).toBe("^test alpha$")
+    })
+
+    it("passes explicit filters to directory test commands", () => {
+        const command = new TestCommand(TestMode.DIRECTORY, "tests")
+        command.filterPattern = "^(?:test alpha|test beta)$"
+
+        expect(command.getArguments()).toContain("--filter")
+        expect(command.getArguments()).toEqual([
+            "--color",
+            "always",
+            "--reporter",
+            "console,teamcity",
+            "--filter",
+            "^(?:test alpha|test beta)$",
+            "tests",
+        ])
+    })
+
+    it("uses exact filter pattern instead of function name when provided", () => {
+        const command = new TestCommand(
+            TestMode.FUNCTION,
+            "tests/counter.test.tolk",
+            "test counter",
+            false,
+            false,
+            "lcov",
+            "",
+            false,
+            "",
+            false,
+            "",
+            "console,teamcity",
+            "^test counter$",
+        )
+
+        expect(command.getArguments()).toEqual([
+            "--color",
+            "always",
+            "--reporter",
+            "console,teamcity",
+            "--filter",
+            "^test counter$",
+            "tests/counter.test.tolk",
+        ])
+    })
+})
