@@ -10,13 +10,13 @@ If the extension is not working as expected:
 
 1. Make sure you have the latest version of VS Code installed
 2. Try reloading VS Code (Command Palette > **`Developer: Reload Window`**)
-3. Check the extension is enabled (**Extensions** view > search for "Tolk")
+3. Check the extension is enabled (**Extensions** view > search for "TON")
 4. Check if any other Tolk extensions are disabled to avoid conflicts
 
 ### Standard Library Not Found
 
 If you see the error "Tolk standard library is missing! Try installing dependencies with 'yarn/npm install' or specify
-`tolk.stdlib.path` in settings":
+`ton.tolk.stdlib.path` in settings":
 
 1. First, try installing dependencies in your project:
 
@@ -26,7 +26,7 @@ If you see the error "Tolk standard library is missing! Try installing dependenc
     npm install
     ```
 
-2. If this doesn't help, try set `tolk.stdlib.path` in settings:
+2. If this doesn't help, try set `ton.tolk.stdlib.path` in settings:
 
     - Open VS Code **Settings**
     - Search for **"Tolk: General › Stdlib Path"**
@@ -42,7 +42,7 @@ If you encounter issues with the latest version, you can install a previous vers
 
 1. Open Command Palette in VS Code (`Ctrl+Shift+P` / `Cmd+Shift+P`)
 2. Type and select **"Extensions: Install Specific Version of Extension..."**
-3. Select "Tolk Language" from the list
+3. Select "TON" from the list
 4. Choose the version you want to install from the dropdown
 5. VS Code will automatically uninstall current version and install the selected one
 
@@ -71,6 +71,19 @@ Also, you can view extension logs directly in VS Code:
 2. Select **"Tolk"** from the dropdown menu in the Output panel
 
 These logs are helpful when reporting issues on GitHub.
+
+### Acton CLI Not Found
+
+If Acton code lenses, formatting, tests, or diagnostics fail because the executable is missing:
+
+1. Make sure the `acton` command is available in your shell.
+2. If Acton is installed in a custom location, set:
+
+    ```json
+    "ton.acton.path": "/absolute/path/to/acton"
+    ```
+
+3. Reload VS Code after changing the setting.
 
 ## Reporting Issues
 

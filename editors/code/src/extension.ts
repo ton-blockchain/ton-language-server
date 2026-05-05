@@ -32,7 +32,6 @@ import {ToolchainConfig} from "@server/settings/settings"
 import {consoleError, createClientLog} from "./client-log"
 import {getClientConfiguration} from "./client-config"
 
-import {registerBuildTasks} from "./build-system"
 import {registerOpenBocCommand} from "./commands/openBocCommand"
 import {BocEditorProvider} from "./providers/boc/BocEditorProvider"
 import {BocFileSystemProvider} from "./providers/boc/BocFileSystemProvider"
@@ -62,7 +61,6 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     await checkConflictingExtensions()
 
     startServer(context).catch(consoleError)
-    await registerBuildTasks(context)
     registerOpenBocCommand(context)
     registerSaveBocDecompiledCommand(context)
     registerActonSetupNotifications(context)

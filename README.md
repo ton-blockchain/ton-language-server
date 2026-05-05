@@ -1,7 +1,7 @@
 # TON Language Server
 
 Language server and an [extension for VS Code](./editors/code) and VSCode-based editors with comprehensive support for
-TON Blockchain languages and technologies including Tolk, FunC, Fift assembly, TL-B, BoC and Blueprint.
+TON Blockchain languages and technologies including Tolk, FunC, Fift assembly, TL-B, BoC, and Acton.
 
 **[Features] • [Installation] • [Troubleshooting]**
 
@@ -10,7 +10,7 @@ TON Blockchain languages and technologies including Tolk, FunC, Fift assembly, T
 [Troubleshooting]: #troubleshooting
 
 [![Telegram](https://img.shields.io/badge/TON_Community-white?logo=telegram&style=flat)](https://t.me/tondev_eng)
-[![Visual Studio Marketplace Downloads](https://img.shields.io/visual-studio-marketplace/d/ton-core.vscode-ton?color=white&labelColor=white&logo=tsnode&logoColor=black)](https://marketplace.visualstudio.com/items?itemName=ton-core.vscode-ton)
+[![Visual Studio Marketplace Downloads](https://vsmarketplacebadges.dev/downloads-short/ton-core.vscode-ton.svg?color=white&labelColor=white&logo=tsnode&logoColor=black)](https://marketplace.visualstudio.com/items?itemName=ton-core.vscode-ton)
 [![Open VSX Downloads](https://img.shields.io/open-vsx/dt/ton-core/vscode-ton?color=white&labelColor=white&logo=vscodium&logoColor=black)](https://open-vsx.org/extension/ton-core/vscode-ton)
 
 ---
@@ -28,7 +28,7 @@ Tolk support includes:
 - Inlay hints for types, parameter names, and more
 - On-the-fly inspections with quick fixes
 - Signature help inside calls
-- Build and test projects based on Blueprint
+- Build, test, format, lint, and debug projects based on Acton
 - Flexible toolchain management
 
 FunC support includes:
@@ -41,7 +41,7 @@ FunC support includes:
 - Types and documentation on hover
 - Inlay hints for method id
 - On-the-fly inspections
-- Build and test projects based on Blueprint
+- Legacy FunC language support for existing contracts
 
 Fift assembly support includes:
 
@@ -70,11 +70,13 @@ The easiest way to get started with TON development is to use VS Code or editors
 1. Install the TON extension
    [in VS Code](https://marketplace.visualstudio.com/items?itemName=ton-core.vscode-ton)
    or [in VS Code-based editors](https://open-vsx.org/extension/ton-core/vscode-ton)
-2. That's it!
+2. Open an Acton project with an `Acton.toml` file, or create one with the Acton CLI
+3. That's it!
 
-The extension automatically detects your toolchain installation. If you need to work with custom-builds or
-configurations, check out the [toolchain management] guide.
+The extension automatically detects your Acton and Tolk toolchain installation. See the [Acton integration] guide for
+the project workflow. If you need to work with custom Tolk compiler builds, check out the [toolchain management] guide.
 
+[Acton integration]: ./docs/manual/acton.md
 [toolchain management]: ./docs/manual/toolchain-management.md
 
 ## Installation

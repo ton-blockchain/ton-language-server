@@ -45,10 +45,6 @@ export interface TolkSettings {
         readonly typeAware: boolean
         readonly addImports: boolean
     }
-    readonly formatter: {
-        readonly useFormatter: boolean
-        readonly sortImports: boolean
-    }
 }
 
 export interface TlbSettings {
@@ -110,10 +106,6 @@ const tolkDefaultSettings: TolkSettings = {
     completion: {
         typeAware: true,
         addImports: true,
-    },
-    formatter: {
-        useFormatter: true,
-        sortImports: true,
     },
 }
 
@@ -193,14 +185,6 @@ function mergeSettings(vsSettings: Partial<ServerSettings>): ServerSettings {
                 addImports:
                     vsSettings.tolk?.completion.addImports ??
                     defaultSettings.tolk.completion.addImports,
-            },
-            formatter: {
-                useFormatter:
-                    vsSettings.tolk?.formatter.useFormatter ??
-                    defaultSettings.tolk.formatter.useFormatter,
-                sortImports:
-                    vsSettings.tolk?.formatter.sortImports ??
-                    defaultSettings.tolk.formatter.sortImports,
             },
         },
         acton: {

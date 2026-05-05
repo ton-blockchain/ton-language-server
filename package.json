@@ -40,6 +40,7 @@
     "scripts": {
         "test": "yarn jest",
         "build": "webpack && node ./.scripts/set-executable.js ./dist/server.js",
+        "build:dev": "webpack --mode development && node ./.scripts/set-executable.js ./dist/server.js",
         "package": "npx vsce package --no-yarn --readme-path editors/code/README.md",
         "lint": "yarn run lint:ts && yarn run lint:css",
         "lint:ts": "eslint --cache .",
@@ -226,15 +227,6 @@
         ],
         "commands": [
             {
-                "command": "tolk.build",
-                "title": "Build Project",
-                "category": "Tolk",
-                "icon": "$(gear)",
-                "problemMatcher": [
-                    "$tolk"
-                ]
-            },
-            {
                 "command": "tolk.getTypeAtPosition",
                 "title": "Get Type At Position",
                 "category": "Tolk"
@@ -348,13 +340,6 @@
                 }
             ]
         },
-        "keybindings": [
-            {
-                "command": "tolk.build",
-                "key": "f5",
-                "when": "editorTextFocus && editorLangId == 'tolk'"
-            }
-        ],
         "menus": {
             "explorer/context": [
                 {
@@ -599,21 +584,6 @@
                 }
             },
             {
-                "title": "Formatter",
-                "properties": {
-                    "ton.tolk.formatter.useFormatter": {
-                        "type": "boolean",
-                        "default": true,
-                        "description": "Use experimental Tolk formatter"
-                    },
-                    "ton.tolk.formatter.sortImports": {
-                        "type": "boolean",
-                        "default": true,
-                        "description": "Sort imports on format"
-                    }
-                }
-            },
-            {
                 "title": "Acton",
                 "properties": {
                     "ton.acton.path": {
@@ -630,6 +600,11 @@
                         "type": "number",
                         "default": 100,
                         "description": "Debounce time in milliseconds for the Acton linter"
+                    },
+                    "ton.tolk.formatter.useFormatter": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Format Tolk files with `acton fmt`"
                     }
                 }
             }
@@ -644,24 +619,6 @@
                     }
                 ],
                 "priority": "default"
-            }
-        ],
-        "taskDefinitions": [
-            {
-                "type": "blueprint-build",
-                "properties": {}
-            },
-            {
-                "type": "blueprint-build-all",
-                "properties": {}
-            },
-            {
-                "type": "blueprint-test",
-                "properties": {}
-            },
-            {
-                "type": "blueprint-build-and-test-all",
-                "properties": {}
             }
         ]
     },
