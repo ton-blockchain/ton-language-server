@@ -20,8 +20,8 @@ env:
 
 jobs:
   e2e-tests:
-    name: Tolk E2E tests (Linux)
-    runs-on: ubuntu-latest
+    name: Tolk E2E tests (macOS)
+    runs-on: macos-latest
 
     permissions:
       contents: read
@@ -50,4 +50,4 @@ jobs:
         run: yarn build
 
       - name: Run all Tolk e2e tests
-        run: xvfb-run -a yarn run test:e2e:tolk
+        run: yarn run test:e2e:tolk
