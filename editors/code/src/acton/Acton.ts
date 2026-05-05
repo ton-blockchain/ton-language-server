@@ -23,7 +23,7 @@ export interface ActonSpawnResult {
 export class Acton {
     private static instance: Acton | undefined
     private lastScriptFullBacktraceCommand:
-        | {readonly command: ActonCommand; readonly workingDirectory?: string}
+        | {readonly command: ScriptCommand; readonly workingDirectory?: string}
         | undefined
 
     public static getInstance(): Acton {
@@ -34,7 +34,9 @@ export class Acton {
     public async execute(command: ActonCommand, workingDirectory?: string): Promise<void> {
         const actonPath = await this.getActonPath(workingDirectory)
         const args = command.getArguments()
-        this.captureFullBacktraceCommand(command, workingDirectory)
+        if (command instanceof ScriptCommand) {
+            this.captureFullBacktraceCommand(command, workingDirectory)
+        }
 
         const taskDefinition: vscode.TaskDefinition = {
             type: "acton",
@@ -75,7 +77,6 @@ export class Acton {
     ): Promise<ActonSpawnResult> {
         const actonPath = await this.getActonPath(workingDirectory)
         const args = [command.name, ...command.getArguments()]
-        this.captureFullBacktraceCommand(command, workingDirectory)
 
         return new Promise((resolve, reject) => {
             const child = child_process.spawn(actonPath, args, {
@@ -219,10 +220,10 @@ export class Acton {
     }
 
     private captureFullBacktraceCommand(
-        command: ActonCommand,
+        command: ScriptCommand,
         workingDirectory: string | undefined,
     ): void {
-        if (!(command instanceof ScriptCommand) || command.backtraceFull) {
+        if (command.backtraceFull) {
             return
         }
 

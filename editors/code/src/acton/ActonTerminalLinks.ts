@@ -11,8 +11,7 @@ import {
     type TonAddressMatch,
 } from "./ActonTonAddress"
 
-const BACKTRACE_HINT_PREFIX_PATTERN = /re-run with/i
-const BACKTRACE_FULL_PATTERN = /--backtrace\s+full/
+const BACKTRACE_HINT_PATTERN = /re-run with\s+(--backtrace\s+full)/i
 
 class TonAddressTerminalLink extends vscode.TerminalLink {
     public constructor(private readonly match: TonAddressMatch) {
@@ -25,12 +24,6 @@ class TonAddressTerminalLink extends vscode.TerminalLink {
 
     public get isTestnet(): boolean {
         return this.match.isTestnet
-    }
-}
-
-class ActonBacktraceTerminalLink extends vscode.TerminalLink {
-    public constructor(startIndex: number, length: number) {
-        super(startIndex, length, "Re-run last Acton script with --backtrace full")
     }
 }
 
@@ -53,39 +46,38 @@ class ActonTonAddressTerminalLinkProvider
     }
 }
 
-class ActonBacktraceTerminalLinkProvider
-    implements vscode.TerminalLinkProvider<ActonBacktraceTerminalLink>
-{
+class ActonBacktraceTerminalLinkProvider implements vscode.TerminalLinkProvider {
     public provideTerminalLinks(
         context: vscode.TerminalLinkContext,
         _token: vscode.CancellationToken,
-    ): ActonBacktraceTerminalLink[] {
-        if (
-            !Acton.getInstance().hasScriptFullBacktraceCommand() ||
-            !BACKTRACE_HINT_PREFIX_PATTERN.test(context.line)
-        ) {
-            return []
-        }
-
-        const match = BACKTRACE_FULL_PATTERN.exec(context.line)
+    ): vscode.TerminalLink[] {
+        const match = BACKTRACE_HINT_PATTERN.exec(context.line)
         if (!match) {
             return []
         }
 
-        return [new ActonBacktraceTerminalLink(match.index, match[0].length)]
+        if (!Acton.getInstance().hasScriptFullBacktraceCommand()) {
+            return []
+        }
+
+        const linkText = match[1]
+        const linkStart = match.index + match[0].indexOf(linkText)
+        return [
+            new vscode.TerminalLink(
+                linkStart,
+                linkText.length,
+                "Re-run last Acton script with --backtrace full",
+            ),
+        ]
     }
 
-    public async handleTerminalLink(_link: ActonBacktraceTerminalLink): Promise<void> {
-        await rerunLastActonWithFullBacktrace()
-    }
-}
-
-async function rerunLastActonWithFullBacktrace(): Promise<void> {
-    const didRun = await Acton.getInstance().rerunLastScriptWithFullBacktrace()
-    if (!didRun) {
-        await vscode.window.showWarningMessage(
-            "No Acton script command is available to re-run with full backtrace.",
-        )
+    public async handleTerminalLink(_link: vscode.TerminalLink): Promise<void> {
+        const didRun = await Acton.getInstance().rerunLastScriptWithFullBacktrace()
+        if (!didRun) {
+            await vscode.window.showWarningMessage(
+                "No Acton script command is available to re-run with full backtrace.",
+            )
+        }
     }
 }
 
