@@ -16,6 +16,7 @@ import {getMethodId} from "@server/languages/tolk/inlays/get-method-id"
 import {FunctionBase} from "@server/languages/tolk/psi/Decls"
 import {typeOf} from "@server/languages/tolk/type-inference"
 import {lambdaParametersHints} from "@server/languages/tolk/inlays/lambda-parameters-hints"
+import {enumMemberValueHints} from "@server/languages/tolk/inlays/enum-member-value-hints"
 
 export function collectTolkInlays(
     file: TolkFile,
@@ -65,6 +66,11 @@ export function collectTolkInlays(
             if (hints.constantValues) {
                 constantValueHint(n, file, result)
             }
+            return true
+        }
+
+        if (type === "enum_declaration" && hints.constantValues) {
+            enumMemberValueHints(n, file, result)
             return true
         }
 

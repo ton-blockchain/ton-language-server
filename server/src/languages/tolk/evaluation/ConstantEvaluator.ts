@@ -9,7 +9,7 @@ import {stringToBase256} from "@server/utils/stringToBase256"
 
 import {TolkFile} from "../psi/TolkFile"
 import {Reference} from "../psi/Reference"
-import {Constant} from "../psi/Decls"
+import {Constant, Enum, EnumMember} from "../psi/Decls"
 import {CallLike, NamedNode} from "../psi/TolkNode"
 
 const compileTimeFunctions = new Set([
@@ -28,10 +28,17 @@ export interface EvaluationResult {
 export class ConstantEvaluator {
     private readonly evaluationStack: Set<string> = new Set()
     private readonly evaluatedConstants: Map<string, EvaluationResult> = new Map()
+    private readonly enumEvaluationStack: Set<string> = new Set()
+    private readonly evaluatedEnums: Map<string, Map<number, EvaluationResult>> = new Map()
 
     public static evaluateConstant(constant: Constant): EvaluationResult {
         const evaluator = new ConstantEvaluator()
         return evaluator.evaluateConstantImpl(constant)
+    }
+
+    public static evaluateEnumMember(member: EnumMember): EvaluationResult {
+        const evaluator = new ConstantEvaluator()
+        return evaluator.evaluateEnumMemberImpl(member)
     }
 
     public static isSimpleLiteral(node: SyntaxNode | null | undefined): boolean {
@@ -84,6 +91,9 @@ export class ConstantEvaluator {
             case "identifier":
             case "type_identifier": {
                 return this.evaluateReference(node, file)
+            }
+            case "dot_access": {
+                return this.evaluateDotAccess(node, file)
             }
             case "binary_operator": {
                 return this.evaluateBinaryOperator(node, file)
@@ -141,6 +151,89 @@ export class ConstantEvaluator {
 
         if (resolved instanceof Constant) {
             return this.evaluateConstantImpl(resolved)
+        }
+
+        if (resolved instanceof EnumMember) {
+            return this.evaluateEnumMemberImpl(resolved)
+        }
+
+        return {value: null, type: "unknown"}
+    }
+
+    private evaluateDotAccess(node: SyntaxNode, file: TolkFile): EvaluationResult {
+        const field = node.childForFieldName("field")
+        if (!field) return {value: null, type: "unknown"}
+
+        return this.evaluateReference(field, file)
+    }
+
+    public evaluateEnumValues(enumDecl: Enum): Map<number, EvaluationResult> {
+        return this.evaluateEnumValuesImpl(enumDecl)
+    }
+
+    private evaluateEnumMemberImpl(member: EnumMember): EvaluationResult {
+        const owner = member.owner()
+        if (!owner) return {value: null, type: "unknown"}
+
+        return (
+            this.evaluateEnumValuesImpl(owner).get(member.node.id) ?? {value: null, type: "unknown"}
+        )
+    }
+
+    private evaluateEnumValuesImpl(enumDecl: Enum): Map<number, EvaluationResult> {
+        const enumId = `${enumDecl.file.uri}:${enumDecl.node.id}`
+
+        const cached = this.evaluatedEnums.get(enumId)
+        if (cached) {
+            return cached
+        }
+
+        if (this.enumEvaluationStack.has(enumId)) {
+            // circular enum member references
+            const values: Map<number, EvaluationResult> = new Map()
+            return values
+        }
+
+        this.enumEvaluationStack.add(enumId)
+
+        try {
+            const values: Map<number, EvaluationResult> = new Map()
+            let previousValue: bigint | null = -1n
+
+            for (const member of enumDecl.members()) {
+                const explicitValue = member.defaultValue()
+
+                let result: EvaluationResult
+                if (explicitValue) {
+                    result = this.normalizeEnumInitializerValue(
+                        this.evaluateExpressionImpl(explicitValue.node, explicitValue.file),
+                    )
+                } else if (previousValue === null) {
+                    result = {value: null, type: "unknown"}
+                } else {
+                    result = {value: previousValue + 1n, type: "int"}
+                }
+
+                values.set(member.node.id, result)
+
+                previousValue =
+                    result.type === "int" && typeof result.value === "bigint" ? result.value : null
+            }
+
+            this.evaluatedEnums.set(enumId, values)
+            return values
+        } finally {
+            this.enumEvaluationStack.delete(enumId)
+        }
+    }
+
+    private normalizeEnumInitializerValue(result: EvaluationResult): EvaluationResult {
+        if (result.type === "int" && typeof result.value === "bigint") {
+            return result
+        }
+
+        if (result.type === "bool" && typeof result.value === "boolean") {
+            return {value: result.value ? -1n : 0n, type: "int"}
         }
 
         return {value: null, type: "unknown"}

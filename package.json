@@ -659,7 +659,7 @@
                     "ton.tolk.hints.constantValues": {
                         "type": "boolean",
                         "default": true,
-                        "description": "Show computed values for constants"
+                        "description": "Show computed values for constants and enum members"
                     },
                     "ton.func.hints.disable": {
                         "type": "boolean",
