@@ -565,6 +565,11 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
             await initializeFallback(uri)
         }
 
+        if (isActonTomlFile(uri)) {
+            await handleActonTomlChange(uri, documents)
+            return
+        }
+
         await handleFileOpen(event, false)
     })
 
@@ -577,6 +582,11 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
         console.info("changed:", uri)
 
         markFileAsRecentlyProcessed(uri)
+
+        if (isActonTomlFile(uri)) {
+            await handleActonTomlChange(uri, documents)
+            return
+        }
 
         if (isFiftFile(uri, event)) {
             FIFT_PARSED_FILES_CACHE.delete(uri)
@@ -620,6 +630,11 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
 
     documents.onDidSave(async event => {
         const uri = event.document.uri
+        if (isActonTomlFile(uri)) {
+            await handleActonTomlChange(uri, documents)
+            return
+        }
+
         if (isTolkFile(uri, event)) {
             if (initializationFinished) {
                 cancelPendingTolkLiveInspections(uri)

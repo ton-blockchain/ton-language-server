@@ -89,13 +89,13 @@ export class ReferenceCompletionProcessor implements ScopeProcessor {
         const prefix = state.get("prefix") ?? ""
         const rawName = node.name(false)
         const name = node.name()
-        if (name.endsWith("DummyIdentifier")) {
+        if (name.endsWith("DummyIdentifier") || name === "_") {
             return true
         }
 
         const additionalData: CompletionItemAdditionalInformation = {
-            elementFile: node.file,
-            file: this.ctx.element.file,
+            elementFileUri: node.file.uri,
+            fileUri: this.ctx.element.file.uri,
             name: name,
             language: "tolk",
         }

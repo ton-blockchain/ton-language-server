@@ -161,16 +161,20 @@ export async function provideTolkCompletionResolve(
 ): Promise<lsp.CompletionItem> {
     if (!item.data) return item
     const data = item.data as CompletionItemAdditionalInformation
-    if (data.file === undefined || data.elementFile === undefined || data.name === undefined) {
+    if (
+        data.fileUri === undefined ||
+        data.elementFileUri === undefined ||
+        data.name === undefined
+    ) {
         return item
     }
     if (data.language !== "tolk") return item
 
-    // const settings = await getDocumentSettings(data.file.uri)
+    // const settings = await getDocumentSettings(data.fileUri)
     // if (!settings.completion.addImports) return item
 
-    const file = await findTolkFile(data.file.uri)
-    const elementFile = await findTolkFile(data.elementFile.uri)
+    const file = await findTolkFile(data.fileUri)
+    const elementFile = await findTolkFile(data.elementFileUri)
 
     // skip the same file element
     if (file.uri === elementFile.uri) return item
