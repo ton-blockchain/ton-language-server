@@ -591,6 +591,15 @@
                         "default": "acton",
                         "description": "Path to the Acton executable"
                     },
+                    "ton.acton.explorer": {
+                        "type": "string",
+                        "enum": [
+                            "tonscan",
+                            "tonviewer"
+                        ],
+                        "default": "tonscan",
+                        "description": "Explorer used for clickable TON addresses in Acton output"
+                    },
                     "ton.acton.linter.enabled": {
                         "type": "boolean",
                         "default": true,

@@ -10,6 +10,7 @@ import {
     WalletListCommand,
     WalletNewCommand,
 } from "../../acton/ActonCommand"
+import {createTonAddressExplorerUrl, normalizeTonExplorer} from "../../acton/ActonTonAddress"
 import {
     WebviewWalletCommand,
     WalletInfo,
@@ -82,7 +83,10 @@ export class WalletWebviewProvider implements vscode.WebviewViewProvider {
                     break
                 }
                 case "openInExplorer": {
-                    const url = `https://testnet.tonscan.org/address/${encodeURIComponent(command.address)}`
+                    const explorer = normalizeTonExplorer(
+                        vscode.workspace.getConfiguration("ton").get<string>("acton.explorer"),
+                    )
+                    const url = createTonAddressExplorerUrl(command.address, explorer, true)
                     void vscode.env.openExternal(vscode.Uri.parse(url))
                     break
                 }
