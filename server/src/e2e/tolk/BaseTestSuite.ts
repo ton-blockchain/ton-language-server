@@ -81,6 +81,11 @@ export abstract class BaseTestSuite {
             preserveFocus: false,
         })
 
+        await vscode.commands.executeCommand<vscode.DocumentSymbol[]>(
+            "vscode.executeDocumentSymbolProvider",
+            additionalFile.uri,
+        )
+
         this.additionalFiles.push(additionalFile)
     }
 

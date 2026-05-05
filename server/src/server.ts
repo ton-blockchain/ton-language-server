@@ -140,7 +140,6 @@ import {
 } from "@server/languages/func/rename/file-renaming"
 import {IndexingRootKind} from "@server/indexing/indexing"
 import {FuncIndexingRoot} from "@server/languages/func/indexing-root"
-import {formatTolkFile} from "@server/languages/tolk/format/format"
 import {collectFuncCodeLenses} from "@server/languages/func/lens"
 import {collectFiftCodeLenses} from "@server/languages/fift/lens"
 import {contractAbi} from "@server/languages/tolk/lang/abi/compute"
@@ -1192,34 +1191,6 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
         return [...provideTolkWorkspaceSymbols(), ...provideFuncWorkspaceSymbols()]
     })
 
-    connection.onRequest(
-        lsp.DocumentFormattingRequest.type,
-        async (params: lsp.DocumentFormattingParams): Promise<lsp.TextEdit[] | null> => {
-            const uri = params.textDocument.uri
-            const settings = await getDocumentSettings(uri)
-
-            if (isTolkFile(uri)) {
-                return formatTolkFile(uri, undefined, settings.tolk.formatter)
-            }
-
-            return null
-        },
-    )
-
-    connection.onRequest(
-        lsp.DocumentRangeFormattingRequest.type,
-        async (params: lsp.DocumentRangeFormattingParams): Promise<lsp.TextEdit[] | null> => {
-            const uri = params.textDocument.uri
-            const settings = await getDocumentSettings(uri)
-
-            if (isTolkFile(uri)) {
-                return formatTolkFile(uri, params.range, settings.tolk.formatter)
-            }
-
-            return null
-        },
-    )
-
     // Custom LSP requests
 
     connection.onRequest(
@@ -1307,8 +1278,6 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
     return {
         capabilities: {
             textDocumentSync: lsp.TextDocumentSyncKind.Incremental,
-            documentFormattingProvider: true,
-            documentRangeFormattingProvider: true,
             documentSymbolProvider: true,
             workspaceSymbolProvider: true,
             definitionProvider: true,
