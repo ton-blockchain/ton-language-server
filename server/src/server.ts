@@ -114,6 +114,7 @@ import {collectTolkInlays} from "@server/languages/tolk/inlays"
 import {provideTolkSignatureInfo} from "@server/languages/tolk/signature-help"
 import {provideTolkDocumentation} from "@server/languages/tolk/documentation"
 import {provideTolkTypeAtPosition} from "@server/languages/tolk/custom/type-at-position"
+import type {TolkFile} from "@server/languages/tolk/psi/TolkFile"
 import {
     onTolkFileRenamed,
     processTolkFileRenaming,
@@ -143,6 +144,7 @@ import {collectFuncCodeLenses} from "@server/languages/func/lens"
 import {collectFiftCodeLenses} from "@server/languages/fift/lens"
 import {contractAbi} from "@server/languages/tolk/lang/abi/compute"
 import {RecentFileEventTracker} from "@server/file-events"
+import {measureAsyncTime, measureTime} from "@server/psi/utils"
 
 import {initParser} from "./parser"
 import {DocumentStore} from "./document-store"
@@ -173,6 +175,8 @@ let workspaceFolders: lsp.WorkspaceFolder[] | null = null
  */
 const RECENTLY_PROCESSED_FILE_EVENT_WINDOW_MS = 1000
 const recentlyProcessedFiles = new RecentFileEventTracker(RECENTLY_PROCESSED_FILE_EVENT_WINDOW_MS)
+const TOLK_LIVE_INSPECTIONS_DEBOUNCE_MS = 200
+const pendingTolkLiveInspections: Map<string, ReturnType<typeof setTimeout>> = new Map()
 
 /**
  * Marks a file as recently processed to avoid duplication
@@ -187,6 +191,29 @@ function markFileAsRecentlyProcessed(uri: string): void {
  */
 function checkIfRecentlyProcessedAndRemove(uri: string): boolean {
     return recentlyProcessedFiles.shouldSkipAndRemove(uri)
+}
+
+function cancelPendingTolkLiveInspections(uri: string): void {
+    const pending = pendingTolkLiveInspections.get(uri)
+    if (!pending) return
+
+    clearTimeout(pending)
+    pendingTolkLiveInspections.delete(uri)
+}
+
+function scheduleTolkLiveInspections(uri: string, file: TolkFile): void {
+    cancelPendingTolkLiveInspections(uri)
+
+    const timer = setTimeout(() => {
+        pendingTolkLiveInspections.delete(uri)
+        void measureAsyncTime(`tolk inspections total ${uri}`, async () => {
+            await runTolkInspections(uri, file, false)
+        }).catch((error: unknown) => {
+            console.error(`Failed to run debounced Tolk inspections for ${uri}`, error)
+        })
+    }, TOLK_LIVE_INSPECTIONS_DEBOUNCE_MS)
+
+    pendingTolkLiveInspections.set(uri, timer)
 }
 
 async function processPendingEvents(): Promise<void> {
@@ -529,13 +556,21 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
         }
 
         if (isTolkFile(uri, event)) {
-            tolkIndex.fileChanged(uri)
-            const file = reparseTolkFile(uri, event.document.getText())
-            tolkIndex.addFile(uri, file, false)
+            measureTime(`tolk change total ${uri}`, () => {
+                measureTime(`tolk index remove changed file ${uri}`, () => {
+                    tolkIndex.fileChanged(uri)
+                })
+                const file = measureTime(`tolk live reparse ${uri}`, () =>
+                    reparseTolkFile(uri, event.document.getText()),
+                )
+                measureTime(`tolk index add changed file ${uri}`, () => {
+                    tolkIndex.addFile(uri, file, false)
+                })
 
-            if (initializationFinished) {
-                await runTolkInspections(uri, file, false) // linters require saved files, see onDidSave
-            }
+                if (initializationFinished) {
+                    scheduleTolkLiveInspections(uri, file)
+                }
+            })
         }
 
         if (isFuncFile(uri, event)) {
@@ -553,6 +588,7 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
         const uri = event.document.uri
         if (isTolkFile(uri, event)) {
             if (initializationFinished) {
+                cancelPendingTolkLiveInspections(uri)
                 const file = await findTolkFile(uri)
                 await runTolkInspections(uri, file, true)
             }
@@ -725,10 +761,12 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
         }
 
         if (isTolkFile(uri)) {
-            const file = await findTolkFile(params.textDocument.uri)
-            const hoverNode = nodeAtPosition(params, file)
-            if (!hoverNode) return null
-            return provideTolkDocumentation(hoverNode, file)
+            return measureAsyncTime(`tolk request hover ${uri}`, async () => {
+                const file = await findTolkFile(params.textDocument.uri)
+                const hoverNode = nodeAtPosition(params, file)
+                if (!hoverNode) return null
+                return provideTolkDocumentation(hoverNode, file)
+            })
         }
 
         if (isFuncFile(uri)) {
@@ -765,11 +803,13 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
             }
 
             if (isTolkFile(uri)) {
-                const file = await findTolkFile(uri)
-                const hoverNode = nodeAtPosition(params, file)
-                if (!hoverNode) return []
+                return measureAsyncTime(`tolk request definition ${uri}`, async () => {
+                    const file = await findTolkFile(uri)
+                    const hoverNode = nodeAtPosition(params, file)
+                    if (!hoverNode) return []
 
-                return provideTolkDefinition(hoverNode, file)
+                    return provideTolkDefinition(hoverNode, file)
+                })
             }
 
             if (isFuncFile(uri)) {
@@ -792,11 +832,13 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
             const uri = params.textDocument.uri
 
             if (isTolkFile(uri)) {
-                const file = await findTolkFile(uri)
-                const hoverNode = nodeAtPosition(params, file)
-                if (!hoverNode) return []
+                return measureAsyncTime(`tolk request type definition ${uri}`, async () => {
+                    const file = await findTolkFile(uri)
+                    const hoverNode = nodeAtPosition(params, file)
+                    if (!hoverNode) return []
 
-                return provideTolkTypeDefinition(hoverNode, file)
+                    return provideTolkTypeDefinition(hoverNode, file)
+                })
             }
 
             return []
@@ -810,8 +852,10 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
             const uri = params.textDocument.uri
 
             if (isTolkFile(uri)) {
-                const file = await findTolkFile(uri)
-                return provideTolkCompletion(file, params, uri)
+                return measureAsyncTime(`tolk request completion ${uri}`, async () => {
+                    const file = await findTolkFile(uri)
+                    return provideTolkCompletion(file, params, uri)
+                })
             }
 
             if (isFuncFile(uri)) {
@@ -843,8 +887,10 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
             }
 
             if (isTolkFile(uri)) {
-                const file = await findTolkFile(uri)
-                return collectTolkInlays(file, settings.tolk.hints)
+                return measureAsyncTime(`tolk request inlay hints ${uri}`, async () => {
+                    const file = await findTolkFile(uri)
+                    return collectTolkInlays(file, settings.tolk.hints)
+                })
             }
 
             if (isFuncFile(uri)) {
@@ -867,8 +913,10 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
             const uri = params.textDocument.uri
 
             if (isTolkFile(uri)) {
-                const file = await findTolkFile(uri)
-                return provideTolkRename(params, file)
+                return measureAsyncTime(`tolk request rename ${uri}`, async () => {
+                    const file = await findTolkFile(uri)
+                    return provideTolkRename(params, file)
+                })
             }
 
             if (isFuncFile(uri)) {
@@ -886,15 +934,17 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
             const uri = params.textDocument.uri
 
             if (isTolkFile(uri)) {
-                const file = await findTolkFile(uri)
+                return measureAsyncTime(`tolk request prepare rename ${uri}`, async () => {
+                    const file = await findTolkFile(uri)
 
-                const result = provideTolkRenamePrepare(params, file)
-                if (typeof result === "string") {
-                    showErrorMessage(result)
-                    return null
-                }
+                    const result = provideTolkRenamePrepare(params, file)
+                    if (typeof result === "string") {
+                        showErrorMessage(result)
+                        return null
+                    }
 
-                return result
+                    return result
+                })
             }
 
             if (isFuncFile(uri)) {
@@ -919,10 +969,12 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
             const uri = params.textDocument.uri
 
             if (isTolkFile(uri)) {
-                const file = await findTolkFile(uri)
-                const node = nodeAtPosition(params, file)
-                if (!node) return null
-                return provideTolkDocumentHighlight(node, file)
+                return measureAsyncTime(`tolk request document highlight ${uri}`, async () => {
+                    const file = await findTolkFile(uri)
+                    const node = nodeAtPosition(params, file)
+                    if (!node) return null
+                    return provideTolkDocumentHighlight(node, file)
+                })
             }
 
             return null
@@ -949,15 +1001,12 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
             }
 
             if (isTolkFile(uri)) {
-                const file = await findTolkFile(uri)
-                const node = nodeAtPosition(params, file)
-                if (!node) return null
-                const startTime = performance.now()
-                const result = provideTolkReferences(node, file)
-                const endTime = performance.now()
-                const time = endTime - startTime
-                console.info(`find references: ${time}ms`)
-                return result
+                return measureAsyncTime(`tolk request references ${uri}`, async () => {
+                    const file = await findTolkFile(uri)
+                    const node = nodeAtPosition(params, file)
+                    if (!node) return null
+                    return provideTolkReferences(node, file)
+                })
             }
 
             if (isFuncFile(uri)) {
@@ -977,7 +1026,9 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
             const uri = params.textDocument.uri
 
             if (isTolkFile(uri)) {
-                return provideTolkSignatureInfo(params)
+                return measureAsyncTime(`tolk request signature help ${uri}`, async () =>
+                    provideTolkSignatureInfo(params),
+                )
             }
 
             return null
@@ -995,8 +1046,10 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
             }
 
             if (isTolkFile(uri)) {
-                const file = await findTolkFile(uri)
-                return provideTolkFoldingRanges(file)
+                return measureAsyncTime(`tolk request folding ranges ${uri}`, async () => {
+                    const file = await findTolkFile(uri)
+                    return provideTolkFoldingRanges(file)
+                })
             }
 
             if (isFuncFile(uri)) {
@@ -1015,8 +1068,10 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
             const settings = await getDocumentSettings(uri)
 
             if (isTolkFile(uri)) {
-                const file = await findTolkFile(uri)
-                return provideTolkSemanticTokens(file)
+                return measureAsyncTime(`tolk request semantic tokens ${uri}`, async () => {
+                    const file = await findTolkFile(uri)
+                    return provideTolkSemanticTokens(file)
+                })
             }
 
             if (isFuncFile(uri)) {
@@ -1072,8 +1127,10 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
             const uri = params.textDocument.uri
 
             if (isTolkFile(uri)) {
-                const file = await findTolkFile(uri)
-                return provideTolkCodeActions(file, params)
+                return measureAsyncTime(`tolk request code actions ${uri}`, async () => {
+                    const file = await findTolkFile(uri)
+                    return provideTolkCodeActions(file, params)
+                })
             }
 
             return null
@@ -1086,8 +1143,10 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
             const uri = params.textDocument.uri
 
             if (isTolkFile(uri)) {
-                const file = await findTolkFile(uri)
-                return provideTolkDocumentSymbols(file)
+                return measureAsyncTime(`tolk request document symbols ${uri}`, async () => {
+                    const file = await findTolkFile(uri)
+                    return provideTolkDocumentSymbols(file)
+                })
             }
 
             if (isFuncFile(uri)) {
@@ -1115,7 +1174,9 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
             const settings = await getDocumentSettings(uri)
 
             if (isTolkFile(uri)) {
-                return formatTolkFile(uri, undefined, settings.tolk.formatter)
+                return measureAsyncTime(`tolk request formatting ${uri}`, async () =>
+                    formatTolkFile(uri, undefined, settings.tolk.formatter),
+                )
             }
 
             return null
@@ -1129,7 +1190,9 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
             const settings = await getDocumentSettings(uri)
 
             if (isTolkFile(uri)) {
-                return formatTolkFile(uri, params.range, settings.tolk.formatter)
+                return measureAsyncTime(`tolk request range formatting ${uri}`, async () =>
+                    formatTolkFile(uri, params.range, settings.tolk.formatter),
+                )
             }
 
             return null
@@ -1144,8 +1207,10 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
             const uri = params.textDocument.uri
 
             if (isTolkFile(uri)) {
-                const file = await findTolkFile(uri)
-                return provideTolkTypeAtPosition(params, file)
+                return measureAsyncTime(`tolk request type at position ${uri}`, async () => {
+                    const file = await findTolkFile(uri)
+                    return provideTolkTypeAtPosition(params, file)
+                })
             }
 
             return {type: null, range: null}
@@ -1158,10 +1223,12 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
             const uri = params.textDocument.uri
 
             if (isTolkFile(uri)) {
-                const file = await findTolkFile(uri)
-                return {
-                    abi: contractAbi(file),
-                }
+                return measureAsyncTime(`tolk request contract abi ${uri}`, async () => {
+                    const file = await findTolkFile(uri)
+                    return {
+                        abi: contractAbi(file),
+                    }
+                })
             }
 
             return {
@@ -1171,6 +1238,10 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
     )
 
     connection.onRequest(GetAllContractsAbiRequest, (): GetWorkspaceContractsAbiResponse => {
+        return measureTime("tolk request all contracts abi", () => getAllContractsAbi())
+    })
+
+    function getAllContractsAbi(): GetWorkspaceContractsAbiResponse {
         const contracts: WorkspaceContractInfo[] = []
 
         if (!workspaceFolders || workspaceFolders.length === 0) {
@@ -1210,7 +1281,7 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
         }
 
         return {contracts}
-    })
+    }
 
     connection.onRequest(DocumentationAtPositionRequest, provideDocumentation)
 

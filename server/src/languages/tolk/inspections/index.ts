@@ -13,6 +13,7 @@ import {UnusedTopLevelDeclarationInspection} from "@server/languages/tolk/inspec
 import {UnusedTypeParameterInspection} from "@server/languages/tolk/inspections/UnusedTypeParameterInspection"
 import {NeedNotNullUnwrappingInspection} from "@server/languages/tolk/inspections/NeedNotNullUnwrappingInspection"
 import {MissedSemicolonInspection} from "@server/languages/tolk/inspections/MissedSemicolonInspection"
+import {measureAsyncTime} from "@server/psi/utils"
 
 export async function runTolkInspections(
     uri: string,
@@ -41,8 +42,14 @@ export async function runTolkInspections(
         if (settings.tolk.inspections.disabled.includes(inspection.id)) {
             continue
         }
-        diagnostics.push(...inspection.inspect(file))
+        diagnostics.push(
+            ...(await measureAsyncTime(`tolk inspection ${inspection.id} ${uri}`, () => {
+                return inspection.inspect(file)
+            })),
+        )
     }
 
-    await connection.sendDiagnostics({uri, diagnostics})
+    await measureAsyncTime(`tolk publish diagnostics ${uri}`, async () => {
+        await connection.sendDiagnostics({uri, diagnostics})
+    })
 }
