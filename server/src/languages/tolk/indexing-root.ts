@@ -5,8 +5,8 @@ import {findTolkFile} from "@server/files"
 import {IndexingRoot, IndexingRootKind} from "@server/indexing/indexing"
 
 export class TolkIndexingRoot extends IndexingRoot {
-    public constructor(root: string, kind: IndexingRootKind) {
-        super(root, ["tolk"], kind)
+    public constructor(root: string, kind: IndexingRootKind, ignore: string[] = []) {
+        super(root, ["tolk"], kind, ignore)
     }
 
     protected override async onFile(uri: string): Promise<void> {

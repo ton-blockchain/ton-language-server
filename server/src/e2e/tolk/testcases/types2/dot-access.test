@@ -84,6 +84,26 @@ fun main() {
 ok
 
 ========================================================================
+Imported alias receiver method uses declaration file
+========================================================================
+import "./remote-types.tolk";
+
+type RemoteAmount = bool;
+
+fun main(value: int) {
+    val result = value.remoteFormat();
+//!     ^ slice
+}
+---FILE:remote-types.tolk
+type RemoteAmount = int;
+
+fun RemoteAmount.remoteFormat(self): slice {
+    return beginCell().endCell().beginParse();
+}
+------------------------------------------------------------------------
+ok
+
+========================================================================
 Struct instance method
 ========================================================================
 struct Foo {

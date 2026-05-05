@@ -105,6 +105,7 @@ import {
     setProjectTolkStdlibPath,
     tolkStdlibSearchPaths,
 } from "@server/languages/tolk/toolchain/toolchain"
+import {ActonToml} from "@server/acton/ActonToml"
 import {resolveDisplayedTolkVersion} from "@server/acton/ActonTolkVersion"
 import {
     provideTolkDocumentSymbols,
@@ -114,6 +115,7 @@ import {collectTolkInlays} from "@server/languages/tolk/inlays"
 import {provideTolkSignatureInfo} from "@server/languages/tolk/signature-help"
 import {provideTolkDocumentation} from "@server/languages/tolk/documentation"
 import {provideTolkTypeAtPosition} from "@server/languages/tolk/custom/type-at-position"
+import type {TolkFile} from "@server/languages/tolk/psi/TolkFile"
 import {
     onTolkFileRenamed,
     processTolkFileRenaming,
@@ -173,6 +175,8 @@ let workspaceFolders: lsp.WorkspaceFolder[] | null = null
  */
 const RECENTLY_PROCESSED_FILE_EVENT_WINDOW_MS = 1000
 const recentlyProcessedFiles = new RecentFileEventTracker(RECENTLY_PROCESSED_FILE_EVENT_WINDOW_MS)
+const TOLK_LIVE_INSPECTIONS_DEBOUNCE_MS = 200
+const pendingTolkLiveInspections: Map<string, ReturnType<typeof setTimeout>> = new Map()
 
 /**
  * Marks a file as recently processed to avoid duplication
@@ -187,6 +191,70 @@ function markFileAsRecentlyProcessed(uri: string): void {
  */
 function checkIfRecentlyProcessedAndRemove(uri: string): boolean {
     return recentlyProcessedFiles.shouldSkipAndRemove(uri)
+}
+
+function cancelPendingTolkLiveInspections(uri: string): void {
+    const pending = pendingTolkLiveInspections.get(uri)
+    if (!pending) return
+
+    clearTimeout(pending)
+    pendingTolkLiveInspections.delete(uri)
+}
+
+function scheduleTolkLiveInspections(
+    uri: string,
+    file: TolkFile,
+    version: number,
+    documents: DocumentStore,
+): void {
+    cancelPendingTolkLiveInspections(uri)
+
+    const timer = setTimeout(() => {
+        pendingTolkLiveInspections.delete(uri)
+
+        const isCurrentDocumentVersion = (): boolean => documents.get(uri)?.version === version
+        if (!isCurrentDocumentVersion()) return
+
+        void runTolkInspections(uri, file, false, isCurrentDocumentVersion).catch(
+            (error: unknown) => {
+                console.error(`Failed to run debounced Tolk inspections for ${uri}`, error)
+            },
+        )
+    }, TOLK_LIVE_INSPECTIONS_DEBOUNCE_MS)
+
+    pendingTolkLiveInspections.set(uri, timer)
+}
+
+function isActonTomlFile(uri: string): boolean {
+    return uri.endsWith("/Acton.toml")
+}
+
+async function refreshTolkFeatures(): Promise<void> {
+    if (!clientInfo.name?.includes("Code") && !clientInfo.name?.includes("Codium")) {
+        return
+    }
+
+    await connection.sendRequest(lsp.SemanticTokensRefreshRequest.type)
+    await connection.sendRequest(lsp.InlayHintRefreshRequest.type)
+}
+
+async function handleActonTomlChange(uri: string, documents: DocumentStore): Promise<void> {
+    ActonToml.clearCaches(uri)
+    TOLK_CACHE.clear()
+    tolkIndex.rebuildImportGraphFromParsedFiles()
+
+    if (!initializationFinished) return
+
+    await refreshTolkFeatures()
+
+    for (const document of documents.all()) {
+        const openUri = document.uri
+        if (!isTolkFile(openUri)) continue
+
+        cancelPendingTolkLiveInspections(openUri)
+        const file = await findTolkFile(openUri)
+        await runTolkInspections(openUri, file, true)
+    }
 }
 
 async function processPendingEvents(): Promise<void> {
@@ -379,8 +447,24 @@ async function initialize(): Promise<void> {
         await funcStubsRoot.index()
     }
 
+    const workspaceIndexRoots: TolkIndexRoot[] = []
+    const actonRootPath = path.join(rootDir, ".acton")
+    const actonRootUri = filePathToUri(actonRootPath)
+    if (await existsVFS(globalVFS, actonRootUri)) {
+        const actonIndexRoot = new TolkIndexRoot("acton", actonRootUri)
+        workspaceIndexRoots.push(actonIndexRoot)
+        tolkIndex.withRoots(workspaceIndexRoots)
+
+        const actonRoot = new TolkIndexingRoot(actonRootUri, IndexingRootKind.Stdlib, [
+            "tolk-stdlib/**",
+            "logs/**",
+        ])
+        await actonRoot.index()
+    }
+
     reporter.report(90, "Indexing: (3/3) Workspace")
-    tolkIndex.withRoots([new TolkIndexRoot("workspace", rootUri)])
+    workspaceIndexRoots.push(new TolkIndexRoot("workspace", rootUri))
+    tolkIndex.withRoots(workspaceIndexRoots)
     const tolkWorkspaceRoot = new TolkIndexingRoot(rootUri, IndexingRootKind.Workspace)
     await tolkWorkspaceRoot.index()
 
@@ -488,6 +572,11 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
             await initializeFallback(uri)
         }
 
+        if (isActonTomlFile(uri)) {
+            await handleActonTomlChange(uri, documents)
+            return
+        }
+
         await handleFileOpen(event, false)
     })
 
@@ -498,6 +587,10 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
 
         const uri = event.document.uri
         console.info("changed:", uri)
+
+        if (isActonTomlFile(uri)) {
+            return
+        }
 
         markFileAsRecentlyProcessed(uri)
 
@@ -518,7 +611,7 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
             tolkIndex.addFile(uri, file, false)
 
             if (initializationFinished) {
-                await runTolkInspections(uri, file, false) // linters require saved files, see onDidSave
+                scheduleTolkLiveInspections(uri, file, event.document.version, documents)
             }
         }
 
@@ -535,8 +628,15 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
 
     documents.onDidSave(async event => {
         const uri = event.document.uri
+        if (isActonTomlFile(uri)) {
+            markFileAsRecentlyProcessed(uri)
+            await handleActonTomlChange(uri, documents)
+            return
+        }
+
         if (isTolkFile(uri, event)) {
             if (initializationFinished) {
+                cancelPendingTolkLiveInspections(uri)
                 const file = await findTolkFile(uri)
                 await runTolkInspections(uri, file, true)
             }
@@ -560,6 +660,11 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
 
             if (change.type === FileChangeType.Changed && checkIfRecentlyProcessedAndRemove(uri)) {
                 console.info(`Skipping recently processed file: ${uri}`)
+                continue
+            }
+
+            if (isActonTomlFile(uri)) {
+                await handleActonTomlChange(uri, documents)
                 continue
             }
 
@@ -936,12 +1041,7 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
                 const file = await findTolkFile(uri)
                 const node = nodeAtPosition(params, file)
                 if (!node) return null
-                const startTime = performance.now()
-                const result = provideTolkReferences(node, file)
-                const endTime = performance.now()
-                const time = endTime - startTime
-                console.info(`find references: ${time}ms`)
-                return result
+                return provideTolkReferences(node, file)
             }
 
             if (isFuncFile(uri)) {
@@ -1155,6 +1255,10 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
     )
 
     connection.onRequest(GetAllContractsAbiRequest, (): GetWorkspaceContractsAbiResponse => {
+        return getAllContractsAbi()
+    })
+
+    function getAllContractsAbi(): GetWorkspaceContractsAbiResponse {
         const contracts: WorkspaceContractInfo[] = []
 
         if (!workspaceFolders || workspaceFolders.length === 0) {
@@ -1194,7 +1298,7 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
         }
 
         return {contracts}
-    })
+    }
 
     connection.onRequest(DocumentationAtPositionRequest, provideDocumentation)
 

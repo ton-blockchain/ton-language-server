@@ -1,5 +1,6 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Core
+import * as path from "node:path"
 import {fileURLToPath} from "node:url"
 
 import {NamedNode} from "@server/languages/tolk/psi/TolkNode"
@@ -17,7 +18,7 @@ import {
     TypeAlias,
 } from "@server/languages/tolk/psi/Decls"
 import {ScopeProcessor} from "@server/languages/tolk/psi/Reference"
-import {TOLK_CACHE} from "@server/languages/tolk/cache"
+import {TOLK_CACHE, TolkRootAnalysisCache} from "@server/languages/tolk/cache"
 import {TOLK_PARSED_FILES_CACHE} from "@server/files"
 import {ResolveState} from "@server/psi/ResolveState"
 
@@ -47,6 +48,7 @@ export enum IndexKey {
 
 export interface IndexFinder {
     processElementsByKey: (key: IndexKey, processor: ScopeProcessor, state: ResolveState) => boolean
+    elementsByName: <K extends IndexKey>(key: K, name: string) => IndexKeyToType[K][]
 }
 
 export class FileIndex {
@@ -72,6 +74,7 @@ export class FileIndex {
         [IndexKey.Constants]: [],
     }
 
+    private readonly elementsByNameCache: Map<IndexKey, Map<string, NamedNode[]>> = new Map()
     private readonly deprecated: Map<string, string> = new Map()
 
     public static create(file: TolkFile): FileIndex {
@@ -189,67 +192,31 @@ export class FileIndex {
     }
 
     public elementsByName<K extends IndexKey>(key: K, name: string): IndexKeyToType[K][] {
-        switch (key) {
-            case IndexKey.TypeAlias: {
-                return this.findElements(
-                    this.elements[IndexKey.TypeAlias],
-                    name,
-                ) as IndexKeyToType[K][]
-            }
-            case IndexKey.GlobalVariables: {
-                return this.findElements(
-                    this.elements[IndexKey.GlobalVariables],
-                    name,
-                ) as IndexKeyToType[K][]
-            }
-            case IndexKey.Funcs: {
-                return this.findElements(this.elements[IndexKey.Funcs], name) as IndexKeyToType[K][]
-            }
-            case IndexKey.Methods: {
-                return this.findElements(
-                    this.elements[IndexKey.Methods],
-                    name,
-                ) as IndexKeyToType[K][]
-            }
-            case IndexKey.GetMethods: {
-                return this.findElements(
-                    this.elements[IndexKey.GetMethods],
-                    name,
-                ) as IndexKeyToType[K][]
-            }
-            case IndexKey.Structs: {
-                return this.findElements(
-                    this.elements[IndexKey.Structs],
-                    name,
-                ) as IndexKeyToType[K][]
-            }
-            case IndexKey.Enums: {
-                return this.findElements(this.elements[IndexKey.Enums], name) as IndexKeyToType[K][]
-            }
-            case IndexKey.Contracts: {
-                return this.findElements(
-                    this.elements[IndexKey.Contracts],
-                    name,
-                ) as IndexKeyToType[K][]
-            }
-            case IndexKey.Constants: {
-                return this.findElements(
-                    this.elements[IndexKey.Constants],
-                    name,
-                ) as IndexKeyToType[K][]
-            }
-            default: {
-                return []
-            }
-        }
+        const byName = this.nameIndex(key)
+        return (byName.get(name) ?? []) as IndexKeyToType[K][]
     }
 
     private findElement<T extends NamedNode>(elements: T[], name: string): T | null {
         return elements.find(value => value.name() === name) ?? null
     }
 
-    private findElements<T extends NamedNode>(elements: T[], name: string): T[] {
-        return elements.filter(value => value.name() === name)
+    private nameIndex(key: IndexKey): Map<string, NamedNode[]> {
+        const cached = this.elementsByNameCache.get(key)
+        if (cached) return cached
+
+        const byName: Map<string, NamedNode[]> = new Map()
+        for (const element of this.elements[key]) {
+            const name = element.name()
+            const existing = byName.get(name)
+            if (existing) {
+                existing.push(element)
+            } else {
+                byName.set(name, [element])
+            }
+        }
+
+        this.elementsByNameCache.set(key, byName)
+        return byName
     }
 
     public isDeprecated(name: string): boolean {
@@ -258,13 +225,16 @@ export class FileIndex {
 }
 
 export class IndexRoot {
-    public readonly name: "stdlib" | "stubs" | "workspace"
+    public readonly name: "stdlib" | "stubs" | "acton" | "workspace"
     public readonly root: string
     public readonly files: Map<string, FileIndex> = new Map()
+    public readonly cache: TolkRootAnalysisCache = new TolkRootAnalysisCache()
+    private readonly rootPath: string
 
-    public constructor(name: "stdlib" | "stubs" | "workspace", root: string) {
+    public constructor(name: "stdlib" | "stubs" | "acton" | "workspace", root: string) {
         this.name = name
         this.root = root
+        this.rootPath = fileURLToPath(root)
     }
 
     public contains(file: string): boolean {
@@ -273,38 +243,60 @@ export class IndexRoot {
             return this.name === "workspace"
         }
         const filepath = fileURLToPath(file)
-        const rootDir = fileURLToPath(this.root)
-        return filepath.startsWith(rootDir)
+        const relative = path.relative(this.rootPath, filepath)
+        return relative === "" || (!relative.startsWith("..") && !path.isAbsolute(relative))
     }
 
     public addFile(uri: string, file: TolkFile, clearCache: boolean = true): void {
         if (this.files.has(uri)) {
+            TOLK_CACHE.bindFile(uri, this.cache, [file.uri])
             return
         }
 
         if (clearCache) {
-            TOLK_CACHE.clear()
+            this.clearDependentCaches(uri)
         }
 
         const index = FileIndex.create(file)
         this.files.set(uri, index)
+        TOLK_CACHE.bindFile(uri, this.cache, [file.uri])
 
         console.info(`added ${uri} to index`)
     }
 
     public removeFile(uri: string): void {
-        TOLK_CACHE.clear()
+        this.clearDependentCaches(uri)
 
         this.files.delete(uri)
         TOLK_PARSED_FILES_CACHE.delete(uri)
+        TOLK_CACHE.unbindFile(uri)
 
         console.info(`removed ${uri} from index`)
     }
 
     public fileChanged(uri: string): void {
-        TOLK_CACHE.clear()
+        this.clearDependentCaches(uri)
         this.files.delete(uri)
+        TOLK_CACHE.unbindFile(uri)
         console.info(`found changes in ${uri}`)
+    }
+
+    public clearOwnCache(): void {
+        this.cache.clear()
+    }
+
+    public clearFileCaches(uris: readonly string[]): void {
+        this.cache.clearUris(uris)
+    }
+
+    public fileUris(): string[] {
+        return [...new Set([...this.files.keys(), ...this.cache.uris()])]
+    }
+
+    private clearDependentCaches(uri: string): void {
+        const invalidatedUris = index.cacheInvalidationUris(this, uri)
+        TOLK_CACHE.clearImportedFiles()
+        index.clearFileCaches(invalidatedUris)
     }
 
     public findFile(uri: string): FileIndex | undefined {
@@ -418,17 +410,26 @@ export class GlobalIndex {
     public stdlibRoot: IndexRoot | undefined = undefined
     public stubsRoot: IndexRoot | undefined = undefined
     public roots: IndexRoot[] = []
+    private readonly importsByUri: Map<string, Set<string>> = new Map()
+    private readonly importersByPath: Map<string, Set<string>> = new Map()
+    private readonly pathByUri: Map<string, string> = new Map()
+    private readonly aliasesByUri: Map<string, Set<string>> = new Map()
+    private readonly rootByUri: Map<string, IndexRoot> = new Map()
+    private rootsBySpecificity: IndexRoot[] | undefined = undefined
 
     public withStdlibRoot(root: IndexRoot): void {
         this.stdlibRoot = root
+        this.clearRootLookupCaches()
     }
 
     public withStubsRoot(root: IndexRoot): void {
         this.stubsRoot = root
+        this.clearRootLookupCaches()
     }
 
     public withRoots(roots: IndexRoot[]): void {
         this.roots = roots
+        this.clearRootLookupCaches()
     }
 
     public allRoots(): IndexRoot[] {
@@ -443,9 +444,201 @@ export class GlobalIndex {
         return roots
     }
 
+    public clearRootsDependentOn(changedRoot: IndexRoot, dependentRoots?: IndexRoot[]): void {
+        for (const root of dependentRoots ?? this.rootsDependentOn(changedRoot)) {
+            if (root === changedRoot) continue
+            root.clearOwnCache()
+        }
+    }
+
+    public clearFileCaches(uris: readonly string[]): void {
+        for (const [root, rootUris] of this.groupUrisByRoot(uris)) {
+            if (rootUris.length === 0) continue
+
+            root.clearFileCaches(rootUris)
+        }
+    }
+
+    public groupUrisByRoot(uris: readonly string[]): Map<IndexRoot, string[]> {
+        const urisByRoot: Map<IndexRoot, string[]> = new Map()
+        for (const uri of uris) {
+            const root = this.findRootFor(uri)
+            if (!root) continue
+
+            const rootUris = urisByRoot.get(root)
+            if (rootUris) {
+                rootUris.push(uri)
+            } else {
+                urisByRoot.set(root, [uri])
+            }
+        }
+        return urisByRoot
+    }
+
+    public rootsDependentOn(changedRoot: IndexRoot): IndexRoot[] {
+        const roots = this.allRoots()
+        if (changedRoot.name === "stubs" || changedRoot.name === "stdlib") {
+            return roots
+        }
+
+        if (changedRoot.name === "acton") {
+            return roots.filter(root => root.name === "workspace")
+        }
+
+        return []
+    }
+
+    public updateImportGraph(uri: string, file: TolkFile, root?: IndexRoot): void {
+        const indexRoot = root ?? this.rootByUri.get(uri) ?? this.findRootFor(uri)
+        this.removeFromImportGraph(uri)
+
+        const filePath = this.normalizePath(file.path)
+        this.pathByUri.set(uri, filePath)
+        const aliases = this.fileAliases(uri, file)
+        for (const alias of aliases) {
+            this.pathByUri.set(alias, filePath)
+        }
+        if (aliases.length > 0) {
+            const aliasSet: Set<string> = new Set(aliases)
+            this.aliasesByUri.set(uri, aliasSet)
+        }
+        this.rememberRoot(uri, indexRoot, aliases)
+
+        const importedPaths = new Set(
+            file.importedFiles().map(imported => this.normalizePath(imported)),
+        )
+        this.importsByUri.set(uri, importedPaths)
+
+        for (const importedPath of importedPaths) {
+            const importers = this.importersByPath.get(importedPath) ?? new Set<string>()
+            importers.add(uri)
+            this.importersByPath.set(importedPath, importers)
+        }
+    }
+
+    public removeFromImportGraph(uri: string): void {
+        this.forgetRoot(uri)
+
+        const importedPaths = this.importsByUri.get(uri)
+        if (importedPaths) {
+            for (const importedPath of importedPaths) {
+                const importers = this.importersByPath.get(importedPath)
+                if (!importers) continue
+
+                importers.delete(uri)
+                if (importers.size === 0) {
+                    this.importersByPath.delete(importedPath)
+                }
+            }
+        }
+
+        this.importsByUri.delete(uri)
+        this.pathByUri.delete(uri)
+        const aliases = this.aliasesByUri.get(uri)
+        if (aliases) {
+            for (const alias of aliases) {
+                this.pathByUri.delete(alias)
+            }
+        }
+        this.aliasesByUri.delete(uri)
+    }
+
+    public rebuildImportGraphFromParsedFiles(): void {
+        this.importsByUri.clear()
+        this.importersByPath.clear()
+        this.pathByUri.clear()
+        this.aliasesByUri.clear()
+
+        for (const [uri, file] of TOLK_PARSED_FILES_CACHE) {
+            this.updateImportGraph(uri, file)
+        }
+    }
+
+    public cacheInvalidationUris(changedRoot: IndexRoot, changedUri: string): string[] {
+        const affectedRoots: Set<IndexRoot> = new Set([
+            changedRoot,
+            ...this.rootsDependentOn(changedRoot),
+        ])
+
+        if (this.isImplicitlyImported(changedRoot, changedUri)) {
+            const result: Set<string> = new Set([changedUri])
+            for (const root of affectedRoots) {
+                for (const uri of root.fileUris()) {
+                    result.add(uri)
+                }
+            }
+            return [...result]
+        }
+
+        const result: Set<string> = new Set()
+        const queued: Set<string> = new Set([changedUri])
+        const queue: string[] = [changedUri]
+        const visitedPaths: Set<string> = new Set()
+
+        while (queue.length > 0) {
+            const currentUri = queue.shift()
+            if (!currentUri) continue
+
+            result.add(currentUri)
+
+            const currentPath = this.pathForUri(currentUri)
+            if (visitedPaths.has(currentPath)) continue
+            visitedPaths.add(currentPath)
+
+            for (const candidateUri of this.importersByPath.get(currentPath) ?? []) {
+                if (queued.has(candidateUri)) continue
+                if (!this.isInRoots(candidateUri, affectedRoots)) continue
+
+                queued.add(candidateUri)
+                queue.push(candidateUri)
+            }
+        }
+
+        return [...result]
+    }
+
+    private isImplicitlyImported(changedRoot: IndexRoot, changedUri: string): boolean {
+        if (changedRoot.name === "stubs") return true
+        if (changedRoot.name !== "stdlib") return false
+
+        return this.pathForUri(changedUri).replace(/\\/g, "/").endsWith("/common.tolk")
+    }
+
+    private pathForUri(uri: string): string {
+        const knownPath = this.pathByUri.get(uri)
+        if (knownPath) return knownPath
+
+        const file = TOLK_PARSED_FILES_CACHE.get(uri)
+        if (file) return this.normalizePath(file.path)
+
+        if (uri.startsWith("file:")) {
+            return this.normalizePath(fileURLToPath(uri))
+        }
+
+        return uri
+    }
+
+    private normalizePath(filePath: string): string {
+        return path.normalize(filePath)
+    }
+
+    private isInRoots(uri: string, roots: ReadonlySet<IndexRoot>): boolean {
+        const knownRoot = this.rootByUri.get(uri)
+        if (knownRoot) return roots.has(knownRoot)
+
+        for (const root of roots) {
+            if (root.contains(uri)) return true
+        }
+        return false
+    }
+
     public findRootFor(path: string): IndexRoot | undefined {
-        for (const root of this.allRoots()) {
+        const knownRoot = this.rootByUri.get(path)
+        if (knownRoot) return knownRoot
+
+        for (const root of this.allRootsBySpecificity()) {
             if (root.contains(path)) {
+                this.rootByUri.set(path, root)
                 return root
             }
         }
@@ -459,6 +652,8 @@ export class GlobalIndex {
         if (!indexRoot) return
 
         indexRoot.addFile(uri, file, clearCache)
+        this.rememberRoot(uri, indexRoot, this.fileAliases(uri, file))
+        this.updateImportGraph(uri, file, indexRoot)
     }
 
     public removeFile(uri: string): void {
@@ -466,6 +661,7 @@ export class GlobalIndex {
         if (!indexRoot) return
 
         indexRoot.removeFile(uri)
+        this.removeFromImportGraph(uri)
     }
 
     public fileChanged(uri: string): void {
@@ -473,10 +669,11 @@ export class GlobalIndex {
         if (!indexRoot) return
 
         indexRoot.fileChanged(uri)
+        this.removeFromImportGraph(uri)
     }
 
     public findFile(uri: string): FileIndex | undefined {
-        const indexRoot = this.findRootFor(uri)
+        const indexRoot = this.rootByUri.get(uri) ?? this.findRootFor(uri)
         if (!indexRoot) return undefined
 
         return indexRoot.findFile(uri)
@@ -531,6 +728,56 @@ export class GlobalIndex {
         }
 
         return false
+    }
+
+    private clearRootLookupCaches(): void {
+        this.rootByUri.clear()
+        this.rootsBySpecificity = undefined
+    }
+
+    private allRootsBySpecificity(): IndexRoot[] {
+        this.rootsBySpecificity ??= [...this.allRoots()].sort(
+            (left, right) => right.root.length - left.root.length,
+        )
+        return this.rootsBySpecificity
+    }
+
+    private fileAliases(uri: string, file: TolkFile): string[] {
+        if (file.uri === uri) return []
+        return [file.uri]
+    }
+
+    private rememberRoot(
+        uri: string,
+        root: IndexRoot | undefined,
+        aliases: readonly string[] = [],
+    ): void {
+        if (!root) return
+
+        this.rootByUri.set(uri, root)
+        for (const alias of aliases) {
+            this.rootByUri.set(alias, root)
+        }
+    }
+
+    private forgetRoot(uri: string): void {
+        this.rootByUri.delete(uri)
+
+        const aliases = this.aliasesByUri.get(uri)
+        if (aliases) {
+            for (const alias of aliases) {
+                this.rootByUri.delete(alias)
+            }
+        }
+
+        for (const [sourceUri, sourceAliases] of this.aliasesByUri) {
+            if (!sourceAliases.has(uri)) continue
+
+            this.rootByUri.delete(sourceUri)
+            for (const alias of sourceAliases) {
+                this.rootByUri.delete(alias)
+            }
+        }
     }
 }
 

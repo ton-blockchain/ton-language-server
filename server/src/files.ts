@@ -19,6 +19,8 @@ export const FUNC_PARSED_FILES_CACHE: Map<string, FuncFile> = new Map()
 export const FIFT_PARSED_FILES_CACHE: Map<string, FiftFile> = new Map()
 export const TLB_PARSED_FILES_CACHE: Map<string, TlbFile> = new Map()
 
+const FILE_PATH_TO_URI_CACHE: Map<string, string> = new Map()
+
 export async function findTolkFile(uri: string, changed: boolean = false): Promise<TolkFile> {
     const cached = TOLK_PARSED_FILES_CACHE.get(uri)
     if (cached !== undefined && !changed) {
@@ -160,8 +162,13 @@ export const isTlbFile = (
 ): boolean => event?.document.languageId === "tlb" || uri.endsWith(".tlb")
 
 export const filePathToUri = (filePath: string): string => {
+    const cached = FILE_PATH_TO_URI_CACHE.get(filePath)
+    if (cached) return cached
+
     const url = pathToFileURL(filePath).toString()
-    return url.replace(/c:/g, "c%3A").replace(/d:/g, "d%3A")
+    const uri = url.replace(/c:/g, "c%3A").replace(/d:/g, "d%3A")
+    FILE_PATH_TO_URI_CACHE.set(filePath, uri)
+    return uri
 }
 
 function fileURLToPath(uri: string): string {

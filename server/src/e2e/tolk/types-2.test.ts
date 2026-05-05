@@ -72,34 +72,40 @@ suite("Type Inference Test Suite 2", () => {
 
         protected runTest(testFile: string, testCase: TestCase): void {
             test(`Types: ${testCase.name}`, async () => {
-                const positions = this.findTypePositions(testCase.input)
+                await this.setupAdditionalFiles(testCase)
 
-                await this.replaceDocumentText(testCase.input)
+                try {
+                    const positions = this.findTypePositions(testCase.input)
 
-                const errors: string[] = []
+                    await this.replaceDocumentText(testCase.input)
 
-                for (const pos of positions) {
-                    const params = new vscode.Position(pos.line, pos.character)
-                    const type = await this.getType(params)
-                    const actual = type ?? "unknown"
+                    const errors: string[] = []
 
-                    if (actual !== pos.expectedType) {
-                        errors.push(
-                            `type inference error at line ${pos.line + 1}:${pos.character}: expected ${pos.expectedType}, got ${actual}`,
-                        )
+                    for (const pos of positions) {
+                        const params = new vscode.Position(pos.line, pos.character)
+                        const type = await this.getType(params)
+                        const actual = type ?? "unknown"
+
+                        if (actual !== pos.expectedType) {
+                            errors.push(
+                                `type inference error at line ${pos.line + 1}:${pos.character}: expected ${pos.expectedType}, got ${actual}`,
+                            )
+                        }
                     }
-                }
 
-                const actual = errors.length === 0 ? "ok" : errors.join("\n")
+                    const actual = errors.length === 0 ? "ok" : errors.join("\n")
 
-                if (BaseTestSuite.UPDATE_SNAPSHOTS) {
-                    this.updates.push({
-                        filePath: testFile,
-                        testName: testCase.name,
-                        actual,
-                    })
-                } else {
-                    assert.strictEqual(actual, testCase.expected)
+                    if (BaseTestSuite.UPDATE_SNAPSHOTS) {
+                        this.updates.push({
+                            filePath: testFile,
+                            testName: testCase.name,
+                            actual,
+                        })
+                    } else {
+                        assert.strictEqual(actual, testCase.expected)
+                    }
+                } finally {
+                    await this.cleanupAdditionalFiles(testCase)
                 }
             })
         }

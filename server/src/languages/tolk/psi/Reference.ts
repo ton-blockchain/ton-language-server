@@ -100,7 +100,9 @@ export class Reference {
     }
 
     public resolve(): NamedNode | null {
-        return TOLK_CACHE.resolveCache.cached(this.element.node.id, () => this.resolveImpl())
+        return TOLK_CACHE.forFile(this.element.file).resolveCache.cached(this.element.node.id, () =>
+            this.resolveImpl(),
+        )
     }
 
     private resolveImpl(): NamedNode | null {
@@ -304,9 +306,12 @@ export class Reference {
         proc: ScopeProcessor,
         state: ResolveState,
     ): boolean {
-        const inference = inferenceOf(qualifier.node, qualifier.file)
+        const completion = state.get("completion")
+        const inference = completion
+            ? inferenceOf(qualifier.node, qualifier.file)
+            : inferenceOf(this.element.node.parent ?? qualifier.node, qualifier.file)
 
-        if (!state.get("completion")) {
+        if (!completion) {
             // For resolving we have a stable state, during inference we already resolved all
             // `foo.bar` expressions, so we just reuse that result.
             const cachedResolved = inference?.resolve(this.element.node)
@@ -424,8 +429,8 @@ export class Reference {
     }
 
     private processTypeMethods(ty: Ty, proc: ScopeProcessor, state: ResolveState): boolean {
-        const file = this.element.file
         const tyName = ty.name()
+
         return index.processElementsByKey(
             IndexKey.Methods,
             new (class implements ScopeProcessor {
@@ -433,7 +438,7 @@ export class Reference {
                     if (fun instanceof StaticMethod) return true
 
                     const receiverType = fun.receiverTypeNode()
-                    if (this.typeMatches(file, ty, tyName, receiverType)) {
+                    if (this.typeMatches(ty, tyName, receiverType)) {
                         return proc.execute(fun, state)
                     }
 
@@ -441,7 +446,6 @@ export class Reference {
                 }
 
                 private typeMatches(
-                    file: TolkFile,
                     expected: Ty,
                     expectedTyName: string,
                     receiver: SyntaxNode | null,
@@ -457,14 +461,12 @@ export class Reference {
                     }
 
                     if (receiver?.type === "type_instantiatedTs") {
-                        const receiverType = typeOf(receiver, file)
-                        if (
-                            receiverType instanceof InstantiationTy &&
-                            expected instanceof InstantiationTy
-                        ) {
-                            return receiverType.innerTy.name() === expected.innerTy.name()
+                        const expectedUnwrapped = expected.unwrapAlias()
+                        const receiverTypeName = receiver.childForFieldName("name")?.text
+                        if (expectedUnwrapped instanceof InstantiationTy) {
+                            return receiverTypeName === expectedUnwrapped.innerTy.name()
                         }
-                        if (receiverType instanceof ArrayTy && expected instanceof ArrayTy) {
+                        if (receiverTypeName === "array" && expectedUnwrapped instanceof ArrayTy) {
                             return true
                         }
                     }
@@ -474,12 +476,7 @@ export class Reference {
                         if (expected instanceof UnionTy) {
                             const asNullable = expected.asNullable()
                             if (asNullable !== undefined) {
-                                return this.typeMatches(
-                                    file,
-                                    asNullable[0],
-                                    asNullable[0].name(),
-                                    inner,
-                                )
+                                return this.typeMatches(asNullable[0], asNullable[0].name(), inner)
                             }
                         }
                     }
@@ -503,7 +500,7 @@ export class Reference {
     }
 
     private processUnqualifiedResolve(proc: ScopeProcessor, state: ResolveState): boolean {
-        const name = this.element.node.text
+        const name = this.element.name()
         if (!name || name === "" || name === "_") return true
 
         if (this.onlyBlock) {
@@ -511,9 +508,7 @@ export class Reference {
         }
 
         const bitTypeNameOrUndefined = bitTypeName(name)
-        if (bitTypeNameOrUndefined !== undefined) {
-            state = state.withValue("search-name", bitTypeNameOrUndefined)
-        }
+        state = state.withValue("search-name", bitTypeNameOrUndefined ?? name)
 
         const parent = this.element.node.parent
         // foo.bar
@@ -795,15 +790,33 @@ export class Reference {
             if (!isQualifier) {
                 // address.foo()
                 // ^^^^^^^ can be both type and function, resolve only as type
-                if (!fileIndex.processElementsByKey(IndexKey.Funcs, proc, state)) return false
-                if (!fileIndex.processElementsByKey(IndexKey.GetMethods, proc, state)) return false
+                if (!this.processElementsInIndex(fileIndex, IndexKey.Funcs, proc, state))
+                    return false
+                if (!this.processElementsInIndex(fileIndex, IndexKey.GetMethods, proc, state))
+                    return false
             }
-            if (!fileIndex.processElementsByKey(IndexKey.GlobalVariables, proc, state)) return false
-            if (!fileIndex.processElementsByKey(IndexKey.Constants, proc, state)) return false
+            if (!this.processElementsInIndex(fileIndex, IndexKey.GlobalVariables, proc, state))
+                return false
+            if (!this.processElementsInIndex(fileIndex, IndexKey.Constants, proc, state))
+                return false
         }
 
-        if (!fileIndex.processElementsByKey(IndexKey.Structs, proc, state)) return false
-        if (!fileIndex.processElementsByKey(IndexKey.Enums, proc, state)) return false
-        return fileIndex.processElementsByKey(IndexKey.TypeAlias, proc, state)
+        if (!this.processElementsInIndex(fileIndex, IndexKey.Structs, proc, state)) return false
+        if (!this.processElementsInIndex(fileIndex, IndexKey.Enums, proc, state)) return false
+        return this.processElementsInIndex(fileIndex, IndexKey.TypeAlias, proc, state)
+    }
+
+    private processElementsInIndex(
+        fileIndex: IndexFinder,
+        key: IndexKey,
+        proc: ScopeProcessor,
+        state: ResolveState,
+    ): boolean {
+        if (state.get("completion")) {
+            return fileIndex.processElementsByKey(key, proc, state)
+        }
+
+        const searchName = state.get("search-name") ?? this.element.name()
+        return Reference.processNamedEls(proc, state, fileIndex.elementsByName(key, searchName))
     }
 }

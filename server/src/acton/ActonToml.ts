@@ -12,6 +12,10 @@ export interface WalletInfo {
 }
 
 export class ActonToml {
+    private static readonly discoveryCache: Map<string, ActonToml | undefined> = new Map()
+    private static readonly contractIdsCache: Map<string, readonly string[]> = new Map()
+    private static readonly mappingsCache: Map<string, ReadonlyMap<string, string>> = new Map()
+
     public constructor(private readonly uri: string) {}
 
     private readContent(uri: string): string | undefined {
@@ -24,6 +28,9 @@ export class ActonToml {
     }
 
     public getContractIds(): string[] {
+        const cached = ActonToml.contractIdsCache.get(this.uri)
+        if (cached) return [...cached]
+
         const content = this.readContent(this.uri)
         if (!content) return []
 
@@ -37,10 +44,14 @@ export class ActonToml {
                 contractIds.push(id)
             }
         }
-        return contractIds
+        ActonToml.contractIdsCache.set(this.uri, contractIds)
+        return [...contractIds]
     }
 
     public getMappings(): Map<string, string> {
+        const cached = ActonToml.mappingsCache.get(this.uri)
+        if (cached) return new Map(cached)
+
         const content = this.readContent(this.uri)
         if (!content) return new Map()
 
@@ -70,7 +81,8 @@ export class ActonToml {
                 }
             }
         }
-        return mappings
+        ActonToml.mappingsCache.set(this.uri, mappings)
+        return new Map(mappings)
     }
 
     public get workingDir(): string {
@@ -118,6 +130,10 @@ export class ActonToml {
     }
 
     public static discover(startUri: string): ActonToml | undefined {
+        if (this.discoveryCache.has(startUri)) {
+            return this.discoveryCache.get(startUri)
+        }
+
         let currentPath = URI.parse(startUri).fsPath
 
         for (let i = 0; i < 10; i++) {
@@ -126,12 +142,28 @@ export class ActonToml {
 
             if (fs.existsSync(tomlPath)) {
                 const tomlUri = URI.file(tomlPath).toString()
-                return new ActonToml(tomlUri)
+                const actonToml = new ActonToml(tomlUri)
+                this.discoveryCache.set(startUri, actonToml)
+                return actonToml
             }
 
             if (dir === currentPath) break
             currentPath = dir
         }
+        this.discoveryCache.set(startUri, undefined)
         return undefined
+    }
+
+    public static clearCaches(uri?: string): void {
+        this.discoveryCache.clear()
+
+        if (!uri) {
+            this.contractIdsCache.clear()
+            this.mappingsCache.clear()
+            return
+        }
+
+        this.contractIdsCache.delete(uri)
+        this.mappingsCache.delete(uri)
     }
 }

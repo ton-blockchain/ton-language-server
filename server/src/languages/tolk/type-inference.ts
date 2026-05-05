@@ -42,20 +42,23 @@ import {
     GlobalVariable,
     InstanceMethod,
     MethodBase,
-    StaticMethod,
     Struct,
     TypeAlias,
     TypeParameter,
 } from "@server/languages/tolk/psi/Decls"
 import {CallLike, Lambda, NamedNode} from "@server/languages/tolk/psi/TolkNode"
 import {TolkFile} from "@server/languages/tolk/psi/TolkFile"
-import {Reference, ScopeProcessor} from "@server/languages/tolk/psi/Reference"
-import {index, IndexFinder, IndexKey} from "@server/languages/tolk/indexes"
-import {ResolveState} from "@server/psi/ResolveState"
+import {Reference} from "@server/languages/tolk/psi/Reference"
+import {FileIndex, index, IndexKey} from "@server/languages/tolk/indexes"
 import {parentOfType} from "@server/psi/utils"
 import {TOLK_CACHE} from "@server/languages/tolk/cache"
 import {filePathToUri} from "@server/files"
 import {trimBackticks} from "@server/languages/tolk/lang/names-util"
+
+function substituteTypeIfNeeded(ty: Ty, mapping: Map<string, Ty>): Ty {
+    if (mapping.size === 0 || !ty.hasGenerics()) return ty
+    return ty.substitute(mapping)
+}
 
 export class GenericSubstitutions {
     public constructor(public mapping: Map<string, Ty> = new Map()) {}
@@ -1026,7 +1029,7 @@ class InferenceWalker {
                 mapping.set(typeParameters[i].name(), types[i])
             }
 
-            const substituted = exprType?.substitute(mapping) ?? null
+            const substituted = exprType ? substituteTypeIfNeeded(exprType, mapping) : null
             this.ctx.setType(node, substituted)
             this.ctx.setResolved(node, resolved)
         }
@@ -1107,9 +1110,7 @@ class InferenceWalker {
         // infer argument types with parameter types as hint
         for (let i = 0; i < Math.min(paramTypes.length, args.length); i++) {
             let paramType = paramTypes[i]
-            if (paramType.hasGenerics()) {
-                paramType = paramType.substitute(sub.mapping)
-            }
+            paramType = substituteTypeIfNeeded(paramType, sub.mapping)
 
             const arg = args[i]
             const argExpr = arg.childForFieldName("expr")
@@ -1119,12 +1120,12 @@ class InferenceWalker {
             let argType = this.ctx.getType(argExpr) ?? UnknownTy.UNKNOWN
 
             sub = sub.deduce(paramType, argType)
-            argType = argType.substitute(sub.mapping)
+            argType = substituteTypeIfNeeded(argType, sub.mapping)
 
             this.ctx.setType(argExpr, argType)
         }
 
-        const returnType = functionType.returnTy.substitute(sub.mapping)
+        const returnType = substituteTypeIfNeeded(functionType.returnTy, sub.mapping)
 
         this.ctx.setType(callee, functionType)
         this.ctx.setType(node, returnType)
@@ -1196,10 +1197,11 @@ class InferenceWalker {
                     this.ctx.setResolved(node, resolved)
                     this.ctx.setResolved(fieldNode, resolved)
 
-                    const type =
-                        InferenceWalker.convertType(field.typeNode()?.node, field.file)?.substitute(
-                            sub.mapping,
-                        ) ?? null
+                    const fieldType = InferenceWalker.convertType(
+                        field.typeNode()?.node,
+                        field.file,
+                    )
+                    const type = fieldType ? substituteTypeIfNeeded(fieldType, sub.mapping) : null
 
                     this.ctx.setType(node, type)
                     this.ctx.setType(fieldNode, type)
@@ -1246,19 +1248,12 @@ class InferenceWalker {
     private processMethodsInIndex(
         searchName: string,
         onMethod: (method: MethodBase) => boolean,
-        fileIndex: IndexFinder,
+        fileIndex: FileIndex,
     ): boolean {
-        return fileIndex.processElementsByKey(
-            IndexKey.Methods,
-            new (class implements ScopeProcessor {
-                public execute(node: InstanceMethod | StaticMethod): boolean {
-                    const name = node.name()
-                    if (name !== searchName) return true // fast path
-                    return onMethod(node)
-                }
-            })(),
-            new ResolveState(),
-        )
+        for (const method of fileIndex.elementsByName(IndexKey.Methods, searchName)) {
+            if (!onMethod(method)) return false
+        }
+        return true
     }
 
     private processMethods(searchName: string, onMethod: (method: MethodBase) => boolean): void {
@@ -1312,7 +1307,7 @@ class InferenceWalker {
         this.processMethods(searchName, method => {
             const receiverTypeNode = method.receiverTypeNode()
             if (!receiverTypeNode) return true
-            const receiverType = InferenceWalker.convertType(receiverTypeNode, this.ctx.file)
+            const receiverType = InferenceWalker.convertType(receiverTypeNode, method.file)
 
             if (!receiverType?.hasGenerics() && receiverType?.equals(qualifierType)) {
                 result.push(method)
@@ -1329,7 +1324,7 @@ class InferenceWalker {
         this.processMethods(searchName, method => {
             const receiverTypeNode = method.receiverTypeNode()
             if (!receiverTypeNode) return true
-            const receiverType = InferenceWalker.convertType(receiverTypeNode, this.ctx.file)
+            const receiverType = InferenceWalker.convertType(receiverTypeNode, method.file)
 
             if (!receiverType?.hasGenerics() && receiverType?.canRhsBeAssigned(qualifierType)) {
                 result.push(method)
@@ -1347,7 +1342,7 @@ class InferenceWalker {
         this.processMethods(searchName, method => {
             const receiverTypeNode = method.receiverTypeNode()
             if (!receiverTypeNode) return true
-            const receiverType = InferenceWalker.convertType(receiverTypeNode, this.ctx.file)
+            const receiverType = InferenceWalker.convertType(receiverTypeNode, method.file)
 
             // Foo<T>, but not T
             if (receiverType?.hasGenerics() && !(receiverType instanceof TypeParameterTy)) {
@@ -1361,7 +1356,7 @@ class InferenceWalker {
                 }
 
                 const subst = GenericSubstitutions.deduce(receiverType, qualifierType)
-                const substituted = receiverType.substitute(subst.mapping)
+                const substituted = substituteTypeIfNeeded(receiverType, subst.mapping)
 
                 if (!substituted.hasGenerics()) {
                     result.push(method)
@@ -1379,7 +1374,7 @@ class InferenceWalker {
         this.processMethods(searchName, method => {
             const receiverTypeNode = method.receiverTypeNode()
             if (!receiverTypeNode) return true
-            const receiverType = InferenceWalker.convertType(receiverTypeNode, this.ctx.file)
+            const receiverType = InferenceWalker.convertType(receiverTypeNode, method.file)
 
             if (receiverType instanceof TypeParameterTy) {
                 result.push(method)
@@ -1578,8 +1573,8 @@ class InferenceWalker {
                 )
 
                 let fieldType = originalFieldType
-                if (fieldType && fieldType.hasGenerics()) {
-                    fieldType = fieldType.substitute(sub.mapping)
+                if (fieldType) {
+                    fieldType = substituteTypeIfNeeded(fieldType, sub.mapping)
                 }
 
                 if (value) {
@@ -1589,11 +1584,11 @@ class InferenceWalker {
                 const valueType = value ? this.ctx.getType(value) : UnknownTy.UNKNOWN
                 if (originalFieldType && valueType) {
                     sub = sub.deduce(originalFieldType, valueType.unwrapAlias())
-                    const subType = valueType.substitute(sub.mapping)
+                    const subType = substituteTypeIfNeeded(valueType, sub.mapping)
                     this.ctx.setType(value, subType)
 
                     if (nameNode) {
-                        const fieldSubType = originalFieldType.substitute(sub.mapping)
+                        const fieldSubType = substituteTypeIfNeeded(originalFieldType, sub.mapping)
                         this.ctx.setType(nameNode, fieldSubType)
                     }
                 } else if (nameNode) {
@@ -1620,8 +1615,8 @@ class InferenceWalker {
                         resolvedField?.file,
                     )
 
-                    if (fieldType && fieldType.hasGenerics()) {
-                        fieldType = fieldType.substitute(sub.mapping)
+                    if (fieldType) {
+                        fieldType = substituteTypeIfNeeded(fieldType, sub.mapping)
                     }
 
                     const sink = new SinkExpression(resolved)
@@ -1629,7 +1624,7 @@ class InferenceWalker {
 
                     if (fieldType && variableType) {
                         sub = sub.deduce(fieldType, variableType.baseType())
-                        const subType = variableType.substitute(sub.mapping)
+                        const subType = substituteTypeIfNeeded(variableType, sub.mapping)
 
                         this.ctx.setType(nameNode, subType)
                     } else {
@@ -1640,7 +1635,7 @@ class InferenceWalker {
         }
 
         if (structType && structType.hasGenerics()) {
-            this.ctx.setType(node, structType.substitute(sub.mapping))
+            this.ctx.setType(node, substituteTypeIfNeeded(structType, sub.mapping))
         } else {
             this.ctx.setType(node, structType)
         }
@@ -2136,9 +2131,10 @@ class InferenceWalker {
         file: TolkFile | null | undefined,
     ): Ty | null {
         if (!typeNode || !file) return null
-        return TOLK_CACHE.typeCache.cached(typeNode.id, () => {
+        const cache = TOLK_CACHE.forFile(file)
+        return cache.typeCache.cached(typeNode.id, () => {
             // add unknown type to avoid recursion
-            TOLK_CACHE.typeCache.setValue(typeNode.id, UnknownTy.UNKNOWN)
+            cache.typeCache.setValue(typeNode.id, UnknownTy.UNKNOWN)
             return InferenceWalker.convertTypeImpl(typeNode, file)
         })
     }
@@ -2223,9 +2219,12 @@ class InferenceWalker {
                 }
 
                 if (resolved.name() === "array") {
-                    return new ArrayTy(argsTypes.at(0) ?? UnknownTy.UNKNOWN).substitute(mapping)
+                    return substituteTypeIfNeeded(
+                        new ArrayTy(argsTypes.at(0) ?? UnknownTy.UNKNOWN),
+                        mapping,
+                    )
                 }
-                return new InstantiationTy(innerTy, argsTypes).substitute(mapping)
+                return substituteTypeIfNeeded(new InstantiationTy(innerTy, argsTypes), mapping)
             }
 
             return new InstantiationTy(innerTy, argsTypes)
@@ -2293,8 +2292,10 @@ class InferenceWalker {
     }
 
     public static namedNodeType(node: NamedNode): Ty | null {
-        return TOLK_CACHE.typeCache.cachedIf(node.node.id, UnknownTy.UNKNOWN, () =>
-            InferenceWalker.namedNodeTypeImpl(node),
+        return TOLK_CACHE.forFile(node.file).typeCache.cachedIf(
+            node.node.id,
+            UnknownTy.UNKNOWN,
+            () => InferenceWalker.namedNodeTypeImpl(node),
         )
     }
 
@@ -2395,7 +2396,7 @@ class InferenceWalker {
         }
 
         if (node instanceof FunctionBase) {
-            const result = TOLK_CACHE.funcTypeCache.cached(node.node.id, () => {
+            const result = TOLK_CACHE.forFile(node.file).funcTypeCache.cached(node.node.id, () => {
                 return infer(node)
             })
 
@@ -3318,9 +3319,12 @@ export function typeOf(node: SyntaxNode, file: TolkFile): Ty | null {
 
     ownable.cacheOwner = cacheOwner
 
-    const result = TOLK_CACHE.funcTypeCache.cached(cacheOwner.node.id, () => {
-        return infer(cacheOwner)
-    })
+    const result = TOLK_CACHE.forFile(cacheOwner.file).funcTypeCache.cached(
+        cacheOwner.node.id,
+        () => {
+            return infer(cacheOwner)
+        },
+    )
 
     return result.ctx.getType(node)
 }
@@ -3332,13 +3336,13 @@ export function inferenceOf(node: SyntaxNode, file: TolkFile): InferenceResult |
 
     ownable.cacheOwner = cacheOwner
 
-    return TOLK_CACHE.funcTypeCache.cached(cacheOwner.node.id, () => {
+    return TOLK_CACHE.forFile(cacheOwner.file).funcTypeCache.cached(cacheOwner.node.id, () => {
         return infer(cacheOwner)
     })
 }
 
 export function functionTypeOf(func: FunctionBase): FuncTy | null {
-    const result = TOLK_CACHE.funcTypeCache.cached(func.node.id, () => {
+    const result = TOLK_CACHE.forFile(func.file).funcTypeCache.cached(func.node.id, () => {
         return infer(func)
     })
 

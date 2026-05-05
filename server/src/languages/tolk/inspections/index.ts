@@ -13,13 +13,15 @@ import {UnusedTopLevelDeclarationInspection} from "@server/languages/tolk/inspec
 import {UnusedTypeParameterInspection} from "@server/languages/tolk/inspections/UnusedTypeParameterInspection"
 import {NeedNotNullUnwrappingInspection} from "@server/languages/tolk/inspections/NeedNotNullUnwrappingInspection"
 import {MissedSemicolonInspection} from "@server/languages/tolk/inspections/MissedSemicolonInspection"
+import type {Inspection} from "@server/languages/tolk/inspections/Inspection"
 
 export async function runTolkInspections(
     uri: string,
     file: TolkFile,
     _includeLinters: boolean,
+    shouldPublishDiagnostics: () => boolean = () => true,
 ): Promise<void> {
-    const inspections = [
+    const inspections: Inspection[] = [
         new UnusedParameterInspection(),
         new UnusedTypeParameterInspection(),
         new UnusedVariableInspection(),
@@ -38,11 +40,14 @@ export async function runTolkInspections(
     const diagnostics: lsp.Diagnostic[] = []
 
     for (const inspection of inspections) {
+        if (!shouldPublishDiagnostics()) return
+
         if (settings.tolk.inspections.disabled.includes(inspection.id)) {
             continue
         }
-        diagnostics.push(...inspection.inspect(file))
+        diagnostics.push(...(await inspection.inspect(file)))
     }
 
+    if (!shouldPublishDiagnostics()) return
     await connection.sendDiagnostics({uri, diagnostics})
 }

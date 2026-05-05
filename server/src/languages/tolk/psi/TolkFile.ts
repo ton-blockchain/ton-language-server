@@ -135,6 +135,10 @@ export class TolkFile extends File {
     }
 
     public importedFiles(): string[] {
+        return [...TOLK_CACHE.importedFilePaths.cached(this.uri, () => this.importedFilesImpl())]
+    }
+
+    private importedFilesImpl(): string[] {
         const imports = this.imports()
             .map(node => node.childForFieldName("path"))
             .filter(node => node !== null)

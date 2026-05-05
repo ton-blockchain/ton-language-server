@@ -31,6 +31,29 @@ export interface Ty {
     unwrapInstantiation(): Ty
 }
 
+function substituteIfNeeded(ty: Ty, mapping: Map<string, Ty>): Ty {
+    if (mapping.size === 0 || !ty.hasGenerics()) return ty
+    return ty.substitute(mapping)
+}
+
+function substituteListIfNeeded(types: Ty[], mapping: Map<string, Ty>): Ty[] {
+    if (mapping.size === 0) return types
+
+    let result: Ty[] | null = null
+    for (let i = 0; i < types.length; i++) {
+        const type = types[i]
+        const substituted = substituteIfNeeded(type, mapping)
+
+        if (substituted !== type && result === null) {
+            result = types.slice(0, i)
+        }
+
+        result?.push(substituted)
+    }
+
+    return result ?? types
+}
+
 export abstract class NamedTy<Anchor extends NamedNode> implements Ty {
     public readonly anchor: Anchor | null = null
     protected readonly _name: string
@@ -127,6 +150,8 @@ export abstract class NonNamedTy implements Ty {
 }
 
 export class FieldsOwnerTy<Anchor extends FieldsOwner> extends NamedTy<Anchor> {
+    private hasGenericFields: boolean | null = null
+
     public constructor(
         public fieldsTy: Ty[],
         _name: string,
@@ -139,15 +164,18 @@ export class FieldsOwnerTy<Anchor extends FieldsOwner> extends NamedTy<Anchor> {
         if (this.anchor === null) return []
         return this.anchor.fields()
     }
+
+    public override hasGenerics(): boolean {
+        return (this.hasGenericFields ??= this.fieldsTy.some(it => it.hasGenerics()))
+    }
 }
 
 export class StructTy extends FieldsOwnerTy<Struct> {
     public override substitute(mapping: Map<string, Ty>): Ty {
-        return new StructTy(
-            this.fieldsTy.map(it => it.substitute(mapping)),
-            this.name(),
-            this.anchor,
-        )
+        const fieldsTy = substituteListIfNeeded(this.fieldsTy, mapping)
+        if (fieldsTy === this.fieldsTy) return this
+
+        return new StructTy(fieldsTy, this.name(), this.anchor)
     }
 
     public override canRhsBeAssigned(other: Ty): boolean {
@@ -165,7 +193,7 @@ export class EnumTy extends NamedTy<Enum> {
     }
 
     public override substitute(_mapping: Map<string, Ty>): Ty {
-        return new EnumTy(this.name(), this.anchor)
+        return this
     }
 
     public override canRhsBeAssigned(other: Ty): boolean {
@@ -177,6 +205,8 @@ export class EnumTy extends NamedTy<Enum> {
 }
 
 export class TypeAliasTy extends NamedTy<TypeAlias> {
+    private hasGenericInner: boolean | null = null
+
     public constructor(
         name: string,
         anchor: TypeAlias | null,
@@ -197,15 +227,20 @@ export class TypeAliasTy extends NamedTy<TypeAlias> {
     }
 
     public override hasGenerics(): boolean {
-        return this.innerTy.hasGenerics()
+        return (this.hasGenericInner ??= this.innerTy.hasGenerics())
     }
 
     public override substitute(mapping: Map<string, Ty>): Ty {
-        return new TypeAliasTy(this._name, this.anchor, this.innerTy.substitute(mapping))
+        const innerTy = substituteIfNeeded(this.innerTy, mapping)
+        if (innerTy === this.innerTy) return this
+
+        return new TypeAliasTy(this._name, this.anchor, innerTy)
     }
 }
 
 export class TensorTy extends NonNamedTy {
+    private hasGenericElements: boolean | null = null
+
     public constructor(public elements: Ty[]) {
         super()
     }
@@ -238,15 +273,20 @@ export class TensorTy extends NonNamedTy {
     }
 
     public override hasGenerics(): boolean {
-        return this.elements.some(it => it.hasGenerics())
+        return (this.hasGenericElements ??= this.elements.some(it => it.hasGenerics()))
     }
 
     public override substitute(mapping: Map<string, Ty>): Ty {
-        return new TensorTy(this.elements.map(it => it.substitute(mapping)))
+        const elements = substituteListIfNeeded(this.elements, mapping)
+        if (elements === this.elements) return this
+
+        return new TensorTy(elements)
     }
 }
 
 export class TupleTy extends NonNamedTy {
+    private hasGenericElements: boolean | null = null
+
     public constructor(public elements: Ty[]) {
         super()
     }
@@ -279,15 +319,20 @@ export class TupleTy extends NonNamedTy {
     }
 
     public override hasGenerics(): boolean {
-        return this.elements.some(it => it.hasGenerics())
+        return (this.hasGenericElements ??= this.elements.some(it => it.hasGenerics()))
     }
 
     public override substitute(mapping: Map<string, Ty>): Ty {
-        return new TupleTy(this.elements.map(it => it.substitute(mapping)))
+        const elements = substituteListIfNeeded(this.elements, mapping)
+        if (elements === this.elements) return this
+
+        return new TupleTy(elements)
     }
 }
 
 export class UnionTy extends NonNamedTy {
+    private hasGenericElements: boolean | null = null
+
     public constructor(public elements: Ty[]) {
         super()
     }
@@ -413,15 +458,20 @@ export class UnionTy extends NonNamedTy {
     }
 
     public override hasGenerics(): boolean {
-        return this.elements.some(it => it.hasGenerics())
+        return (this.hasGenericElements ??= this.elements.some(it => it.hasGenerics()))
     }
 
     public override substitute(mapping: Map<string, Ty>): Ty {
-        return UnionTy.create(this.elements.map(it => it.substitute(mapping)))
+        const elements = substituteListIfNeeded(this.elements, mapping)
+        if (elements === this.elements) return this
+
+        return UnionTy.create(elements)
     }
 }
 
 export class FuncTy extends NonNamedTy {
+    private hasGenericSignature: boolean | null = null
+
     public constructor(
         public params: Ty[],
         public returnTy: Ty,
@@ -469,14 +519,16 @@ export class FuncTy extends NonNamedTy {
     }
 
     public override hasGenerics(): boolean {
-        return this.params.some(it => it.hasGenerics()) || this.returnTy.hasGenerics()
+        return (this.hasGenericSignature ??=
+            this.params.some(it => it.hasGenerics()) || this.returnTy.hasGenerics())
     }
 
     public override substitute(mapping: Map<string, Ty>): Ty {
-        return new FuncTy(
-            this.params.map(it => it.substitute(mapping)),
-            this.returnTy.substitute(mapping),
-        )
+        const params = substituteListIfNeeded(this.params, mapping)
+        const returnTy = substituteIfNeeded(this.returnTy, mapping)
+        if (params === this.params && returnTy === this.returnTy) return this
+
+        return new FuncTy(params, returnTy)
     }
 }
 
@@ -502,6 +554,8 @@ export class TypeParameterTy extends NamedTy<TypeParameter> {
 }
 
 export class InstantiationTy extends NonNamedTy {
+    private hasGenericInstantiation: boolean | null = null
+
     public constructor(
         public innerTy: Ty,
         public types: Ty[],
@@ -553,7 +607,8 @@ export class InstantiationTy extends NonNamedTy {
     }
 
     public override hasGenerics(): boolean {
-        return this.types.some(it => it.hasGenerics())
+        return (this.hasGenericInstantiation ??=
+            this.innerTy.hasGenerics() || this.types.some(it => it.hasGenerics()))
     }
 
     public override unwrapAlias(): Ty {
@@ -568,10 +623,11 @@ export class InstantiationTy extends NonNamedTy {
     }
 
     public override substitute(mapping: Map<string, Ty>): Ty {
-        return new InstantiationTy(
-            this.innerTy.substitute(mapping),
-            this.types.map(it => it.substitute(mapping)),
-        )
+        const innerTy = substituteIfNeeded(this.innerTy, mapping)
+        const types = substituteListIfNeeded(this.types, mapping)
+        if (innerTy === this.innerTy && types === this.types) return this
+
+        return new InstantiationTy(innerTy, types)
     }
 }
 
@@ -584,6 +640,8 @@ export class BuiltinTy extends NamedTy<TypeAlias> {
 }
 
 export class ArrayTy extends NonNamedTy {
+    private hasGenericElement: boolean | null = null
+
     public constructor(public elementType: Ty) {
         super()
     }
@@ -610,11 +668,14 @@ export class ArrayTy extends NonNamedTy {
     }
 
     public override hasGenerics(): boolean {
-        return this.elementType.hasGenerics()
+        return (this.hasGenericElement ??= this.elementType.hasGenerics())
     }
 
     public override substitute(mapping: Map<string, Ty>): Ty {
-        return new ArrayTy(this.elementType.substitute(mapping))
+        const elementType = substituteIfNeeded(this.elementType, mapping)
+        if (elementType === this.elementType) return this
+
+        return new ArrayTy(elementType)
     }
 }
 

@@ -54,8 +54,8 @@ export class ReferenceCompletionProcessor implements ScopeProcessor {
         }
 
         const additionalData: CompletionItemAdditionalInformation = {
-            elementFile: node.file,
-            file: this.ctx.element.file,
+            elementFileUri: node.file.uri,
+            fileUri: this.ctx.element.file.uri,
             name: name,
             language: "func",
         }
