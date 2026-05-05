@@ -52,6 +52,11 @@ export class ActonTolkCodeLensProvider implements vscode.CodeLensProvider {
                         arguments: [document.uri, contractId],
                     }),
                     new vscode.CodeLens(range, {
+                        title: "Disassemble",
+                        command: "ton.acton.openAssemblyPreview",
+                        arguments: [document.uri],
+                    }),
+                    new vscode.CodeLens(range, {
                         title: "Generate Tolk wrapper",
                         command: "ton.acton.generateTolkWrapper",
                         arguments: [document.uri, contractId],

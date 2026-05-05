@@ -247,18 +247,98 @@ export class RetraceCommand extends ActonCommand {
     }
 }
 
+export class CompileCommand extends ActonCommand {
+    public constructor(
+        public filePath: string,
+        public json: boolean = false,
+        public base64Only: boolean = false,
+        public bocFile: string = "",
+        public fiftFile: string = "",
+        public sourceMapFile: string = "",
+        public abiFile: string = "",
+        public allowNoEntrypoint: boolean = false,
+        public clearCache: boolean = false,
+    ) {
+        super("compile")
+    }
+
+    public override getArguments(): string[] {
+        const args: string[] = ["--color", "never"]
+        if (this.json) {
+            args.push("--json")
+        }
+        if (this.base64Only) {
+            args.push("--base64-only")
+        }
+        if (this.bocFile.trim() !== "") {
+            args.push("--boc", this.bocFile)
+        }
+        if (this.fiftFile.trim() !== "") {
+            args.push("--fift", this.fiftFile)
+        }
+        if (this.sourceMapFile.trim() !== "") {
+            args.push("--source-map", this.sourceMapFile)
+        }
+        if (this.abiFile.trim() !== "") {
+            args.push("--abi", this.abiFile)
+        }
+        if (this.allowNoEntrypoint) {
+            args.push("--allow-no-entrypoint")
+        }
+        if (this.clearCache) {
+            args.push("--clear-cache")
+        }
+        if (this.filePath.trim() !== "") {
+            args.push(this.filePath)
+        }
+        return args
+    }
+}
+
 export class DisasmCommand extends ActonCommand {
     public constructor(
         public bocFile: string = "",
         public bocString: string = "",
+        public json: boolean = false,
+        public showHashes: boolean = false,
+        public showOffsets: boolean = false,
+        public sourceMapFile: string = "",
+        public outputFile: string = "",
+        public address: string = "",
+        public net: string = "",
+        public followLibraries: boolean = false,
     ) {
         super("disasm")
     }
 
     public override getArguments(): string[] {
         const args: string[] = ["--color", "never"]
+        if (this.json) {
+            args.push("--json")
+        }
+        if (this.showHashes) {
+            args.push("--show-hashes")
+        }
+        if (this.showOffsets) {
+            args.push("--show-offsets")
+        }
+        if (this.sourceMapFile.trim() !== "") {
+            args.push("--source-map", this.sourceMapFile)
+        }
         if (this.bocString.trim() !== "") {
             args.push("--string", this.bocString)
+        }
+        if (this.outputFile.trim() !== "") {
+            args.push("--output", this.outputFile)
+        }
+        if (this.address.trim() !== "") {
+            args.push("--address", this.address)
+        }
+        if (this.net.trim() !== "") {
+            args.push("--net", this.net)
+        }
+        if (this.followLibraries) {
+            args.push("--follow-libraries")
         }
         if (this.bocFile.trim() !== "") {
             args.push(this.bocFile)

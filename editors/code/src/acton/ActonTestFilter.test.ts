@@ -1,4 +1,4 @@
-import {ScriptCommand, TestCommand, TestMode} from "./ActonCommand"
+import {CompileCommand, DisasmCommand, ScriptCommand, TestCommand, TestMode} from "./ActonCommand"
 import {createActonTestFilterPattern, escapeRustRegexLiteral} from "./ActonTestFilter"
 
 describe("Acton test filtering", () => {
@@ -95,6 +95,39 @@ describe("Acton test filtering", () => {
             "--backtrace",
             "full",
             "scripts/deploy.tolk",
+        ])
+    })
+
+    it("builds JSON disasm commands from inline BoC with source maps", () => {
+        const command = new DisasmCommand("", "te6ccgEBAQEAAgAAAA==")
+        command.json = true
+        command.sourceMapFile = "/tmp/counter.source-map.json"
+
+        expect(command.getArguments()).toEqual([
+            "--color",
+            "never",
+            "--json",
+            "--source-map",
+            "/tmp/counter.source-map.json",
+            "--string",
+            "te6ccgEBAQEAAgAAAA==",
+        ])
+    })
+
+    it("builds JSON compile commands with source maps", () => {
+        const command = new CompileCommand("contracts/counter.tolk")
+        command.json = true
+        command.sourceMapFile = "/tmp/counter.source-map.json"
+        command.allowNoEntrypoint = true
+
+        expect(command.getArguments()).toEqual([
+            "--color",
+            "never",
+            "--json",
+            "--source-map",
+            "/tmp/counter.source-map.json",
+            "--allow-no-entrypoint",
+            "contracts/counter.tolk",
         ])
     })
 })

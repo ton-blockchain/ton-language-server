@@ -49,6 +49,7 @@ import {formatTolkDocumentWithActon} from "./acton/ActonFormatter"
 import {registerActonRetraceDebugCommand} from "./acton/retrace/ActonRetraceDebug"
 import {registerActonSetupNotifications} from "./acton/ActonSetup"
 import {registerActonTerminalLinks} from "./acton/ActonTerminalLinks"
+import {ActonAssemblyPreviewProvider} from "./acton/tolk/ActonAssemblyPreview"
 import {configureDebugging} from "./debugging"
 
 let client: LanguageClient | undefined = undefined
@@ -82,6 +83,8 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     const actonTomlHoverProvider = new ActonTomlHoverProvider()
     const actonTestController = new ActonTestController()
     const actonLinter = new ActonLinter()
+    const actonAssemblyPreviewProvider = new ActonAssemblyPreviewProvider()
+    actonAssemblyPreviewProvider.register(context)
     context.subscriptions.push(
         actonLinter,
         actonTestController,
