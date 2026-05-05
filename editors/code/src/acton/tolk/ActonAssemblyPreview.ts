@@ -45,8 +45,8 @@ interface AssemblyLineRange {
 }
 
 interface AssemblyPreviewBlock {
-    readonly sourceStartLine: number
-    readonly sourceEndLine: number
+    readonly sourceLine: number
+    readonly paletteIndex: number
     readonly assemblyRanges: readonly AssemblyLineRange[]
 }
 
@@ -54,13 +54,6 @@ interface AssemblyPreviewState {
     readonly sourceUri: vscode.Uri
     readonly previewUri: vscode.Uri
     readonly blocks: readonly AssemblyPreviewBlock[]
-}
-
-interface AssemblyPreviewSelection {
-    readonly sourceStartLine: number
-    readonly sourceEndLine: number
-    readonly assemblyRanges: readonly AssemblyLineRange[]
-    readonly paletteIndex: number
 }
 
 const PREVIEW_SUFFIX = ".assembly.tasm"
@@ -162,9 +155,16 @@ export class ActonAssemblyPreviewProvider implements vscode.TextDocumentContentP
                 this.updateDecorations(event.textEditor)
             }),
             vscode.window.onDidChangeVisibleTextEditors(() => {
-                this.pruneHiddenPreviewStates()
                 this.applyPaletteDecorations()
                 this.updateDecorations(vscode.window.activeTextEditor)
+            }),
+            vscode.window.tabGroups.onDidChangeTabs(event => {
+                for (const tab of event.closed) {
+                    const uri = this.uriFromTab(tab)
+                    if (uri?.scheme === ActonAssemblyPreviewProvider.scheme) {
+                        this.forgetPreview(uri)
+                    }
+                }
             }),
             vscode.workspace.onDidChangeTextDocument(event => {
                 if (event.document.uri.scheme === ActonAssemblyPreviewProvider.scheme) {
@@ -237,19 +237,27 @@ export class ActonAssemblyPreviewProvider implements vscode.TextDocumentContentP
             async () => {
                 try {
                     const output = await this.compileAndDisassemble(sourceUri)
-                    this.contentByPreviewUri.set(previewKey, output.assemblyText)
-                    this.stateByPreviewUri.set(previewKey, {
-                        sourceUri,
-                        previewUri,
-                        blocks: output.blocks,
-                    })
+                    if (this.isTabOpen(previewUri)) {
+                        this.contentByPreviewUri.set(previewKey, output.assemblyText)
+                        this.stateByPreviewUri.set(previewKey, {
+                            sourceUri,
+                            previewUri,
+                            blocks: output.blocks,
+                        })
+                    }
                 } catch (error) {
-                    const message = error instanceof Error ? error.message : String(error)
-                    this.contentByPreviewUri.set(previewKey, this.formatFailureText(message))
+                    if (this.isTabOpen(previewUri)) {
+                        const message = error instanceof Error ? error.message : String(error)
+                        this.contentByPreviewUri.set(previewKey, this.formatFailureText(message))
+                    }
                 } finally {
-                    this.onDidChangeEmitter.fire(previewUri)
-                    this.applyPaletteDecorations()
-                    this.updateDecorations(vscode.window.activeTextEditor)
+                    if (this.isTabOpen(previewUri)) {
+                        this.onDidChangeEmitter.fire(previewUri)
+                        this.applyPaletteDecorations()
+                        this.updateDecorations(vscode.window.activeTextEditor)
+                    } else {
+                        this.forgetPreview(previewUri)
+                    }
                 }
             },
         )
@@ -382,9 +390,9 @@ export class ActonAssemblyPreviewProvider implements vscode.TextDocumentContentP
 
         return [...assemblyRangesBySourceLine.entries()]
             .sort(([left], [right]) => left - right)
-            .map(([sourceLine, assemblyRanges]) => ({
-                sourceStartLine: sourceLine,
-                sourceEndLine: sourceLine,
+            .map(([sourceLine, assemblyRanges], index) => ({
+                sourceLine,
+                paletteIndex: index % this.paletteDecorations.length,
                 assemblyRanges: this.mergeLineRanges(assemblyRanges),
             }))
     }
@@ -433,15 +441,15 @@ export class ActonAssemblyPreviewProvider implements vscode.TextDocumentContentP
 
         const activeLine = editor.selection.active.line
         const isPreviewEditor = editor.document.uri.scheme === ActonAssemblyPreviewProvider.scheme
-        const selection = isPreviewEditor
-            ? this.findSelectionByAssemblyLine(state.blocks, activeLine)
-            : this.findSelectionBySourceLine(state.blocks, activeLine)
-        if (!selection) {
+        const block = isPreviewEditor
+            ? this.findBlockByAssemblyLine(state.blocks, activeLine)
+            : this.findBlockBySourceLine(state.blocks, activeLine)
+        if (!block) {
             this.clearActiveDecorations()
             return
         }
 
-        this.applySelectionDecorations(state, selection)
+        this.applySelectionDecorations(state, block)
     }
 
     private findPreviewState(uri: vscode.Uri): AssemblyPreviewState | undefined {
@@ -453,38 +461,11 @@ export class ActonAssemblyPreviewProvider implements vscode.TextDocumentContentP
         return previewUri ? this.stateByPreviewUri.get(previewUri) : undefined
     }
 
-    private findSelectionBySourceLine(
+    private findBlockBySourceLine(
         blocks: readonly AssemblyPreviewBlock[],
         line: number,
-    ): AssemblyPreviewSelection | undefined {
-        const block = blocks.find(candidate => candidate.sourceStartLine === line)
-        if (!block) {
-            return undefined
-        }
-
-        return {
-            sourceStartLine: block.sourceStartLine,
-            sourceEndLine: block.sourceEndLine,
-            assemblyRanges: block.assemblyRanges,
-            paletteIndex: this.paletteIndex(block.sourceStartLine),
-        }
-    }
-
-    private findSelectionByAssemblyLine(
-        blocks: readonly AssemblyPreviewBlock[],
-        line: number,
-    ): AssemblyPreviewSelection | undefined {
-        const block = this.findBlockByAssemblyLine(blocks, line)
-        if (!block) {
-            return undefined
-        }
-
-        return {
-            sourceStartLine: block.sourceStartLine,
-            sourceEndLine: block.sourceEndLine,
-            assemblyRanges: block.assemblyRanges,
-            paletteIndex: this.paletteIndex(block.sourceStartLine),
-        }
+    ): AssemblyPreviewBlock | undefined {
+        return blocks.find(candidate => candidate.sourceLine === line)
     }
 
     private findBlockByAssemblyLine(
@@ -498,18 +479,14 @@ export class ActonAssemblyPreviewProvider implements vscode.TextDocumentContentP
 
     private applySelectionDecorations(
         state: AssemblyPreviewState,
-        selection: AssemblyPreviewSelection,
+        block: AssemblyPreviewBlock,
     ): void {
         this.clearActiveDecorations()
-        const activeDecoration = this.activeDecorations[selection.paletteIndex]
+        const activeDecoration = this.activeDecorations[block.paletteIndex]
 
         const sourceEditor = this.findVisibleEditor(state.sourceUri)
         if (sourceEditor) {
-            const sourceRange = this.createLineRange(
-                sourceEditor.document,
-                selection.sourceStartLine,
-                selection.sourceEndLine,
-            )
+            const sourceRange = this.createLineRange(sourceEditor.document, block.sourceLine)
             sourceEditor.setDecorations(activeDecoration, [sourceRange])
             sourceEditor.revealRange(
                 sourceRange,
@@ -519,7 +496,7 @@ export class ActonAssemblyPreviewProvider implements vscode.TextDocumentContentP
 
         const previewEditor = this.findVisibleEditor(state.previewUri)
         if (previewEditor) {
-            const assemblyRanges = selection.assemblyRanges.map(range =>
+            const assemblyRanges = block.assemblyRanges.map(range =>
                 this.createLineRange(previewEditor.document, range.startLine, range.endLine),
             )
             previewEditor.setDecorations(activeDecoration, assemblyRanges)
@@ -541,14 +518,8 @@ export class ActonAssemblyPreviewProvider implements vscode.TextDocumentContentP
                 this.applyPaletteDecorationsToEditor(
                     sourceEditor,
                     state.blocks.map(block => ({
-                        sourceIndex: block.sourceStartLine,
-                        ranges: [
-                            this.createLineRange(
-                                sourceEditor.document,
-                                block.sourceStartLine,
-                                block.sourceEndLine,
-                            ),
-                        ],
+                        paletteIndex: block.paletteIndex,
+                        ranges: [this.createLineRange(sourceEditor.document, block.sourceLine)],
                     })),
                 )
             }
@@ -559,7 +530,7 @@ export class ActonAssemblyPreviewProvider implements vscode.TextDocumentContentP
                     previewEditor,
                     state.blocks.flatMap(block =>
                         block.assemblyRanges.map(range => ({
-                            sourceIndex: block.sourceStartLine,
+                            paletteIndex: block.paletteIndex,
                             ranges: [
                                 this.createLineRange(
                                     previewEditor.document,
@@ -570,21 +541,6 @@ export class ActonAssemblyPreviewProvider implements vscode.TextDocumentContentP
                         })),
                     ),
                 )
-            }
-        }
-    }
-
-    private pruneHiddenPreviewStates(): void {
-        const visiblePreviewUris = new Set(
-            vscode.window.visibleTextEditors
-                .map(editor => editor.document.uri)
-                .filter(uri => uri.scheme === ActonAssemblyPreviewProvider.scheme)
-                .map(uri => uri.toString()),
-        )
-
-        for (const previewUri of this.stateByPreviewUri.keys()) {
-            if (!visiblePreviewUris.has(previewUri)) {
-                this.forgetPreview(vscode.Uri.parse(previewUri))
             }
         }
     }
@@ -607,11 +563,14 @@ export class ActonAssemblyPreviewProvider implements vscode.TextDocumentContentP
 
     private applyPaletteDecorationsToEditor(
         editor: vscode.TextEditor,
-        groups: readonly {readonly sourceIndex: number; readonly ranges: readonly vscode.Range[]}[],
+        groups: readonly {
+            readonly paletteIndex: number
+            readonly ranges: readonly vscode.Range[]
+        }[],
     ): void {
         for (let i = 0; i < this.paletteDecorations.length; i++) {
             const ranges = groups
-                .filter(group => this.paletteIndex(group.sourceIndex) === i)
+                .filter(group => group.paletteIndex === i)
                 .flatMap(group => [...group.ranges])
             editor.setDecorations(this.paletteDecorations[i], ranges)
         }
@@ -623,10 +582,6 @@ export class ActonAssemblyPreviewProvider implements vscode.TextDocumentContentP
                 editor.setDecorations(decoration, [])
             }
         }
-    }
-
-    private paletteIndex(sourceLine: number): number {
-        return Math.abs(sourceLine) % this.paletteDecorations.length
     }
 
     private clearActiveDecorations(): void {
@@ -643,10 +598,24 @@ export class ActonAssemblyPreviewProvider implements vscode.TextDocumentContentP
         )
     }
 
+    private uriFromTab(tab: vscode.Tab): vscode.Uri | undefined {
+        if (tab.input instanceof vscode.TabInputText) {
+            return tab.input.uri
+        }
+        return undefined
+    }
+
+    private isTabOpen(uri: vscode.Uri): boolean {
+        const key = uri.toString()
+        return vscode.window.tabGroups.all.some(group =>
+            group.tabs.some(tab => this.uriFromTab(tab)?.toString() === key),
+        )
+    }
+
     private createLineRange(
         document: vscode.TextDocument,
         startLine: number,
-        endLine: number,
+        endLine: number = startLine,
     ): vscode.Range {
         const lastLine = Math.max(0, document.lineCount - 1)
         const start = Math.max(0, Math.min(startLine, lastLine))
@@ -705,9 +674,18 @@ export class ActonAssemblyPreviewProvider implements vscode.TextDocumentContentP
     }
 
     private parseJson(output: string, label: string): unknown {
+        const text = this.stripAnsiCodes(output).trim()
         try {
-            return JSON.parse(this.stripAnsiCodes(output)) as unknown
+            return JSON.parse(text) as unknown
         } catch (error) {
+            const jsonStart = text.indexOf("{")
+            if (jsonStart > 0) {
+                try {
+                    return JSON.parse(text.slice(jsonStart)) as unknown
+                } catch {
+                    // Keep the original parse error below; it points at the real command output.
+                }
+            }
             const message = error instanceof Error ? error.message : String(error)
             throw new Error(`Failed to parse ${label}: ${message}`)
         }
@@ -719,7 +697,7 @@ export class ActonAssemblyPreviewProvider implements vscode.TextDocumentContentP
         }
 
         try {
-            const parsed = JSON.parse(output) as {readonly error?: string}
+            const parsed = this.parseJson(output, "error JSON") as {readonly error?: string}
             return parsed.error
         } catch {
             return undefined
