@@ -1,136 +1,71 @@
 ========================================================================
-Variables completion
+No completion while typing contract declaration name
 ========================================================================
-fun foo() {
-    val some = 10;
-    val someOther = "hello";
-
-    some<caret>
-}
+contract from<caret> {}
 ------------------------------------------------------------------------
-5  some   int
-5  someOther   string
+No completion items
 
 ========================================================================
-Variables completion from tuple declaration
+No completion while typing struct declaration name
 ========================================================================
-fun foo() {
-    val [some, someOther] = [10, "hello"];
-
-    some<caret>
-}
+struct from<caret> {}
 ------------------------------------------------------------------------
-5  some   int
-5  someOther   string
+No completion items
 
 ========================================================================
-Variable completion from catch clause
+No completion while typing enum declaration name
 ========================================================================
-fun foo() {
-    try {
-    } catch (error) {
-        err<caret>
-    }
-}
+enum from<caret> {}
 ------------------------------------------------------------------------
-5  error   int
+No completion items
 
 ========================================================================
-Variables completion from catch clause
+No completion while typing type alias declaration name
 ========================================================================
-fun foo() {
-    try {
-    } catch (error, errorData) {
-        err<caret>
-    }
-}
+type from<caret> = int;
 ------------------------------------------------------------------------
-5  error   int
-5  errorData   unknown
+No completion items
 
 ========================================================================
-Variables completion from match expression
+No completion while typing global variable declaration name
 ========================================================================
-fun foo() {
-    match (val data = 100) {
-        10 => {
-            return dat<caret>
-        }
-    }
-}
+global from<caret>: int;
 ------------------------------------------------------------------------
-5  data   int
+No completion items
 
 ========================================================================
-Parameters completion
+No completion while typing constant declaration name
 ========================================================================
-fun foo(someParameter: int) {
-    val some = 10;
-
-    some<caret>
-}
+const from<caret> = 10;
 ------------------------------------------------------------------------
-5  some   int
-5  someParameter   int
+No completion items
 
 ========================================================================
-Completion inside incomplete if
+No completion while typing struct field declaration name
 ========================================================================
-fun foo(someParameter: int) {
-    if (some<caret>)
-}
-------------------------------------------------------------------------
-5  someParameter   int
-
-========================================================================
-Completion inside incomplete match
-========================================================================
-fun foo(someParameter: int) {
-    match (some<caret>)
-}
-------------------------------------------------------------------------
-5  someParameter   int
-
-========================================================================
-Completion inside incomplete assert
-========================================================================
-fun foo(someParameter: int) {
-    assert(some<caret>)
-}
-------------------------------------------------------------------------
-5  someParameter   int
-
-========================================================================
-Variable completion in match arm
-========================================================================
-fun foo() {
-    val some = 10;
-    val someOther = "hello";
-
-    match (some) {
-        10 => {
-            some<caret>
-        }
-    }
-}
-------------------------------------------------------------------------
-5  some   int
-5  someOther   string
-
-========================================================================
-No type parameters completion as value
-========================================================================
-fun foo<TName, TName2>() {
-    TNam<caret>;
+struct Foo {
+    from<caret>: int,
 }
 ------------------------------------------------------------------------
 No completion items
 
 ========================================================================
-No completion while typing local variable declaration name
+No completion while typing parameter declaration name
 ========================================================================
-fun foo() {
-    val from<caret> = 10;
-}
+fun foo(from<caret>: int) {}
+------------------------------------------------------------------------
+No completion items
+
+========================================================================
+No completion while typing type parameter declaration name
+========================================================================
+fun foo<from<caret>>() {}
+------------------------------------------------------------------------
+No completion items
+
+========================================================================
+No completion while typing get method declaration name
+========================================================================
+get fun from<caret>() {}
 ------------------------------------------------------------------------
 No completion items
