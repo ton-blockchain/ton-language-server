@@ -1,6 +1,0 @@
-export * from "./types"
-export * from "./decode"
-export * from "./encode"
-export * from "./text"
-export * from "./tuple-decode"
-export * from "./tuple-encode"
