@@ -20,6 +20,8 @@
     "activationEvents": [
         "workspaceContains:Acton.toml",
         "onCommand:ton.acton.debugRetraceTransaction",
+        "onCommand:ton.acton.openAssemblyPreview",
+        "onCommand:ton.acton.refreshAssemblyPreview",
         "onLanguage:tolk",
         "onLanguage:func",
         "onLanguage:tasm",
@@ -321,6 +323,18 @@
                 "icon": "$(preview)"
             },
             {
+                "command": "ton.acton.openAssemblyPreview",
+                "title": "Open Assembly Preview",
+                "category": "Acton",
+                "icon": "$(symbol-event)"
+            },
+            {
+                "command": "ton.acton.refreshAssemblyPreview",
+                "title": "Refresh Assembly Preview",
+                "category": "Acton",
+                "icon": "$(refresh)"
+            },
+            {
                 "command": "ton.wallets.refresh",
                 "title": "Refresh Wallets",
                 "category": "TON",
@@ -368,6 +382,25 @@
                 {
                     "when": "resourceExtname == '.boc'",
                     "command": "ton.saveBocDecompiled",
+                    "group": "navigation"
+                },
+                {
+                    "when": "resourceExtname == '.tolk'",
+                    "command": "ton.acton.openAssemblyPreview",
+                    "group": "navigation"
+                }
+            ],
+            "editor/context": [
+                {
+                    "when": "resourceLangId == tolk",
+                    "command": "ton.acton.openAssemblyPreview",
+                    "group": "navigation"
+                }
+            ],
+            "editor/title": [
+                {
+                    "when": "resourceScheme == acton-assembly-preview",
+                    "command": "ton.acton.refreshAssemblyPreview",
                     "group": "navigation"
                 }
             ],
