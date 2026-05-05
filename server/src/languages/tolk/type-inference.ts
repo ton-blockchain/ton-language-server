@@ -2048,7 +2048,7 @@ class InferenceWalker {
         const lhs = node.childForFieldName("lhs")
         if (!lhs) return ExprFlow.create(flow, false)
 
-        const nextFlow = this.inferLeftSideVarAssigment(lhs, flow)
+        const nextFlow = this.inferLeftSideVarAssignment(lhs, flow)
 
         const rhs = node.childForFieldName("assigned_val")
         if (!rhs) return ExprFlow.create(nextFlow, false)
@@ -2068,7 +2068,7 @@ class InferenceWalker {
         return nextExprFlow
     }
 
-    private inferLeftSideVarAssigment(node: SyntaxNode, flow: FlowContext): FlowContext {
+    private inferLeftSideVarAssignment(node: SyntaxNode, flow: FlowContext): FlowContext {
         let nextFlow = flow
 
         if (node.type === "var_declaration") {
@@ -2089,7 +2089,7 @@ class InferenceWalker {
                 // var [a, b, c] = [...]
                 const first = elements[0]
                 if (first) {
-                    return this.inferLeftSideVarAssigment(first, flow)
+                    return this.inferLeftSideVarAssignment(first, flow)
                 }
             }
 
@@ -2098,7 +2098,7 @@ class InferenceWalker {
             for (const element of elements) {
                 if (!element) continue
 
-                nextFlow = this.inferLeftSideVarAssigment(element, nextFlow)
+                nextFlow = this.inferLeftSideVarAssignment(element, nextFlow)
                 const elementType = this.ctx.getType(element) ?? UnknownTy.UNKNOWN
                 types.push(elementType)
             }
@@ -2114,7 +2114,7 @@ class InferenceWalker {
             for (const element of elements) {
                 if (!element) continue
 
-                nextFlow = this.inferLeftSideVarAssigment(element, nextFlow)
+                nextFlow = this.inferLeftSideVarAssignment(element, nextFlow)
                 const elementType = this.ctx.getType(element) ?? UnknownTy.UNKNOWN
                 types.push(elementType)
             }
