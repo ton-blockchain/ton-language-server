@@ -84,7 +84,9 @@ suite("Completion Test Suite", () => {
 
                 const cursor = this.editor.selection.active
                 const editorText = this.document.getText()
-                const editorTextWithCursor = this.insertCursor(editorText, cursor)
+                const editorTextWithCursor = this.stripTrailingWhitespace(
+                    this.insertCursor(editorText, cursor),
+                )
 
                 const expected = testCase.expected
 
@@ -109,6 +111,10 @@ suite("Completion Test Suite", () => {
                 line.slice(0, position.character) + "<caret>" + line.slice(position.character)
 
             return lines.join("\n")
+        }
+
+        protected stripTrailingWhitespace(text: string): string {
+            return text.replace(/[\t ]+$/gm, "")
         }
     })()
 

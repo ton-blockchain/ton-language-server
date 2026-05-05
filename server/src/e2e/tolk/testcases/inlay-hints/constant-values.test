@@ -47,7 +47,7 @@ fun main() {
 }
 ------------------------------------------------------------------------
 const CIRC_A/* : int */ = CIRC_B + 1;
-const CIRC_B/* : int */ = CIRC_A, 1;
+const CIRC_B = CIRC_A, 1;
 
 fun main()/* : int */ {
     return 0;

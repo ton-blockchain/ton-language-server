@@ -270,7 +270,7 @@ Tuple literal type inference
 ========================================================================
 fun main() {
     val data = [1, true, "hello"];
-    //! ^ [int, bool, string]
+    //! ^ array<int | bool | string>
 }
 ------------------------------------------------------------------------
 ok
@@ -290,7 +290,7 @@ Complex tensor literal type inference
 ========================================================================
 fun main() {
     val data = (1, [1, [1, true, "hello"], (1, [1, [1, true, "hello"], "hello"], "hello")], "hello");
-    //! ^ (int, [int, [int, bool, string], (int, [int, [int, bool, string], string], string)], string)
+    //! ^ (int, array<int | array<int | bool | string> | (int, array<int | array<int | bool | string> | string>, string)>, string)
 }
 ------------------------------------------------------------------------
 ok

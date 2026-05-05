@@ -129,13 +129,13 @@ struct Foo {
 fun main() {
     val foo = [1, 2, true, Foo {}];
     val res1 = foo.0;
-//!     ^ int
+//!     ^ int | bool | Foo
     val res2 = foo.1;
-//!     ^ int
+//!     ^ int | bool | Foo
     val res3 = foo.2;
-//!     ^ bool
+//!     ^ int | bool | Foo
     val res4 = foo.3;
-//!     ^ Foo
+//!     ^ int | bool | Foo
 }
 ------------------------------------------------------------------------
 ok
