@@ -2397,7 +2397,7 @@ class InferenceWalker {
 
         if (node instanceof FunctionBase) {
             const result = TOLK_CACHE.forFile(node.file).funcTypeCache.cached(node.node.id, () => {
-                return inferWithTiming(node, "namedNodeType")
+                return infer(node)
             })
 
             return result.ctx.getType(node.node)
@@ -3322,7 +3322,7 @@ export function typeOf(node: SyntaxNode, file: TolkFile): Ty | null {
     const result = TOLK_CACHE.forFile(cacheOwner.file).funcTypeCache.cached(
         cacheOwner.node.id,
         () => {
-            return inferWithTiming(cacheOwner, `typeOf(${node.type})`)
+            return infer(cacheOwner)
         },
     )
 
@@ -3337,13 +3337,13 @@ export function inferenceOf(node: SyntaxNode, file: TolkFile): InferenceResult |
     ownable.cacheOwner = cacheOwner
 
     return TOLK_CACHE.forFile(cacheOwner.file).funcTypeCache.cached(cacheOwner.node.id, () => {
-        return inferWithTiming(cacheOwner, `inferenceOf(${node.type})`)
+        return infer(cacheOwner)
     })
 }
 
 export function functionTypeOf(func: FunctionBase): FuncTy | null {
     const result = TOLK_CACHE.forFile(func.file).funcTypeCache.cached(func.node.id, () => {
-        return inferWithTiming(func, "functionTypeOf")
+        return infer(func)
     })
 
     const type = result.ctx.getType(func.node)
@@ -3351,25 +3351,6 @@ export function functionTypeOf(func: FunctionBase): FuncTy | null {
         return type
     }
     return null
-}
-
-function inferWithTiming(owner: NamedNode, reason: string): InferenceResult {
-    const started = performance.now()
-    const result = infer(owner)
-    const elapsed = performance.now() - started
-
-    if (elapsed > 5) {
-        const ctx = result.ctx
-        console.info(
-            `tolk inference ${owner.file.uri}: ${formatMs(elapsed)}ms owner=${owner.kindName()} ${owner.namePresentation()} node=${owner.node.type} reason=${reason}; types=${ctx.expressionTypes.size}, vars=${ctx.varTypes.size}, refs=${ctx.resolvedRefs.size}, returns=${ctx.returnTypes.length}`,
-        )
-    }
-
-    return result
-}
-
-function formatMs(value: number): string {
-    return value.toFixed(3)
 }
 
 export function methodCandidates(

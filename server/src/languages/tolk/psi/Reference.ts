@@ -34,7 +34,7 @@ import {
     EnumTy,
     ArrayTy,
 } from "@server/languages/tolk/types/ty"
-import {measureTime, parentOfType} from "@server/psi/utils"
+import {parentOfType} from "@server/psi/utils"
 import {inferenceOf, typeOf} from "@server/languages/tolk/type-inference"
 
 import type {TolkFile} from "./TolkFile"
@@ -308,9 +308,7 @@ export class Reference {
     ): boolean {
         const completion = state.get("completion")
         const inference = completion
-            ? measureTime(`tolk completion qualifier inference ${qualifier.file.uri}`, () =>
-                  inferenceOf(qualifier.node, qualifier.file),
-              )
+            ? inferenceOf(qualifier.node, qualifier.file)
             : inferenceOf(this.element.node.parent ?? qualifier.node, qualifier.file)
 
         if (!completion) {
@@ -367,20 +365,13 @@ export class Reference {
         proc: ScopeProcessor,
         state: ResolveState,
     ): boolean {
-        let seen = 0
-        let matched = 0
-        const started = performance.now()
-
-        const result = index.processElementsByKey(
+        return index.processElementsByKey(
             IndexKey.Methods,
             new (class implements ScopeProcessor {
                 public execute(node: InstanceMethod | StaticMethod, state: ResolveState): boolean {
-                    seen++
-
                     if (node instanceof InstanceMethod) return true
                     const receiverTypeString = node.receiverTypeString()
                     if (receiverTypeString === typeName || receiverTypeString === "T") {
-                        matched++
                         return proc.execute(node, state)
                     }
 
@@ -388,7 +379,6 @@ export class Reference {
                     if (receiverType?.type === "type_instantiatedTs") {
                         const innerName = receiverType.childForFieldName("name")?.text
                         if (innerName === typeName) {
-                            matched++
                             return proc.execute(node, state)
                         }
                     }
@@ -398,14 +388,6 @@ export class Reference {
             })(),
             state,
         )
-
-        Reference.logCompletionScan(
-            state,
-            `tolk completion static method scan ${this.element.file.uri}`,
-            started,
-            `type=${typeName}, methods=${seen}, matched=${matched}`,
-        )
-        return result
     }
 
     private processType(
@@ -447,23 +429,16 @@ export class Reference {
     }
 
     private processTypeMethods(ty: Ty, proc: ScopeProcessor, state: ResolveState): boolean {
-        const file = this.element.file
         const tyName = ty.name()
-        let seen = 0
-        let matched = 0
-        const started = performance.now()
 
-        const result = index.processElementsByKey(
+        return index.processElementsByKey(
             IndexKey.Methods,
             new (class implements ScopeProcessor {
                 public execute(fun: InstanceMethod | StaticMethod, state: ResolveState): boolean {
-                    seen++
-
                     if (fun instanceof StaticMethod) return true
 
                     const receiverType = fun.receiverTypeNode()
                     if (this.typeMatches(ty, tyName, receiverType)) {
-                        matched++
                         return proc.execute(fun, state)
                     }
 
@@ -511,28 +486,6 @@ export class Reference {
             })(),
             state,
         )
-
-        Reference.logCompletionScan(
-            state,
-            `tolk completion type method scan ${file.uri}`,
-            started,
-            `type=${tyName}, methods=${seen}, matched=${matched}, receiver typeOf=0`,
-        )
-        return result
-    }
-
-    private static logCompletionScan(
-        state: ResolveState,
-        label: string,
-        started: number,
-        stats: string,
-    ): void {
-        if (!state.get("completion")) return
-
-        const time = performance.now() - started
-        if (time > 0.3) {
-            console.info(`${label}: ${time}ms (${stats})`)
-        }
     }
 
     public static processNamedEls(

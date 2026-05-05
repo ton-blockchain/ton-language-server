@@ -160,9 +160,6 @@ export class TolkCache {
     }
 
     public clear(): void {
-        console.info(
-            `Clearing all Tolk caches (imported files: ${this.importedFiles.size}, imported file paths: ${this.importedFilePaths.size})`,
-        )
         this.fallbackAnalysisCache.clear()
         for (const cache of new Set(this.fileRootCaches.values())) {
             cache.clear()

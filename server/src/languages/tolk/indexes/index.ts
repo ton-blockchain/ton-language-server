@@ -254,7 +254,7 @@ export class IndexRoot {
         }
 
         if (clearCache) {
-            this.clearDependentCaches("add", uri)
+            this.clearDependentCaches(uri)
         }
 
         const index = FileIndex.create(file)
@@ -265,7 +265,7 @@ export class IndexRoot {
     }
 
     public removeFile(uri: string): void {
-        this.clearDependentCaches("remove", uri)
+        this.clearDependentCaches(uri)
 
         this.files.delete(uri)
         TOLK_PARSED_FILES_CACHE.delete(uri)
@@ -275,14 +275,13 @@ export class IndexRoot {
     }
 
     public fileChanged(uri: string): void {
-        this.clearDependentCaches("change", uri)
+        this.clearDependentCaches(uri)
         this.files.delete(uri)
         TOLK_CACHE.unbindFile(uri)
         console.info(`found changes in ${uri}`)
     }
 
     public clearOwnCache(): void {
-        console.info(`Clearing Tolk ${this.name} cache (${this.cache.stats()})`)
         this.cache.clear()
     }
 
@@ -294,36 +293,10 @@ export class IndexRoot {
         return [...new Set([...this.files.keys(), ...this.cache.uris()])]
     }
 
-    private clearDependentCaches(reason: "add" | "change" | "remove", uri: string): void {
-        const allRoots = index.allRoots()
+    private clearDependentCaches(uri: string): void {
         const invalidatedUris = index.cacheInvalidationUris(this, uri)
-        const invalidatedUrisByRoot = index.groupUrisByRoot(invalidatedUris)
-        const invalidatedRoots = allRoots
-            .map(root => {
-                const count = invalidatedUrisByRoot.get(root)?.length ?? 0
-                return count === 0 ? null : `${root.name}: ${count}`
-            })
-            .filter(root => root !== null)
-            .join(", ")
-        const preservedRootStats = allRoots
-            .filter(root => !invalidatedUrisByRoot.has(root))
-            .map(root => `${root.name} (${root.cache.stats()})`)
-            .join("; ")
-        const invalidatedFiles = this.formatInvalidatedUris(invalidatedUris)
-        console.info(
-            `Invalidating Tolk caches after ${reason} in ${this.name} root; files: ${invalidatedUris.length}; affected roots: ${invalidatedRoots || "none"}; invalidated files: ${invalidatedFiles}; preserved roots: ${preservedRootStats || "none"}; imported files: ${TOLK_CACHE.importedFiles.size}`,
-        )
         TOLK_CACHE.clearImportedFiles()
         index.clearFileCaches(invalidatedUris)
-    }
-
-    private formatInvalidatedUris(uris: readonly string[]): string {
-        if (uris.length === 0) return "none"
-
-        const shown = uris.slice(0, 5).join(", ")
-        if (uris.length <= 5) return shown
-
-        return `${shown}, +${uris.length - 5} more`
     }
 
     public findFile(uri: string): FileIndex | undefined {
@@ -482,9 +455,6 @@ export class GlobalIndex {
         for (const [root, rootUris] of this.groupUrisByRoot(uris)) {
             if (rootUris.length === 0) continue
 
-            console.info(
-                `Clearing Tolk ${root.name} file caches (${root.cache.statsForUris(rootUris)}; root before: ${root.cache.stats()})`,
-            )
             root.clearFileCaches(rootUris)
         }
     }

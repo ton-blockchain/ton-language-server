@@ -24,14 +24,3 @@ export function measureTime<T>(label: string, fn: () => T): T {
     }
     return result
 }
-
-export async function measureAsyncTime<T>(label: string, fn: () => T | Promise<T>): Promise<T> {
-    const startTime = performance.now()
-    const result = await fn()
-    const endTime = performance.now()
-    const time = endTime - startTime
-    if (time > 0.3) {
-        console.info(`${label}: ${time}ms`)
-    }
-    return result
-}
