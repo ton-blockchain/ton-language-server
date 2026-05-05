@@ -303,7 +303,10 @@ async function startServer(context: vscode.ExtensionContext): Promise<vscode.Dis
         ],
         synchronize: {
             configurationSection: "ton",
-            fileEvents: vscode.workspace.createFileSystemWatcher("**/*.{tolk,fc,func,tlb}"),
+            fileEvents: [
+                vscode.workspace.createFileSystemWatcher("**/*.{tolk,fc,func,tlb}"),
+                vscode.workspace.createFileSystemWatcher("**/Acton.toml"),
+            ],
         },
         middleware: {
             provideDocumentFormattingEdits: async (document, options, token, next) => {

@@ -9,6 +9,7 @@ import type {CompletionResult} from "@server/completion/WeightedCompletionItem"
 import {ResolveState} from "@server/psi/ResolveState"
 import {FieldsOwnerTy} from "@server/languages/tolk/types/ty"
 import {typeOf} from "@server/languages/tolk/type-inference"
+import {measureTime} from "@server/psi/utils"
 
 enum CompletionKind {
     ONLY_FIELDS = "ONLY_FIELDS",
@@ -42,7 +43,9 @@ export class ReferenceCompletionProvider implements CompletionProvider<Completio
 
         // process usual autocompletion for only non-instance expressions
         if (kind === CompletionKind.ALL) {
-            this.ref.processResolveVariants(processor, state.withValue("completion", "true"))
+            measureTime(`tolk completion reference resolve variants ${ctx.element.file.uri}`, () =>
+                this.ref.processResolveVariants(processor, state.withValue("completion", "true")),
+            )
         }
 
         // TODO: think about case:

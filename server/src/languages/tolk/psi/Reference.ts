@@ -34,7 +34,7 @@ import {
     EnumTy,
     ArrayTy,
 } from "@server/languages/tolk/types/ty"
-import {parentOfType} from "@server/psi/utils"
+import {measureTime, parentOfType} from "@server/psi/utils"
 import {inferenceOf, typeOf} from "@server/languages/tolk/type-inference"
 
 import type {TolkFile} from "./TolkFile"
@@ -306,9 +306,14 @@ export class Reference {
         proc: ScopeProcessor,
         state: ResolveState,
     ): boolean {
-        const inference = inferenceOf(qualifier.node, qualifier.file)
+        const completion = state.get("completion")
+        const inference = completion
+            ? measureTime(`tolk completion qualifier inference ${qualifier.file.uri}`, () =>
+                  inferenceOf(qualifier.node, qualifier.file),
+              )
+            : inferenceOf(qualifier.node, qualifier.file)
 
-        if (!state.get("completion")) {
+        if (!completion) {
             // For resolving we have a stable state, during inference we already resolved all
             // `foo.bar` expressions, so we just reuse that result.
             const cachedResolved = inference?.resolve(this.element.node)
@@ -362,13 +367,20 @@ export class Reference {
         proc: ScopeProcessor,
         state: ResolveState,
     ): boolean {
-        return index.processElementsByKey(
+        let seen = 0
+        let matched = 0
+        const started = performance.now()
+
+        const result = index.processElementsByKey(
             IndexKey.Methods,
             new (class implements ScopeProcessor {
                 public execute(node: InstanceMethod | StaticMethod, state: ResolveState): boolean {
+                    seen++
+
                     if (node instanceof InstanceMethod) return true
                     const receiverTypeString = node.receiverTypeString()
                     if (receiverTypeString === typeName || receiverTypeString === "T") {
+                        matched++
                         return proc.execute(node, state)
                     }
 
@@ -376,6 +388,7 @@ export class Reference {
                     if (receiverType?.type === "type_instantiatedTs") {
                         const innerName = receiverType.childForFieldName("name")?.text
                         if (innerName === typeName) {
+                            matched++
                             return proc.execute(node, state)
                         }
                     }
@@ -385,6 +398,14 @@ export class Reference {
             })(),
             state,
         )
+
+        Reference.logCompletionScan(
+            state,
+            `tolk completion static method scan ${this.element.file.uri}`,
+            started,
+            `type=${typeName}, methods=${seen}, matched=${matched}`,
+        )
+        return result
     }
 
     private processType(
@@ -428,14 +449,21 @@ export class Reference {
     private processTypeMethods(ty: Ty, proc: ScopeProcessor, state: ResolveState): boolean {
         const file = this.element.file
         const tyName = ty.name()
-        return index.processElementsByKey(
+        let seen = 0
+        let matched = 0
+        const started = performance.now()
+
+        const result = index.processElementsByKey(
             IndexKey.Methods,
             new (class implements ScopeProcessor {
                 public execute(fun: InstanceMethod | StaticMethod, state: ResolveState): boolean {
+                    seen++
+
                     if (fun instanceof StaticMethod) return true
 
                     const receiverType = fun.receiverTypeNode()
-                    if (this.typeMatches(file, ty, tyName, receiverType)) {
+                    if (this.typeMatches(ty, tyName, receiverType)) {
+                        matched++
                         return proc.execute(fun, state)
                     }
 
@@ -443,7 +471,6 @@ export class Reference {
                 }
 
                 private typeMatches(
-                    file: TolkFile,
                     expected: Ty,
                     expectedTyName: string,
                     receiver: SyntaxNode | null,
@@ -459,14 +486,12 @@ export class Reference {
                     }
 
                     if (receiver?.type === "type_instantiatedTs") {
-                        const receiverType = typeOf(receiver, file)
-                        if (
-                            receiverType instanceof InstantiationTy &&
-                            expected instanceof InstantiationTy
-                        ) {
-                            return receiverType.innerTy.name() === expected.innerTy.name()
+                        const expectedUnwrapped = expected.unwrapAlias()
+                        const receiverTypeName = receiver.childForFieldName("name")?.text
+                        if (expectedUnwrapped instanceof InstantiationTy) {
+                            return receiverTypeName === expectedUnwrapped.innerTy.name()
                         }
-                        if (receiverType instanceof ArrayTy && expected instanceof ArrayTy) {
+                        if (receiverTypeName === "array" && expectedUnwrapped instanceof ArrayTy) {
                             return true
                         }
                     }
@@ -476,12 +501,7 @@ export class Reference {
                         if (expected instanceof UnionTy) {
                             const asNullable = expected.asNullable()
                             if (asNullable !== undefined) {
-                                return this.typeMatches(
-                                    file,
-                                    asNullable[0],
-                                    asNullable[0].name(),
-                                    inner,
-                                )
+                                return this.typeMatches(asNullable[0], asNullable[0].name(), inner)
                             }
                         }
                     }
@@ -491,6 +511,28 @@ export class Reference {
             })(),
             state,
         )
+
+        Reference.logCompletionScan(
+            state,
+            `tolk completion type method scan ${file.uri}`,
+            started,
+            `type=${tyName}, methods=${seen}, matched=${matched}, receiver typeOf=0`,
+        )
+        return result
+    }
+
+    private static logCompletionScan(
+        state: ResolveState,
+        label: string,
+        started: number,
+        stats: string,
+    ): void {
+        if (!state.get("completion")) return
+
+        const time = performance.now() - started
+        if (time > 0.3) {
+            console.info(`${label}: ${time}ms (${stats})`)
+        }
     }
 
     public static processNamedEls(

@@ -18,7 +18,7 @@ import {
     TypeAlias,
 } from "@server/languages/tolk/psi/Decls"
 import {ScopeProcessor} from "@server/languages/tolk/psi/Reference"
-import {TOLK_CACHE, TolkAnalysisCache} from "@server/languages/tolk/cache"
+import {TOLK_CACHE, TolkRootAnalysisCache} from "@server/languages/tolk/cache"
 import {TOLK_PARSED_FILES_CACHE} from "@server/files"
 import {ResolveState} from "@server/psi/ResolveState"
 
@@ -262,7 +262,7 @@ export class IndexRoot {
     public readonly name: "stdlib" | "stubs" | "acton" | "workspace"
     public readonly root: string
     public readonly files: Map<string, FileIndex> = new Map()
-    public readonly cache: TolkAnalysisCache = new TolkAnalysisCache()
+    public readonly cache: TolkRootAnalysisCache = new TolkRootAnalysisCache()
 
     public constructor(name: "stdlib" | "stubs" | "acton" | "workspace", root: string) {
         this.name = name
@@ -282,23 +282,23 @@ export class IndexRoot {
 
     public addFile(uri: string, file: TolkFile, clearCache: boolean = true): void {
         if (this.files.has(uri)) {
-            TOLK_CACHE.bindFile(uri, this.cache)
+            TOLK_CACHE.bindFile(uri, this.cache, [file.uri])
             return
         }
 
         if (clearCache) {
-            this.clearDependentCaches("add")
+            this.clearDependentCaches("add", uri)
         }
 
         const index = FileIndex.create(file)
         this.files.set(uri, index)
-        TOLK_CACHE.bindFile(uri, this.cache)
+        TOLK_CACHE.bindFile(uri, this.cache, [file.uri])
 
         console.info(`added ${uri} to index`)
     }
 
     public removeFile(uri: string): void {
-        this.clearDependentCaches("remove")
+        this.clearDependentCaches("remove", uri)
 
         this.files.delete(uri)
         TOLK_PARSED_FILES_CACHE.delete(uri)
@@ -308,7 +308,7 @@ export class IndexRoot {
     }
 
     public fileChanged(uri: string): void {
-        this.clearDependentCaches("change")
+        this.clearDependentCaches("change", uri)
         this.files.delete(uri)
         TOLK_CACHE.unbindFile(uri)
         console.info(`found changes in ${uri}`)
@@ -319,23 +319,43 @@ export class IndexRoot {
         this.cache.clear()
     }
 
-    private clearDependentCaches(reason: "add" | "change" | "remove"): void {
+    public clearFileCaches(uris: readonly string[]): void {
+        this.cache.clearUris(uris)
+    }
+
+    public fileUris(): string[] {
+        return [...new Set([...this.files.keys(), ...this.cache.uris()])]
+    }
+
+    private clearDependentCaches(reason: "add" | "change" | "remove", uri: string): void {
         const allRoots = index.allRoots()
-        const dependentRoots = index.rootsDependentOn(this)
-        const dependentRootNames = dependentRoots
-            .filter(root => root !== this)
-            .map(root => root.name)
+        const invalidatedUris = index.cacheInvalidationUris(this, uri)
+        const invalidatedRoots = allRoots
+            .map(root => {
+                const count = invalidatedUris.filter(it => root.contains(it)).length
+                return count === 0 ? null : `${root.name}: ${count}`
+            })
+            .filter(root => root !== null)
             .join(", ")
         const preservedRootStats = allRoots
-            .filter(root => root !== this && !dependentRoots.includes(root))
+            .filter(root => !invalidatedUris.some(uri => root.contains(uri)))
             .map(root => `${root.name} (${root.cache.stats()})`)
             .join("; ")
+        const invalidatedFiles = this.formatInvalidatedUris(invalidatedUris)
         console.info(
-            `Invalidating Tolk caches after ${reason} in ${this.name} root; dependent roots: ${dependentRootNames || "none"}; preserved roots: ${preservedRootStats || "none"}; imported files: ${TOLK_CACHE.importedFiles.size}`,
+            `Invalidating Tolk caches after ${reason} in ${this.name} root; files: ${invalidatedUris.length}; affected roots: ${invalidatedRoots || "none"}; invalidated files: ${invalidatedFiles}; preserved roots: ${preservedRootStats || "none"}; imported files: ${TOLK_CACHE.importedFiles.size}`,
         )
         TOLK_CACHE.clearImportedFiles()
-        this.clearOwnCache()
-        index.clearRootsDependentOn(this, dependentRoots)
+        index.clearFileCaches(invalidatedUris)
+    }
+
+    private formatInvalidatedUris(uris: readonly string[]): string {
+        if (uris.length === 0) return "none"
+
+        const shown = uris.slice(0, 5).join(", ")
+        if (uris.length <= 5) return shown
+
+        return `${shown}, +${uris.length - 5} more`
     }
 
     public findFile(uri: string): FileIndex | undefined {
@@ -481,6 +501,18 @@ export class GlobalIndex {
         }
     }
 
+    public clearFileCaches(uris: readonly string[]): void {
+        for (const root of this.allRoots()) {
+            const rootUris = uris.filter(uri => root.contains(uri))
+            if (rootUris.length === 0) continue
+
+            console.info(
+                `Clearing Tolk ${root.name} file caches (${root.cache.statsForUris(rootUris)}; root before: ${root.cache.stats()})`,
+            )
+            root.clearFileCaches(rootUris)
+        }
+    }
+
     public rootsDependentOn(changedRoot: IndexRoot): IndexRoot[] {
         const roots = this.allRoots()
         if (changedRoot.name === "stubs" || changedRoot.name === "stdlib") {
@@ -492,6 +524,80 @@ export class GlobalIndex {
         }
 
         return []
+    }
+
+    public cacheInvalidationUris(changedRoot: IndexRoot, changedUri: string): string[] {
+        const affectedRoots: Set<IndexRoot> = new Set([
+            changedRoot,
+            ...this.rootsDependentOn(changedRoot),
+        ])
+
+        if (this.isImplicitlyImported(changedRoot, changedUri)) {
+            const result: Set<string> = new Set([changedUri])
+            for (const root of affectedRoots) {
+                for (const uri of root.fileUris()) {
+                    result.add(uri)
+                }
+            }
+            return [...result]
+        }
+
+        const result: Set<string> = new Set()
+        const queued: Set<string> = new Set([changedUri])
+        const queue: string[] = [changedUri]
+        const visitedPaths: Set<string> = new Set()
+
+        while (queue.length > 0) {
+            const currentUri = queue.shift()
+            if (!currentUri) continue
+
+            result.add(currentUri)
+
+            const currentPath = this.pathForUri(currentUri)
+            if (visitedPaths.has(currentPath)) continue
+            visitedPaths.add(currentPath)
+
+            for (const [candidateUri, candidate] of TOLK_PARSED_FILES_CACHE) {
+                if (queued.has(candidateUri)) continue
+                if (!this.isInRoots(candidateUri, affectedRoots)) continue
+                if (!this.fileImportsPath(candidate, currentPath)) continue
+
+                queued.add(candidateUri)
+                queue.push(candidateUri)
+            }
+        }
+
+        return [...result]
+    }
+
+    private isImplicitlyImported(changedRoot: IndexRoot, changedUri: string): boolean {
+        if (changedRoot.name === "stubs") return true
+        if (changedRoot.name !== "stdlib") return false
+
+        return this.pathForUri(changedUri).replace(/\\/g, "/").endsWith("/common.tolk")
+    }
+
+    private pathForUri(uri: string): string {
+        const file = TOLK_PARSED_FILES_CACHE.get(uri)
+        if (file) return path.normalize(file.path)
+
+        if (uri.startsWith("file:")) {
+            return path.normalize(fileURLToPath(uri))
+        }
+
+        return uri
+    }
+
+    private fileImportsPath(file: TolkFile, importedPath: string): boolean {
+        const normalizedImportedPath = path.normalize(importedPath)
+        return file.importedFiles().some(it => path.normalize(it) === normalizedImportedPath)
+    }
+
+    private isInRoots(uri: string, roots: ReadonlySet<IndexRoot>): boolean {
+        for (const root of roots) {
+            if (root.contains(uri)) return true
+        }
+        return false
     }
 
     public findRootFor(path: string): IndexRoot | undefined {

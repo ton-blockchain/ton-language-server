@@ -216,6 +216,37 @@ function scheduleTolkLiveInspections(uri: string, file: TolkFile): void {
     pendingTolkLiveInspections.set(uri, timer)
 }
 
+function isActonTomlFile(uri: string): boolean {
+    return uri.endsWith("/Acton.toml")
+}
+
+async function refreshTolkFeatures(): Promise<void> {
+    if (!clientInfo.name?.includes("Code") && !clientInfo.name?.includes("Codium")) {
+        return
+    }
+
+    await connection.sendRequest(lsp.SemanticTokensRefreshRequest.type)
+    await connection.sendRequest(lsp.InlayHintRefreshRequest.type)
+}
+
+async function handleActonTomlChange(uri: string, documents: DocumentStore): Promise<void> {
+    console.info(`Acton.toml changed: ${uri}; clearing Tolk caches`)
+    TOLK_CACHE.clear()
+
+    if (!initializationFinished) return
+
+    await refreshTolkFeatures()
+
+    for (const document of documents.all()) {
+        const openUri = document.uri
+        if (!isTolkFile(openUri)) continue
+
+        cancelPendingTolkLiveInspections(openUri)
+        const file = await findTolkFile(openUri)
+        await runTolkInspections(openUri, file, true)
+    }
+}
+
 async function processPendingEvents(): Promise<void> {
     console.info(`Processing ${pendingFileEvents.length} pending file events`)
 
@@ -609,6 +640,11 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
     connection.onDidChangeWatchedFiles(async (params: DidChangeWatchedFilesParams) => {
         for (const change of params.changes) {
             const uri = change.uri
+
+            if (isActonTomlFile(uri)) {
+                await handleActonTomlChange(uri, documents)
+                continue
+            }
 
             if (change.type === FileChangeType.Changed && checkIfRecentlyProcessedAndRemove(uri)) {
                 console.info(`Skipping recently processed file: ${uri}`)

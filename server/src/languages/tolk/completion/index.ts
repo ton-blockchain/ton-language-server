@@ -41,6 +41,7 @@ import {ContractFieldCompletionProvider} from "@server/languages/tolk/completion
 import {ActonWalletNameCompletionProvider} from "@server/languages/tolk/completion/providers/ActonWalletNameCompletionProvider"
 import {ActonContractIdCompletionProvider} from "@server/languages/tolk/completion/providers/ActonContractIdCompletionProvider"
 import {ActonGetMethodCompletionProvider} from "@server/languages/tolk/completion/providers/ActonGetMethodCompletionProvider"
+import {measureAsyncTime, measureTime} from "@server/psi/utils"
 
 export async function provideTolkCompletion(
     file: TolkFile,
@@ -82,7 +83,7 @@ export async function provideTolkCompletion(
     // to resolve `DummyIdentifier` into a list of possible variants, which will
     // become the autocompletion list. See `Reference` class documentation.
     const newContent = `${start}DummyIdentifier${end}`
-    const tree = parser.parse(newContent)
+    const tree = measureTime(`tolk completion parse ${uri}`, () => parser.parse(newContent))
     if (!tree) return []
 
     const cursorPosition = asParserPoint(params.position)
@@ -135,16 +136,24 @@ export async function provideTolkCompletion(
 
     for (const provider of providers) {
         if (!provider.isAvailable(ctx)) continue
-        provider.addCompletion(ctx, result)
+        const name = provider.constructor.name
+        measureTime(`tolk completion provider ${name} ${uri}`, () => {
+            provider.addCompletion(ctx, result)
+        })
     }
 
     const asyncProviders: AsyncCompletionProvider<CompletionContext>[] = []
 
     for (const provider of asyncProviders) {
         if (!provider.isAvailable(ctx)) continue
-        await provider.addCompletion(ctx, result)
+        const name = provider.constructor.name
+        await measureAsyncTime(`tolk completion async provider ${name} ${uri}`, async () =>
+            provider.addCompletion(ctx, result),
+        )
     }
-    return result.sorted()
+    return measureTime(`tolk completion sort ${uri} items=${result.elements.length}`, () =>
+        result.sorted(),
+    )
 }
 
 export async function provideTolkCompletionResolve(
