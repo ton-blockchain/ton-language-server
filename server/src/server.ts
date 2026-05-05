@@ -232,6 +232,7 @@ async function refreshTolkFeatures(): Promise<void> {
 async function handleActonTomlChange(uri: string, documents: DocumentStore): Promise<void> {
     console.info(`Acton.toml changed: ${uri}; clearing Tolk caches`)
     TOLK_CACHE.clear()
+    tolkIndex.rebuildImportGraphFromParsedFiles()
 
     if (!initializationFinished) return
 

@@ -469,6 +469,10 @@ export class GlobalIndex {
     public stdlibRoot: IndexRoot | undefined = undefined
     public stubsRoot: IndexRoot | undefined = undefined
     public roots: IndexRoot[] = []
+    private readonly importsByUri: Map<string, Set<string>> = new Map()
+    private readonly importersByPath: Map<string, Set<string>> = new Map()
+    private readonly pathByUri: Map<string, string> = new Map()
+    private readonly aliasesByUri: Map<string, Set<string>> = new Map()
 
     public withStdlibRoot(root: IndexRoot): void {
         this.stdlibRoot = root
@@ -526,6 +530,64 @@ export class GlobalIndex {
         return []
     }
 
+    public updateImportGraph(uri: string, file: TolkFile): void {
+        this.removeFromImportGraph(uri)
+
+        const filePath = this.normalizePath(file.path)
+        this.pathByUri.set(uri, filePath)
+        if (file.uri !== uri) {
+            this.pathByUri.set(file.uri, filePath)
+            this.aliasesByUri.set(uri, new Set([file.uri]))
+        }
+
+        const importedPaths = new Set(
+            file.importedFiles().map(imported => this.normalizePath(imported)),
+        )
+        this.importsByUri.set(uri, importedPaths)
+
+        for (const importedPath of importedPaths) {
+            const importers = this.importersByPath.get(importedPath) ?? new Set<string>()
+            importers.add(uri)
+            this.importersByPath.set(importedPath, importers)
+        }
+    }
+
+    public removeFromImportGraph(uri: string): void {
+        const importedPaths = this.importsByUri.get(uri)
+        if (importedPaths) {
+            for (const importedPath of importedPaths) {
+                const importers = this.importersByPath.get(importedPath)
+                if (!importers) continue
+
+                importers.delete(uri)
+                if (importers.size === 0) {
+                    this.importersByPath.delete(importedPath)
+                }
+            }
+        }
+
+        this.importsByUri.delete(uri)
+        this.pathByUri.delete(uri)
+        const aliases = this.aliasesByUri.get(uri)
+        if (aliases) {
+            for (const alias of aliases) {
+                this.pathByUri.delete(alias)
+            }
+        }
+        this.aliasesByUri.delete(uri)
+    }
+
+    public rebuildImportGraphFromParsedFiles(): void {
+        this.importsByUri.clear()
+        this.importersByPath.clear()
+        this.pathByUri.clear()
+        this.aliasesByUri.clear()
+
+        for (const [uri, file] of TOLK_PARSED_FILES_CACHE) {
+            this.updateImportGraph(uri, file)
+        }
+    }
+
     public cacheInvalidationUris(changedRoot: IndexRoot, changedUri: string): string[] {
         const affectedRoots: Set<IndexRoot> = new Set([
             changedRoot,
@@ -557,10 +619,9 @@ export class GlobalIndex {
             if (visitedPaths.has(currentPath)) continue
             visitedPaths.add(currentPath)
 
-            for (const [candidateUri, candidate] of TOLK_PARSED_FILES_CACHE) {
+            for (const candidateUri of this.importersByPath.get(currentPath) ?? []) {
                 if (queued.has(candidateUri)) continue
                 if (!this.isInRoots(candidateUri, affectedRoots)) continue
-                if (!this.fileImportsPath(candidate, currentPath)) continue
 
                 queued.add(candidateUri)
                 queue.push(candidateUri)
@@ -578,19 +639,21 @@ export class GlobalIndex {
     }
 
     private pathForUri(uri: string): string {
+        const knownPath = this.pathByUri.get(uri)
+        if (knownPath) return knownPath
+
         const file = TOLK_PARSED_FILES_CACHE.get(uri)
-        if (file) return path.normalize(file.path)
+        if (file) return this.normalizePath(file.path)
 
         if (uri.startsWith("file:")) {
-            return path.normalize(fileURLToPath(uri))
+            return this.normalizePath(fileURLToPath(uri))
         }
 
         return uri
     }
 
-    private fileImportsPath(file: TolkFile, importedPath: string): boolean {
-        const normalizedImportedPath = path.normalize(importedPath)
-        return file.importedFiles().some(it => path.normalize(it) === normalizedImportedPath)
+    private normalizePath(filePath: string): string {
+        return path.normalize(filePath)
     }
 
     private isInRoots(uri: string, roots: ReadonlySet<IndexRoot>): boolean {
@@ -619,6 +682,7 @@ export class GlobalIndex {
         if (!indexRoot) return
 
         indexRoot.addFile(uri, file, clearCache)
+        this.updateImportGraph(uri, file)
     }
 
     public removeFile(uri: string): void {
@@ -626,6 +690,7 @@ export class GlobalIndex {
         if (!indexRoot) return
 
         indexRoot.removeFile(uri)
+        this.removeFromImportGraph(uri)
     }
 
     public fileChanged(uri: string): void {
@@ -633,6 +698,7 @@ export class GlobalIndex {
         if (!indexRoot) return
 
         indexRoot.fileChanged(uri)
+        this.removeFromImportGraph(uri)
     }
 
     public findFile(uri: string): FileIndex | undefined {
