@@ -81,6 +81,7 @@ export interface TeamCityTestIgnoredAttributes {
     readonly name?: string
     readonly nodeId?: string
     readonly parentNodeId?: string
+    readonly duration?: string
     readonly message?: string
     readonly details?: string
 }

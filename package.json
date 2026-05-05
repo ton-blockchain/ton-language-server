@@ -303,6 +303,24 @@
                 "icon": "$(debug-start)"
             },
             {
+                "command": "ton.acton.debugFailedTest",
+                "title": "Debug Failed Test",
+                "category": "Acton",
+                "icon": "$(debug-start)"
+            },
+            {
+                "command": "ton.acton.rerunFailedTestWithBacktrace",
+                "title": "Rerun Failed Test with Full Backtrace",
+                "category": "Acton",
+                "icon": "$(bug)"
+            },
+            {
+                "command": "ton.acton.openFailedTestUi",
+                "title": "Open Failed Test UI",
+                "category": "Acton",
+                "icon": "$(preview)"
+            },
+            {
                 "command": "ton.wallets.refresh",
                 "title": "Refresh Wallets",
                 "category": "TON",
@@ -368,6 +386,40 @@
                     "command": "ton.wallets.new",
                     "when": "view == tonWallets",
                     "group": "navigation"
+                }
+            ],
+            "testing/message/content": [
+                {
+                    "command": "ton.acton.debugFailedTest",
+                    "when": "testMessage == actonFailure",
+                    "group": "navigation@1"
+                },
+                {
+                    "command": "ton.acton.rerunFailedTestWithBacktrace",
+                    "when": "testMessage == actonFailure",
+                    "group": "navigation@2"
+                },
+                {
+                    "command": "ton.acton.openFailedTestUi",
+                    "when": "testMessage == actonFailure",
+                    "group": "navigation@3"
+                }
+            ],
+            "testing/message/context": [
+                {
+                    "command": "ton.acton.debugFailedTest",
+                    "when": "testMessage == actonFailure",
+                    "group": "navigation@1"
+                },
+                {
+                    "command": "ton.acton.rerunFailedTestWithBacktrace",
+                    "when": "testMessage == actonFailure",
+                    "group": "navigation@2"
+                },
+                {
+                    "command": "ton.acton.openFailedTestUi",
+                    "when": "testMessage == actonFailure",
+                    "group": "navigation@3"
                 }
             ]
         },

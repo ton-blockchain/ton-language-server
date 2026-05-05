@@ -70,6 +70,7 @@ export class TestCommand extends ActonCommand {
         public uiPort: string = "",
         public reporter: string = "console,teamcity",
         public filterPattern: string = "",
+        public backtraceFull: boolean = false,
     ) {
         super("test")
     }
@@ -80,6 +81,9 @@ export class TestCommand extends ActonCommand {
             args.push("--reporter", this.reporter)
         }
         if (this.clearCache) args.push("--clear-cache")
+        if (this.backtraceFull) {
+            args.push("--backtrace", "full")
+        }
         if (this.coverage) {
             args.push("--coverage", "--coverage-format", this.coverageFormat)
             if (this.coverageFile.trim() !== "") {

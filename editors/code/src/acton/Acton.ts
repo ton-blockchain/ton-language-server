@@ -13,6 +13,13 @@ import {ActonCommand} from "./ActonCommand"
 
 const DEFAULT_INSTALL_PATH = path.join(os.homedir(), ".acton", "bin", "acton")
 
+export interface ActonSpawnResult {
+    readonly exitCode: number | null
+    readonly stdout: string
+    readonly stderr: string
+    readonly cancelled: boolean
+}
+
 export class Acton {
     private static instance: Acton | undefined
 
@@ -60,7 +67,8 @@ export class Acton {
         workingDirectory?: string,
         outputChannel?: vscode.OutputChannel,
         onOutput?: (data: string) => void,
-    ): Promise<{exitCode: number | null; stdout: string; stderr: string}> {
+        cancellationToken?: vscode.CancellationToken,
+    ): Promise<ActonSpawnResult> {
         const actonPath = await this.getActonPath(workingDirectory)
         const args = [command.name, ...command.getArguments()]
 
@@ -71,6 +79,30 @@ export class Acton {
 
             let stdout = ""
             let stderr = ""
+            let cancelled = cancellationToken?.isCancellationRequested ?? false
+            let settled = false
+
+            const cancellationDisposable = cancellationToken?.onCancellationRequested(() => {
+                cancelled = true
+                if (!child.killed) {
+                    child.kill()
+                }
+            })
+
+            const finish = (callback: () => void): void => {
+                if (settled) {
+                    return
+                }
+                settled = true
+                cancellationDisposable?.dispose()
+                callback()
+            }
+
+            const resolveResult = (exitCode: number | null): void => {
+                finish(() => {
+                    resolve({exitCode, stdout, stderr, cancelled})
+                })
+            }
 
             child.stdout.on("data", (data: Buffer) => {
                 const str = data.toString()
@@ -86,12 +118,23 @@ export class Acton {
                 onOutput?.(str)
             })
 
+            if (cancelled && !child.killed) {
+                child.kill()
+            }
+
             child.on("close", (code: number | null) => {
-                resolve({exitCode: code, stdout, stderr})
+                resolveResult(code)
             })
 
             child.on("error", (err: Error) => {
-                reject(err)
+                if (cancelled) {
+                    resolveResult(null)
+                    return
+                }
+
+                finish(() => {
+                    reject(err)
+                })
             })
         })
     }

@@ -10,6 +10,7 @@ import {Acton} from "./Acton"
 import {startActonDebugging} from "./ActonDebug"
 import {TestCommand, TestMode} from "./ActonCommand"
 import {createActonTestFilterPattern} from "./ActonTestFilter"
+import {getFreeActonPort} from "./ActonPort"
 import {
     extractTeamCityFileHint,
     isTeamCityMessageLine,
@@ -19,6 +20,8 @@ import {
     type TeamCityTestFailedMessage,
     type TeamCityTestStatusMessage,
 } from "./TeamCity"
+
+const ACTON_FAILURE_MESSAGE_CONTEXT = "actonFailure"
 
 interface DirectoryRunState {
     readonly tests: vscode.TestItem[]
@@ -36,6 +39,12 @@ interface TestFailureInfo {
     readonly location?: vscode.Location
     readonly expectedOutput?: string
     readonly actualOutput?: string
+    readonly durationMs?: number
+}
+
+interface TestMessageCommandArgs {
+    readonly test?: vscode.TestItem
+    readonly message?: vscode.TestMessage
 }
 
 export class ActonTestController implements vscode.Disposable {
@@ -87,24 +96,132 @@ export class ActonTestController implements vscode.Disposable {
             await (item ? this.discoverTestsInItem(item) : this.discoverAllTests())
         }
 
+        this.controller.refreshHandler = async token => {
+            if (token.isCancellationRequested) {
+                return
+            }
+
+            await this.discoverAllTests()
+        }
+
         this.disposables.push(
+            vscode.commands.registerCommand(
+                "ton.acton.debugFailedTest",
+                async (args?: TestMessageCommandArgs) => {
+                    await this.handleDebugFailedTest(args)
+                },
+            ),
+            vscode.commands.registerCommand(
+                "ton.acton.rerunFailedTestWithBacktrace",
+                async (args?: TestMessageCommandArgs) => {
+                    await this.handleRerunFailedTestWithBacktrace(args)
+                },
+            ),
+            vscode.commands.registerCommand(
+                "ton.acton.openFailedTestUi",
+                async (args?: TestMessageCommandArgs) => {
+                    await this.handleOpenFailedTestUi(args)
+                },
+            ),
             vscode.workspace.onDidOpenTextDocument(e => {
                 this.discoverTestsInDocument(e)
             }),
             vscode.workspace.onDidChangeTextDocument(e => {
                 this.discoverTestsInDocument(e.document)
+                this.invalidateTestsChangedByDocument(e.document)
             }),
         )
 
         const watcher = vscode.workspace.createFileSystemWatcher("**/*.test.tolk")
+        const sourceWatcher = vscode.workspace.createFileSystemWatcher("**/*.tolk")
+        const tomlWatcher = vscode.workspace.createFileSystemWatcher("**/Acton.toml")
         this.disposables.push(
             watcher,
-            watcher.onDidCreate(async uri => this.discoverTestsInFile(uri)),
-            watcher.onDidChange(async uri => this.discoverTestsInFile(uri)),
+            watcher.onDidCreate(async uri => {
+                await this.discoverTestsInFile(uri)
+                this.invalidateTestsForUri(uri)
+            }),
+            watcher.onDidChange(async uri => {
+                await this.discoverTestsInFile(uri)
+                this.invalidateTestsForUri(uri)
+            }),
             watcher.onDidDelete(uri => {
+                this.invalidateTestsForUri(uri)
                 this.controller.items.delete(uri.toString())
             }),
+            sourceWatcher,
+            sourceWatcher.onDidCreate(uri => {
+                this.invalidateTestsChangedByUri(uri)
+            }),
+            sourceWatcher.onDidChange(uri => {
+                this.invalidateTestsChangedByUri(uri)
+            }),
+            sourceWatcher.onDidDelete(uri => {
+                this.invalidateTestsChangedByUri(uri)
+            }),
+            tomlWatcher,
+            tomlWatcher.onDidCreate(() => {
+                this.invalidateAllTests()
+            }),
+            tomlWatcher.onDidChange(() => {
+                this.invalidateAllTests()
+            }),
+            tomlWatcher.onDidDelete(() => {
+                this.invalidateAllTests()
+            }),
         )
+    }
+
+    private invalidateTestsChangedByDocument(document: vscode.TextDocument): void {
+        this.invalidateTestsChangedByUri(document.uri)
+    }
+
+    private invalidateTestsChangedByUri(uri: vscode.Uri): void {
+        if (this.isIgnoredActonTestPath(uri)) {
+            return
+        }
+
+        if (uri.fsPath.endsWith(".test.tolk")) {
+            this.invalidateTestsForUri(uri)
+            return
+        }
+
+        if (uri.fsPath.endsWith(".tolk")) {
+            this.invalidateAllTests()
+        }
+    }
+
+    private invalidateTestsForUri(uri: vscode.Uri): void {
+        const item = this.controller.items.get(uri.toString())
+        if (item) {
+            this.controller.invalidateTestResults(item)
+            return
+        }
+
+        this.controller.invalidateTestResults()
+    }
+
+    private invalidateAllTests(): void {
+        this.controller.invalidateTestResults()
+    }
+
+    private isIgnoredActonTestPath(uri: vscode.Uri): boolean {
+        const normalized = path.normalize(uri.fsPath)
+        return (
+            normalized.split(path.sep).includes(".acton") ||
+            normalized.includes(".test.tolk.test.tolk")
+        )
+    }
+
+    private isCancellationRequested(token: vscode.CancellationToken): boolean {
+        return token.isCancellationRequested
+    }
+
+    private didSpawnCancel(
+        token: vscode.CancellationToken,
+        result: {readonly cancelled: boolean},
+    ): boolean {
+        return this.isCancellationRequested(token) || result.cancelled
     }
 
     private async discoverAllTests(): Promise<void> {
@@ -116,13 +233,8 @@ export class ActonTestController implements vscode.Disposable {
 
     private async discoverTestsInFile(uri: vscode.Uri): Promise<void> {
         try {
-            if (uri.fsPath.includes(".acton")) {
+            if (this.isIgnoredActonTestPath(uri)) {
                 // skip tests in `.acton/`
-                return
-            }
-
-            if (uri.fsPath.includes(".test.tolk.test.tolk")) {
-                // skip temp artifacts
                 return
             }
 
@@ -490,6 +602,81 @@ export class ActonTestController implements vscode.Disposable {
         })
     }
 
+    private async handleDebugFailedTest(args?: TestMessageCommandArgs): Promise<void> {
+        const test = args?.test
+        if (!test) {
+            await vscode.window.showWarningMessage("No Acton test is available for this failure.")
+            return
+        }
+
+        const commandContext = await this.createCommandContextForTestItem(test)
+        if (!commandContext) {
+            await vscode.window.showWarningMessage("Cannot resolve an Acton test command.")
+            return
+        }
+
+        await this.debugTestItem(test, commandContext.workingDir)
+    }
+
+    private async handleRerunFailedTestWithBacktrace(args?: TestMessageCommandArgs): Promise<void> {
+        const test = args?.test
+        if (!test) {
+            await vscode.window.showWarningMessage("No Acton test is available for this failure.")
+            return
+        }
+
+        const commandContext = await this.createCommandContextForTestItem(test, {
+            backtraceFull: true,
+        })
+        if (!commandContext) {
+            await vscode.window.showWarningMessage("Cannot resolve an Acton test command.")
+            return
+        }
+
+        await Acton.getInstance().execute(commandContext.command, commandContext.workingDir)
+    }
+
+    private async handleOpenFailedTestUi(args?: TestMessageCommandArgs): Promise<void> {
+        const test = args?.test
+        if (!test) {
+            await vscode.window.showWarningMessage("No Acton test is available for this failure.")
+            return
+        }
+
+        const commandContext = await this.createCommandContextForTestItem(test, {ui: true})
+        if (!commandContext) {
+            await vscode.window.showWarningMessage("Cannot resolve an Acton test command.")
+            return
+        }
+
+        await Acton.getInstance().execute(commandContext.command, commandContext.workingDir)
+    }
+
+    private async createCommandContextForTestItem(
+        item: vscode.TestItem,
+        options: {readonly backtraceFull?: boolean; readonly ui?: boolean} = {},
+    ): Promise<{readonly command: TestCommand; readonly workingDir: string} | undefined> {
+        const uri = item.uri
+        if (!uri) {
+            return undefined
+        }
+
+        const tomlUri = await Acton.getInstance().findActonToml(uri)
+        const workingDir = tomlUri ? path.dirname(tomlUri.fsPath) : path.dirname(uri.fsPath)
+        const relativePath = path.relative(workingDir, uri.fsPath)
+        const command =
+            item.children.size > 0
+                ? new TestCommand(TestMode.FILE, relativePath)
+                : this.createSingleTestCommand(relativePath, item.label, false, "")
+
+        command.backtraceFull = options.backtraceFull === true
+        if (options.ui === true) {
+            command.ui = true
+            command.uiPort = String(await getFreeActonPort())
+        }
+        return {command, workingDir}
+    }
+
     private async runTestItem(
         item: vscode.TestItem,
         run: vscode.TestRun,
@@ -527,44 +714,85 @@ export class ActonTestController implements vscode.Disposable {
                 : this.createSingleTestCommand(relativePath, item.label, isCoverage, coverageFile)
 
         let teamCityFailure: TestFailureInfo | undefined
+        let teamCityDurationMs: number | undefined
+        const teamCityStatus = {ignored: false}
         const outputProcessor = this.createOutputProcessor(run, item, message => {
-            if (message.name !== "testFailed" || teamCityFailure) {
-                return
+            switch (message.name) {
+                case "testingStarted":
+                case "testingFinished":
+                case "testSuiteStarted":
+                case "testSuiteFinished":
+                case "testStarted": {
+                    break
+                }
+                case "testFailed": {
+                    teamCityFailure ??= this.createFailureInfoFromTeamCity(message, workingDir)
+                    break
+                }
+                case "testFinished": {
+                    teamCityDurationMs = this.parseTeamCityDuration(message.attributes.duration)
+                    break
+                }
+                case "testIgnored": {
+                    teamCityStatus.ignored = true
+                    break
+                }
             }
-
-            teamCityFailure = this.createFailureInfoFromTeamCity(message, workingDir)
         })
 
         try {
-            const {exitCode, stdout, stderr} = await Acton.getInstance().spawn(
+            const result = await Acton.getInstance().spawn(
                 command,
                 workingDir,
                 undefined,
                 data => {
                     outputProcessor.handleChunk(data)
                 },
+                token,
             )
             outputProcessor.flush()
 
-            if (exitCode === 0) {
-                run.passed(item)
+            if (this.didSpawnCancel(token, result)) {
+                return
+            }
+
+            if (teamCityStatus.ignored && !teamCityFailure) {
+                run.skipped(item)
+                return
+            }
+
+            if (result.exitCode === 0) {
+                run.passed(item, teamCityDurationMs)
                 if (isCoverage && coverageFile) {
                     await this.processCoverage(coverageFile, run, workingDir)
                 }
             } else {
                 const cleanMessage = stripTeamCityMessages(
-                    this.stripAnsi(`${stdout}\n${stderr}`),
+                    this.stripAnsi(`${result.stdout}\n${result.stderr}`),
                 ).trim()
-                const failure = teamCityFailure ?? {
+                if (teamCityFailure) {
+                    run.failed(
+                        item,
+                        this.createTestMessage(teamCityFailure),
+                        teamCityFailure.durationMs ?? teamCityDurationMs,
+                    )
+                    return
+                }
+
+                const failure = {
                     messageText: this.extractErrorMessage(
-                        cleanMessage || "Test failed (no TeamCity details received)",
+                        cleanMessage || "Test runner failed before reporting test failure details",
                     ),
                 }
-                run.failed(item, this.createTestMessage(failure))
+                run.errored(item, this.createTestMessage(failure))
             }
         } catch (error) {
             outputProcessor.flush()
-            run.failed(item, new vscode.TestMessage(String(error)))
+            if (this.isCancellationRequested(token)) {
+                return
+            }
+
+            run.errored(item, this.createTestMessage({messageText: String(error)}))
         }
     }
 
@@ -628,26 +856,35 @@ export class ActonTestController implements vscode.Disposable {
         })
 
         try {
-            const {exitCode, stdout, stderr} = await Acton.getInstance().spawn(
+            const result = await Acton.getInstance().spawn(
                 command,
                 workingDir,
                 undefined,
                 data => {
                     outputProcessor.handleChunk(data)
                 },
+                token,
             )
             outputProcessor.flush()
-            this.finalizeDirectoryRun(state, run, exitCode, stdout, stderr)
+            if (this.didSpawnCancel(token, result)) {
+                return
+            }
+
+            this.finalizeDirectoryRun(state, run, result.exitCode, result.stdout, result.stderr)
 
             if (isCoverage && coverageFile) {
                 await this.processCoverage(coverageFile, run, workingDir)
             }
         } catch (error) {
             outputProcessor.flush()
+            if (this.isCancellationRequested(token)) {
+                return
+            }
+
             const errorText = String(error)
             for (const test of state.tests) {
                 if (!state.resolvedTestIds.has(test.id)) {
-                    this.markDirectoryTestFailed(state, run, test, {
+                    this.markDirectoryTestErrored(state, run, test, {
                         messageText: errorText,
                     })
                 }
@@ -822,7 +1059,12 @@ export class ActonTestController implements vscode.Disposable {
             case "testFinished": {
                 const test = this.resolveDirectoryTestFromMessage(state, message, workingDir)
                 if (test && !state.failedTestIds.has(test.id)) {
-                    this.markDirectoryTestPassed(state, run, test)
+                    this.markDirectoryTestPassed(
+                        state,
+                        run,
+                        test,
+                        this.parseTeamCityDuration(message.attributes.duration),
+                    )
                 }
                 break
             }
@@ -833,11 +1075,12 @@ export class ActonTestController implements vscode.Disposable {
         state: DirectoryRunState,
         run: vscode.TestRun,
         test: vscode.TestItem,
+        durationMs?: number,
     ): void {
         if (state.resolvedTestIds.has(test.id)) {
             return
         }
-        run.passed(test)
+        run.passed(test, durationMs)
         state.resolvedTestIds.add(test.id)
     }
 
@@ -851,8 +1094,22 @@ export class ActonTestController implements vscode.Disposable {
             return
         }
 
-        run.failed(test, this.createTestMessage(failure))
+        run.failed(test, this.createTestMessage(failure), failure.durationMs)
         state.failedTestIds.add(test.id)
+        state.resolvedTestIds.add(test.id)
+    }
+
+    private markDirectoryTestErrored(
+        state: DirectoryRunState,
+        run: vscode.TestRun,
+        test: vscode.TestItem,
+        failure: TestFailureInfo,
+    ): void {
+        if (state.resolvedTestIds.has(test.id)) {
+            return
+        }
+
+        run.errored(test, this.createTestMessage(failure), failure.durationMs)
         state.resolvedTestIds.add(test.id)
     }
 
@@ -888,16 +1145,16 @@ export class ActonTestController implements vscode.Disposable {
 
             if (exitCode === 0) {
                 if (hasTeamCityResults) {
-                    this.markDirectoryTestFailed(state, run, test, {
+                    this.markDirectoryTestErrored(state, run, test, {
                         messageText: "TeamCity did not report final status for this test",
                     })
                 } else {
-                    this.markDirectoryTestFailed(state, run, test, {
+                    this.markDirectoryTestErrored(state, run, test, {
                         messageText: "No TeamCity test events were received",
                     })
                 }
             } else {
-                this.markDirectoryTestFailed(state, run, test, {
+                this.markDirectoryTestErrored(state, run, test, {
                     messageText: hasTeamCityResults
                         ? `TeamCity did not report final status for this test\n${fallbackMessageText}`
                         : fallbackMessageText,
@@ -1236,12 +1493,27 @@ export class ActonTestController implements vscode.Disposable {
             location: this.extractErrorLocation(details, workingDir),
             expectedOutput: hasComparisonOutputs ? message.attributes.expected : undefined,
             actualOutput: hasComparisonOutputs ? message.attributes.actual : undefined,
+            durationMs: this.parseTeamCityDuration(message.attributes.duration),
         }
+    }
+
+    private parseTeamCityDuration(duration: string | undefined): number | undefined {
+        if (duration === undefined || duration.trim() === "") {
+            return undefined
+        }
+
+        const value = Number(duration)
+        if (!Number.isFinite(value) || value < 0) {
+            return undefined
+        }
+
+        return value
     }
 
     private createTestMessage(failure: TestFailureInfo): vscode.TestMessage {
         const message = new vscode.TestMessage(failure.messageText)
         message.location = failure.location
+        message.contextValue = ACTON_FAILURE_MESSAGE_CONTEXT
 
         if (failure.expectedOutput !== undefined && failure.actualOutput !== undefined) {
             message.expectedOutput = failure.expectedOutput
