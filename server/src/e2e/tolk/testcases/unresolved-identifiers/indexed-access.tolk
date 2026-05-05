@@ -118,7 +118,7 @@ fun test105(x: int, y: int): (tuple, int, (int?, int), int, int) {
 
 @method_id(106)
 fun test106(x: int, y: int) {
-    var ab = [createEmptyTuple(), [x as int?, y], tuple.size];
+    var ab: [tuple, [int?, int], (tuple) -> int] = [createEmptyTuple(), [x as int?, y], tuple.size];
     ab.0.push(1);
     tuplePush(mutate ab.0, 2);
     ab.1.0 = null;

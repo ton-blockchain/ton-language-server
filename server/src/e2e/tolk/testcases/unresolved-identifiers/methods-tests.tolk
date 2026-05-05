@@ -99,7 +99,7 @@ fun test4() {
 
 @method_id(105)
 fun test5(a: MInt, b: int) {
-    var t = [a,b];
+    var t: Tuple2Int = [a,b];
     return (t.getSum(), t.assignLast(a+b), t.getSum(), Tuple2Int.getLast(t));
 }
 
