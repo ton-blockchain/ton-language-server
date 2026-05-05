@@ -314,7 +314,7 @@ async function activate(): Promise<void> {
     await ext.activate()
 
     console.log("Waiting for language server initialization...")
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    await waitForCommand("tolk.getTypeAtPosition")
 
     const languages = await vscode.languages.getLanguages()
     if (!languages.includes("tolk")) {
@@ -326,4 +326,20 @@ async function activate(): Promise<void> {
     }
 
     console.log("Extension activated successfully")
+}
+
+async function waitForCommand(command: string): Promise<void> {
+    const timeoutMs = 10_000
+    const intervalMs = 100
+    const started = Date.now()
+
+    while (Date.now() - started < timeoutMs) {
+        const commands = await vscode.commands.getCommands(true)
+        if (commands.includes(command)) {
+            return
+        }
+        await new Promise(resolve => setTimeout(resolve, intervalMs))
+    }
+
+    throw new Error(`Language server command '${command}' was not registered within ${timeoutMs}ms`)
 }

@@ -1,5 +1,6 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2025 TON Studio
+import {mkdirSync} from "node:fs"
 import * as path from "node:path"
 
 import {runTests} from "@vscode/test-electron"
@@ -112,6 +113,14 @@ async function main(): Promise<void> {
         const extensionDevelopmentPath = path.resolve(__dirname, "../../../")
         const extensionTestsPath = path.resolve(__dirname, "./out/tolk/index.js")
         const testWorkspace = path.resolve(__dirname, "../../../test-workspace")
+
+        mkdirSync(testWorkspace, {recursive: true})
+
+        if (options.verbose) {
+            console.log("  extensionDevelopmentPath:", extensionDevelopmentPath)
+            console.log("  extensionTestsPath:", extensionTestsPath)
+            console.log("  testWorkspace:", testWorkspace)
+        }
 
         await runTests({
             extensionDevelopmentPath,
