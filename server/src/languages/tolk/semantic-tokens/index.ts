@@ -2,6 +2,7 @@
 //  Copyright © 2025 TON Core
 import * as lsp from "vscode-languageserver"
 import type {SemanticTokens} from "vscode-languageserver"
+import type {Node as SyntaxNode} from "web-tree-sitter"
 
 import {RecursiveVisitor} from "@server/visitor/visitor"
 import {Tokens} from "@server/semantic/tokens"
@@ -29,6 +30,36 @@ function pickTarget(resolved: NamedNode[]): NamedNode | null {
     }
 
     return resolved[0]
+}
+
+const NAMED_DECLARATION_TYPES = new Set([
+    "struct_declaration",
+    "struct_field_declaration",
+    "enum_declaration",
+    "enum_member_declaration",
+    "type_alias_declaration",
+    "constant_declaration",
+    "global_var_declaration",
+    "function_declaration",
+    "method_declaration",
+    "get_method_declaration",
+    "type_parameter",
+    "parameter_declaration",
+])
+
+function isDeclarationName(node: SyntaxNode): boolean {
+    const parent = node.parent
+    if (!parent || !NAMED_DECLARATION_TYPES.has(parent.type)) {
+        return false
+    }
+
+    const name = parent.childForFieldName("name")
+    return (
+        name !== null &&
+        name.type === node.type &&
+        name.startIndex === node.startIndex &&
+        name.endIndex === node.endIndex
+    )
 }
 
 export function provideTolkSemanticTokens(file: TolkFile): SemanticTokens {
@@ -131,6 +162,10 @@ export function provideTolkSemanticTokens(file: TolkFile): SemanticTokens {
         }
 
         if (type === "identifier" || type === "type_identifier") {
+            if (isDeclarationName(n)) {
+                return true
+            }
+
             const element = new NamedNode(n, file)
             const resolved = pickTarget(Reference.multiResolve(element))
             if (!resolved) return true

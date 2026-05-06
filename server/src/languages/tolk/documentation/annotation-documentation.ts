@@ -5,9 +5,9 @@ import {asLspRange} from "@server/utils/position"
 
 export function documentationForAnnotation(hoverNode: SyntaxNode): lsp.Hover | null {
     const name = hoverNode.text
+    const info = annotationInfo(name)
 
-    if (name in ANNOTATIONS_INFO) {
-        const info = ANNOTATIONS_INFO[name as keyof typeof ANNOTATIONS_INFO]
+    if (info) {
         return {
             range: asLspRange(hoverNode),
             contents: {
@@ -20,7 +20,15 @@ export function documentationForAnnotation(hoverNode: SyntaxNode): lsp.Hover | n
     return null
 }
 
-const ANNOTATIONS_INFO = {
+function annotationInfo(name: string): AnnotationInfo | undefined {
+    return ANNOTATIONS_INFO[name] ?? ANNOTATIONS_INFO[name.split(".")[0]]
+}
+
+interface AnnotationInfo {
+    readonly description: string
+}
+
+const ANNOTATIONS_INFO: Record<string, AnnotationInfo> = {
     inline: {
         description:
             "Function with this annotation will be automatically inlined during compilation",
@@ -52,5 +60,38 @@ const ANNOTATIONS_INFO = {
     method_id: {
         description:
             "Specifies the method ID (as a number literal) for the function in smart contract interface. See <https://docs.ton.org/v3/guidelines/smart-contracts/get-methods> for more details",
+    },
+    abi: {
+        description: "Describes ABI metadata for a declaration.",
+    },
+    "abi.minimalMsgValue": {
+        description: "Defines the minimal message value for a message struct in ABI metadata.",
+    },
+    "abi.preferredSendMode": {
+        description: "Defines the preferred send mode for a message struct in ABI metadata.",
+    },
+    "abi.clientType": {
+        description:
+            "Overrides the client-facing ABI type for a struct field. This is useful when generated wrappers should expose a different representation than the serialized Tolk field type.",
+    },
+    test: {
+        description:
+            "Describes additional metadata for a test function, such as skipping, TODO state, expected exit code, gas limit, or fuzzing configuration.",
+    },
+    "test.skip": {
+        description: "Marks the test as skipped.",
+    },
+    "test.todo": {
+        description: 'Marks the test as TODO. Use `@test.todo("...")` to attach a description.',
+    },
+    "test.fail_with": {
+        description: "Declares the expected exit code for the test.",
+    },
+    "test.gas_limit": {
+        description: "Overrides the per-test gas limit.",
+    },
+    "test.fuzz": {
+        description:
+            "Enables fuzzing for parameterized tests. Supports `@test.fuzz`, `@test.fuzz(64)`, and `@test.fuzz({ ... })`.",
     },
 } as const
