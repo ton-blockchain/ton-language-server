@@ -119,6 +119,15 @@ export class TolkFile extends File {
             .map(node => node.childForFieldName("path"))
             .filter(node => node !== null)
 
+        const resolvedPath = this.resolvedImportPath(filepath)
+        if (resolvedPath) {
+            const resolvedKey = this.importPathKey(resolvedPath)
+            return imports.some(imp => {
+                const importPath = this.resolvedImportPath(imp.text.slice(1, -1))
+                return importPath !== null && this.importPathKey(importPath) === resolvedKey
+            })
+        }
+
         // for `./foo.tolk` it is `foo.tolk`
         const normalizedPath = this.normalizeImportPath(filepath)
 
@@ -126,6 +135,16 @@ export class TolkFile extends File {
             const importPath = this.normalizeImportPath(imp.text.slice(1, -1))
             return importPath === normalizedPath
         })
+    }
+
+    private resolvedImportPath(importPath: string): string | null {
+        const resolved = ImportResolver.resolveImport(this, importPath)
+        return resolved ? path.normalize(resolved) : null
+    }
+
+    private importPathKey(filePath: string): string {
+        const normalized = path.normalize(filePath)
+        return process.platform === "win32" ? normalized.toLowerCase() : normalized
     }
 
     public imports(): SyntaxNode[] {
@@ -142,9 +161,17 @@ export class TolkFile extends File {
         const imports = this.imports()
             .map(node => node.childForFieldName("path"))
             .filter(node => node !== null)
-        return imports
+        const importedFiles = imports
             .map(it => ImportResolver.resolveImport(this, it.text.slice(1, -1)))
             .filter(it => it !== null)
+
+        const seen: Set<string> = new Set()
+        return importedFiles.filter(filePath => {
+            const key = this.importPathKey(filePath)
+            if (seen.has(key)) return false
+            seen.add(key)
+            return true
+        })
     }
 
     public importPath(inFile: TolkFile): string {
