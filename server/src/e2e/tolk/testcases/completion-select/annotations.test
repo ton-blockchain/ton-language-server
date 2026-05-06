@@ -29,10 +29,10 @@ fun foo() {}
 Overflow annotation completion
 ========================================================================
 @overfl<caret>
-fun foo() {}
+struct Message {}
 ------------------------------------------------------------------------
 @overflow1023_policy("suppress<caret>")
-fun foo() {}
+struct Message {}
 
 ========================================================================
 No inline annotation completion
@@ -47,10 +47,10 @@ fun foo() {}
 No bounced annotation completion
 ========================================================================
 @on_bounced_po<caret>
-fun foo() {}
+fun onBouncedMessage() {}
 ------------------------------------------------------------------------
 @on_bounced_policy("manual<caret>")
-fun foo() {}
+fun onBouncedMessage() {}
 
 ========================================================================
 Method ID annotation completion
@@ -68,4 +68,48 @@ Custom annotation completion
 get fun foo() {}
 ------------------------------------------------------------------------
 @custom(<caret>)
+get fun foo() {}
+
+========================================================================
+Struct ABI annotation completion
+========================================================================
+@abi.min<caret>
+struct Message {}
+------------------------------------------------------------------------
+@abi.minimalMsgValue(<caret>)
+struct Message {}
+
+========================================================================
+Struct field ABI annotation completion
+========================================================================
+struct Message {
+    @abi.client<caret>
+    body: cell
+}
+------------------------------------------------------------------------
+struct Message {
+    @abi.clientType(<caret>)
+    body: cell
+}
+
+========================================================================
+Struct field nested ABI annotation completion
+========================================================================
+struct Message {
+    @abi.<caret>
+    body: cell
+}
+------------------------------------------------------------------------
+struct Message {
+    @abi.clientType(<caret>)
+    body: cell
+}
+
+========================================================================
+Test fail with annotation completion
+========================================================================
+@test.fail<caret>
+get fun foo() {}
+------------------------------------------------------------------------
+@test.fail_with(<caret>)
 get fun foo() {}

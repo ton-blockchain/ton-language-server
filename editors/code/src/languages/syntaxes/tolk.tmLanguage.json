@@ -84,8 +84,19 @@
             "match": "\\b(global|const|var|val|fun|get|struct|contract)\\b"
         },
         {
-            "name": "entity.name.type",
-            "match": "@\\w+"
+            "begin": "(@)(?=[A-Za-z0-9_])",
+            "beginCaptures": {
+                "1": {
+                    "name": "entity.name.function.decorator"
+                }
+            },
+            "end": "(?![A-Za-z0-9_.])",
+            "patterns": [
+                {
+                    "name": "entity.name.function.decorator",
+                    "match": "[A-Za-z0-9_]+"
+                }
+            ]
         },
         {
             "name": "entity.name.function",
