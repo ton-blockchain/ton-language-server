@@ -5,6 +5,8 @@ import * as path from "node:path"
 
 import * as vscode from "vscode"
 
+import {parseTomlTableHeaderPath} from "@shared/acton-toml"
+
 import {Acton} from "../Acton"
 import {
     BuildCommand,
@@ -38,14 +40,13 @@ export class ActonTomlCodeLensProvider implements vscode.CodeLensProvider {
         const text = document.getText()
         const lines = text.split(/\r?\n/)
 
-        let currentSection: string | null = null
-
         for (const [i, raw_line] of lines.entries()) {
             const line = raw_line.trim()
-            if (line.startsWith("[") && line.endsWith("]")) {
-                currentSection = line.slice(1, -1).trim()
+            const currentSection = parseTomlTableHeaderPath(line)
+            if (currentSection) {
+                const section = currentSection.join(".")
 
-                if (currentSection === "test") {
+                if (section === "test") {
                     const range = new vscode.Range(i, 0, i, line.length)
                     codeLenses.push(
                         new vscode.CodeLens(range, {
@@ -61,7 +62,7 @@ export class ActonTomlCodeLensProvider implements vscode.CodeLensProvider {
                     )
                 }
 
-                if (currentSection === "lint") {
+                if (section === "lint") {
                     const range = new vscode.Range(i, 0, i, line.length)
                     codeLenses.push(
                         new vscode.CodeLens(range, {
@@ -72,7 +73,7 @@ export class ActonTomlCodeLensProvider implements vscode.CodeLensProvider {
                     )
                 }
 
-                if (currentSection === "fmt") {
+                if (section === "fmt") {
                     const range = new vscode.Range(i, 0, i, line.length)
                     codeLenses.push(
                         new vscode.CodeLens(range, {
@@ -83,7 +84,7 @@ export class ActonTomlCodeLensProvider implements vscode.CodeLensProvider {
                     )
                 }
 
-                if (currentSection === "wrappers.tolk") {
+                if (section === "wrappers.tolk") {
                     const range = new vscode.Range(i, 0, i, line.length)
                     codeLenses.push(
                         new vscode.CodeLens(range, {
@@ -94,7 +95,7 @@ export class ActonTomlCodeLensProvider implements vscode.CodeLensProvider {
                     )
                 }
 
-                if (currentSection === "wrappers.typescript") {
+                if (section === "wrappers.typescript") {
                     const range = new vscode.Range(i, 0, i, line.length)
                     codeLenses.push(
                         new vscode.CodeLens(range, {
@@ -105,9 +106,8 @@ export class ActonTomlCodeLensProvider implements vscode.CodeLensProvider {
                     )
                 }
 
-                const contractMatch = /^contracts\.(.+)$/.exec(currentSection)
-                if (contractMatch) {
-                    const contractId = contractMatch[1].trim()
+                if (currentSection.length === 2 && currentSection[0] === "contracts") {
+                    const contractId = currentSection[1]
                     const range = new vscode.Range(i, 0, i, line.length)
                     codeLenses.push(
                         new vscode.CodeLens(range, {

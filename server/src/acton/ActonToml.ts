@@ -6,6 +6,8 @@ import * as fs from "node:fs"
 
 import {URI} from "vscode-uri"
 
+import {parseStringTomlTable, parseTopLevelTomlTableKeys} from "@shared/acton-toml"
+
 export interface WalletInfo {
     readonly name: string
     readonly isLocal: boolean
@@ -34,16 +36,7 @@ export class ActonToml {
         const content = this.readContent(this.uri)
         if (!content) return []
 
-        const contractIds: string[] = []
-        // Match [contracts.ID] where ID does not contain a dot
-        const contractRegex = /^\[contracts\.([^\s.\]]+)]/gm
-        let match: RegExpExecArray | null
-        while ((match = contractRegex.exec(content)) !== null) {
-            const id = match[1]
-            if (id) {
-                contractIds.push(id)
-            }
-        }
+        const contractIds = parseTopLevelTomlTableKeys(content, "contracts")
         ActonToml.contractIdsCache.set(this.uri, contractIds)
         return [...contractIds]
     }
@@ -56,31 +49,12 @@ export class ActonToml {
         if (!content) return new Map()
 
         const mappings: Map<string, string> = new Map()
-        // Simple manual parsing for [import-mappings] table
-        const lines = content.split("\n")
-        let inMappings = false
-        for (const line of lines) {
-            const trimmed = line.trim()
-            if (trimmed === "[import-mappings]") {
-                inMappings = true
-                continue
-            }
-            if (trimmed.startsWith("[") && trimmed !== "[import-mappings]") {
-                inMappings = false
-                continue
-            }
-            if (inMappings && trimmed.includes("=")) {
-                const [rawKey, rawValue] = trimmed.split("=").map(s => s.trim())
-                if (rawKey && rawValue) {
-                    // remove quotes from key and then @ prefix
-                    const cleanKey = rawKey.replace(/^["']|["']$/g, "")
-                    const key = cleanKey.startsWith("@") ? cleanKey.slice(1) : cleanKey
-                    // remove quotes from value
-                    const cleanValue = rawValue.replace(/^["']|["']$/g, "")
-                    mappings.set(key, cleanValue)
-                }
-            }
+        const rawMappings = parseStringTomlTable(content, "import-mappings")
+        for (const [rawKey, value] of rawMappings) {
+            const key = rawKey.startsWith("@") ? rawKey.slice(1) : rawKey
+            mappings.set(key, value)
         }
+
         ActonToml.mappingsCache.set(this.uri, mappings)
         return new Map(mappings)
     }
@@ -116,17 +90,7 @@ export class ActonToml {
     }
 
     private parseWallets(content: string, isLocal: boolean): WalletInfo[] {
-        const wallets: WalletInfo[] = []
-        // Match [wallets.NAME] where NAME does not contain a dot
-        const walletRegex = /^\[wallets\.([^\s.\]]+)]/gm
-        let match: RegExpExecArray | null
-        while ((match = walletRegex.exec(content)) !== null) {
-            const name = match[1]
-            if (name) {
-                wallets.push({name, isLocal})
-            }
-        }
-        return wallets
+        return parseTopLevelTomlTableKeys(content, "wallets").map(name => ({name, isLocal}))
     }
 
     public static discover(startUri: string): ActonToml | undefined {

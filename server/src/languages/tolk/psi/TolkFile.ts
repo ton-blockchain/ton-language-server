@@ -197,14 +197,11 @@ export class TolkFile extends File {
             const mappings = actonToml.getMappings()
             for (const [key, value] of mappings.entries()) {
                 const mappingDir = path.resolve(actonToml.workingDir, value)
-                if (filePath.startsWith(mappingDir)) {
-                    const subPath = filePath
-                        .slice(mappingDir.length)
-                        .replace(/^[/\\]/, "")
-                        .replace(/\\/g, "/")
-                    const withoutExt = trimSuffix(subPath, ".tolk")
-                    return `@${key}/${withoutExt}`
-                }
+                const subPath = this.subPathInDirectory(filePath, mappingDir)
+                if (subPath === null) continue
+
+                const withoutExt = trimSuffix(subPath.replace(/\\/g, "/"), ".tolk")
+                return withoutExt === "" ? `@${key}` : `@${key}/${withoutExt}`
             }
         }
 
@@ -219,6 +216,13 @@ export class TolkFile extends File {
         return withoutExt
     }
 
+    private subPathInDirectory(filePath: string, directoryPath: string): string | null {
+        const relative = path.relative(directoryPath, filePath)
+        if (relative === "") return ""
+        if (relative.startsWith("..") || path.isAbsolute(relative)) return null
+        return relative
+    }
+
     public importedBy(): TolkFile[] {
         return TOLK_CACHE.importedFiles.cached(this.uri, () => this.importedByImpl())
     }
@@ -230,7 +234,10 @@ export class TolkFile extends File {
             const importedFiles = parsedFile.importedFiles()
             if (importedFiles.length === 0) continue // file without imports cannot use this file
 
-            const usesFile = importedFiles.includes(this.path)
+            const currentFileKey = this.importPathKey(this.path)
+            const usesFile = importedFiles.some(
+                importedPath => this.importPathKey(importedPath) === currentFileKey,
+            )
             if (usesFile) {
                 files.push(parsedFile)
             }

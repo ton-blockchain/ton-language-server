@@ -6,14 +6,14 @@ describe("Acton retrace utils", () => {
 [contracts.Counter]
 path = "contracts/counter.tolk"
 
-[contracts.JettonMinter]
+[contracts."Jetton.Minter"] # quoted key with a dot
 path = "contracts/jetton-minter.tolk"
 
-[contracts.JettonMinter.test]
+[contracts."Jetton.Minter".test]
 skip = true
 `
 
-        expect(parseActonContractIds(content)).toEqual(["Counter", "JettonMinter"])
+        expect(parseActonContractIds(content)).toEqual(["Counter", "Jetton.Minter"])
     })
 
     it("normalizes retrace hashes and strips the 0x prefix", () => {

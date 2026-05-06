@@ -3,6 +3,8 @@
 
 import * as vscode from "vscode"
 
+import {parseTomlAssignmentKey, parseTomlTableHeaderPath} from "@shared/acton-toml"
+
 export class ActonTomlHoverProvider implements vscode.HoverProvider {
     public provideHover(
         document: vscode.TextDocument,
@@ -17,25 +19,23 @@ export class ActonTomlHoverProvider implements vscode.HoverProvider {
         const text = document.getText()
         const lines = text.split(/\r?\n/)
 
-        let currentSection: string | null = null
+        let currentSection: string[] | null = null
         for (let i = 0; i <= position.line; i++) {
-            const l = lines[i].trim()
-            if (l.startsWith("[") && l.endsWith("]")) {
-                currentSection = l.slice(1, -1).trim()
+            const section = parseTomlTableHeaderPath(lines[i])
+            if (section) {
+                currentSection = section
             }
         }
 
-        if (currentSection !== "scripts") {
+        if (currentSection?.length !== 1 || currentSection[0] !== "scripts") {
             return null
         }
 
-        const scriptMatch = /^([^\s#=]+)\s*=/.exec(line)
-        if (scriptMatch) {
-            const scriptName = scriptMatch[1]
-            const scriptNameStart = line.indexOf(scriptName)
-            const scriptNameEnd = scriptNameStart + scriptName.length
+        const scriptKey = parseTomlAssignmentKey(line)
+        if (scriptKey) {
+            const scriptName = scriptKey.key
 
-            if (position.character >= scriptNameStart && position.character <= scriptNameEnd) {
+            if (position.character >= scriptKey.start && position.character <= scriptKey.end) {
                 const args = [document.uri.fsPath, scriptName]
                 const commandUri = vscode.Uri.parse(
                     `command:ton.acton.runScript?${encodeURIComponent(JSON.stringify(args))}`,
