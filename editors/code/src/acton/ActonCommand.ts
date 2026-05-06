@@ -203,6 +203,26 @@ export class RunCommand extends ActonCommand {
     }
 }
 
+export class InitCommand extends ActonCommand {
+    public constructor(
+        public createDapp: boolean = false,
+        public createDappPath: string = "",
+    ) {
+        super("init")
+    }
+
+    public override getArguments(): string[] {
+        const args: string[] = []
+        if (this.createDapp) {
+            args.push("--create-dapp")
+            if (this.createDappPath.trim() !== "") {
+                args.push(this.createDappPath)
+            }
+        }
+        return args
+    }
+}
+
 export class RetraceCommand extends ActonCommand {
     public constructor(
         public hash: string,
