@@ -50,3 +50,18 @@ The Acton linter runs `acton check` after Tolk file changes. It can be configure
 
 The extension keeps an Acton test controller registered for projects with `Acton.toml`.
 Tests can be run from the VS Code Testing view or from Acton code lenses.
+
+## Updates
+
+For Acton projects, the extension checks `acton up --color never --check` and offers to run `acton up` when a newer
+Acton version is available.
+
+To check manually, run **Acton: Check for Acton Updates** from the Command Palette.
+
+Automatic update checks can be disabled with:
+
+```json
+{
+    "ton.acton.updateChecks.enabled": false
+}
+```

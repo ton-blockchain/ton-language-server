@@ -9,6 +9,7 @@ import * as path from "node:path"
 import * as vscode from "vscode"
 
 import {Acton} from "./Acton"
+import {UpdateCommand} from "./ActonCommand"
 
 const INSTALLATION_GUIDE_URL = "https://ton-blockchain.github.io/acton/docs/installation"
 const INSTALL_COMMAND =
@@ -18,7 +19,13 @@ const CONFIGURE_ACTION = "Configure Path"
 const DOCS_ACTION = "Open Installation Guide"
 const OPEN_LOG_ACTION = "Open Log"
 const RETRY_ACTION = "Retry"
+const UPDATE_ACTION = "Update now"
+const SKIP_VERSION_ACTION = "Don't show for this version"
+const DISABLE_UPDATE_CHECKS_ACTION = "Never show again"
 const OUTPUT_CHANNEL_NAME = "Acton Installation"
+const CHECK_ACTON_UPDATES_COMMAND = "ton.acton.checkForUpdates"
+const SKIPPED_UPDATE_VERSION_KEY = "acton.updateChecks.skippedVersion"
+const UPDATE_CHECK_TIMEOUT_MS = 10_000
 
 interface InstallerResult {
     readonly exitCode: number | null
@@ -28,9 +35,19 @@ interface InstallerResult {
     readonly error?: Error
 }
 
+interface ActonUpdateInfo {
+    readonly success: boolean
+    readonly current_version: string
+    readonly latest_version: string
+    readonly update_available: boolean
+}
+
 let missingActonPromptShown = false
 let missingActonPromptPending = false
 let installInProgress = false
+let updateCheckStarted = false
+let updateCheckInProgress = false
+let updatePromptPending = false
 let installationOutputChannel: vscode.OutputChannel | undefined
 
 export function registerActonSetupNotifications(context: vscode.ExtensionContext): void {
@@ -38,10 +55,14 @@ export function registerActonSetupNotifications(context: vscode.ExtensionContext
 
     const recheck = (): void => {
         void promptToInstallActonIfNeeded()
+        void checkForActonUpdateIfNeeded(context, false)
     }
 
     context.subscriptions.push(
         installationOutputChannel,
+        vscode.commands.registerCommand(CHECK_ACTON_UPDATES_COMMAND, async () => {
+            await checkForActonUpdateIfNeeded(context, true)
+        }),
         vscode.workspace.onDidOpenTextDocument(document => {
             if (path.basename(document.fileName) === "Acton.toml") {
                 recheck()
@@ -49,17 +70,23 @@ export function registerActonSetupNotifications(context: vscode.ExtensionContext
         }),
         vscode.workspace.onDidChangeWorkspaceFolders(() => {
             missingActonPromptShown = false
+            updateCheckStarted = false
             recheck()
         }),
         vscode.workspace.onDidCreateFiles(event => {
             if (event.files.some(file => path.basename(file.fsPath) === "Acton.toml")) {
                 missingActonPromptShown = false
+                updateCheckStarted = false
                 recheck()
             }
         }),
         vscode.workspace.onDidChangeConfiguration(event => {
-            if (event.affectsConfiguration("ton.acton.path")) {
+            if (
+                event.affectsConfiguration("ton.acton.path") ||
+                event.affectsConfiguration("ton.acton.updateChecks.enabled")
+            ) {
                 missingActonPromptShown = false
+                updateCheckStarted = false
                 recheck()
             }
         }),
@@ -118,6 +145,237 @@ async function promptToInstallActonIfNeeded(): Promise<void> {
         }
     } finally {
         missingActonPromptPending = false
+    }
+}
+
+async function checkForActonUpdateIfNeeded(
+    context: vscode.ExtensionContext,
+    manual: boolean,
+): Promise<void> {
+    if (!manual && updateCheckStarted) {
+        return
+    }
+
+    if (updateCheckInProgress) {
+        if (manual) {
+            void vscode.window.showInformationMessage("Acton update check is already running.")
+        }
+        return
+    }
+
+    if (updatePromptPending) {
+        if (manual) {
+            void vscode.window.showInformationMessage("Acton update prompt is already open.")
+        }
+        return
+    }
+
+    if (installInProgress) {
+        if (manual) {
+            void vscode.window.showInformationMessage("Acton installation is already running.")
+        }
+        return
+    }
+
+    const config = vscode.workspace.getConfiguration("ton")
+    const updateChecksEnabled = config.get<boolean>("acton.updateChecks.enabled", true)
+    if (!manual && !updateChecksEnabled) {
+        return
+    }
+
+    updateCheckInProgress = true
+
+    try {
+        const acton = Acton.getInstance()
+        const projectUri = await acton.findWorkspaceProject()
+        if (!projectUri && !manual) {
+            return
+        }
+        if (!manual) {
+            updateCheckStarted = true
+        }
+
+        const workingDirectory = projectUri
+            ? path.dirname(projectUri.fsPath)
+            : vscode.workspace.workspaceFolders?.[0]?.uri.fsPath
+
+        if (!(await acton.isAvailable(workingDirectory))) {
+            if (manual) {
+                const selection = await vscode.window.showWarningMessage(
+                    "Acton executable is not configured or not found.",
+                    CONFIGURE_ACTION,
+                    DOCS_ACTION,
+                )
+                await handleMissingActonManualAction(selection)
+            }
+            return
+        }
+
+        const updateInfo = manual
+            ? await vscode.window.withProgress(
+                  {
+                      cancellable: false,
+                      location: vscode.ProgressLocation.Notification,
+                      title: "Checking Acton updates",
+                  },
+                  async () => checkActonUpdate(workingDirectory),
+              )
+            : await checkActonUpdate(workingDirectory)
+
+        if (!updateInfo || !updateInfo.success) {
+            if (manual) {
+                void vscode.window.showInformationMessage(
+                    "Acton update information is unavailable.",
+                )
+            }
+            return
+        }
+
+        if (!updateInfo.update_available) {
+            if (manual) {
+                void vscode.window.showInformationMessage(
+                    `Acton is up to date: ${updateInfo.current_version}`,
+                )
+            }
+            return
+        }
+
+        const skippedVersion = context.globalState.get<string>(SKIPPED_UPDATE_VERSION_KEY)
+        if (!manual && skippedVersion === updateInfo.latest_version) {
+            return
+        }
+
+        await showActonUpdatePrompt(context, updateInfo, workingDirectory)
+    } finally {
+        updateCheckInProgress = false
+    }
+}
+
+async function handleMissingActonManualAction(selection: string | undefined): Promise<void> {
+    switch (selection) {
+        case CONFIGURE_ACTION: {
+            await vscode.commands.executeCommand("workbench.action.openSettings", "ton.acton.path")
+            break
+        }
+        case DOCS_ACTION: {
+            await vscode.env.openExternal(vscode.Uri.parse(INSTALLATION_GUIDE_URL))
+            break
+        }
+        case undefined: {
+            break
+        }
+    }
+}
+
+async function checkActonUpdate(
+    workingDirectory: string | undefined,
+): Promise<ActonUpdateInfo | undefined> {
+    const cancellationSource = new vscode.CancellationTokenSource()
+    const timeout = setTimeout(() => {
+        cancellationSource.cancel()
+    }, UPDATE_CHECK_TIMEOUT_MS)
+
+    try {
+        const result = await Acton.getInstance().spawn(
+            new UpdateCommand(true),
+            workingDirectory,
+            undefined,
+            undefined,
+            cancellationSource.token,
+        )
+        if (result.exitCode !== 0) {
+            return undefined
+        }
+
+        return parseActonUpdateInfo(result.stdout)
+    } catch {
+        return undefined
+    } finally {
+        clearTimeout(timeout)
+        cancellationSource.dispose()
+    }
+}
+
+function parseActonUpdateInfo(output: string): ActonUpdateInfo | undefined {
+    const text = output.trim()
+    if (text === "") {
+        return undefined
+    }
+
+    try {
+        return toActonUpdateInfo(JSON.parse(text))
+    } catch {
+        return undefined
+    }
+}
+
+function toActonUpdateInfo(value: unknown): ActonUpdateInfo | undefined {
+    if (!isObject(value) || typeof value.success !== "boolean") {
+        return undefined
+    }
+
+    if (!value.success) {
+        return {success: false, current_version: "", latest_version: "", update_available: false}
+    }
+
+    if (
+        typeof value.current_version !== "string" ||
+        typeof value.latest_version !== "string" ||
+        typeof value.update_available !== "boolean"
+    ) {
+        return undefined
+    }
+
+    return {
+        success: true,
+        current_version: value.current_version,
+        latest_version: value.latest_version,
+        update_available: value.update_available,
+    }
+}
+
+function isObject(value: unknown): value is Record<string, unknown> {
+    return typeof value === "object" && value !== null
+}
+
+async function showActonUpdatePrompt(
+    context: vscode.ExtensionContext,
+    updateInfo: ActonUpdateInfo,
+    workingDirectory: string | undefined,
+): Promise<void> {
+    updatePromptPending = true
+    try {
+        const selection = await vscode.window.showInformationMessage(
+            `A new version of Acton is available: ${updateInfo.latest_version} (current: ${updateInfo.current_version}).`,
+            UPDATE_ACTION,
+            SKIP_VERSION_ACTION,
+            DISABLE_UPDATE_CHECKS_ACTION,
+        )
+
+        switch (selection) {
+            case UPDATE_ACTION: {
+                await Acton.getInstance().execute(new UpdateCommand(), workingDirectory)
+                break
+            }
+            case SKIP_VERSION_ACTION: {
+                await context.globalState.update(
+                    SKIPPED_UPDATE_VERSION_KEY,
+                    updateInfo.latest_version,
+                )
+                break
+            }
+            case DISABLE_UPDATE_CHECKS_ACTION: {
+                await vscode.workspace
+                    .getConfiguration("ton")
+                    .update("acton.updateChecks.enabled", false, vscode.ConfigurationTarget.Global)
+                break
+            }
+            case undefined: {
+                break
+            }
+        }
+    } finally {
+        updatePromptPending = false
     }
 }
 

@@ -21,6 +21,7 @@
         "workspaceContains:Acton.toml",
         "onCommand:ton.acton.debugRetraceTransaction",
         "onCommand:ton.acton.initDapp",
+        "onCommand:ton.acton.checkForUpdates",
         "onCommand:ton.acton.openAssemblyPreview",
         "onCommand:ton.acton.refreshAssemblyPreview",
         "onLanguage:tolk",
@@ -316,6 +317,12 @@
                 "title": "Initialize dApp",
                 "category": "Acton",
                 "icon": "$(rocket)"
+            },
+            {
+                "command": "ton.acton.checkForUpdates",
+                "title": "Check for Updates",
+                "category": "Acton",
+                "icon": "$(cloud-download)"
             },
             {
                 "command": "ton.acton.rerunFailedTestWithBacktrace",
@@ -696,6 +703,11 @@
                         ],
                         "default": "tonscan",
                         "description": "Explorer used for clickable TON addresses in Acton output"
+                    },
+                    "ton.acton.updateChecks.enabled": {
+                        "type": "boolean",
+                        "default": true,
+                        "description": "Check for Acton CLI updates in Acton projects"
                     },
                     "ton.acton.linter.enabled": {
                         "type": "boolean",
