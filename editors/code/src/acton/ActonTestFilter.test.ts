@@ -5,6 +5,7 @@ import {
     ScriptCommand,
     TestCommand,
     TestMode,
+    UpdateCommand,
 } from "./ActonCommand"
 import {createActonTestFilterPattern, escapeRustRegexLiteral} from "./ActonTestFilter"
 
@@ -147,5 +148,13 @@ describe("Acton test filtering", () => {
             "--create-dapp",
             "frontend",
         ])
+    })
+
+    it("builds JSON update check commands without colored output", () => {
+        expect(new UpdateCommand(true).getArguments()).toEqual(["--color", "never", "--check"])
+    })
+
+    it("builds interactive update commands without confirmation flags", () => {
+        expect(new UpdateCommand().getArguments()).toEqual([])
     })
 })
