@@ -219,7 +219,10 @@ export class TolkFile extends File {
     private subPathInDirectory(filePath: string, directoryPath: string): string | null {
         const relative = path.relative(directoryPath, filePath)
         if (relative === "") return ""
-        if (relative.startsWith("..") || path.isAbsolute(relative)) return null
+        if (relative === ".." || relative.startsWith("../") || relative.startsWith("..\\")) {
+            return null
+        }
+        if (path.isAbsolute(relative)) return null
         return relative
     }
 

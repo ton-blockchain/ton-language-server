@@ -73,6 +73,21 @@ describe("TolkFile imports", () => {
 
         expect(targetFile.importPath(sourceFile)).toBe("../tests-extra/wallet")
     })
+
+    it("uses mapped import path for child directories starting with dots", () => {
+        fs.writeFileSync(
+            path.join(projectDir, "Acton.toml"),
+            '[import-mappings]\n"@contracts" = "contracts"\n',
+        )
+
+        const sourceFile = createTolkFile(path.join(projectDir, "src", "main.tolk"), [])
+        const targetFile = createTolkFile(
+            path.join(projectDir, "contracts", "..generated", "wallet.tolk"),
+            [],
+        )
+
+        expect(targetFile.importPath(sourceFile)).toBe("@contracts/..generated/wallet")
+    })
 })
 
 function createTolkFile(filePath: string, importPaths: readonly string[]): TolkFile {
