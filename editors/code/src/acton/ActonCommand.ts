@@ -203,6 +203,20 @@ export class RunCommand extends ActonCommand {
     }
 }
 
+export class UpdateCommand extends ActonCommand {
+    public constructor(public check: boolean = false) {
+        super("up")
+    }
+
+    public override getArguments(): string[] {
+        const args: string[] = []
+        if (this.check) {
+            args.push("--color", "never", "--check")
+        }
+        return args
+    }
+}
+
 export class InitCommand extends ActonCommand {
     public constructor(
         public createDapp: boolean = false,
