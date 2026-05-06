@@ -20,6 +20,7 @@
     "activationEvents": [
         "workspaceContains:Acton.toml",
         "onCommand:ton.acton.debugRetraceTransaction",
+        "onCommand:ton.acton.initDapp",
         "onCommand:ton.acton.openAssemblyPreview",
         "onCommand:ton.acton.refreshAssemblyPreview",
         "onLanguage:tolk",
@@ -311,6 +312,12 @@
                 "icon": "$(debug-start)"
             },
             {
+                "command": "ton.acton.initDapp",
+                "title": "Initialize dApp",
+                "category": "Acton",
+                "icon": "$(rocket)"
+            },
+            {
                 "command": "ton.acton.rerunFailedTestWithBacktrace",
                 "title": "Rerun Failed Test with Full Backtrace",
                 "category": "Acton",
@@ -388,6 +395,11 @@
                     "when": "resourceExtname == '.tolk'",
                     "command": "ton.acton.openAssemblyPreview",
                     "group": "navigation"
+                },
+                {
+                    "when": "resourceFilename == 'Acton.toml'",
+                    "command": "ton.acton.initDapp",
+                    "group": "acton@1"
                 }
             ],
             "editor/context": [

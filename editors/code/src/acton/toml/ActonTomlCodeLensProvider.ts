@@ -10,6 +10,7 @@ import {
     BuildCommand,
     CheckCommand,
     FormatCommand,
+    InitCommand,
     RunCommand,
     TestCommand,
     WrapperCommand,
@@ -149,6 +150,21 @@ export class ActonTomlCodeLensProvider implements vscode.CodeLensProvider {
                 await Acton.getInstance().execute(new FormatCommand(), workingDir)
             }),
             vscode.commands.registerCommand(
+                "ton.acton.initDapp",
+                async (resource?: vscode.Uri | string) => {
+                    const tomlPath = await resolveActonTomlPath(resource)
+                    if (!tomlPath) {
+                        await vscode.window.showWarningMessage(
+                            "Run this action from an Acton.toml context menu.",
+                        )
+                        return
+                    }
+
+                    const workingDir = path.dirname(tomlPath)
+                    await Acton.getInstance().execute(new InitCommand(true), workingDir)
+                },
+            ),
+            vscode.commands.registerCommand(
                 "ton.acton.buildContract",
                 async (tomlPath: string, contractId: string) => {
                     const workingDir = path.dirname(tomlPath)
@@ -190,4 +206,22 @@ function createProjectTestCommand(): TestCommand {
     const command = new TestCommand()
     command.reporter = "console"
     return command
+}
+
+async function resolveActonTomlPath(resource?: vscode.Uri | string): Promise<string | undefined> {
+    if (typeof resource === "string" && path.basename(resource) === "Acton.toml") {
+        return resource
+    }
+
+    if (resource instanceof vscode.Uri && path.basename(resource.fsPath) === "Acton.toml") {
+        return resource.fsPath
+    }
+
+    const activeDocument = vscode.window.activeTextEditor?.document
+    if (activeDocument && path.basename(activeDocument.fileName) === "Acton.toml") {
+        return activeDocument.fileName
+    }
+
+    const workspaceProject = await Acton.getInstance().findWorkspaceProject()
+    return workspaceProject?.fsPath
 }

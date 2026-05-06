@@ -1,4 +1,11 @@
-import {CompileCommand, DisasmCommand, ScriptCommand, TestCommand, TestMode} from "./ActonCommand"
+import {
+    CompileCommand,
+    DisasmCommand,
+    InitCommand,
+    ScriptCommand,
+    TestCommand,
+    TestMode,
+} from "./ActonCommand"
 import {createActonTestFilterPattern, escapeRustRegexLiteral} from "./ActonTestFilter"
 
 describe("Acton test filtering", () => {
@@ -128,6 +135,17 @@ describe("Acton test filtering", () => {
             "/tmp/counter.source-map.json",
             "--allow-no-entrypoint",
             "contracts/counter.tolk",
+        ])
+    })
+
+    it("builds dApp init commands with default scaffold path", () => {
+        expect(new InitCommand(true).getArguments()).toEqual(["--create-dapp"])
+    })
+
+    it("builds dApp init commands with custom scaffold path", () => {
+        expect(new InitCommand(true, "frontend").getArguments()).toEqual([
+            "--create-dapp",
+            "frontend",
         ])
     })
 })
