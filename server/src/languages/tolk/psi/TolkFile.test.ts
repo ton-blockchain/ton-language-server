@@ -47,7 +47,7 @@ describe("TolkFile imports", () => {
             '"@contracts/errors"',
         ])
 
-        expect(file.importedFiles()).toEqual([path.join(projectDir, "contracts", "errors.tolk")])
+        expect(file.importedFiles()).toEqual([path.join(path.dirname(file.path), "errors.tolk")])
     })
 })
 
