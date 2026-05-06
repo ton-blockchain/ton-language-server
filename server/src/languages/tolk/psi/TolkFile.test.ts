@@ -49,6 +49,45 @@ describe("TolkFile imports", () => {
 
         expect(file.importedFiles()).toEqual([path.join(path.dirname(file.path), "errors.tolk")])
     })
+
+    it("uses mapped import path for files inside mapped directory", () => {
+        fs.writeFileSync(
+            path.join(projectDir, "Acton.toml"),
+            '[import-mappings]\n"@tests" = "tests"\n',
+        )
+
+        const sourceFile = createTolkFile(path.join(projectDir, "src", "main.tolk"), [])
+        const targetFile = createTolkFile(path.join(projectDir, "tests", "wallet.tolk"), [])
+
+        expect(targetFile.importPath(sourceFile)).toBe("@tests/wallet")
+    })
+
+    it("does not use mapped import path for sibling directories with the same prefix", () => {
+        fs.writeFileSync(
+            path.join(projectDir, "Acton.toml"),
+            '[import-mappings]\n"@tests" = "tests"\n',
+        )
+
+        const sourceFile = createTolkFile(path.join(projectDir, "src", "main.tolk"), [])
+        const targetFile = createTolkFile(path.join(projectDir, "tests-extra", "wallet.tolk"), [])
+
+        expect(targetFile.importPath(sourceFile)).toBe("../tests-extra/wallet")
+    })
+
+    it("uses mapped import path for child directories starting with dots", () => {
+        fs.writeFileSync(
+            path.join(projectDir, "Acton.toml"),
+            '[import-mappings]\n"@contracts" = "contracts"\n',
+        )
+
+        const sourceFile = createTolkFile(path.join(projectDir, "src", "main.tolk"), [])
+        const targetFile = createTolkFile(
+            path.join(projectDir, "contracts", "..generated", "wallet.tolk"),
+            [],
+        )
+
+        expect(targetFile.importPath(sourceFile)).toBe("@contracts/..generated/wallet")
+    })
 })
 
 function createTolkFile(filePath: string, importPaths: readonly string[]): TolkFile {

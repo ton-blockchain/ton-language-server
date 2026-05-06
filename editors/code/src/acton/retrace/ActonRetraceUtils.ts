@@ -1,19 +1,10 @@
 //  SPDX-License-Identifier: MIT
 //  Copyright © 2026 TON Core
 
+import {parseTopLevelTomlTableKeys} from "@shared/acton-toml"
+
 export function parseActonContractIds(content: string): string[] {
-    const contractIds: string[] = []
-    const contractRegex = /^\[contracts\.([^\s.\]]+)]/gm
-    let match: RegExpExecArray | null
-
-    while ((match = contractRegex.exec(content)) !== null) {
-        const contractId = match[1]
-        if (contractId) {
-            contractIds.push(contractId)
-        }
-    }
-
-    return contractIds
+    return parseTopLevelTomlTableKeys(content, "contracts")
 }
 
 export function normalizeRetraceHash(value: string): string | null {

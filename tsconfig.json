@@ -23,6 +23,6 @@
             "@shared/*": ["shared/src/*"]
         }
     },
-    "include": ["server/src/**/*", "editors/code/src/**/*"],
+    "include": ["server/src/**/*", "editors/code/src/**/*", "shared/src/**/*"],
     "exclude": ["node_modules", ".vscode-test", "server/src/e2e/**/*"]
 }
