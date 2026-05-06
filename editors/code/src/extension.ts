@@ -67,6 +67,7 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     registerSaveBocDecompiledCommand(context)
     registerActonSetupNotifications(context)
     registerActonTerminalLinks(context)
+    registerActonFormatter(context)
 
     const walletWebviewProvider = new WalletWebviewProvider(context.extensionUri)
     walletWebviewProvider.registerCommands(context)
@@ -141,6 +142,29 @@ export async function activate(context: vscode.ExtensionContext): Promise<void> 
     context.subscriptions.push(bocWatcher)
 }
 
+function registerActonFormatter(context: vscode.ExtensionContext): void {
+    const selector: vscode.DocumentSelector = [
+        {scheme: "file", language: "tolk"},
+        {scheme: "untitled", language: "tolk"},
+    ]
+
+    context.subscriptions.push(
+        vscode.languages.registerDocumentFormattingEditProvider(selector, {
+            async provideDocumentFormattingEdits(document: vscode.TextDocument) {
+                return (await formatTolkDocumentWithActon(document)) ?? []
+            },
+        }),
+        vscode.languages.registerDocumentRangeFormattingEditProvider(selector, {
+            async provideDocumentRangeFormattingEdits(
+                document: vscode.TextDocument,
+                range: vscode.Range,
+            ) {
+                return (await formatTolkDocumentWithActon(document, range)) ?? []
+            },
+        }),
+    )
+}
+
 export function deactivate(): Thenable<void> | undefined {
     if (!client) {
         return undefined
@@ -167,32 +191,6 @@ async function startServer(context: vscode.ExtensionContext): Promise<vscode.Dis
                 vscode.workspace.createFileSystemWatcher("**/*.{tolk,fc,func,tlb}"),
                 vscode.workspace.createFileSystemWatcher("**/Acton.toml"),
             ],
-        },
-        middleware: {
-            provideDocumentFormattingEdits: async (document, options, token, next) => {
-                if (document.languageId !== "tolk") {
-                    return next(document, options, token)
-                }
-
-                const actonEdits = await formatTolkDocumentWithActon(document)
-                if (actonEdits !== null) {
-                    return actonEdits
-                }
-
-                return next(document, options, token)
-            },
-            provideDocumentRangeFormattingEdits: async (document, range, options, token, next) => {
-                if (document.languageId !== "tolk") {
-                    return next(document, range, options, token)
-                }
-
-                const actonEdits = await formatTolkDocumentWithActon(document, range)
-                if (actonEdits !== null) {
-                    return actonEdits
-                }
-
-                return next(document, range, options, token)
-            },
         },
         initializationOptions: {
             clientConfig: getClientConfiguration(),
