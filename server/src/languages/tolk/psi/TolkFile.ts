@@ -119,6 +119,14 @@ export class TolkFile extends File {
             .map(node => node.childForFieldName("path"))
             .filter(node => node !== null)
 
+        const resolvedPath = this.resolvedImportPath(filepath)
+        if (resolvedPath) {
+            return imports.some(imp => {
+                const importPath = this.resolvedImportPath(imp.text.slice(1, -1))
+                return importPath === resolvedPath
+            })
+        }
+
         // for `./foo.tolk` it is `foo.tolk`
         const normalizedPath = this.normalizeImportPath(filepath)
 
@@ -126,6 +134,11 @@ export class TolkFile extends File {
             const importPath = this.normalizeImportPath(imp.text.slice(1, -1))
             return importPath === normalizedPath
         })
+    }
+
+    private resolvedImportPath(importPath: string): string | null {
+        const resolved = ImportResolver.resolveImport(this, importPath)
+        return resolved ? path.normalize(resolved) : null
     }
 
     public imports(): SyntaxNode[] {
@@ -142,9 +155,10 @@ export class TolkFile extends File {
         const imports = this.imports()
             .map(node => node.childForFieldName("path"))
             .filter(node => node !== null)
-        return imports
+        const importedFiles = imports
             .map(it => ImportResolver.resolveImport(this, it.text.slice(1, -1)))
             .filter(it => it !== null)
+        return [...new Set(importedFiles)]
     }
 
     public importPath(inFile: TolkFile): string {

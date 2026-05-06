@@ -44,6 +44,26 @@ fun foo() {
 }
 
 ========================================================================
+No auto import from mapped file if same file already imported by local path
+========================================================================
+import "contracts/errors";
+
+fun foo() {
+    someGlobalFunction<caret>;
+}
+---FILE:Acton.toml
+[import-mappings]
+"@contracts" = "contracts"
+---FILE:contracts/errors.tolk
+fun someGlobalFunction() {}
+------------------------------------------------------------------------
+import "contracts/errors";
+
+fun foo() {
+    someGlobalFunction()<caret>;
+}
+
+========================================================================
 No auto import from other file on completion if symbol from stdlib
 ========================================================================
 fun foo() {
