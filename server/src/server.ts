@@ -758,6 +758,10 @@ connection.onInitialize(async (initParams: lsp.InitializeParams): Promise<lsp.In
     connection.onDidChangeConfiguration(async () => {
         clearDocumentSettings()
 
+        if (!initializationFinished) {
+            return
+        }
+
         if (workspaceFolders && workspaceFolders.length > 0) {
             const rootUri = workspaceFolders[0].uri
             const rootDir = fileURLToPath(rootUri)

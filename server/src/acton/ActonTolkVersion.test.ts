@@ -15,9 +15,10 @@ import {parseActonDoctorTolkVersion, resolveDisplayedTolkVersion} from "./ActonT
 
 describe("Acton Tolk version resolution", () => {
     const tempDirs: string[] = []
+    const mockedSpawnSync = cp.spawnSync as jest.MockedFunction<typeof cp.spawnSync>
 
     afterEach(() => {
-        jest.restoreAllMocks()
+        mockedSpawnSync.mockReset()
 
         for (const dir of tempDirs.splice(0)) {
             fs.rmSync(dir, {recursive: true, force: true})
@@ -50,7 +51,6 @@ tolk.version:     <n/a>
         tempDirs.push(projectDir)
         fs.writeFileSync(path.join(projectDir, "Acton.toml"), "")
 
-        const mockedSpawnSync = cp.spawnSync as jest.MockedFunction<typeof cp.spawnSync>
         mockedSpawnSync.mockReturnValue({
             pid: 1,
             output: [null, "tolk.load_ok: true\ntolk.version: 1.3.0\n", ""],
@@ -74,6 +74,16 @@ tolk.version:     <n/a>
             commit: "",
             source: "acton",
         })
+        expect(mockedSpawnSync).toHaveBeenCalledTimes(1)
+        const [file, args, options] = mockedSpawnSync.mock.calls[0] as [
+            string,
+            string[],
+            cp.SpawnSyncOptionsWithStringEncoding,
+        ]
+        expect(file).toBe("acton")
+        expect(args).toEqual(["doctor", "--manifest-path", path.join(projectDir, "Acton.toml")])
+        expect(options.cwd).toBe(projectDir)
+        expect(options.env?.ACTON_DOCTOR_API_TARGETS_JSON).toBe("[]")
     })
 
     it("falls back to the configured toolchain version outside Acton projects", () => {
@@ -94,5 +104,6 @@ tolk.version:     <n/a>
             commit: "deadbeef",
             source: "toolchain",
         })
+        expect(mockedSpawnSync).not.toHaveBeenCalled()
     })
 })

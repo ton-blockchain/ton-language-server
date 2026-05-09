@@ -54,16 +54,18 @@ function resolveActonProjectTolkVersion(
         return null
     }
 
-    const resolvedActonPath = actonPath.trim() === "" ? "acton" : actonPath
+    const resolvedActonPath = actonPath.trim() === "" ? "acton" : actonPath.trim()
 
     try {
         const result = cp.spawnSync(
             resolvedActonPath,
             ["doctor", "--manifest-path", manifestPath],
             {
+                cwd: projectRoot,
                 encoding: "utf8",
                 env: {
                     ...process.env,
+                    ACTON_DOCTOR_API_TARGETS_JSON: "[]",
                     ACTON_LOG_DIR: process.env.ACTON_LOG_DIR ?? os.tmpdir(),
                 },
                 maxBuffer: 10 * 1024 * 1024,
