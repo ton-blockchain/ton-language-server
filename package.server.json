@@ -1,6 +1,6 @@
 {
     "name": "ton-language-server",
-    "version": "0.6.0",
+    "version": "1.0.0",
     "description": "Language Server for the TON Blockchain",
     "main": "server.js",
     "keywords": [

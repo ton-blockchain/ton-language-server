@@ -2,6 +2,86 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.0.0] - 11.05.2026
+
+v1.0.0 collects the work since v0.6.0 and makes Acton the main TON development workflow in VS Code.
+
+The headline change is that Acton is no longer just an external command you run next to the editor. It is now integrated
+through the project lifecycle: the extension detects and updates the Acton toolchain, understands Acton.toml, offers
+code lenses and context actions for builds, checks, formatting, tests and wrapper generation, runs and reruns tests
+through the VS Code Testing view, debugs tests, scripts and real-chain retraces, opens Acton-powered assembly views
+with source mappings, initializes dApps from Acton.toml, and turns terminal output into clickable TON links.
+
+This release also brings Tolk support forward for the Acton era: void-type parameters from Tolk 1.4, richer annotations,
+mapping-aware imports, computed enum value hints, faster analysis, cleaner completion in Acton projects and formatting
+through `acton fmt`. The old Sandbox UI has been removed in favor of the Acton workflow, and CI now runs the e2e suite
+to keep the extension behavior covered.
+
+### Acton
+
+- feat(acton): support void-type parameters from Tolk 1.4 in https://github.com/ton-blockchain/ton-language-server/pull/285
+- feat(acton): support latest changes in Acton.toml in https://github.com/ton-blockchain/ton-language-server/pull/286
+- feat(acton): better test fail message in https://github.com/ton-blockchain/ton-language-server/pull/287
+- feat(acton): support debug for tests and scripts in https://github.com/ton-blockchain/ton-language-server/pull/288
+- feat(acton): use tonscan in https://github.com/ton-blockchain/ton-language-server/pull/290
+- feat(acton): show Tolk version from Acton in https://github.com/ton-blockchain/ton-language-server/pull/291
+- feat(acton): add action to retrace and debug transaction from real blockchain in https://github.com/ton-blockchain/ton-language-server/pull/292
+- feat(acton): add code lenses for `[fmt]`, `[check]` and add one more for `[test]` to run tests with UI in https://github.com/ton-blockchain/ton-language-server/pull/293
+- feat(acton): better linter support in https://github.com/ton-blockchain/ton-language-server/pull/297
+- feat(acton): support `scripts.wallet()` completion in https://github.com/ton-blockchain/ton-language-server/pull/300
+- feat(acton): save files on quick fix application in https://github.com/ton-blockchain/ton-language-server/pull/303
+- feat(acton): add auto installation in https://github.com/ton-blockchain/ton-language-server/pull/307
+- feat(acton): add code lenses for Tolk and TypeScript wrappers in Acton.toml in https://github.com/ton-blockchain/ton-language-server/pull/309
+- feat(acton): don't mention localnet yet in https://github.com/ton-blockchain/ton-language-server/pull/310
+- feat(acton): support range formatting in https://github.com/ton-blockchain/ton-language-server/pull/311
+- feat(acton): use `acton disasm` instead ton-assembly library in https://github.com/ton-blockchain/ton-language-server/pull/314
+- feat(acton): make addresses in terminal clickable and add setting for explorer in https://github.com/ton-blockchain/ton-language-server/pull/327
+- feat(acton): rerun failed tests in https://github.com/ton-blockchain/ton-language-server/pull/328
+- feat(acton): enrich VS Code test runner integration in https://github.com/ton-blockchain/ton-language-server/pull/329
+- feat(acton): make `--backtrace full` clickable for scripts in https://github.com/ton-blockchain/ton-language-server/pull/330
+- feat(acton): add disassembly view with mapping from Tolk to assembly and vice versa in https://github.com/ton-blockchain/ton-language-server/pull/331
+- feat(acton): add context action for Acton.toml to initialize dApp in https://github.com/ton-blockchain/ton-language-server/pull/332
+- feat(acton): check for new version in https://github.com/ton-blockchain/ton-language-server/pull/333
+- feat(acton): better Acton.toml parsing in https://github.com/ton-blockchain/ton-language-server/pull/337
+- fix(acton): fix long initialization in https://github.com/ton-blockchain/ton-language-server/pull/338
+
+### Tolk
+
+- feat(tolk): remove call argument inspection since we are using acton check for linting in https://github.com/ton-blockchain/ton-language-server/pull/289
+- feat(tolk): don't show symbols with `__` prefix in completion in https://github.com/ton-blockchain/ton-language-server/pull/294
+- feat(tolk): don't show `.acton` symbols in `contract/` in https://github.com/ton-blockchain/ton-language-server/pull/295
+- feat(tolk): don't show `.acton` imports in `contract/` import completion in https://github.com/ton-blockchain/ton-language-server/pull/296
+- feat(tolk): don't add parameters hints for obvious functions in https://github.com/ton-blockchain/ton-language-server/pull/304
+- feat(tolk): support dotted annotations, annotations for structs and annotations with types in https://github.com/ton-blockchain/ton-language-server/pull/305
+- feat(tolk): add code lenses for building and generating Tolk and TypeScript wrappers in https://github.com/ton-blockchain/ton-language-server/pull/306
+- feat(tolk): add intention to generate 32-bit opcode for structs in https://github.com/ton-blockchain/ton-language-server/pull/308
+- feat(tolk): remove `symbolsNamespace` field support from contract header in https://github.com/ton-blockchain/ton-language-server/pull/312
+- feat(tolk): faster analysis in https://github.com/ton-blockchain/ton-language-server/pull/317
+- feat(tolk): add computed enum value inlay hint in https://github.com/ton-blockchain/ton-language-server/pull/320
+- feat(tolk): don't add autocompletion for declaration names in https://github.com/ton-blockchain/ton-language-server/pull/321
+- feat(tolk): better support for annotations in https://github.com/ton-blockchain/ton-language-server/pull/334
+- fix(tolk): fix completion tests and add more in https://github.com/ton-blockchain/ton-language-server/pull/313
+- fix(tolk): fix completion in incomplete assert in https://github.com/ton-blockchain/ton-language-server/pull/316
+- fix(tolk): fix formatting with Acton in https://github.com/ton-blockchain/ton-language-server/pull/335
+- fix(tolk): fix auto import with mappings in https://github.com/ton-blockchain/ton-language-server/pull/336
+
+### Other
+
+- feat(all): better support for external changes in https://github.com/ton-blockchain/ton-language-server/pull/315
+- feat(all): enable production mode in https://github.com/ton-blockchain/ton-language-server/pull/324
+- feat(all): add various additional files in https://github.com/ton-blockchain/ton-language-server/pull/326
+- feat(ci): run e2e tests on CI in https://github.com/ton-blockchain/ton-language-server/pull/319
+- fix(server): normalize URI file in https://github.com/ton-blockchain/ton-language-server/pull/302
+- fix(all): fix e2e tests in https://github.com/ton-blockchain/ton-language-server/pull/318
+- fix(tests): fix e2e flake and remove tolkfmt completely in https://github.com/ton-blockchain/ton-language-server/pull/323
+- fix(ci): permission `Zizmor` to upload `SARIF` report in https://github.com/ton-blockchain/ton-language-server/pull/301
+- chore(all): update dependencies with vulnerabilities in https://github.com/ton-blockchain/ton-language-server/pull/284
+- chore(all): update security for the project in https://github.com/ton-blockchain/ton-language-server/pull/298
+- chore(all): remove Sandbox UI, use Acton in https://github.com/ton-blockchain/ton-language-server/pull/322
+- chore(all): cleanup in https://github.com/ton-blockchain/ton-language-server/pull/325
+- chore(all): update dependencies with vulnerabilities in https://github.com/ton-blockchain/ton-language-server/pull/340
+- chore(ci): add `Zizmor` check in https://github.com/ton-blockchain/ton-language-server/pull/299
+
 ## [0.6.0] - 26.03.2026
 
 ### Tolk
