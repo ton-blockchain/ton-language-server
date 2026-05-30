@@ -37,9 +37,6 @@ jobs:
           node-version: 22.x
           cache: "yarn"
 
-      - name: Install dependencies
-        run: yarn install --immutable --check-cache --check-resolutions
-
       - name: Check project packages for deprecated
         run: yarn npm audit --all --severity moderate
 
