@@ -69,6 +69,73 @@ describe("Tolk TextMate grammar", () => {
         }
     })
 
+    it("scopes builtin and stdlib type names used by the compiler", () => {
+        const grammar = readTolkGrammar()
+        const typePatterns = grammar.patterns.filter(pattern => pattern.name === "storage.type")
+        const typeRegexes = typePatterns.map(pattern => new RegExp(pattern.match ?? "", "u"))
+
+        for (const typeName of [
+            "int",
+            "bool",
+            "cell",
+            "slice",
+            "builder",
+            "continuation",
+            "string",
+            "address",
+            "any_address",
+            "coins",
+            "never",
+            "void",
+            "unknown",
+            "array",
+            "map",
+            "dict",
+            "tuple",
+            "Cell",
+            "int257",
+            "uint256",
+            "bits1023",
+            "bytes1023",
+            "varint16",
+            "varint32",
+            "varuint16",
+            "varuint32",
+        ]) {
+            expect(typeRegexes.some(regex => regex.exec(typeName)?.[0] === typeName)).toBe(true)
+        }
+
+        expect(typeRegexes.some(regex => regex.exec("varint8")?.[0] === "varint8")).toBe(false)
+        expect(typeRegexes.some(regex => regex.exec("varuint64")?.[0] === "varuint64")).toBe(false)
+    })
+
+    it("does not scope identifiers after dots as types", () => {
+        const grammar = readTolkGrammar()
+        const storageTypeRegexes = grammar.patterns
+            .filter(pattern => pattern.name === "storage.type")
+            .map(pattern => new RegExp(pattern.match ?? "", "u"))
+        const typeParameterPattern = grammar.patterns.find(
+            pattern => pattern.name === "entity.name.type.parameter",
+        )
+        const nominalTypePattern = grammar.patterns.find(
+            pattern => pattern.name === "entity.name.type",
+        )
+        const typeParameterRegex = new RegExp(typeParameterPattern?.match ?? "", "u")
+        const nominalTypeRegex = new RegExp(nominalTypePattern?.match ?? "", "u")
+
+        expect(storageTypeRegexes.some(regex => regex.exec(".int")?.[0] === "int")).toBe(false)
+        expect(storageTypeRegexes.some(regex => regex.exec(".address")?.[0] === "address")).toBe(
+            false,
+        )
+        expect(storageTypeRegexes.some(regex => regex.exec(".Cell")?.[0] === "Cell")).toBe(false)
+        expect(typeParameterRegex.exec(".T")).toBeNull()
+        expect(nominalTypeRegex.exec(".SendResultList")).toBeNull()
+
+        expect(storageTypeRegexes.some(regex => regex.exec("int")?.[0] === "int")).toBe(true)
+        expect(typeParameterRegex.exec("T")?.[0]).toBe("T")
+        expect(nominalTypeRegex.exec("SendResultList")?.[0]).toBe("SendResultList")
+    })
+
     it("scopes dotted annotation names without scoping dots", () => {
         const grammar = readTolkGrammar()
         const annotationPattern = grammar.patterns.find(pattern => pattern.begin?.startsWith("(@)"))
