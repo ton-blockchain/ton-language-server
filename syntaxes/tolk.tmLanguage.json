@@ -1,6 +1,6 @@
 {
     "$schema": "https://raw.githubusercontent.com/martinring/tmlanguage/master/tmlanguage.json",
-    "name": "tolk",
+    "name": "Tolk",
     "scopeName": "source.tolk",
     "foldingStartMarker": "\\{\\s*$",
     "foldingStopMarker": "^\\s*\\}",
@@ -33,13 +33,13 @@
             "patterns": [
                 {
                     "name": "constant.character.escape.tolk",
-                    "match": "\\\\([nrt0\\\\'\"u]|u[0-9a-fA-F]{4})"
+                    "match": "\\\\([nrt\\\\'\"])"
                 }
             ]
         },
         {
             "name": "constant.numeric",
-            "match": "\\b(-?(0x[0-9a-fA-F](?:_?[0-9a-fA-F])*|0b[01](?:_?[01])*|[0-9](?:_?[0-9])*))\\b"
+            "match": "\\b(-?(0x[0-9a-fA-F_]*|0b[01_]*|[0-9][0-9_]*))\\b"
         },
         {
             "name": "keyword.control",
@@ -51,7 +51,7 @@
         },
         {
             "name": "keyword.other",
-            "match": "\\b(import|export|namespace|true|false|null|redef|mutate|tolk|as|is|!is|private|readonly|contract)\\b"
+            "match": "\\b(import|export|namespace|true|false|null|mutate|tolk|as|is|private|readonly|contract)\\b"
         },
         {
             "name": "keyword.other",
@@ -100,7 +100,7 @@
         },
         {
             "name": "entity.name.function",
-            "match": "(`[^`]+`|[a-zA-Z$_][a-zA-Z0-9$_]*)(?=\\s*(?:<[^>]+>)?\\s*\\()"
+            "match": "(?<!\\.)(`[^`]+`|[a-zA-Z$_][a-zA-Z0-9$_]*)(?=\\s*(?:<[^()\\n]*>)?\\s*\\()"
         },
         {
             "name": "entity.name.type",

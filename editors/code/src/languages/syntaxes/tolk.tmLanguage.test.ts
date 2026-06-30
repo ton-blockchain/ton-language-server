@@ -4,6 +4,7 @@ import * as path from "node:path"
 interface GrammarPattern {
     readonly name?: string
     readonly match?: string
+    readonly captures?: Record<string, GrammarPattern>
     readonly begin?: string
     readonly beginCaptures?: Record<string, GrammarPattern>
     readonly end?: string
@@ -15,7 +16,7 @@ interface TolkGrammar {
 }
 
 describe("Tolk TextMate grammar", () => {
-    it("scopes integer literals with separators", () => {
+    it("scopes integer literals with compiler-compatible separators", () => {
         const grammar = readTolkGrammar()
         const numericPattern = grammar.patterns.find(pattern => pattern.name === "constant.numeric")
         const numericRegex = new RegExp(numericPattern?.match ?? "", "u")
@@ -23,10 +24,49 @@ describe("Tolk TextMate grammar", () => {
         expect(numericRegex.exec("100_000")?.[0]).toBe("100_000")
         expect(numericRegex.exec("0xFF_FF")?.[0]).toBe("0xFF_FF")
         expect(numericRegex.exec("0b1010_0011")?.[0]).toBe("0b1010_0011")
+        expect(numericRegex.exec("123_")?.[0]).toBe("123_")
+        expect(numericRegex.exec("0b0_____1")?.[0]).toBe("0b0_____1")
+        expect(numericRegex.exec("0b_0____1")?.[0]).toBe("0b_0____1")
+        expect(numericRegex.exec("0x")?.[0]).toBe("0x")
+        expect(numericRegex.exec("0b")?.[0]).toBe("0b")
+        expect(numericRegex.exec("0x_FF")?.[0]).toBe("0x_FF")
+        expect(numericRegex.exec("0b_")?.[0]).toBe("0b_")
 
-        expect(numericRegex.exec("100_")).toBeNull()
-        expect(numericRegex.exec("0x_FF")).toBeNull()
-        expect(numericRegex.exec("0b_1010")).toBeNull()
+        expect(numericRegex.exec("_100")).toBeNull()
+    })
+
+    it("scopes only ordinary string escapes accepted by the compiler", () => {
+        const grammar = readTolkGrammar()
+        const stringPattern = grammar.patterns.find(
+            pattern => pattern.name === "string.quoted.double.tolk",
+        )
+        const escapePattern = stringPattern?.patterns?.find(
+            pattern => pattern.name === "constant.character.escape.tolk",
+        )
+        const escapeRegex = new RegExp(escapePattern?.match ?? "", "u")
+
+        for (const validEscape of ["\\n", "\\r", "\\t", "\\\\", "\\'", '\\"']) {
+            expect(escapeRegex.exec(validEscape)?.[0]).toBe(validEscape)
+        }
+
+        expect(escapeRegex.exec("\\0")).toBeNull()
+        expect(escapeRegex.exec("\\u")).toBeNull()
+        expect(escapeRegex.exec("\\u1234")).toBeNull()
+    })
+
+    it("keeps triple-quoted string escapes broad for asm strings", () => {
+        const grammar = readTolkGrammar()
+        const stringPattern = grammar.patterns.find(
+            pattern => pattern.name === "string.quoted.triple.tolk",
+        )
+        const escapePattern = stringPattern?.patterns?.find(
+            pattern => pattern.name === "constant.character.escape.tolk",
+        )
+        const escapeRegex = new RegExp(escapePattern?.match ?? "", "u")
+
+        for (const escape of ["\\n", "\\0", "\\u", "\\u1234", "\\x"]) {
+            expect(escapeRegex.exec(escape)?.[0]).toBe(escape.slice(0, 2))
+        }
     })
 
     it("scopes dotted annotation names without scoping dots", () => {
