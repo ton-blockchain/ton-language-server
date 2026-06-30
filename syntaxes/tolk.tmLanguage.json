@@ -106,12 +106,15 @@
             }
         },
         {
-            "name": "entity.name.type",
-            "match": "(?<!\\.)\\b[A-Z][a-zA-Z0-9]*\\b"
+            "match": "(\\.)(`[^`]+`|[a-zA-Z$_][a-zA-Z0-9$_]*)",
+            "captures": {
+                "1": {"name": "keyword.operator.accessor"},
+                "2": {"name": "variable.other.property"}
+            }
         },
         {
-            "name": "variable.name",
-            "match": "`[^`]+`|[a-zA-Z$_][a-zA-Z0-9$_]*"
+            "name": "entity.name.type",
+            "match": "(?<!\\.)\\b[A-Z][a-zA-Z0-9]*\\b"
         }
     ],
     "repository": {}

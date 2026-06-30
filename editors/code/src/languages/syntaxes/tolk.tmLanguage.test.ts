@@ -157,6 +157,38 @@ describe("Tolk TextMate grammar", () => {
         expect(scopedFunctionName(".bar<A>")).toBeNull()
     })
 
+    it("scopes dotted property accesses after method calls", () => {
+        const grammar = readTolkGrammar()
+        const functionPatternIndex = grammar.patterns.findIndex(
+            pattern => pattern.captures?.["2"]?.name === "entity.name.function",
+        )
+        const propertyPatternIndex = grammar.patterns.findIndex(
+            pattern => pattern.captures?.["2"]?.name === "variable.other.property",
+        )
+        const propertyPattern = grammar.patterns[propertyPatternIndex]
+        const propertyRegex = new RegExp(propertyPattern.match ?? "", "u")
+        const scopedPropertyName = (source: string): string | null =>
+            propertyRegex.exec(source)?.[2] ?? null
+
+        expect(functionPatternIndex).toBeGreaterThanOrEqual(0)
+        expect(propertyPatternIndex).toBeGreaterThan(functionPatternIndex)
+        expect(propertyPattern.captures?.["1"]?.name).toBe("keyword.operator.accessor")
+        expect(scopedPropertyName("deployer.address")).toBe("address")
+        expect(scopedPropertyName("start.context_idx")).toBe("context_idx")
+        expect(scopedPropertyName("foo.`strange-field`")).toBe("`strange-field`")
+
+        expect(firstMatchedScope(grammar, ".bar()")).toBe("entity.name.function")
+        expect(firstMatchedScope(grammar, ".bar<A>()")).toBe("entity.name.function")
+        expect(firstMatchedScope(grammar, ".bar")).toBe("variable.other.property")
+        expect(firstMatchedScope(grammar, ".bar<A>")).toBe("variable.other.property")
+    })
+
+    it("does not scope every identifier as a variable", () => {
+        const grammar = readTolkGrammar()
+
+        expect(grammar.patterns.some(pattern => pattern.name === "variable.name")).toBe(false)
+    })
+
     it("scopes dotted annotation names without scoping dots", () => {
         const grammar = readTolkGrammar()
         const annotationPattern = grammar.patterns.find(pattern => pattern.begin?.startsWith("(@)"))
@@ -178,4 +210,27 @@ describe("Tolk TextMate grammar", () => {
 function readTolkGrammar(): TolkGrammar {
     const grammarPath = path.join(process.cwd(), "syntaxes/tolk.tmLanguage.json")
     return JSON.parse(readFileSync(grammarPath, "utf8")) as TolkGrammar
+}
+
+function firstMatchedScope(grammar: TolkGrammar, source: string): string | undefined {
+    return grammar.patterns
+        .map((pattern, index) => {
+            const scope = pattern.captures?.["2"]?.name
+            if (
+                pattern.match === undefined ||
+                (scope !== "entity.name.function" && scope !== "variable.other.property")
+            ) {
+                return undefined
+            }
+
+            const match = new RegExp(pattern.match, "u").exec(source)
+            if (match === null) {
+                return undefined
+            }
+
+            return {index, match, pattern}
+        })
+        .filter(result => result !== undefined)
+        .sort((left, right) => left.match.index - right.match.index || left.index - right.index)[0]
+        ?.pattern.captures?.["2"]?.name
 }
