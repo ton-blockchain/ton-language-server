@@ -99,8 +99,11 @@
             ]
         },
         {
-            "name": "entity.name.function",
-            "match": "(?<!\\.)(`[^`]+`|[a-zA-Z$_][a-zA-Z0-9$_]*)(?=\\s*(?:<[^()\\n]*>)?\\s*\\()"
+            "match": "(\\.)?(`[^`]+`|[a-zA-Z$_][a-zA-Z0-9$_]*)(?=\\s*(?:<[^()\\n]*>)?\\s*\\()",
+            "captures": {
+                "1": {"name": "keyword.operator.accessor"},
+                "2": {"name": "entity.name.function"}
+            }
         },
         {
             "name": "entity.name.type",

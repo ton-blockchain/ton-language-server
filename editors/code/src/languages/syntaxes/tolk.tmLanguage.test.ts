@@ -136,6 +136,27 @@ describe("Tolk TextMate grammar", () => {
         expect(nominalTypeRegex.exec("SendResultList")?.[0]).toBe("SendResultList")
     })
 
+    it("scopes chained method calls as functions", () => {
+        const grammar = readTolkGrammar()
+        const functionPattern = grammar.patterns.find(
+            pattern => pattern.captures?.["2"]?.name === "entity.name.function",
+        )
+        const functionRegex = new RegExp(functionPattern?.match ?? "", "u")
+        const scopedFunctionName = (source: string): string | null =>
+            functionRegex.exec(source)?.[2] ?? null
+
+        expect(functionPattern?.captures?.["1"]?.name).toBe("keyword.operator.accessor")
+        expect(scopedFunctionName(".toHaveSuccessfulTx<ProcessGovernanceDecision>(")).toBe(
+            "toHaveSuccessfulTx",
+        )
+        expect(scopedFunctionName(".bar()")).toBe("bar")
+        expect(scopedFunctionName(".bar<A>()")).toBe("bar")
+        expect(scopedFunctionName("bar()")).toBe("bar")
+
+        expect(scopedFunctionName(".bar")).toBeNull()
+        expect(scopedFunctionName(".bar<A>")).toBeNull()
+    })
+
     it("scopes dotted annotation names without scoping dots", () => {
         const grammar = readTolkGrammar()
         const annotationPattern = grammar.patterns.find(pattern => pattern.begin?.startsWith("(@)"))
