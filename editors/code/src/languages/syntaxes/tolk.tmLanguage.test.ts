@@ -15,6 +15,20 @@ interface TolkGrammar {
 }
 
 describe("Tolk TextMate grammar", () => {
+    it("scopes integer literals with separators", () => {
+        const grammar = readTolkGrammar()
+        const numericPattern = grammar.patterns.find(pattern => pattern.name === "constant.numeric")
+        const numericRegex = new RegExp(numericPattern?.match ?? "", "u")
+
+        expect(numericRegex.exec("100_000")?.[0]).toBe("100_000")
+        expect(numericRegex.exec("0xFF_FF")?.[0]).toBe("0xFF_FF")
+        expect(numericRegex.exec("0b1010_0011")?.[0]).toBe("0b1010_0011")
+
+        expect(numericRegex.exec("100_")).toBeNull()
+        expect(numericRegex.exec("0x_FF")).toBeNull()
+        expect(numericRegex.exec("0b_1010")).toBeNull()
+    })
+
     it("scopes dotted annotation names without scoping dots", () => {
         const grammar = readTolkGrammar()
         const annotationPattern = grammar.patterns.find(pattern => pattern.begin?.startsWith("(@)"))

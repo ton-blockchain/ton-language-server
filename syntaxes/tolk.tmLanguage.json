@@ -39,11 +39,11 @@
         },
         {
             "name": "constant.numeric",
-            "match": "\\b(-?([\\d]+|0x[\\da-fA-F]+|0b[01]+))\\b"
+            "match": "\\b(-?(0x[0-9a-fA-F](?:_?[0-9a-fA-F])*|0b[01](?:_?[01])*|[0-9](?:_?[0-9])*))\\b"
         },
         {
             "name": "keyword.control",
-            "match": "\\b(do|if|try|else|while|break|throw|catch|return|assert|repeat|continue|asm|builtin|match|lazy)\\b"
+            "match": "\\b(do|if|try|else|while|for|break|throw|catch|return|assert|repeat|continue|asm|builtin|match|lazy)\\b"
         },
         {
             "name": "keyword.operator",
@@ -51,7 +51,7 @@
         },
         {
             "name": "keyword.other",
-            "match": "\\b(import|export|true|false|null|redef|mutate|tolk|as|is|!is|private|readonly|string|contract)\\b"
+            "match": "\\b(import|export|namespace|true|false|null|redef|mutate|tolk|as|is|!is|private|readonly|contract)\\b"
         },
         {
             "name": "keyword.other",
