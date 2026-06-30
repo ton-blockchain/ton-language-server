@@ -16,4 +16,5 @@
 !editors/code/src/languages
 !editors/code/src/assets/logo.png
 !syntaxes/
+!syntaxes/**
 !snippets/
