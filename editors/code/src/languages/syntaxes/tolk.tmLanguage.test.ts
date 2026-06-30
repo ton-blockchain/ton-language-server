@@ -34,9 +34,6 @@ describe("Tolk TextMate grammar", () => {
 })
 
 function readTolkGrammar(): TolkGrammar {
-    const grammarPath = path.join(
-        process.cwd(),
-        "editors/code/src/languages/syntaxes/tolk.tmLanguage.json",
-    )
+    const grammarPath = path.join(process.cwd(), "syntaxes/tolk.tmLanguage.json")
     return JSON.parse(readFileSync(grammarPath, "utf8")) as TolkGrammar
 }

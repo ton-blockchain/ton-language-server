@@ -66,7 +66,7 @@ Language-specific editor features like comment toggling, bracket matching, and a
 
 Language-specific highlighting grammars are defined in:
 
-- [editors/code/src/languages/syntaxes/tolk.tmLanguage.json](editors/code/src/languages/syntaxes/tolk.tmLanguage.json) (
+- [syntaxes/tolk.tmLanguage.json](syntaxes/tolk.tmLanguage.json) (
   for Tolk)
 - [editors/code/src/languages/syntaxes/func.tmLanguage.json](editors/code/src/languages/syntaxes/func.tmLanguage.json) (
   for FunC)
